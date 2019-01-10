@@ -426,8 +426,11 @@ void PreviewGenerator::generate_waveform() {
 		footage->length = (double) media_lengths[maximum_stream] / av_q2d(fmt_ctx->streams[maximum_stream]->avg_frame_rate) * AV_TIME_BASE; // TODO redo with PTS
 		finalize_media();
 	}
-	delete [] media_lengths;
-	delete [] codec_ctx;
+    delete [] media_lengths;
+
+    if (codec_ctx != NULL) {
+        avcodec_free_context(codec_ctx);
+    }
 }
 
 QString PreviewGenerator::get_thumbnail_path(const QString& hash, const FootageStream& ms) {
