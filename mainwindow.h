@@ -150,7 +150,7 @@ private:
 	void setup_menus();
 
 	void set_bool_action_checked(QAction* a);
-	void set_int_action_checked(QAction* a, const int& i);
+    void set_int_action_checked(QAction* a, const int i);
 	void set_button_action_checked(QAction* a);
 
 

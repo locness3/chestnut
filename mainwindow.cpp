@@ -905,7 +905,7 @@ void MainWindow::set_bool_action_checked(QAction *a) {
 	}
 }
 
-void MainWindow::set_int_action_checked(QAction *a, const int& i) {
+void MainWindow::set_int_action_checked(QAction *a, const int i) {
 	if (!a->data().isNull()) {
 		a->setChecked(a->data() == i);
 	}
