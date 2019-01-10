@@ -53,7 +53,7 @@ public slots:
 	void toggle_full_screen();
 
 protected:
-	virtual void closeEvent(QCloseEvent *);
+    virtual void closeEvent(QCloseEvent *e);
 	virtual void paintEvent(QPaintEvent *event);
 
 private slots:

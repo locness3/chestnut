@@ -575,7 +575,7 @@ void MainWindow::setup_menus() {
 
     file_menu->addAction("&Open Project", this, SLOT(open_project()), QKeySequence(ui::defaults::shortcut::OPEN_PROJECT));
 
-	clear_open_recent_action = new QAction("Clear Recent List");
+    clear_open_recent_action = new QAction("Clear Recent List"); //FIXME: leak
 	connect(clear_open_recent_action, SIGNAL(triggered()), panel_project, SLOT(clear_recent_projects()));
 
 	open_recent = file_menu->addMenu("Open Recent");

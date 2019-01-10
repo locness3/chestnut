@@ -107,21 +107,22 @@ private slots:
 
 private:
 	void clean_created_seq();
-	void set_sequence(bool main, Sequence* s);
-	bool main_sequence;
-	bool created_sequence;
-	long cached_end_frame;
-	QString panel_name;
-	double minimum_zoom;
+    void set_sequence(bool main, Sequence* s);
 	void set_zoom_value(double d);
 	void set_sb_max();
 
 	long get_seq_in();
-	long get_seq_out();
-
-	QIcon playIcon;
+    long get_seq_out();
 
 	void setup_ui();
+
+    bool main_sequence;
+    bool created_sequence;
+    long cached_end_frame = 0;
+    QString panel_name;
+    double minimum_zoom;
+
+    QIcon playIcon;
 
 	TimelineHeader* headers;
 	ResizableScrollBar* horizontal_bar;

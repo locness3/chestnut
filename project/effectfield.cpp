@@ -45,7 +45,7 @@ EffectField::EffectField(EffectRow *parent, int t, const QString &i) :
 	switch (t) {
 	case EFFECT_FIELD_DOUBLE:
 	{
-		LabelSlider* ls = new LabelSlider();
+        LabelSlider* ls = new LabelSlider(); //FIXME: leak
 		ui_element = ls;
 		connect(ls, SIGNAL(valueChanged()), this, SLOT(ui_element_change()));
 		connect(ls, SIGNAL(clicked()), this, SIGNAL(clicked()));

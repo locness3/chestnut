@@ -60,7 +60,7 @@ class Project : public QDockWidget {
 	Q_OBJECT
 public:
 	explicit Project(QWidget *parent = 0);
-	~Project();
+    virtual ~Project();
 	bool is_focused();
 	void clear();
 	Media* new_sequence(ComboAction *ca, Sequence* s, bool open, Media* parent);

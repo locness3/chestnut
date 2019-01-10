@@ -108,7 +108,7 @@ void LabelSlider::set_default_value(double v) {
     default_value = v;
 	if (!set) {
 		set_value(v, false);
-		set = false;
+        set = false; //FIXME: its already unset
 	}
 }
 

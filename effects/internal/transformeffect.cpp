@@ -47,7 +47,7 @@
 
 TransformEffect::TransformEffect(Clip* c, const EffectMeta* em) : Effect(c, em) {
 	enable_coords = true;
-
+    // FIXME: leaks
 	EffectRow* position_row = add_row("Position");
 	position_x = position_row->add_field(EFFECT_FIELD_DOUBLE, "posx"); // position X
 	position_y = position_row->add_field(EFFECT_FIELD_DOUBLE, "posy"); // position Y

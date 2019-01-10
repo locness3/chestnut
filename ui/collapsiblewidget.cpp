@@ -34,6 +34,7 @@
 CollapsibleWidget::CollapsibleWidget(QWidget* parent) : QWidget(parent) {
     selected = false;
 
+    //FIXME: leaks!
 	layout = new QVBoxLayout(this);
 	layout->setMargin(0);
 	layout->setSpacing(0);
@@ -44,7 +45,7 @@ CollapsibleWidget::CollapsibleWidget(QWidget* parent) : QWidget(parent) {
     title_bar_layout = new QHBoxLayout();
 	title_bar_layout->setMargin(5);
 	title_bar->setLayout(title_bar_layout);
-	enabled_check = new CheckboxEx();
+    enabled_check = new CheckboxEx();
 	enabled_check->setChecked(true);
 	header = new QLabel();
     collapse_button = new QPushButton();

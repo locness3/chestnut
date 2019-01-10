@@ -289,7 +289,7 @@ void PreviewGenerator::generate_waveform() {
 					if (!s->preview_done) {
 						int dstH = 120;
 						int dstW = dstH * ((float)temp_frame->width/(float)temp_frame->height);
-						uint8_t* data = new uint8_t[dstW*dstH*4];
+                        uint8_t* data = new uint8_t[dstW*dstH*4]; //FIXME: leak
 
 						sws_ctx = sws_getContext(
 								temp_frame->width,

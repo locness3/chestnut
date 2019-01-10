@@ -63,7 +63,7 @@
 
 QVector<EffectMeta> effects;
 
-Effect* create_effect(Clip* c, const EffectMeta* em) {
+Effect* create_effect(Clip* c, const EffectMeta* em) { //FIXME: use of this is causing leaks
 	if (!em->filename.isEmpty()) {
 		// load effect from file
 		return new Effect(c, em);
@@ -286,8 +286,9 @@ Effect::Effect(Clip* c, const EffectMeta *em) :
 	bound(false),
 	enable_always_update(false)
 {
+    //FIXME: leaks
 	// set up base UI
-	container = new CollapsibleWidget();
+    container = new CollapsibleWidget();
 	connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
 	ui = new QWidget();
 	ui_layout = new QGridLayout();
@@ -517,7 +518,7 @@ void Effect::copy_field_keyframes(Effect* e) {
 	}
 }
 
-EffectRow* Effect::add_row(const QString& name, bool savable, bool keyframable) {
+EffectRow* Effect::add_row(const QString& name, bool savable, bool keyframable) { //FIXME: use is causing leaks
 	EffectRow* row = new EffectRow(this, savable, ui_layout, name, rows.size());
 	rows.append(row);
 	return row;
@@ -876,6 +877,7 @@ void Effect::endEffect() {
 void Effect::process_image(double, uint8_t *, int) {}
 
 Effect* Effect::copy(Clip* c) {
+    // FIXME: leak and not the way to do it
 	Effect* copy = create_effect(c, meta);
 	copy->set_enabled(is_enabled());
 	copy_field_keyframes(copy);

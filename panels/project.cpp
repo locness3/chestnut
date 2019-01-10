@@ -201,6 +201,7 @@ Project::Project(QWidget *parent) :
 
 Project::~Project() {
 	delete sorter;
+    delete sources_common;
 }
 
 QString Project::get_next_sequence_name(QString start) {
@@ -603,7 +604,7 @@ void Project::start_preview_generator(Media* item, bool replacing) {
 	item->throbber = throbber;
 	QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);
 
-	PreviewGenerator* pg = new PreviewGenerator(item, item->to_footage(), replacing);
+    PreviewGenerator* pg = new PreviewGenerator(item, item->to_footage(), replacing); //FIXME: leak
 	item->to_footage()->preview_gen = pg;
 	connect(pg, SIGNAL(set_icon(int, bool)), throbber, SLOT(stop(int, bool)));
 	pg->start(QThread::LowPriority);
