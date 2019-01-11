@@ -140,21 +140,19 @@ int Sequence::getAudioLayout() const {
 void Sequence::setAudioLayout(const int layout) {
     audio_layout = layout;
 }
-void Sequence::getTrackLimits(int* video_tracks, int* audio_tracks) {
-	int vt = 0;
-	int at = 0;
+void Sequence::getTrackLimits(int& video_limit, int& audio_limit) {
+    video_limit = 0;
+    audio_limit = 0;
 	for (int j=0;j<clips.size();j++) {
-		Clip* c = clips.at(j);
-		if (c != NULL) {
-			if (c->track < 0 && c->track < vt) { // video clip
-				vt = c->track;
-			} else if (c->track > at) {
-				at = c->track;
+        Clip* c = clips.at(j);
+        if (c != NULL) {
+            if (c->track < 0 && c->track < video_limit) { // video clip
+                video_limit = c->track;
+            } else if (c->track > audio_limit) {
+                audio_limit = c->track;
 			}
 		}
-	}
-	if (video_tracks != NULL) *video_tracks = vt;
-	if (audio_tracks != NULL) *audio_tracks = at;
+    }//for
 }
 
 // static variable for the currently active sequence

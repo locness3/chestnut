@@ -507,7 +507,7 @@ void Timeline::delete_in_out(bool ripple) {
 	if (e_sequence != NULL && e_sequence->using_workarea) {
 		QVector<Selection> areas;
 		int video_tracks = 0, audio_tracks = 0;
-		e_sequence->getTrackLimits(&video_tracks, &audio_tracks);
+        e_sequence->getTrackLimits(video_tracks, audio_tracks);
 		for (int i=video_tracks;i<=audio_tracks;i++) {
 			Selection s;
 			s.in = e_sequence->workarea_in;

@@ -36,7 +36,7 @@ public:
     Sequence();
     virtual ~Sequence();
     Sequence* copy();
-    void getTrackLimits(int* video_tracks, int* audio_tracks);
+    void getTrackLimits(int& video_limit, int& audio_limit);
     long getEndFrame();
     void hard_delete_transition(Clip *c, int type);
 
