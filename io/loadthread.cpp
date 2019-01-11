@@ -270,22 +270,22 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 							for (int j=0;j<stream.attributes().size();j++) {
 								const QXmlStreamAttribute& attr = stream.attributes().at(j);
 								if (attr.name() == "name") {
-									s->name = attr.value().toString();
+                                    s->setName(attr.value().toString());
 								} else if (attr.name() == "folder") {
 									int folder = attr.value().toInt();
 									if (folder > 0) parent = find_loaded_folder_by_id(folder);
 								} else if (attr.name() == "id") {
 									s->save_id = attr.value().toInt();
 								} else if (attr.name() == "width") {
-									s->width = attr.value().toInt();
+//									s->width = attr.value().toInt(); //FIXME:
 								} else if (attr.name() == "height") {
-									s->height = attr.value().toInt();
+//									s->height = attr.value().toInt(); //FIXME:
 								} else if (attr.name() == "framerate") {
-									s->frame_rate = attr.value().toDouble();
+                                    s->setFrameRate(attr.value().toDouble());
 								} else if (attr.name() == "afreq") {
-									s->audio_frequency = attr.value().toInt();
+                                    s->setAudioFrequency(attr.value().toInt());
 								} else if (attr.name() == "alayout") {
-									s->audio_layout = attr.value().toInt();
+                                    s->setAudioLayout(attr.value().toInt());
 								} else if (attr.name() == "open") {
 									open_seq = s;
 								} else if (attr.name() == "workarea") {

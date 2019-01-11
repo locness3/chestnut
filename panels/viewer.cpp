@@ -116,7 +116,7 @@ void Viewer::reset_all_audio() {
 	// reset all clip audio
 	if (seq != NULL) {
 		audio_ibuffer_frame = seq->playhead;
-		audio_ibuffer_timecode = (double) audio_ibuffer_frame / seq->frame_rate;
+        audio_ibuffer_timecode = (double) audio_ibuffer_frame / seq->getFrameRate();
 
 		for (int i=0;i<seq->clips.size();i++) {
 			Clip* c = seq->clips.at(i);
@@ -388,7 +388,7 @@ void Viewer::pause() {
 			c->media = m; // latest media
 			c->media_stream = 0;
 			c->timeline_in = recording_start;
-			c->timeline_out = recording_start + f->get_length_in_frames(seq->frame_rate);
+            c->timeline_out = recording_start + f->get_length_in_frames(seq->getFrameRate());
 			c->clip_in = 0;
 			c->track = recording_track;
 			c->color_r = 128;
@@ -410,7 +410,7 @@ void Viewer::update_playhead_timecode(long p) {
 }
 
 void Viewer::update_end_timecode() {
-	endTimecode->setText((seq == NULL) ? frame_to_timecode(0, config.timecode_view, 30) : frame_to_timecode(seq->getEndFrame(), config.timecode_view, seq->frame_rate));
+    endTimecode->setText((seq == NULL) ? frame_to_timecode(0, config.timecode_view, 30) : frame_to_timecode(seq->getEndFrame(), config.timecode_view, seq->getFrameRate()));
 }
 
 void Viewer::update_header_zoom() {
@@ -618,6 +618,7 @@ void Viewer::setup_ui() {
 }
 
 void Viewer::set_media(Media* m) {
+    //FIXME: magic numbers
 	main_sequence = false;
 	media = m;
 	clean_created_seq();
@@ -630,7 +631,7 @@ void Viewer::set_media(Media* m) {
 			seq = new Sequence();
 			created_sequence = true;
 			seq->wrapper_sequence = true;
-			seq->name = footage->name;
+            seq->setName(footage->name);
 
 			seq->using_workarea = footage->using_inout;
 			if (footage->using_inout) {
@@ -638,38 +639,38 @@ void Viewer::set_media(Media* m) {
 				seq->workarea_out = footage->out;
 			}
 
-			seq->frame_rate = 30;
+            seq->setFrameRate(30);
 
 			if (footage->video_tracks.size() > 0) {
 				const FootageStream& video_stream = footage->video_tracks.at(0);
-				seq->width = video_stream.video_width;
-				seq->height = video_stream.video_height;
-				if (video_stream.video_frame_rate > 0 && !video_stream.infinite_length) seq->frame_rate = video_stream.video_frame_rate * footage->speed;
+                seq->setDimensions(QPair<int,int>(video_stream.video_width, video_stream.video_height));
+                if (video_stream.video_frame_rate > 0 && !video_stream.infinite_length) {
+                    seq->setFrameRate(video_stream.video_frame_rate * footage->speed);
+                }
 
 				Clip* c = new Clip(seq);
 				c->media = media;
 				c->media_stream = video_stream.file_index;
 				c->timeline_in = 0;
-				c->timeline_out = footage->get_length_in_frames(seq->frame_rate);
-				if (c->timeline_out <= 0) c->timeline_out = 150;
+                c->timeline_out = footage->get_length_in_frames(seq->getFrameRate());
+                if (c->timeline_out <= 0) c->timeline_out = 150;
 				c->track = -1;
 				c->clip_in = 0;
 				c->recalculateMaxLength();
 				seq->clips.append(c);
 			} else {
-				seq->width = 1920;
-				seq->height = 1080;
+                seq->setDimensions(QPair<int,int>(1920, 1080));
 			}
 
 			if (footage->audio_tracks.size() > 0) {
 				const FootageStream& audio_stream = footage->audio_tracks.at(0);
-				seq->audio_frequency = audio_stream.audio_frequency;
+                seq->setAudioFrequency(audio_stream.audio_frequency);
 
 				Clip* c = new Clip(seq);
 				c->media = media;
 				c->media_stream = audio_stream.file_index;
 				c->timeline_in = 0;
-				c->timeline_out = footage->get_length_in_frames(seq->frame_rate);
+                c->timeline_out = footage->get_length_in_frames(seq->getFrameRate());
 				c->track = 0;
 				c->clip_in = 0;
 				c->recalculateMaxLength();
@@ -682,10 +683,10 @@ void Viewer::set_media(Media* m) {
 					viewer_widget->update();
 				}
 			} else {
-				seq->audio_frequency = 48000;
+                seq->setAudioFrequency(48000);
 			}
 
-			seq->audio_layout = AV_CH_LAYOUT_STEREO;
+            seq->setAudioLayout(AV_CH_LAYOUT_STEREO);
 		}
 			break;
 		case MEDIA_TYPE_SEQUENCE:
@@ -703,7 +704,7 @@ void Viewer::update_playhead() {
 void Viewer::timer_update() {
 	previous_playhead = seq->playhead;
 
-	seq->playhead = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * seq->frame_rate));
+    seq->playhead = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * seq->getFrameRate()));
 	update_parents();
 
 	long end_frame = get_seq_out();
@@ -774,16 +775,16 @@ void Viewer::set_sequence(bool main, Sequence *s) {
 	btnSkipToEnd->setEnabled(!null_sequence);
 
 	if (!null_sequence) {
-		currentTimecode->set_frame_rate(seq->frame_rate);
+        currentTimecode->set_frame_rate(seq->getFrameRate());
 
-		playback_updater.setInterval(qFloor(1000 / seq->frame_rate));
+        playback_updater.setInterval(qFloor(1000 / seq->getFrameRate()));
 
 		update_playhead_timecode(seq->playhead);
 		update_end_timecode();
 
 		viewer_container->adjust();
 
-		setWindowTitle(panel_name + seq->name);
+        setWindowTitle(panel_name + seq->getName());
 	} else {
 		update_playhead_timecode(0);
 		update_end_timecode();

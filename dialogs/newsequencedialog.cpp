@@ -48,20 +48,20 @@ NewSequenceDialog::NewSequenceDialog(QWidget *parent, Media *existing) :
 
 	if (existing != NULL) {
 		existing_sequence = existing->to_sequence();
-		setWindowTitle("Editing \"" + existing_sequence->name + "\"");
+        setWindowTitle("Editing \"" + existing_sequence->getName() + "\"");
 
-		width_numeric->setValue(existing_sequence->width);
-		height_numeric->setValue(existing_sequence->height);
-		int comp_rate = qRound(existing_sequence->frame_rate*100);
+        width_numeric->setValue(existing_sequence->getDimensions().first);
+        height_numeric->setValue(existing_sequence->getDimensions().second);
+        int comp_rate = qRound(existing_sequence->getFrameRate()*100);
 		for (int i=0;i<frame_rate_combobox->count();i++) {
 			if (qRound(frame_rate_combobox->itemData(i).toDouble()*100) == comp_rate) {
 				frame_rate_combobox->setCurrentIndex(i);
 				break;
 			}
 		}
-        sequence_name_edit->setText(existing_sequence->name);
+        sequence_name_edit->setText(existing_sequence->getName());
 		for (int i=0;i<audio_frequency_combobox->count();i++) {
-			if (audio_frequency_combobox->itemData(i) == existing_sequence->audio_frequency) {
+            if (audio_frequency_combobox->itemData(i) == existing_sequence->getAudioFrequency()) {
 				audio_frequency_combobox->setCurrentIndex(i);
 				break;
 			}
@@ -83,12 +83,11 @@ void NewSequenceDialog::create() {
 	if (existing_sequence == NULL) {
 		Sequence* s = new Sequence();
 
-        s->name = sequence_name_edit->text();
-		s->width = width_numeric->value();
-		s->height = height_numeric->value();
-		s->frame_rate = frame_rate_combobox->currentData().toDouble();
-		s->audio_frequency = audio_frequency_combobox->currentData().toInt();
-		s->audio_layout = AV_CH_LAYOUT_STEREO;
+        s->setName(sequence_name_edit->text());
+        s->setDimensions(QPair<int,int>(width_numeric->value(), height_numeric->value()));
+        s->setFrameRate(frame_rate_combobox->currentData().toDouble());
+        s->setAudioFrequency(audio_frequency_combobox->currentData().toInt());
+        s->setAudioLayout(AV_CH_LAYOUT_STEREO);
 
 		ComboAction* ca = new ComboAction();
 		panel_project->new_sequence(ca, s, true, NULL);
@@ -96,7 +95,7 @@ void NewSequenceDialog::create() {
 	} else {
 		ComboAction* ca = new ComboAction();
 
-		double multiplier = frame_rate_combobox->currentData().toDouble() / existing_sequence->frame_rate;
+        double multiplier = frame_rate_combobox->currentData().toDouble() / existing_sequence->getFrameRate();
 
 		EditSequenceCommand* esc = new EditSequenceCommand(existing_item, existing_sequence);
         esc->name = sequence_name_edit->text();

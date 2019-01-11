@@ -978,33 +978,31 @@ EditSequenceCommand::EditSequenceCommand(Media* i, Sequence *s) :
 	item(i),
 	seq(s),
 	old_project_changed(mainWindow->isWindowModified()),
-	old_name(s->name),
-	old_width(s->width),
-	old_height(s->height),
-	old_frame_rate(s->frame_rate),
-	old_audio_frequency(s->audio_frequency),
-	old_audio_layout(s->audio_layout)
+    old_name(s->getName()),
+    old_width(s->getDimensions().first),
+    old_height(s->getDimensions().second),
+    old_frame_rate(s->getFrameRate()),
+    old_audio_frequency(s->getAudioFrequency()),
+    old_audio_layout(s->getAudioLayout())
 {}
 
 void EditSequenceCommand::undo() {
-	seq->name = old_name;
-	seq->width = old_width;
-	seq->height = old_height;
-	seq->frame_rate = old_frame_rate;
-	seq->audio_frequency = old_audio_frequency;
-	seq->audio_layout = old_audio_layout;
+    seq->setName(old_name);
+    seq->setDimensions(QPair<int,int>(old_width,old_height));
+    seq->setFrameRate(old_frame_rate);
+    seq->setAudioFrequency(old_audio_frequency);
+    seq->setAudioLayout(old_audio_layout);
 	update();
 
 	mainWindow->setWindowModified(old_project_changed);
 }
 
 void EditSequenceCommand::redo() {
-	seq->name = name;
-	seq->width = width;
-	seq->height = height;
-	seq->frame_rate = frame_rate;
-	seq->audio_frequency = audio_frequency;
-	seq->audio_layout = audio_layout;
+    seq->setName(name);
+    seq->setDimensions(QPair<int,int>(width,height));
+    seq->setFrameRate(frame_rate);
+    seq->setAudioFrequency(audio_frequency);
+    seq->setAudioLayout(audio_layout);
 	update();
 
 	mainWindow->setWindowModified(true);

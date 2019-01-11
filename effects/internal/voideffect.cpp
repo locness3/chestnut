@@ -15,7 +15,7 @@ VoidEffect::VoidEffect(Clip *c, const QString& n) : Effect(c, NULL) {
 	} else {
 		display_name = n;
 	}
-	EffectRow* row = add_row("Missing Effect", false, false);
+    EffectRowPtr row = add_row("Missing Effect", false, false);
 	row->add_widget(new QLabel(display_name));
 	container->setText(display_name);
 }

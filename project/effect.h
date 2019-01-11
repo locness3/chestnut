@@ -27,18 +27,16 @@
 #include <QOpenGLTexture>
 #include <QMutex>
 #include <QThread>
-class QLabel;
-class QWidget;
-class CollapsibleWidget;
-class QGridLayout;
-class QPushButton;
-class QMouseEvent;
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 
+#include "effectfield.h"
+#include "effectrow.h"
+#include "effectgizmo.h"
+
+class CollapsibleWidget;
 struct Clip;
-class QXmlStreamReader;
-class QXmlStreamWriter;
 class Effect;
-class EffectRow;
 class CheckboxEx;
 
 struct EffectMeta {
@@ -119,23 +117,20 @@ struct GLTextureCoords {
 
 qint16 mix_audio_sample(qint16 a, qint16 b);
 
-#include "effectfield.h"
-#include "effectrow.h"
-#include "effectgizmo.h"
 
 class Effect : public QObject {
 	Q_OBJECT
 public:
 	Effect(Clip* c, const EffectMeta* em);
-	~Effect();
+	virtual ~Effect();
 	Clip* parent_clip;
 	const EffectMeta* meta;
 	int id;
 	QString name;
-	CollapsibleWidget* container;
+    CollapsibleWidget* container = NULL;
 
-	EffectRow* add_row(const QString &name, bool savable = true, bool keyframable = true);
-	EffectRow* row(int i);
+    EffectRowPtr add_row(const QString &name, bool savable = true, bool keyframable = true);
+    EffectRowPtr row(int i);
 	int row_count();
 
 	EffectGizmo* add_gizmo(int type);
@@ -206,7 +201,7 @@ private:
 	QString script;
 
 	bool isOpen;
-	QVector<EffectRow*> rows;
+    QVector<EffectRowPtr> rows;
 	QVector<EffectGizmo*> gizmos;
 	QGridLayout* ui_layout;
 	QWidget* ui;

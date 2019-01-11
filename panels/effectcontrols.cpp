@@ -133,7 +133,7 @@ void EffectControls::copy(bool del) {
 		for (int i=0;i<selected_clips.size();i++) {
 			Clip* c = sequence->clips.at(selected_clips.at(i));
 			for (int j=0;j<c->effects.size();j++) {
-				Effect* effect = c->effects.at(j);
+                Effect* effect = c->effects.at(j);
 				if (effect->container->selected) {
 					if (!cleared) {
 						clear_clipboard();
@@ -268,7 +268,7 @@ void EffectControls::deselect_all_effects(QWidget* sender) {
 	panel_sequence_viewer->viewer_widget->update();
 }
 
-void EffectControls::open_effect(QVBoxLayout* layout, Effect* e) {
+void EffectControls::open_effect(QVBoxLayout* layout, Effect *e) {
 	CollapsibleWidget* container = e->container;
 	layout->addWidget(container);
 	connect(container, SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
@@ -473,9 +473,9 @@ void EffectControls::load_effects() {
 					open_effect(layout, c->effects.at(j));
 				}
 			} else if (mode == TA_OPENING_TRANSITION && c->get_opening_transition() != NULL) {
-				open_effect(layout, c->get_opening_transition());
+//				open_effect(layout, c->get_opening_transition()); //FIXME:
 			} else if (mode == TA_CLOSING_TRANSITION && c->get_closing_transition() != NULL) {
-				open_effect(layout, c->get_closing_transition());
+//				open_effect(layout, c->get_closing_transition()); //FIXME:
 			}
 		}
 		if (selected_clips.size() > 0) {
@@ -495,7 +495,7 @@ void EffectControls::delete_effects() {
 		for (int i=0;i<selected_clips.size();i++) {
 			Clip* c = sequence->clips.at(selected_clips.at(i));
 			for (int j=0;j<c->effects.size();j++) {
-				Effect* effect = c->effects.at(j);
+                Effect* effect = c->effects.at(j);
 				if (effect->container->selected) {
 					command->clips.append(c);
 					command->fx.append(j);

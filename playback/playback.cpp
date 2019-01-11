@@ -132,7 +132,7 @@ void cache_clip(Clip* clip, long playhead, bool reset, bool scrubbing, QVector<C
 }
 
 double get_timecode(Clip* c, long playhead) {
-	return ((double)(playhead-c->get_timeline_in_with_transition()+c->get_clip_in_with_transition())/(double)c->sequence->frame_rate);
+    return ((double)(playhead-c->get_timeline_in_with_transition()+c->get_clip_in_with_transition())/(double)c->sequence->getFrameRate());
 }
 
 void get_clip_frame(Clip* c, long playhead) {
@@ -307,7 +307,7 @@ double playhead_to_clip_seconds(Clip* c, long playhead) {
 	// returns time in seconds
 	long clip_frame = playhead_to_clip_frame(c, playhead);
 	if (c->reverse) clip_frame = c->getMaximumLength() - clip_frame - 1;
-	double secs = ((double) clip_frame/c->sequence->frame_rate)*c->speed;
+    double secs = ((double) clip_frame/c->sequence->getFrameRate())*c->speed;
 	if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) secs *= c->media->to_footage()->speed;
 	return secs;
 }
@@ -368,7 +368,7 @@ int retrieve_next_frame(Clip* c, AVFrame* f) {
 
 bool is_clip_active(Clip* c, long playhead) {
 	return c->enabled
-			&& c->get_timeline_in_with_transition() < playhead + ceil(c->sequence->frame_rate*2)
+            && c->get_timeline_in_with_transition() < playhead + ceil(c->sequence->getFrameRate()*2)
 			&& c->get_timeline_out_with_transition() > playhead
 			&& playhead - c->get_timeline_in_with_transition() + c->get_clip_in_with_transition() < c->getMaximumLength();
 }

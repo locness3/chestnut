@@ -63,7 +63,7 @@
 
 QVector<EffectMeta> effects;
 
-Effect* create_effect(Clip* c, const EffectMeta* em) { //FIXME: use of this is causing leaks
+Effect* create_effect(Clip* c, const EffectMeta* em) { //FIXME: use of this is causing a lot of leaks
 	if (!em->filename.isEmpty()) {
 		// load effect from file
 		return new Effect(c, em);
@@ -93,9 +93,9 @@ Effect* create_effect(Clip* c, const EffectMeta* em) { //FIXME: use of this is c
 }
 
 const EffectMeta* get_internal_meta(int internal_id, int type) {
-	for (int i=0;i<effects.size();i++) {
-		if (effects.at(i).internal == internal_id && effects.at(i).type == type) {
-			return &effects.at(i);
+    for (int i=0;i< effects.size();i++) {
+        if (effects.at(i).internal == internal_id && effects.at(i).type == type) {
+            return &effects.at(i);
 		}
 	}
 	return NULL;
@@ -318,7 +318,7 @@ Effect::Effect(Clip* c, const EffectMeta *em) :
 							}
 						}
 						if (!row_name.isEmpty()) {
-							EffectRow* row = add_row(row_name);
+                            EffectRowPtr row(add_row(row_name));
 							while (!reader.atEnd() && !(reader.name() == "row" && reader.isEndElement())) {
 								reader.readNext();
 								if (reader.name() == "field" && reader.isStartElement()) {
@@ -494,20 +494,17 @@ Effect::~Effect() {
 		close();
 	}
 
-	//delete container;
-
-	for (int i=0;i<rows.size();i++) {
-		delete rows.at(i);
-	}
 	for (int i=0;i<gizmos.size();i++) {
 		delete gizmos.at(i);
 	}
+
+    delete container;
 }
 
 void Effect::copy_field_keyframes(Effect* e) {
 	for (int i=0;i<rows.size();i++) {
-		EffectRow* row = rows.at(i);
-		EffectRow* copy_row = e->rows.at(i);
+        EffectRowPtr row(rows.at(i));
+        EffectRowPtr copy_row(e->rows.at(i));
 		copy_row->setKeyframing(row->isKeyframing());
 		for (int j=0;j<row->fieldCount();j++) {
 			EffectField* field = row->field(j);
@@ -518,13 +515,13 @@ void Effect::copy_field_keyframes(Effect* e) {
 	}
 }
 
-EffectRow* Effect::add_row(const QString& name, bool savable, bool keyframable) { //FIXME: use is causing leaks
-	EffectRow* row = new EffectRow(this, savable, ui_layout, name, rows.size());
+EffectRowPtr Effect::add_row(const QString& name, bool savable, bool keyframable) {
+    EffectRowPtr row(new EffectRow(this, savable, ui_layout, name, rows.size()));
 	rows.append(row);
 	return row;
 }
 
-EffectRow* Effect::row(int i) {
+EffectRowPtr Effect::row(int i) {
 	return rows.at(i);
 }
 
@@ -660,7 +657,7 @@ void Effect::load(QXmlStreamReader& stream) {
 		stream.readNext();
 		if (stream.name() == "row" && stream.isStartElement()) {
 			if (row_count < rows.size()) {
-				EffectRow* row = rows.at(row_count);
+                EffectRowPtr row(rows.at(row_count));
 				int field_count = 0;
 
 				while (!stream.atEnd() && !(stream.name() == "row" && stream.isEndElement())) {
@@ -751,7 +748,7 @@ void Effect::save(QXmlStreamWriter& stream) {
 	stream.writeAttribute("enabled", QString::number(is_enabled()));
 
 	for (int i=0;i<rows.size();i++) {
-		EffectRow* row = rows.at(i);
+        EffectRowPtr row(rows.at(i));
 		if (row->savable) {
 			stream.writeStartElement("row"); // row
 			for (int j=0;j<row->fieldCount();j++) {
@@ -889,7 +886,7 @@ void Effect::process_shader(double timecode, GLTextureCoords&) {
 	glslProgram->setUniformValue("time", (GLfloat) timecode);
 
 	for (int i=0;i<rows.size();i++) {
-		EffectRow* row = rows.at(i);
+        EffectRowPtr row(rows.at(i));
 		for (int j=0;j<row->fieldCount();j++) {
 			EffectField* field = row->field(j);
 			if (!field->id.isEmpty()) {
@@ -990,8 +987,8 @@ void Effect::gizmo_world_to_screen() {
 		for (int j=0;j<g->get_point_count();j++) {
 			QVector4D screen_pos = QVector4D(g->world_pos[j].x(), g->world_pos[j].y(), 0, 1.0) * (view_matrix * projection_matrix);
 
-			int adjusted_sx1 = qRound(((screen_pos.x()*0.5f)+0.5f)*parent_clip->sequence->width);
-			int adjusted_sy1 = qRound((1.0f-((screen_pos.y()*0.5f)+0.5f))*parent_clip->sequence->height);
+            int adjusted_sx1 = qRound(((screen_pos.x()*0.5f)+0.5f)*parent_clip->sequence->getDimensions().first);
+            int adjusted_sy1 = qRound((1.0f-((screen_pos.y()*0.5f)+0.5f))*parent_clip->sequence->getDimensions().second);
 
 			g->screen_pos[j] = QPoint(adjusted_sx1, adjusted_sy1);
 		}
@@ -1049,7 +1046,7 @@ void Effect::redraw(double) {
 bool Effect::valueHasChanged(double timecode) {
 	if (cachedValues.size() == 0) {
 		for (int i=0;i<row_count();i++) {
-			EffectRow* crow = row(i);
+            EffectRowPtr crow(row(i));
 			for (int j=0;j<crow->fieldCount();j++) {
 				cachedValues.append(crow->field(j)->get_current_data());
 			}
@@ -1058,8 +1055,8 @@ bool Effect::valueHasChanged(double timecode) {
 	} else {
 		bool changed = false;
 		int index = 0;
-		for (int i=0;i<row_count();i++) {
-			EffectRow* crow = row(i);
+        for (int i=0;i<row_count();i++) {
+            EffectRowPtr crow(row(i));
 			for (int j=0;j<crow->fieldCount();j++) {
 				EffectField* field = crow->field(j);
 				field->validate_keyframe_data(timecode);

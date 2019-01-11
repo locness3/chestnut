@@ -22,14 +22,7 @@
 
 #include "debug.h"
 
-Sequence::Sequence() :
-	playhead(0),
-	using_workarea(false),
-    enable_workarea(true),
-	workarea_in(0),
-	workarea_out(0),
-	wrapper_sequence(false)
-{
+Sequence::Sequence() {
 }
 
 Sequence::~Sequence() {
@@ -41,12 +34,11 @@ Sequence::~Sequence() {
 
 Sequence* Sequence::copy() {
 	Sequence* s = new Sequence();
-	s->name = name + " (copy)";
-	s->width = width;
-	s->height = height;
-	s->frame_rate = frame_rate;
-	s->audio_frequency = audio_frequency;
-	s->audio_layout = audio_layout;
+    s->m_name = m_name + " (copy)";
+    s->m_dimensions = m_dimensions;
+    s->m_frameRate = m_frameRate;
+    s->m_audioFrequency = m_audioFrequency;
+    s->m_audioLayout = m_audioLayout;
 	s->clips.resize(clips.size());
 	for (int i=0;i<clips.size();i++) {
 		Clip* c = clips.at(i);
@@ -109,6 +101,44 @@ void Sequence::hard_delete_transition(Clip *c, int type) {
 	}
 }
 
+
+const QString&  Sequence::getName() const {
+    return m_name;
+}
+
+void Sequence::setName(const QString& name) {
+    m_name = name;
+}
+
+const QPair<int,int>& Sequence::getDimensions() const {
+    return m_dimensions;
+}
+void Sequence::setDimensions(const QPair<int,int>& dimensions) {
+    m_dimensions = dimensions;
+}
+
+double Sequence::getFrameRate() const {
+    return m_frameRate;
+}
+void Sequence::setFrameRate(const double frameRate) {
+    m_frameRate = frameRate;
+}
+
+
+int Sequence::getAudioFrequency() const {
+    return m_audioFrequency;
+}
+void Sequence::setAudioFrequency(const int audioFrequency) {
+    m_audioFrequency = audioFrequency;
+}
+
+
+int Sequence::getAudioLayout() const {
+    return m_audioLayout;
+}
+void Sequence::setAudioLayout(const int audioLayout) {
+    m_audioLayout = audioLayout;
+}
 void Sequence::getTrackLimits(int* video_tracks, int* audio_tracks) {
 	int vt = 0;
 	int at = 0;

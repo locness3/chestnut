@@ -23,39 +23,51 @@
 #include "project/marker.h"
 #include "project/selection.h"
 
+//FIXME: this is used EVERYWHERE. This has to be water-tight and heavily tested.
+
 struct Clip;
 class Transition;
 class Media;
 
-struct Sequence {
-	Sequence();
+class Sequence {
+public:
+    Sequence();
 	~Sequence();
-	Sequence* copy();
-	QString name;
+    Sequence* copy();
 	void getTrackLimits(int* video_tracks, int* audio_tracks);
 	long getEndFrame();
 	void hard_delete_transition(Clip *c, int type);
-	int width;
-	int height;
-	double frame_rate;
-	int audio_frequency;
-	int audio_layout;
 
-	QVector<Selection> selections;
-	long playhead;
+    //TODO: use Q_PROPERTY
+    const QString&  getName() const;
+    void setName(const QString& name);
+    const QPair<int,int>& getDimensions() const;
+    void setDimensions(const QPair<int,int>& dimensions);
+    double getFrameRate() const;
+    void setFrameRate(const double frameRate);
+    int getAudioFrequency() const;
+    void setAudioFrequency(const int audioFrequency);
+    int getAudioLayout() const;
+    void setAudioLayout(const int audioLayout);
 
-	bool using_workarea;
-    bool enable_workarea;
-	long workarea_in;
-	long workarea_out;
+    QVector<Selection> selections;
+    QVector<Clip*> clips;
+    int save_id = 0;
+    bool using_workarea = false;
+    bool enable_workarea = true;
+    long workarea_in = 0;
+    long workarea_out = 0;
+    QVector<Transition*> transitions;
+    QVector<Marker> markers;
+    long playhead = 0;
+    bool wrapper_sequence = false;
+private:
+    QString m_name;
+    QPair<int,int> m_dimensions;
 
-	bool wrapper_sequence;
-
-	int save_id;
-
-	QVector<Marker> markers;
-	QVector<Clip*> clips;
-	QVector<Transition*> transitions;
+    double m_frameRate = 0.0;
+    int m_audioFrequency = 0;
+    int m_audioLayout = 0;
 };
 
 // static variable for the currently active sequence

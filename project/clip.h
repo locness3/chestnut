@@ -21,12 +21,12 @@
 #include <QWaitCondition>
 #include <QMutex>
 #include <QVector>
+#include "project/effect.h"
 
 #define SKIP_TYPE_DISCARD 0
 #define SKIP_TYPE_SEEK 1
 
 class Cacher;
-class Effect;
 class Transition;
 class QOpenGLFramebufferObject;
 class ComboAction;

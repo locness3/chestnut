@@ -21,9 +21,10 @@
 #include <QWidget>
 #include <QPainter>
 
+#include "project/effectrow.h"
+
 struct Clip;
 class Effect;
-class EffectRow;
 class EffectField;
 class TimelineHeader;
 
@@ -43,11 +44,11 @@ public slots:
 	void set_y_scroll(int);
 	void resize_move(double d);
 private:
-	long adjust_row_keyframe(EffectRow* row, long time);
+    long adjust_row_keyframe(EffectRowPtr row, long time);
 	QVector<EffectField*> selected_fields;
 	QVector<int> selected_keyframes;
 	QVector<int> rowY;
-	QVector<EffectRow*> rows;
+    QVector<EffectRowPtr> rows;
 	QVector<long> old_key_vals;
 	void mousePressEvent(QMouseEvent* event);
 	void mouseMoveEvent(QMouseEvent* event);

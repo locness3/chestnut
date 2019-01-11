@@ -488,6 +488,7 @@ private:
 };
 
 class EditSequenceCommand : public QUndoCommand {
+    //FIXME: nononononono
 public:
 	EditSequenceCommand(Media *i, Sequence* s);
 	void undo();

@@ -34,6 +34,9 @@ Footage::Footage() : ready(false), preview_gen(NULL), invalid(false), in(0), out
 
 Footage::~Footage() {
 	reset();
+    if (preview_gen != NULL) {
+        delete preview_gen;
+    }
 }
 
 void Footage::reset() {

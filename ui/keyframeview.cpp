@@ -40,7 +40,8 @@
 #include <QtMath>
 #include <QMenu>
 
-long KeyframeView::adjust_row_keyframe(EffectRow* row, long time) {
+long KeyframeView::adjust_row_keyframe(EffectRowPtr row, long time) {
+    //FIXME: the use of ptrs
 	return time-row->parent_effect->parent_clip->clip_in+(row->parent_effect->parent_clip->timeline_in-visible_in);
 }
 
@@ -118,7 +119,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 				Effect* e = c->effects.at(i);
 				if (e->container->is_expanded()) {
 					for (int j=0;j<e->row_count();j++) {
-						EffectRow* row = e->row(j);
+                        EffectRowPtr row = e->row(j);
 
 						ClickableLabel* label = row->label;
 						QWidget* contents = e->container->contents;
@@ -145,9 +146,13 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 
 									if (appearances != row->fieldCount()) {
 										QColor cc = get_curve_color(l, row->fieldCount());
-										draw_keyframe(p, f->keyframes.at(k).type, getScreenPointFromFrame(panel_effect_controls->zoom, keyframe_frame) - x_scroll, keyframe_y, keyframe_selected, cc.red(), cc.green(), cc.blue());
+                                        draw_keyframe(p, f->keyframes.at(k).type,
+                                                      getScreenPointFromFrame(panel_effect_controls->zoom, keyframe_frame) - x_scroll,
+                                                      keyframe_y, keyframe_selected, cc.red(), cc.green(), cc.blue());
 									} else {
-										draw_keyframe(p, f->keyframes.at(k).type, getScreenPointFromFrame(panel_effect_controls->zoom, keyframe_frame) - x_scroll, keyframe_y, keyframe_selected);
+                                        draw_keyframe(p, f->keyframes.at(k).type,
+                                                      getScreenPointFromFrame(panel_effect_controls->zoom, keyframe_frame) - x_scroll,
+                                                      keyframe_y, keyframe_selected);
 									}
 
 									key_times.append(f->keyframes.at(k).time);
@@ -245,7 +250,7 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
 	long frame_max = getFrameFromScreenPoint(panel_effect_controls->zoom, mouse_x+KEYFRAME_SIZE);
 	for (int i=0;i<rowY.size();i++) {
 		if (mouse_y > rowY.at(i)-KEYFRAME_SIZE-KEYFRAME_SIZE && mouse_y < rowY.at(i)+KEYFRAME_SIZE+KEYFRAME_SIZE) {
-			EffectRow* row = rows.at(i);
+            EffectRowPtr row = rows.at(i);
 
 			row->focus_row();
 
@@ -346,7 +351,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
 
 			for (int i=0;i<rowY.size();i++) {
 				if (rowY.at(i) >= min_row && rowY.at(i) <= max_row) {
-					EffectRow* row = rows.at(i);
+                    EffectRowPtr row = rows.at(i);
 					for (int k=0;k<row->fieldCount();k++) {
 						EffectField* field = row->field(k);
 						for (int j=0;j<field->keyframes.size();j++) {

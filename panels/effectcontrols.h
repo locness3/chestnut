@@ -22,9 +22,10 @@
 #include <QUndoCommand>
 #include <QMutex>
 
+#include "project/effect.h"
+
 struct Clip;
 class QMenu;
-class Effect;
 class TimelineHeader;
 class QScrollArea;
 class KeyframeView;
@@ -87,7 +88,7 @@ private:
 	void show_effect_menu(int type, int subtype);
 	void load_effects();
 	void load_keyframes();
-	void open_effect(QVBoxLayout* layout, Effect* e);
+    void open_effect(QVBoxLayout* layout, Effect* e);
 
 	void setup_ui();
 

@@ -63,6 +63,13 @@ EffectRow::EffectRow(Effect *parent, bool save, QGridLayout *uilayout, const QSt
 	}
 }
 
+EffectRow::~EffectRow() {
+    for (int i=0;i<fields.size();i++) {
+        delete fields.at(i);
+    }
+    delete label;
+}
+
 bool EffectRow::isKeyframing() {
 	return keyframing;
 }
@@ -177,11 +184,7 @@ void EffectRow::add_widget(QWidget* w) {
 	column_count++;
 }
 
-EffectRow::~EffectRow() {
-	for (int i=0;i<fields.size();i++) {
-		delete fields.at(i);
-	}
-}
+
 
 void EffectRow::set_keyframe_now(ComboAction* ca) {
 	long time = sequence->playhead-parent_effect->parent_clip->timeline_in+parent_effect->parent_clip->clip_in;

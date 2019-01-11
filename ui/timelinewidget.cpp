@@ -239,9 +239,9 @@ void TimelineWidget::tooltip_timer_timeout() {
 			if (c != NULL) {
 				QToolTip::showText(QCursor::pos(),
 							c->name
-								   + "\nStart: " + frame_to_timecode(c->timeline_in, config.timecode_view, sequence->frame_rate)
-								   + "\nEnd: " + frame_to_timecode(c->timeline_out, config.timecode_view, sequence->frame_rate)
-								   + "\nDuration: " + frame_to_timecode(c->getLength(), config.timecode_view, sequence->frame_rate));
+                                   + "\nStart: " + frame_to_timecode(c->timeline_in, config.timecode_view, sequence->getFrameRate())
+                                   + "\nEnd: " + frame_to_timecode(c->timeline_out, config.timecode_view, sequence->getFrameRate())
+                                   + "\nDuration: " + frame_to_timecode(c->getLength(), config.timecode_view, sequence->getFrameRate()));
 			}
 		}
 	}
@@ -854,7 +854,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
 						case ADD_OBJ_BARS:
 						{
 							c->name = "Bars";
-							Effect* e = create_effect(c, get_internal_meta(EFFECT_INTERNAL_SOLID, EFFECT_TYPE_EFFECT));
+                            Effect* e = create_effect(c, get_internal_meta(EFFECT_INTERNAL_SOLID, EFFECT_TYPE_EFFECT));
 							e->row(0)->field(0)->set_combo_index(1);
 							c->effects.append(e);
 						}
@@ -1578,9 +1578,9 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
 	}
 
 	if (panel_timeline->importing) {
-		QToolTip::showText(mapToGlobal(mouse_pos), frame_to_timecode(earliest_in_point, config.timecode_view, sequence->frame_rate));
+        QToolTip::showText(mapToGlobal(mouse_pos), frame_to_timecode(earliest_in_point, config.timecode_view, sequence->getFrameRate()));
 	} else {
-		QString tip = ((frame_diff < 0) ? "-" : "+") + frame_to_timecode(qAbs(frame_diff), config.timecode_view, sequence->frame_rate);
+        QString tip = ((frame_diff < 0) ? "-" : "+") + frame_to_timecode(qAbs(frame_diff), config.timecode_view, sequence->getFrameRate());
 		if (panel_timeline->trim_target > -1) {
 			// find which clip is being moved
 			const Ghost* g = NULL;
@@ -1599,7 +1599,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
 				} else {
 					len += frame_diff;
 				}
-				tip += frame_to_timecode(len, config.timecode_view, sequence->frame_rate);
+                tip += frame_to_timecode(len, config.timecode_view, sequence->getFrameRate());
 			}
 		}
 		QToolTip::showText(mapToGlobal(mouse_pos), tip);

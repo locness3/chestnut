@@ -231,14 +231,14 @@ QString Project::get_next_sequence_name(QString start) {
 Sequence* create_sequence_from_media(QVector<Media*>& media_list) {
 	Sequence* s = new Sequence();
 
-	s->name = panel_project->get_next_sequence_name();
+    s->setName(panel_project->get_next_sequence_name());
 
-	// shitty hardcoded default values
-	s->width = 1920;
-	s->height = 1080;
-	s->frame_rate = 29.97;
-	s->audio_frequency = 48000;
-	s->audio_layout = 3;
+    // FIXME: hardcoded default values
+    QPair<int,int> dims(1920,1080);
+    s->setDimensions(dims);
+    s->setFrameRate(29.97);
+    s->setAudioFrequency(48000);
+    s->setAudioLayout(3);
 
 	bool got_video_values = false;
 	bool got_audio_values = false;
@@ -252,12 +252,13 @@ Sequence* create_sequence_from_media(QVector<Media*>& media_list) {
 				if (!got_video_values) {
 					for (int j=0;j<m->video_tracks.size();j++) {
 						const FootageStream& ms = m->video_tracks.at(j);
-						s->width = ms.video_width;
-						s->height = ms.video_height;
+                        s->setDimensions(QPair<int,int>(ms.video_width, ms.video_height));
 						if (ms.video_frame_rate != 0) {
-							s->frame_rate = ms.video_frame_rate * m->speed;
+                            s->setFrameRate(ms.video_frame_rate * m->speed);
 
-							if (ms.video_interlacing != VIDEO_PROGRESSIVE) s->frame_rate *= 2;
+                            if (ms.video_interlacing != VIDEO_PROGRESSIVE) {
+                                s->setFrameRate(s->getFrameRate() * 2);
+                            }
 
 							// only break with a decent frame rate, otherwise there may be a better candidate
 							got_video_values = true;
@@ -268,7 +269,7 @@ Sequence* create_sequence_from_media(QVector<Media*>& media_list) {
 				if (!got_audio_values) {
 					for (int j=0;j<m->audio_tracks.size();j++) {
 						const FootageStream& ms = m->audio_tracks.at(j);
-						s->audio_frequency = ms.audio_frequency;
+                        s->setAudioFrequency(ms.audio_frequency);
 						got_audio_values = true;
 						break;
 					}
@@ -279,14 +280,15 @@ Sequence* create_sequence_from_media(QVector<Media*>& media_list) {
 		case MEDIA_TYPE_SEQUENCE:
 		{
 			Sequence* seq = media->to_sequence();
-			s->width = seq->width;
-			s->height = seq->height;
-			s->frame_rate = seq->frame_rate;
-			s->audio_frequency = seq->audio_frequency;
-			s->audio_layout = seq->audio_layout;
+            if (seq != NULL) {
+                s->setDimensions(seq->getDimensions());
+                s->setFrameRate(seq->getFrameRate());
+                s->setAudioFrequency(seq->getAudioFrequency());
+                s->setAudioLayout(seq->getAudioLayout());
 
-			got_video_values = true;
-			got_audio_values = true;
+                got_video_values = true;
+                got_audio_values = true;
+            }
 		}
 			break;
 		}
@@ -485,7 +487,7 @@ void Project::delete_selected_media() {
 							// we found a reference, so we know we'll need to ask if the user wants to delete it
 							QMessageBox confirm(this);
 							confirm.setWindowTitle("Delete media in use?");
-							confirm.setText("The media '" + media->name + "' is currently used in '" + s->name + "'. Deleting it will remove all instances in the sequence. Are you sure you want to do this?");
+                            confirm.setText("The media '" + media->name + "' is currently used in '" + s->getName() + "'. Deleting it will remove all instances in the sequence. Are you sure you want to do this?");
 							QAbstractButton* yes_button = confirm.addButton(QMessageBox::Yes);
 							QAbstractButton* skip_button = NULL;
 							if (items.size() > 1) skip_button = confirm.addButton("Skip", QMessageBox::NoRole);
@@ -953,12 +955,12 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 						stream.writeStartElement("sequence");
 						stream.writeAttribute("id", QString::number(s->save_id));
 						stream.writeAttribute("folder", QString::number(folder));
-						stream.writeAttribute("name", s->name);
-						stream.writeAttribute("width", QString::number(s->width));
-						stream.writeAttribute("height", QString::number(s->height));
-						stream.writeAttribute("framerate", QString::number(s->frame_rate, 'f', 10));
-						stream.writeAttribute("afreq", QString::number(s->audio_frequency));
-						stream.writeAttribute("alayout", QString::number(s->audio_layout));
+                        stream.writeAttribute("name", s->getName());
+                        stream.writeAttribute("width", QString::number(s->getDimensions().first));
+                        stream.writeAttribute("height", QString::number(s->getDimensions().second));
+                        stream.writeAttribute("framerate", QString::number(s->getFrameRate(), 'f', 10));
+                        stream.writeAttribute("afreq", QString::number(s->getAudioFrequency()));
+                        stream.writeAttribute("alayout", QString::number(s->getAudioLayout()));
 						if (s == sequence) {
 							stream.writeAttribute("open", "1");
 						}

@@ -46,7 +46,7 @@ TimecodeEffect::TimecodeEffect(Clip *c, const EffectMeta* em) :
 	enable_always_update = true;
 	enable_superimpose = true;
 
-	EffectRow* tc_row = add_row("Timecode");
+    EffectRowPtr tc_row = add_row("Timecode");
 	tc_select = tc_row->add_field(EFFECT_FIELD_COMBO, "tc_selector");
 	tc_select->add_combo_item("Sequence", true);
 	tc_select->add_combo_item("Media", false);
@@ -68,7 +68,7 @@ TimecodeEffect::TimecodeEffect(Clip *c, const EffectMeta* em) :
 	bg_alpha->set_double_maximum_value(100);
 	bg_alpha->set_double_default_value(50);
 
-	EffectRow* offset = add_row("Offset");
+    EffectRowPtr offset = add_row("Offset");
 	offset_x_val = offset->add_field(EFFECT_FIELD_DOUBLE, "offsetx");
 	offset_y_val = offset->add_field(EFFECT_FIELD_DOUBLE, "offsety");
 
@@ -78,7 +78,7 @@ TimecodeEffect::TimecodeEffect(Clip *c, const EffectMeta* em) :
 
 void TimecodeEffect::redraw(double timecode) {
 	if (tc_select->get_combo_data(timecode).toBool()){
-		display_timecode = prepend_text->get_string_value(timecode) + frame_to_timecode(sequence->playhead, config.timecode_view, sequence->frame_rate);}
+        display_timecode = prepend_text->get_string_value(timecode) + frame_to_timecode(sequence->playhead, config.timecode_view, sequence->getFrameRate());}
 	else {
 		double media_rate = parent_clip->getMediaFrameRate();
 		display_timecode = prepend_text->get_string_value(timecode) + frame_to_timecode(timecode * media_rate, config.timecode_view, media_rate);}

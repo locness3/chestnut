@@ -169,15 +169,15 @@ bool ExportThread::setupVideo() {
 	video_frame = av_frame_alloc();
 	av_frame_make_writable(video_frame);
 	video_frame->format = AV_PIX_FMT_RGBA;
-	video_frame->width = sequence->width;
-	video_frame->height = sequence->height;
+    video_frame->width = sequence->getDimensions().first;
+    video_frame->height = sequence->getDimensions().second;
 	av_frame_get_buffer(video_frame, 0);
 
 	av_init_packet(&video_pkt);
 
 	sws_ctx = sws_getContext(
-				sequence->width,
-				sequence->height,
+                sequence->getDimensions().first,
+                sequence->getDimensions().second,
 				AV_PIX_FMT_RGBA,
 				video_width,
 				video_height,
@@ -266,9 +266,9 @@ bool ExportThread::setupAudio() {
 			acodec_ctx->channel_layout,
 			acodec_ctx->sample_fmt,
 			acodec_ctx->sample_rate,
-			sequence->audio_layout,
+            sequence->getAudioLayout(),
 			AV_SAMPLE_FMT_S16,
-			sequence->audio_frequency,
+            sequence->getAudioFrequency(),
 			0,
 			NULL
 		);
@@ -276,7 +276,7 @@ bool ExportThread::setupAudio() {
 
 	// initialize raw audio frame
 	audio_frame = av_frame_alloc();
-	audio_frame->sample_rate = sequence->audio_frequency;
+    audio_frame->sample_rate = sequence->getAudioFrequency();
 	audio_frame->nb_samples = acodec_ctx->frame_size;
 	if (audio_frame->nb_samples == 0) audio_frame->nb_samples = 256; // should possibly be smaller?
 	audio_frame->format = AV_SAMPLE_FMT_S16;
@@ -356,7 +356,7 @@ void ExportThread::run() {
 	panel_sequence_viewer->seek(start_frame);
 	panel_sequence_viewer->reset_all_audio();
 
-	QOpenGLFramebufferObject fbo(sequence->width, sequence->height, QOpenGLFramebufferObject::CombinedDepthStencil, GL_TEXTURE_RECTANGLE);
+    QOpenGLFramebufferObject fbo(sequence->getDimensions().first, sequence->getDimensions().second, QOpenGLFramebufferObject::CombinedDepthStencil, GL_TEXTURE_RECTANGLE);
 	fbo.bind();
 
 	panel_sequence_viewer->viewer_widget->default_fbo = &fbo;
@@ -370,10 +370,10 @@ void ExportThread::run() {
 
 		panel_sequence_viewer->viewer_widget->paintGL();
 
-		double timecode_secs = (double) (sequence->playhead-start_frame) / sequence->frame_rate;
+        double timecode_secs = (double) (sequence->playhead-start_frame) / sequence->getFrameRate();
 		if (video_enabled) {
 			// get image from opengl
-			glReadPixels(0, 0, video_frame->linesize[0]/4, sequence->height, GL_RGBA, GL_UNSIGNED_BYTE, video_frame->data[0]);
+            glReadPixels(0, 0, video_frame->linesize[0]/4, sequence->getDimensions().second, GL_RGBA, GL_UNSIGNED_BYTE, video_frame->data[0]);
 
 			// change pixel format
 			sws_scale(sws_ctx, video_frame->data, video_frame->linesize, 0, video_frame->height, sws_frame->data, sws_frame->linesize);

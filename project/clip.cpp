@@ -84,7 +84,7 @@ Clip* Clip::copy(Sequence* s) {
 		copy->effects.append(effects.at(i)->copy(copy));
 	}
 
-	copy->cached_fr = (this->sequence == NULL) ? cached_fr : this->sequence->frame_rate;
+    copy->cached_fr = (this->sequence == NULL) ? cached_fr : this->sequence->getFrameRate();
 
 	if (get_opening_transition() != NULL && get_opening_transition()->secondary_clip == NULL) copy->opening_transition = get_opening_transition()->copy(copy, NULL);
 	if (get_closing_transition() != NULL && get_closing_transition()->secondary_clip == NULL) copy->closing_transition = get_closing_transition()->copy(copy, NULL);
@@ -237,13 +237,13 @@ double Clip::getMediaFrameRate() {
 		double rate = media->get_frame_rate(media_stream);
 		if (!qIsNaN(rate)) return rate;
 	}
-	if (sequence != NULL) return sequence->frame_rate;
+    if (sequence != NULL) return sequence->getFrameRate();
 	return qSNaN();
 }
 
 void Clip::recalculateMaxLength() {
 	if (sequence != NULL) {
-		double fr = this->sequence->frame_rate;
+        double fr = this->sequence->getFrameRate();
 
 		fr /= speed;
 
@@ -265,7 +265,7 @@ void Clip::recalculateMaxLength() {
 			case MEDIA_TYPE_SEQUENCE:
 			{
 				Sequence* s = media->to_sequence();
-				calculated_length = refactor_frame_number(s->getEndFrame(), s->frame_rate, fr);
+                calculated_length = refactor_frame_number(s->getEndFrame(), s->getFrameRate(), fr);
 			}
 				break;
 			}
@@ -278,36 +278,36 @@ long Clip::getMaximumLength() {
 }
 
 int Clip::getWidth() {
-	if (media == NULL && sequence != NULL) return sequence->width;
+    if (media == NULL && sequence != NULL) return sequence->getDimensions().first;
 	switch (media->get_type()) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
 		const FootageStream* ms = media->to_footage()->get_stream_from_file_index(track < 0, media_stream);
 		if (ms != NULL) return ms->video_width;
-		if (sequence != NULL) return sequence->width;
+        if (sequence != NULL) return sequence->getDimensions().first;
 	}
 	case MEDIA_TYPE_SEQUENCE:
 	{
 		Sequence* s = media->to_sequence();
-		return s->width;
+        return s->getDimensions().first;
 	}
 	}
 	return 0;
 }
 
 int Clip::getHeight() {
-	if (media == NULL && sequence != NULL) return sequence->height;
+    if (media == NULL && sequence != NULL) return sequence->getDimensions().second;
 	switch (media->get_type()) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
 		const FootageStream* ms = media->to_footage()->get_stream_from_file_index(track < 0, media_stream);
 		if (ms != NULL) return ms->video_height;
-		if (sequence != NULL) return sequence->height;
+        if (sequence != NULL) return sequence->getDimensions().second;
 	}
 	case MEDIA_TYPE_SEQUENCE:
 	{
 		Sequence* s = media->to_sequence();
-		return s->height;
+        return s->getDimensions().second;;
 	}
 	}
 	return 0;
@@ -326,7 +326,7 @@ void Clip::refactor_frame_rate(ComboAction* ca, double multiplier, bool change_t
 	for (int i=0;i<effects.size();i++) {
 		Effect* e = effects.at(i);
 		for (int j=0;j<e->row_count();j++) {
-			EffectRow* r = e->row(j);
+            EffectRowPtr r = e->row(j);
 			for (int l=0;l<r->fieldCount();l++) {
 				EffectField* f = r->field(l);
 				for (int k=0;k<f->keyframes.size();k++) {

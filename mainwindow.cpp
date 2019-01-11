@@ -264,6 +264,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &appName) :
 MainWindow::~MainWindow() {
 	free_panels();
 	close_debug();
+    delete clear_open_recent_action;
 }
 
 void MainWindow::launch_with_project(const QString& s) {
@@ -376,7 +377,7 @@ void MainWindow::delete_slot() {
 	if (panel_timeline->headers->hasFocus()) {
 		panel_timeline->headers->delete_markers();
 	} else if (panel_timeline->focused()) {
-		panel_timeline->delete_selection(sequence->selections, false);
+        panel_timeline->delete_selection(sequence->selections, false);
 	} else if (panel_effect_controls->is_focused()) {
 		panel_effect_controls->delete_effects();
 	} else if (panel_project->is_focused()) {
@@ -575,8 +576,8 @@ void MainWindow::setup_menus() {
 
     file_menu->addAction("&Open Project", this, SLOT(open_project()), QKeySequence(ui::defaults::shortcut::OPEN_PROJECT));
 
-    clear_open_recent_action = new QAction("Clear Recent List"); //FIXME: leak
-	connect(clear_open_recent_action, SIGNAL(triggered()), panel_project, SLOT(clear_recent_projects()));
+    clear_open_recent_action = new QAction("Clear Recent List"); //FIXME: leak.
+    connect(clear_open_recent_action, SIGNAL(triggered()), panel_project, SLOT(clear_recent_projects()));
 
 	open_recent = file_menu->addMenu("Open Recent");
 
@@ -1409,12 +1410,11 @@ void MainWindow::nest() {
 			Sequence* s = new Sequence();
 
 			// create "nest" sequence
-			s->name = panel_project->get_next_sequence_name("Nested Sequence");
-			s->width = sequence->width;
-			s->height = sequence->height;
-			s->frame_rate = sequence->frame_rate;
-			s->audio_frequency = sequence->audio_frequency;
-			s->audio_layout = sequence->audio_layout;
+            s->setName(panel_project->get_next_sequence_name("Nested Sequence"));
+            s->setDimensions(sequence->getDimensions());
+            s->setFrameRate(sequence->getFrameRate());
+            s->setAudioFrequency(sequence->getAudioFrequency());
+            s->setAudioLayout(sequence->getAudioLayout());
 
 			// copy all selected clips to the nest
 			for (int i=0;i<selected_clips.size();i++) {

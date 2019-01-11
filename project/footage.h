@@ -59,7 +59,7 @@ struct FootageStream {
 struct Footage {
 	Footage();
 	~Footage();
-
+    //FIXME: encapsulation
 	QString url;
 	QString name;
 	int64_t length;
@@ -70,7 +70,7 @@ struct Footage {
 	bool invalid;
 	double speed;
 
-	PreviewGenerator* preview_gen;
+    PreviewGenerator* preview_gen = NULL;
 	QMutex ready_lock;
 
 	bool using_inout;

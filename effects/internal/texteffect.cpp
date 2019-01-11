@@ -52,7 +52,7 @@ TextEffect::TextEffect(Clip *c, const EffectMeta* em) :
 
 	set_color_button = add_row("Color")->add_field(EFFECT_FIELD_COLOR, "color", 2);
 
-	EffectRow* alignment_row = add_row("Alignment");
+    EffectRowPtr alignment_row = add_row("Alignment");
 	halign_field = alignment_row->add_field(EFFECT_FIELD_COMBO, "halign");
 	halign_field->add_combo_item("Left", Qt::AlignLeft);
 	halign_field->add_combo_item("Center", Qt::AlignHCenter);

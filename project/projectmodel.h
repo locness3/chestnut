@@ -27,7 +27,7 @@ class ProjectModel : public QAbstractItemModel
 	Q_OBJECT
 public:
 	ProjectModel(QObject* parent = 0);
-	~ProjectModel() override;
+    virtual ~ProjectModel();
 
 	void destroy_root();
 	void clear();

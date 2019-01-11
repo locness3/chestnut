@@ -196,19 +196,21 @@ void Timeline::create_ghosts_from_media(Sequence* seq, long entry_point, QVector
 			if (m->using_inout) {
 				double source_fr = 30;
 				if (m->video_tracks.size() > 0 && !qIsNull(m->video_tracks.at(0).video_frame_rate)) source_fr = m->video_tracks.at(0).video_frame_rate * m->speed;
-				default_clip_in = refactor_frame_number(m->in, source_fr, seq->frame_rate);
-				default_clip_out = refactor_frame_number(m->out, source_fr, seq->frame_rate);
+                default_clip_in = refactor_frame_number(m->in, source_fr, seq->getFrameRate());
+                default_clip_out = refactor_frame_number(m->out, source_fr, seq->getFrameRate());
 			}
 			break;
 		case MEDIA_TYPE_SEQUENCE:
 			s = medium->to_sequence();
 			sequence_length = s->getEndFrame();
-			if (seq != NULL) sequence_length = refactor_frame_number(sequence_length, s->frame_rate, seq->frame_rate);
+            if (seq != NULL) {
+                sequence_length = refactor_frame_number(sequence_length, s->getFrameRate(), seq->getFrameRate());
+            }
 			media = s;
 			can_import = (s != seq && sequence_length != 0);
 			if (s->using_workarea) {
-				default_clip_in = refactor_frame_number(s->workarea_in, s->frame_rate, seq->frame_rate);
-				default_clip_out = refactor_frame_number(s->workarea_out, s->frame_rate, seq->frame_rate);
+                default_clip_in = refactor_frame_number(s->workarea_in, s->getFrameRate(), seq->getFrameRate());
+                default_clip_out = refactor_frame_number(s->workarea_out, s->getFrameRate(), seq->getFrameRate());
 			}
 			break;
 		default:
@@ -230,7 +232,7 @@ void Timeline::create_ghosts_from_media(Sequence* seq, long entry_point, QVector
 				if (m->video_tracks.size() > 0 && m->video_tracks.at(0).infinite_length && m->audio_tracks.size() == 0) {
 					g.out = g.in + 100;
 				} else {
-					long length = m->get_length_in_frames(seq->frame_rate);
+                    long length = m->get_length_in_frames(seq->getFrameRate());
 					g.out = entry_point + length - default_clip_in;
 					if (m->using_inout) {
 						g.out -= (length - default_clip_out);
@@ -323,7 +325,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, Sequence* s) {
 			c->color_b = 128;
 
 			Sequence* media = c->media->to_sequence();
-			c->name = media->name;
+            c->name = media->getName();
 		}
 		c->recalculateMaxLength();
 		added_clips.append(c);
@@ -420,7 +422,7 @@ void Timeline::update_sequence() {
 	if (null_sequence) {
 		setWindowTitle("Timeline: <none>");
 	} else {
-		setWindowTitle("Timeline: " + sequence->name);
+        setWindowTitle("Timeline: " + sequence->getName());
 		update_ui(false);
 	}
 }
@@ -931,9 +933,9 @@ void Timeline::paste(bool insert) {
 				Clip* cc = c->copy(sequence);
 
 				// convert frame rates
-				cc->timeline_in = refactor_frame_number(cc->timeline_in, c->cached_fr, sequence->frame_rate);
-				cc->timeline_out = refactor_frame_number(cc->timeline_out, c->cached_fr, sequence->frame_rate);
-				cc->clip_in = refactor_frame_number(cc->clip_in, c->cached_fr, sequence->frame_rate);
+                cc->timeline_in = refactor_frame_number(cc->timeline_in, c->cached_fr, sequence->getFrameRate());
+                cc->timeline_out = refactor_frame_number(cc->timeline_out, c->cached_fr, sequence->getFrameRate());
+                cc->clip_in = refactor_frame_number(cc->clip_in, c->cached_fr, sequence->getFrameRate());
 
 				cc->timeline_in += sequence->playhead;
 				cc->timeline_out += sequence->playhead;

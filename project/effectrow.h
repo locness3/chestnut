@@ -20,14 +20,12 @@
 
 #include <QObject>
 #include <QVector>
+#include <QGridLayout>
+#include <memory>
 
 class Effect;
-class QGridLayout;
 class EffectField;
-class QLabel;
-class QPushButton;
 class ComboAction;
-class QHBoxLayout;
 class KeyframeNavigator;
 class ClickableLabel;
 
@@ -35,14 +33,14 @@ class EffectRow : public QObject {
 	Q_OBJECT
 public:
 	EffectRow(Effect* parent, bool save, QGridLayout* uilayout, const QString& n, int row, bool keyframable = true);
-	~EffectRow();
+    virtual ~EffectRow();
 	EffectField* add_field(int type, const QString &id, int colspan = 1);
 	void add_widget(QWidget *w);
 	EffectField* field(int i);
 	int fieldCount();
 	void set_keyframe_now(ComboAction *ca);
 	void delete_keyframe_at_time(ComboAction *ca, long time);
-	ClickableLabel* label;
+    ClickableLabel* label = NULL;
 	Effect* parent_effect;
 	bool savable;
 	const QString& get_name();
@@ -72,5 +70,7 @@ private:
 
 	int column_count;
 };
+
+typedef std::shared_ptr<EffectRow> EffectRowPtr;
 
 #endif // EFFECTROW_H

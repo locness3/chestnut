@@ -39,6 +39,7 @@ class EffectField : public QObject {
 	Q_OBJECT
 public:
 	EffectField(EffectRow* parent, int t, const QString& i);
+    virtual ~EffectField();
 	EffectRow* parent_row;
 	int type;
 	QString id;
@@ -82,7 +83,7 @@ public:
 	QWidget* get_ui_element();
 	void set_enabled(bool e);
 	QVector<EffectKeyframe> keyframes;
-	QWidget* ui_element;
+    QWidget* ui_element = NULL;
 
 	void make_key_from_change(ComboAction* ca);
 private:

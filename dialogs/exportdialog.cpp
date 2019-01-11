@@ -74,7 +74,7 @@ enum ExportFormats {
 ExportDialog::ExportDialog(QWidget *parent) :
 	QDialog(parent)
 {
-	setWindowTitle("Export \"" + sequence->name + "\"");
+    setWindowTitle("Export \"" + sequence->getName() + "\"");
 	setup_ui();
 
 	rangeCombobox->setCurrentIndex(0);
@@ -111,10 +111,10 @@ ExportDialog::ExportDialog(QWidget *parent) :
 	}
 	formatCombobox->setCurrentIndex(FORMAT_MPEG4);
 
-	widthSpinbox->setValue(sequence->width);
-	heightSpinbox->setValue(sequence->height);
-	samplingRateSpinbox->setValue(sequence->audio_frequency);
-	framerateSpinbox->setValue(sequence->frame_rate);
+    widthSpinbox->setValue(sequence->getDimensions().first);
+    heightSpinbox->setValue(sequence->getDimensions().second);
+    samplingRateSpinbox->setValue(sequence->getAudioFrequency());
+    framerateSpinbox->setValue(sequence->getFrameRate());
 }
 
 ExportDialog::~ExportDialog()
@@ -575,7 +575,7 @@ void ExportDialog::comp_type_changed(int) {
 	case COMPRESSION_TYPE_CBR:
 	case COMPRESSION_TYPE_TARGETBR:
 		videoBitrateLabel->setText("Bitrate (Mbps):");
-		videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * sequence->height) - 4.5)));
+        videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * sequence->getDimensions().second) - 4.5)));
 		break;
 	case COMPRESSION_TYPE_CFR:
 		videoBitrateLabel->setText("Quality (CRF):");

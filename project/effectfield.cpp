@@ -45,7 +45,7 @@ EffectField::EffectField(EffectRow *parent, int t, const QString &i) :
 	switch (t) {
 	case EFFECT_FIELD_DOUBLE:
 	{
-        LabelSlider* ls = new LabelSlider(); //FIXME: leak
+        LabelSlider* ls = new LabelSlider();
 		ui_element = ls;
 		connect(ls, SIGNAL(valueChanged()), this, SLOT(ui_element_change()));
 		connect(ls, SIGNAL(clicked()), this, SIGNAL(clicked()));
@@ -98,6 +98,12 @@ EffectField::EffectField(EffectRow *parent, int t, const QString &i) :
 	}
 }
 
+
+EffectField::~EffectField() {
+    delete ui_element;
+    delete parent_row;
+}
+
 QVariant EffectField::get_previous_data() {
 	switch (type) {
 	case EFFECT_FIELD_DOUBLE: return static_cast<LabelSlider*>(ui_element)->getPreviousValue();
@@ -125,11 +131,11 @@ QVariant EffectField::get_current_data() {
 }
 
 double EffectField::frameToTimecode(long frame) {
-	return ((double) frame / parent_row->parent_effect->parent_clip->sequence->frame_rate);
+    return ((double) frame / parent_row->parent_effect->parent_clip->sequence->getFrameRate());
 }
 
 long EffectField::timecodeToFrame(double timecode) {
-	return qRound(timecode * parent_row->parent_effect->parent_clip->sequence->frame_rate);
+    return qRound(timecode * parent_row->parent_effect->parent_clip->sequence->getFrameRate());
 }
 
 void EffectField::set_current_data(const QVariant& data) {
@@ -212,15 +218,15 @@ QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
 					// bezier interpolation
 					if (before_key.type == KEYFRAME_TYPE_BEZIER && after_key.type == KEYFRAME_TYPE_BEZIER) {
 						// cubic bezier
-						double t = cubic_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->frame_rate, before_key.time, before_key.time+before_key.post_handle_x, after_key.time+after_key.pre_handle_x, after_key.time);
+                        double t = cubic_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(), before_key.time, before_key.time+before_key.post_handle_x, after_key.time+after_key.pre_handle_x, after_key.time);
 						value = cubic_from_t(before_dbl, before_dbl+before_key.post_handle_y, after_dbl+after_key.pre_handle_y, after_dbl, t);
 					} else if (after_key.type == KEYFRAME_TYPE_LINEAR) { // quadratic bezier
 						// last keyframe is the bezier one
-						double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->frame_rate, before_key.time, before_key.time+before_key.post_handle_x, after_key.time);
+                        double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(), before_key.time, before_key.time+before_key.post_handle_x, after_key.time);
 						value = quad_from_t(before_dbl, before_dbl+before_key.post_handle_y, after_dbl, t);
 					} else {
 						// this keyframe is the bezier one
-						double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->frame_rate, before_key.time, after_key.time+after_key.pre_handle_x, after_key.time);
+                        double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(), before_key.time, after_key.time+after_key.pre_handle_x, after_key.time);
 						value = quad_from_t(before_dbl, after_dbl+after_key.pre_handle_y, after_dbl, t);
 					}
 				} else {
@@ -374,7 +380,7 @@ bool EffectField::get_bool_value(double timecode, bool async) {
 }
 
 void EffectField::set_bool_value(bool b) {
-	return static_cast<QCheckBox*>(ui_element)->setChecked(b);
+    static_cast<QCheckBox*>(ui_element)->setChecked(b);
 }
 
 QString EffectField::get_string_value(double timecode, bool async) {
