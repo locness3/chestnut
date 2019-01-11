@@ -117,7 +117,7 @@ void Clip::reset_audio() {
 		frame_sample_index = -1;
 		audio_buffer_write = 0;
 	} else if (media->get_type() == MEDIA_TYPE_SEQUENCE) {
-		Sequence* nested_sequence = media->to_sequence();
+        SequencePtr nested_sequence = media->to_sequence();
 		for (int i=0;i<nested_sequence->clips.size();i++) {
 			Clip* c = nested_sequence->clips.at(i);
 			if (c != NULL) c->reset_audio();
@@ -128,7 +128,7 @@ void Clip::reset_audio() {
 void Clip::refresh() {
 	// validates media if it was replaced
 	if (replaced && media != NULL && media->get_type() == MEDIA_TYPE_FOOTAGE) {
-		Footage* m = media->to_footage();
+        FootagePtr m = media->to_footage();
 
 		if (track < 0 && m->video_tracks.size() > 0)  {
 			media_stream = m->video_tracks.at(0).file_index;
@@ -253,7 +253,7 @@ void Clip::recalculateMaxLength() {
 			switch (media->get_type()) {
 			case MEDIA_TYPE_FOOTAGE:
 			{
-				Footage* m = media->to_footage();
+                FootagePtr m = media->to_footage();
 				const FootageStream* ms = m->get_stream_from_file_index(track < 0, media_stream);
 				if (ms != NULL && ms->infinite_length) {
 					calculated_length = LONG_MAX;
@@ -264,7 +264,7 @@ void Clip::recalculateMaxLength() {
 				break;
 			case MEDIA_TYPE_SEQUENCE:
 			{
-				Sequence* s = media->to_sequence();
+                SequencePtr s = media->to_sequence();
                 calculated_length = refactor_frame_number(s->getEndFrame(), s->getFrameRate(), fr);
 			}
 				break;
@@ -278,36 +278,36 @@ long Clip::getMaximumLength() {
 }
 
 int Clip::getWidth() {
-    if (media == NULL && sequence != NULL) return sequence->getDimensions().first;
+    if (media == NULL && sequence != NULL) return sequence->getWidth();
 	switch (media->get_type()) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
 		const FootageStream* ms = media->to_footage()->get_stream_from_file_index(track < 0, media_stream);
 		if (ms != NULL) return ms->video_width;
-        if (sequence != NULL) return sequence->getDimensions().first;
+        if (sequence != NULL) return sequence->getWidth();
 	}
 	case MEDIA_TYPE_SEQUENCE:
 	{
-		Sequence* s = media->to_sequence();
-        return s->getDimensions().first;
+        SequencePtr s = media->to_sequence();
+        return s->getWidth();
 	}
 	}
 	return 0;
 }
 
 int Clip::getHeight() {
-    if (media == NULL && sequence != NULL) return sequence->getDimensions().second;
+    if (media == NULL && sequence != NULL) return sequence->getHeight();
 	switch (media->get_type()) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
 		const FootageStream* ms = media->to_footage()->get_stream_from_file_index(track < 0, media_stream);
 		if (ms != NULL) return ms->video_height;
-        if (sequence != NULL) return sequence->getDimensions().second;
+        if (sequence != NULL) return sequence->getHeight();
 	}
 	case MEDIA_TYPE_SEQUENCE:
 	{
-		Sequence* s = media->to_sequence();
-        return s->getDimensions().second;;
+        SequencePtr s = media->to_sequence();
+        return s->getHeight();;
 	}
 	}
 	return 0;

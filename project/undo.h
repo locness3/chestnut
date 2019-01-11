@@ -18,8 +18,19 @@
 #ifndef UNDO_H
 #define UNDO_H
 
+#include <QUndoStack>
+#include <QUndoCommand>
+#include <QVector>
+#include <QVariant>
+#include <QModelIndex>
+#include <QCheckBox>
+
+#include "project/marker.h"
+#include "project/selection.h"
+#include "project/effectfield.h"
+#include "project/sequence.h"
+
 class Media;
-class QCheckBox;
 class LabelSlider;
 class Effect;
 class SourceTable;
@@ -28,28 +39,19 @@ class EffectField;
 class Transition;
 class EffectGizmo;
 struct Clip;
-struct Sequence;
-struct Footage;
+
+class Footage;
 struct EffectMeta;
 
-#include "project/marker.h"
-#include "project/selection.h"
-#include "project/effectfield.h"
 
-#include <QUndoStack>
-#include <QUndoCommand>
-#include <QVector>
-#include <QVariant>
-#include <QModelIndex>
-
-extern QUndoStack undo_stack;
+extern QUndoStack e_undo_stack;
 
 class ComboAction : public QUndoCommand {
 public:
 	ComboAction();
-	~ComboAction();
-	void undo();
-	void redo();
+    ~ComboAction();
+    void undo();
+    void redo();
 	void append(QUndoCommand* u);
 	void appendPost(QUndoCommand* u);
 private:
@@ -60,8 +62,9 @@ private:
 class MoveClipAction : public QUndoCommand {
 public:
 	MoveClipAction(Clip* c, long iin, long iout, long iclip_in, int itrack, bool irelative);
-	void undo();
-	void redo();
+    ~MoveClipAction();
+    void undo();
+    void redo();
 private:
 	Clip* clip;
 
@@ -82,11 +85,11 @@ private:
 
 class RippleAction : public QUndoCommand {
 public:
-	RippleAction(Sequence *is, long ipoint, long ilength, const QVector<int>& iignore);
+    RippleAction(SequencePtr is, long ipoint, long ilength, const QVector<int>& iignore);
 	void undo();
 	void redo();
 private:
-	Sequence *s;
+    SequencePtr s;
 	long point;
 	long length;
 	QVector<int> ignore;
@@ -95,12 +98,12 @@ private:
 
 class DeleteClipAction : public QUndoCommand {
 public:
-	DeleteClipAction(Sequence* s, int clip);
+    DeleteClipAction(SequencePtr s, int clip);
 	~DeleteClipAction();
 	void undo();
 	void redo();
 private:
-	Sequence* seq;
+    SequencePtr seq;
 	Clip* ref;
 	int index;
 
@@ -115,12 +118,12 @@ private:
 
 class ChangeSequenceAction : public QUndoCommand {
 public:
-	ChangeSequenceAction(Sequence* s);
+    ChangeSequenceAction(SequencePtr s);
 	void undo();
 	void redo();
 private:
-	Sequence* old_sequence;
-	Sequence* new_sequence;
+    SequencePtr old_sequence;
+    SequencePtr new_sequence;
 };
 
 class AddEffectCommand : public QUndoCommand {
@@ -170,12 +173,12 @@ private:
 
 class DeleteTransitionCommand : public QUndoCommand {
 public:
-	DeleteTransitionCommand(Sequence* s, int transition_index);
+    DeleteTransitionCommand(SequencePtr s, int transition_index);
 	~DeleteTransitionCommand();
 	void undo();
 	void redo();
 private:
-	Sequence* seq;
+    SequencePtr seq;
 	int index;
 	Transition* transition;
 	Clip* otc;
@@ -185,11 +188,11 @@ private:
 
 class SetTimelineInOutCommand : public QUndoCommand {
 public:
-	SetTimelineInOutCommand(Sequence* s, bool enabled, long in, long out);
+    SetTimelineInOutCommand(SequencePtr s, bool enabled, long in, long out);
 	void undo();
 	void redo();
 private:
-	Sequence* seq;
+    SequencePtr seq;
 
     bool old_workarea_enabled;
 
@@ -245,12 +248,12 @@ private:
 
 class AddClipCommand : public QUndoCommand {
 public:
-	AddClipCommand(Sequence* s, QVector<Clip*>& add);
+    AddClipCommand(SequencePtr s, QVector<Clip*>& add);
 	~AddClipCommand();
 	void undo();
 	void redo();
 private:
-	Sequence* seq;
+    SequencePtr seq;
 	QVector<Clip*> clips;
 	QVector<Clip*> undone_clips;
 	bool old_project_changed;
@@ -261,7 +264,7 @@ public:
 	LinkCommand();
 	void undo();
 	void redo();
-	Sequence* s;
+    SequencePtr s;
 	QVector<int> clips;
 	bool link;
 private:
@@ -401,11 +404,11 @@ private:
 
 class AddMarkerAction : public QUndoCommand {
 public:
-	AddMarkerAction(Sequence* s, long t, QString n);
+    AddMarkerAction(SequencePtr s, long t, QString n);
 	void undo();
 	void redo();
 private:
-	Sequence* seq;
+    SequencePtr seq;
 	long time;
 	QString name;
 	QString old_name;
@@ -427,12 +430,12 @@ private:
 
 class DeleteMarkerAction : public QUndoCommand {
 public:
-	DeleteMarkerAction(Sequence* s);
+    DeleteMarkerAction(SequencePtr s);
 	void undo();
 	void redo();
 	QVector<int> markers;
 private:
-	Sequence* seq;
+    SequencePtr seq;
 	QVector<Marker> copies;
 	bool sorted;
 	bool old_project_changed;
@@ -464,13 +467,13 @@ private:
 
 class SetSelectionsCommand : public QUndoCommand {
 public:
-	SetSelectionsCommand(Sequence *s);
+    SetSelectionsCommand(SequencePtr s);
 	void undo();
 	void redo();
 	QVector<Selection> old_data;
 	QVector<Selection> new_data;
 private:
-	Sequence* seq;
+    SequencePtr seq;
 	bool done;
 	bool old_project_changed;
 };
@@ -490,7 +493,7 @@ private:
 class EditSequenceCommand : public QUndoCommand {
     //FIXME: nononononono
 public:
-	EditSequenceCommand(Media *i, Sequence* s);
+    EditSequenceCommand(Media *i, SequencePtr s);
 	void undo();
 	void redo();
 	void update();
@@ -503,7 +506,7 @@ public:
 	int audio_layout;
 private:
 	Media* item;
-	Sequence* seq;
+    SequencePtr seq;
 	bool old_project_changed;
 
 	QString old_name;

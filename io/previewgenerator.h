@@ -21,12 +21,13 @@
 #include <QThread>
 #include <QSemaphore>
 
+#include "project/footage.h"
+
 #define ICON_TYPE_VIDEO 0
 #define ICON_TYPE_AUDIO 1
 #define ICON_TYPE_IMAGE 2
 #define ICON_TYPE_ERROR 3
 
-struct Footage;
 struct FootageStream;
 struct AVFormatContext;
 class Media;
@@ -35,9 +36,10 @@ class PreviewGenerator : public QThread
 {
     Q_OBJECT
 public:
-	PreviewGenerator(Media*, Footage*, bool);
-    void run();
+    PreviewGenerator(Media*, FootagePtr, bool);
 	void cancel();
+protected:
+    virtual void run();
 signals:
 	void set_icon(int, bool);
 private:
@@ -47,7 +49,7 @@ private:
 	void finalize_media();
     AVFormatContext* fmt_ctx;
     Media* media;
-    Footage* footage;
+    FootagePtr footage;
 	bool retrieve_duration;
 	bool contains_still_image;
 	bool replace;

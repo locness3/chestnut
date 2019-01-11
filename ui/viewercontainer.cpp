@@ -72,7 +72,7 @@ void ViewerContainer::adjust() {
             child->move(0, 0);
             child->resize(size());
         } else if (fit) {
-            double aspect_ratio = double(viewer->seq->getDimensions().first)/double(viewer->seq->getDimensions().second);
+            double aspect_ratio = double(viewer->seq->getWidth())/double(viewer->seq->getHeight());
 
             int widget_x = 0;
             int widget_y = 0;
@@ -93,10 +93,10 @@ void ViewerContainer::adjust() {
             child->move(widget_x, widget_y);
             child->resize(widget_width, widget_height);
 
-            zoom = double(widget_width) / double(viewer->seq->getDimensions().first);
+            zoom = double(widget_width) / double(viewer->seq->getWidth());
         } else {
-            int zoomed_width = double(viewer->seq->getDimensions().first)*zoom;
-            int zoomed_height = double(viewer->seq->getDimensions().second)*zoom;
+            int zoomed_width = double(viewer->seq->getWidth())*zoom;
+            int zoomed_height = double(viewer->seq->getHeight())*zoom;
             int zoomed_x = 0;
             int zoomed_y = 0;
 

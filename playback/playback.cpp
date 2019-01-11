@@ -373,15 +373,15 @@ bool is_clip_active(Clip* c, long playhead) {
 			&& playhead - c->get_timeline_in_with_transition() + c->get_clip_in_with_transition() < c->getMaximumLength();
 }
 
-void set_sequence(Sequence* s) {
+void set_sequence(SequencePtr s) {
 	panel_effect_controls->clear_effects(true);
-	sequence = s;
+	e_sequence = s;
 	panel_sequence_viewer->set_main_sequence();
 	panel_timeline->update_sequence();
 	panel_timeline->setFocus();
 }
 
-void closeActiveClips(Sequence *s) {
+void closeActiveClips(SequencePtr s) {
 	if (s != NULL) {
 		for (int i=0;i<s->clips.size();i++) {
 			Clip* c = s->clips.at(i);

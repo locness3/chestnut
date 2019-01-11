@@ -28,8 +28,15 @@ extern "C" {
 
 #include "project/clip.h"
 
-Footage::Footage() : ready(false), preview_gen(NULL), invalid(false), in(0), out(0), speed(1.0) {
-	ready_lock.lock();
+Footage::Footage()
+    : ready(false),
+      preview_gen(NULL),
+      invalid(false),
+      in(0),
+      out(0),
+      speed(1.0)
+{
+    ready_lock.lock();
 }
 
 Footage::~Footage() {

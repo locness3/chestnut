@@ -24,9 +24,10 @@
 #include <QDir>
 
 #include "project/projectmodel.h"
+#include "project/sequence.h"
 
-struct Footage;
-struct Sequence;
+class Footage;
+
 struct Clip;
 class Timeline;
 class Viewer;
@@ -51,7 +52,7 @@ extern QString recent_proj_file;
 
 extern ProjectModel project_model;
 
-Sequence* create_sequence_from_media(QVector<Media *> &media_list);
+SequencePtr  create_sequence_from_media(QVector<Media *> &media_list);
 
 QString get_channel_layout_name(int channels, uint64_t layout);
 QString get_interlacing_name(int interlacing);
@@ -63,7 +64,7 @@ public:
     virtual ~Project();
 	bool is_focused();
 	void clear();
-	Media* new_sequence(ComboAction *ca, Sequence* s, bool open, Media* parent);
+    Media* new_sequence(ComboAction *ca, SequencePtr  s, bool open, Media* parent);
 	QString get_next_sequence_name(QString start = 0);
 	void process_file_list(QStringList& files, bool recursive = false, Media* replace = NULL, Media *parent = NULL);
 	void replace_media(Media* item, QString filename);

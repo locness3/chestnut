@@ -50,8 +50,8 @@ NewSequenceDialog::NewSequenceDialog(QWidget *parent, Media *existing) :
 		existing_sequence = existing->to_sequence();
         setWindowTitle("Editing \"" + existing_sequence->getName() + "\"");
 
-        width_numeric->setValue(existing_sequence->getDimensions().first);
-        height_numeric->setValue(existing_sequence->getDimensions().second);
+        width_numeric->setValue(existing_sequence->getWidth());
+        height_numeric->setValue(existing_sequence->getHeight());
         int comp_rate = qRound(existing_sequence->getFrameRate()*100);
 		for (int i=0;i<frame_rate_combobox->count();i++) {
 			if (qRound(frame_rate_combobox->itemData(i).toDouble()*100) == comp_rate) {
@@ -80,18 +80,19 @@ void NewSequenceDialog::set_sequence_name(const QString& s) {
 }
 
 void NewSequenceDialog::create() {
-	if (existing_sequence == NULL) {
-		Sequence* s = new Sequence();
+    if (existing_sequence == NULL) {
+        SequencePtr  s(new Sequence());
 
         s->setName(sequence_name_edit->text());
-        s->setDimensions(QPair<int,int>(width_numeric->value(), height_numeric->value()));
+        s->setWidth(width_numeric->value());
+        s->setHeight(height_numeric->value());
         s->setFrameRate(frame_rate_combobox->currentData().toDouble());
         s->setAudioFrequency(audio_frequency_combobox->currentData().toInt());
         s->setAudioLayout(AV_CH_LAYOUT_STEREO);
 
 		ComboAction* ca = new ComboAction();
 		panel_project->new_sequence(ca, s, true, NULL);
-		undo_stack.push(ca);
+		e_undo_stack.push(ca);
 	} else {
 		ComboAction* ca = new ComboAction();
 
@@ -113,7 +114,7 @@ void NewSequenceDialog::create() {
 			}
 		}
 
-		undo_stack.push(ca);
+		e_undo_stack.push(ca);
 	}
 
 	accept();

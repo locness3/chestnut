@@ -52,10 +52,10 @@ void AudioMonitor::resizeEvent(QResizeEvent *e) {
 }
 
 void AudioMonitor::paintEvent(QPaintEvent *) {
-    if (sequence != NULL) {
+    if (e_sequence != NULL) {
         QPainter p(this);
         int channel_x = AUDIO_MONITOR_GAP;
-        int channel_count = av_get_channel_layout_nb_channels(sequence->getAudioLayout());
+        int channel_count = av_get_channel_layout_nb_channels(e_sequence->getAudioLayout());
 		/*if (peaks.size() != channel_count) {
             peaks.resize(channel_count);
             peaks.fill(false);
@@ -68,7 +68,7 @@ void AudioMonitor::paintEvent(QPaintEvent *) {
             p.fillRect(r, gradient);
 
 			if (sample_cache_offset != -1 && sample_cache.size() > 0) {
-				playhead_offset = (sequence->playhead - sample_cache_offset) * channel_count;
+				playhead_offset = (e_sequence->playhead - sample_cache_offset) * channel_count;
 				if (playhead_offset >= 0 && playhead_offset < sample_cache.size()) {
 					double multiplier = 1 - qAbs((double) sample_cache.at(playhead_offset+i) / 32768.0); // 16-bit int divided to float
 					/*if (multiplier == (double) 0) {
@@ -94,7 +94,7 @@ void AudioMonitor::paintEvent(QPaintEvent *) {
         if (playhead_offset > -1) {
             // clean up used samples
             bool error = false;
-			while (sample_cache_offset < sequence->playhead && !error) {
+			while (sample_cache_offset < e_sequence->playhead && !error) {
                 sample_cache_offset++;
                 for (i=0;i<channel_count;i++) {
                     if (sample_cache.isEmpty()) {

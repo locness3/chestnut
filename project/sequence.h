@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -19,9 +19,11 @@
 #define SEQUENCE_H
 
 #include <QVector>
+#include <memory>
 
 #include "project/marker.h"
 #include "project/selection.h"
+#include "project/projectitem.h"
 
 //FIXME: this is used EVERYWHERE. This has to be water-tight and heavily tested.
 
@@ -29,26 +31,25 @@ struct Clip;
 class Transition;
 class Media;
 
-class Sequence {
+class Sequence : public project::ProjectItem {
 public:
     Sequence();
-	~Sequence();
+    virtual ~Sequence();
     Sequence* copy();
-	void getTrackLimits(int* video_tracks, int* audio_tracks);
-	long getEndFrame();
-	void hard_delete_transition(Clip *c, int type);
+    void getTrackLimits(int* video_tracks, int* audio_tracks);
+    long getEndFrame();
+    void hard_delete_transition(Clip *c, int type);
 
-    //TODO: use Q_PROPERTY
-    const QString&  getName() const;
-    void setName(const QString& name);
-    const QPair<int,int>& getDimensions() const;
-    void setDimensions(const QPair<int,int>& dimensions);
+    void setWidth(const int val);
+    int getWidth() const;
+    void setHeight(const int val);
+    int getHeight() const;
     double getFrameRate() const;
     void setFrameRate(const double frameRate);
     int getAudioFrequency() const;
-    void setAudioFrequency(const int audioFrequency);
+    void setAudioFrequency(const int frequency);
     int getAudioLayout() const;
-    void setAudioLayout(const int audioLayout);
+    void setAudioLayout(const int layout);
 
     QVector<Selection> selections;
     QVector<Clip*> clips;
@@ -61,16 +62,18 @@ public:
     QVector<Marker> markers;
     long playhead = 0;
     bool wrapper_sequence = false;
-private:
-    QString m_name;
-    QPair<int,int> m_dimensions;
 
-    double m_frameRate = 0.0;
-    int m_audioFrequency = 0;
-    int m_audioLayout = 0;
+private:
+    int width = 0;
+    int height = 0;
+    double frame_rate = 0.0;
+    int audio_frequency = 0;
+    int audio_layout = 0;
 };
 
+typedef std::shared_ptr<Sequence> SequencePtr;
+
 // static variable for the currently active sequence
-extern Sequence* sequence;
+extern SequencePtr e_sequence;
 
 #endif // SEQUENCE_H

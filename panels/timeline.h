@@ -18,12 +18,16 @@
 #ifndef TIMELINE_H
 #define TIMELINE_H
 
-#include "ui/timelinetools.h"
-#include "project/selection.h"
-
 #include <QDockWidget>
 #include <QVector>
 #include <QTime>
+#include <QPushButton>
+#include <QScrollBar>
+
+
+#include "ui/timelinetools.h"
+#include "project/selection.h"
+#include "project/sequence.h"
 
 #define TRACK_DEFAULT_HEIGHT 40
 
@@ -34,7 +38,6 @@
 #define ADD_OBJ_NOISE 4
 #define ADD_OBJ_AUDIO 5
 
-class QPushButton;
 class SourceTable;
 class ViewerWidget;
 class ComboAction;
@@ -45,11 +48,10 @@ class TimelineHeader;
 class TimelineWidget;
 class ResizableScrollBar;
 class AudioMonitor;
-class QScrollBar;
 struct EffectMeta;
-struct Sequence;
+
 struct Clip;
-struct Footage;
+class Footage;
 struct FootageStream;
 
 long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate);
@@ -57,7 +59,7 @@ int getScreenPointFromFrame(double zoom, long frame);
 long getFrameFromScreenPoint(double zoom, int x);
 bool selection_contains_transition(const Selection& s, Clip* c, int type);
 void move_clip(ComboAction *ca, Clip *c, long iin, long iout, long iclip_in, int itrack, bool verify_transitions = true, bool relative = false);
-void ripple_clips(ComboAction *ca, Sequence* s, long point, long length, const QVector<int>& ignore = QVector<int>());
+void ripple_clips(ComboAction *ca, SequencePtr  s, long point, long length, const QVector<int>& ignore = QVector<int>());
 
 struct Ghost {
 	int clip;
@@ -116,8 +118,8 @@ public:
 	void previous_cut();
 	void next_cut();
 
-	void create_ghosts_from_media(Sequence *seq, long entry_point, QVector<Media *> &media_list);
-	void add_clips_from_ghosts(ComboAction *ca, Sequence *s);
+    void create_ghosts_from_media(SequencePtr seq, long entry_point, QVector<Media *> &media_list);
+    void add_clips_from_ghosts(ComboAction *ca, SequencePtr s);
 
 	int getTimelineScreenPointFromFrame(long frame);
 	long getTimelineFrameFromScreenPoint(int x);

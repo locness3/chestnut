@@ -39,7 +39,7 @@ class EffectField : public QObject {
 	Q_OBJECT
 public:
 	EffectField(EffectRow* parent, int t, const QString& i);
-    virtual ~EffectField();
+    ~EffectField();
 	EffectRow* parent_row;
 	int type;
 	QString id;

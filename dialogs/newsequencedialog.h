@@ -19,13 +19,14 @@
 #define NEWSEQUENCEDIALOG_H
 
 #include <QDialog>
+#include <QComboBox>
+#include <QSpinBox>
+#include <QLineEdit>
+
+#include "project/sequence.h"
 
 class Project;
 class Media;
-class QComboBox;
-class QSpinBox;
-class QLineEdit;
-struct Sequence;
 
 class NewSequenceDialog : public QDialog
 {
@@ -33,7 +34,7 @@ class NewSequenceDialog : public QDialog
 
 public:
 	explicit NewSequenceDialog(QWidget *parent = 0, Media* existing = 0);
-	~NewSequenceDialog();
+    virtual ~NewSequenceDialog();
 
 	void set_sequence_name(const QString& s);
 
@@ -42,7 +43,7 @@ private slots:
 	void preset_changed(int index);
 
 private:
-	Sequence* existing_sequence;
+    SequencePtr existing_sequence;
 	Media* existing_item;
 
 	void setup_ui();

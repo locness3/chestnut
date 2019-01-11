@@ -469,7 +469,7 @@ void cache_video_worker(Clip* c, long playhead) {
 		while (true) {
 			AVFrame* frame = av_frame_alloc();
 
-			Footage* media = c->media->to_footage();
+            FootagePtr media = c->media->to_footage();
 			const FootageStream* ms = media->get_stream_from_file_index(true, c->media_stream);
 
 			while ((retr_ret = av_buffersink_get_frame(c->buffersink_ctx, frame)) == AVERROR(EAGAIN)) {
@@ -658,7 +658,7 @@ void open_clip_worker(Clip* clip) {
 		}
 	} else if (clip->media->get_type() == MEDIA_TYPE_FOOTAGE) {
 		// opens file resource for FFmpeg and prepares Clip struct for playback
-		Footage* m = clip->media->to_footage();
+        FootagePtr m = clip->media->to_footage();
 		QByteArray ba = m->url.toUtf8();
 		const char* filename = ba.constData();
 		const FootageStream* ms = m->get_stream_from_file_index(clip->track < 0, clip->media_stream);

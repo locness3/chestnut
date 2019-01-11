@@ -176,8 +176,8 @@ void adjust_field(EffectField* field, double old_offset, double new_offset) {
 
 void TransformEffect::refresh() {
     if (parent_clip != NULL && parent_clip->sequence != NULL) {
-        double new_default_pos_x = parent_clip->sequence->getDimensions().first/2;
-        double new_default_pos_y = parent_clip->sequence->getDimensions().second/2;
+        double new_default_pos_x = parent_clip->sequence->getWidth()/2;
+        double new_default_pos_y = parent_clip->sequence->getHeight()/2;
 
         /*if (set) {
             adjust_field(position_x, default_pos_x, new_default_pos_x);
@@ -196,8 +196,8 @@ void TransformEffect::refresh() {
         anchor_y_box->set_double_default_value(0);
         opacity->set_double_default_value(100);
 
-        double x_percent_multipler = 200.0 / parent_clip->sequence->getDimensions().first;
-        double y_percent_multipler = 200.0 / parent_clip->sequence->getDimensions().second;
+        double x_percent_multipler = 200.0 / parent_clip->sequence->getWidth();
+        double y_percent_multipler = 200.0 / parent_clip->sequence->getHeight();
         top_left_gizmo->x_field_multi1 = -x_percent_multipler;
         top_left_gizmo->y_field_multi1 = -y_percent_multipler;
         top_center_gizmo->y_field_multi1 = -y_percent_multipler;
@@ -229,8 +229,8 @@ void TransformEffect::toggle_uniform_scale(bool enabled) {
 
 void TransformEffect::process_coords(double timecode, GLTextureCoords& coords, int data) {
     // position
-    glTranslatef(position_x->get_double_value(timecode)-(parent_clip->sequence->getDimensions().first/2),
-                 position_y->get_double_value(timecode)-(parent_clip->sequence->getDimensions().second/2), 0);
+    glTranslatef(position_x->get_double_value(timecode)-(parent_clip->sequence->getWidth()/2),
+                 position_y->get_double_value(timecode)-(parent_clip->sequence->getHeight()/2), 0);
 
     // anchor point
     int anchor_x_offset = (anchor_x_box->get_double_value(timecode));

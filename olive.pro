@@ -120,7 +120,8 @@ SOURCES += \
     dialogs/actionsearch.cpp \
     ui/embeddedfilechooser.cpp \
     effects/internal/fillleftrighteffect.cpp \
-    effects/internal/voideffect.cpp
+    effects/internal/voideffect.cpp \
+    project/projectitem.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -211,7 +212,8 @@ HEADERS += \
     ui/embeddedfilechooser.h \
     effects/internal/fillleftrighteffect.h \
     effects/internal/voideffect.h \
-    ui/defaultshortcut.h
+    ui/defaultshortcut.h \
+    project/projectitem.h
 
 FORMS +=
 

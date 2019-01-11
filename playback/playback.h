@@ -21,9 +21,11 @@
 #include <QVector>
 #include <QMutex>
 
+#include "project/sequence.h"
+
 struct Clip;
 struct ClipCache;
-struct Sequence;
+
 struct AVFrame;
 
 extern bool texture_failed;
@@ -35,7 +37,7 @@ void cache_clip(Clip* clip, long playhead, bool reset, bool scrubbing, QVector<C
 void close_clip(Clip* clip, bool wait);
 void cache_audio_worker(Clip* c, bool write_A);
 void cache_video_worker(Clip* c, long playhead);
-void handle_media(Sequence* sequence, long playhead, bool multithreaded);
+void handle_media(Sequence* e_sequence, long playhead, bool multithreaded);
 void reset_cache(Clip* c, long target_frame);
 void get_clip_frame(Clip* c, long playhead);
 double get_timecode(Clip* c, long playhead);
@@ -48,7 +50,7 @@ int64_t playhead_to_timestamp(Clip* c, long playhead);
 int retrieve_next_frame(Clip* c, AVFrame* f);
 bool is_clip_active(Clip* c, long playhead);
 void get_next_audio(Clip* c, bool mix);
-void set_sequence(Sequence* s);
-void closeActiveClips(Sequence* s);
+void set_sequence(SequencePtr s);
+void closeActiveClips(SequencePtr s);
 
 #endif // PLAYBACK_H

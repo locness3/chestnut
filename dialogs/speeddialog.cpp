@@ -57,7 +57,7 @@ SpeedDialog::SpeedDialog(QWidget *parent) : QDialog(parent) {
 	grid->addWidget(new QLabel("Duration:"), 2, 0);
 	duration = new LabelSlider();
 	duration->set_display_type(LABELSLIDER_FRAMENUMBER);
-    duration->set_frame_rate(sequence->getFrameRate());
+    duration->set_frame_rate(e_sequence->getFrameRate());
 	grid->addWidget(duration, 2, 1);
 
 	main_layout->addLayout(grid);
@@ -102,7 +102,7 @@ void SpeedDialog::run() {
 		if (c->track < 0) {
 			bool process_video = true;
 			if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) {
-				Footage* m = c->media->to_footage();
+                FootagePtr  m = c->media->to_footage();
 				FootageStream* ms = m->get_stream_from_file_index(true, c->media_stream);
 				if (ms != NULL && ms->infinite_length) {
 					process_video = false;
@@ -338,14 +338,14 @@ void set_speed(ComboAction* ca, Clip* c, double speed, bool ripple, long& ep, lo
 	sel.in = c->timeline_in;
 	sel.out = proposed_out;
 	sel.track = c->track;
-	sequence->selections.append(sel);
+	e_sequence->selections.append(sel);
 }
 
 void SpeedDialog::accept() {
 	ComboAction* ca = new ComboAction();
 
-	SetSelectionsCommand* sel_command = new SetSelectionsCommand(sequence);
-	sel_command->old_data = sequence->selections;
+	SetSelectionsCommand* sel_command = new SetSelectionsCommand(e_sequence);
+	sel_command->old_data = e_sequence->selections;
 
 	long earliest_point = LONG_MAX;
 	long longest_ripple = LONG_MIN;
@@ -418,10 +418,10 @@ void SpeedDialog::accept() {
 		ripple_clips(ca, clips.at(0)->sequence, earliest_point, longest_ripple);
 	}
 
-	sel_command->new_data = sequence->selections;
+	sel_command->new_data = e_sequence->selections;
 	ca->append(sel_command);
 
-	undo_stack.push(ca);
+	e_undo_stack.push(ca);
 
 	update_ui(true);
 	QDialog::accept();

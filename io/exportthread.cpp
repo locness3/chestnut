@@ -169,15 +169,15 @@ bool ExportThread::setupVideo() {
 	video_frame = av_frame_alloc();
 	av_frame_make_writable(video_frame);
 	video_frame->format = AV_PIX_FMT_RGBA;
-    video_frame->width = sequence->getDimensions().first;
-    video_frame->height = sequence->getDimensions().second;
+    video_frame->width = e_sequence->getWidth();
+    video_frame->height = e_sequence->getHeight();
 	av_frame_get_buffer(video_frame, 0);
 
 	av_init_packet(&video_pkt);
 
 	sws_ctx = sws_getContext(
-                sequence->getDimensions().first,
-                sequence->getDimensions().second,
+                e_sequence->getWidth(),
+                e_sequence->getHeight(),
 				AV_PIX_FMT_RGBA,
 				video_width,
 				video_height,
@@ -266,9 +266,9 @@ bool ExportThread::setupAudio() {
 			acodec_ctx->channel_layout,
 			acodec_ctx->sample_fmt,
 			acodec_ctx->sample_rate,
-            sequence->getAudioLayout(),
+            e_sequence->getAudioLayout(),
 			AV_SAMPLE_FMT_S16,
-            sequence->getAudioFrequency(),
+            e_sequence->getAudioFrequency(),
 			0,
 			NULL
 		);
@@ -276,7 +276,7 @@ bool ExportThread::setupAudio() {
 
 	// initialize raw audio frame
 	audio_frame = av_frame_alloc();
-    audio_frame->sample_rate = sequence->getAudioFrequency();
+    audio_frame->sample_rate = e_sequence->getAudioFrequency();
 	audio_frame->nb_samples = acodec_ctx->frame_size;
 	if (audio_frame->nb_samples == 0) audio_frame->nb_samples = 256; // should possibly be smaller?
 	audio_frame->format = AV_SAMPLE_FMT_S16;
@@ -356,7 +356,7 @@ void ExportThread::run() {
 	panel_sequence_viewer->seek(start_frame);
 	panel_sequence_viewer->reset_all_audio();
 
-    QOpenGLFramebufferObject fbo(sequence->getDimensions().first, sequence->getDimensions().second, QOpenGLFramebufferObject::CombinedDepthStencil, GL_TEXTURE_RECTANGLE);
+    QOpenGLFramebufferObject fbo(e_sequence->getWidth(), e_sequence->getHeight(), QOpenGLFramebufferObject::CombinedDepthStencil, GL_TEXTURE_RECTANGLE);
 	fbo.bind();
 
 	panel_sequence_viewer->viewer_widget->default_fbo = &fbo;
@@ -365,15 +365,15 @@ void ExportThread::run() {
 	qint64 start_time, frame_time, avg_time, eta, total_time = 0;
 	long remaining_frames, frame_count = 1;
 
-	while (sequence->playhead <= end_frame && continueEncode) {
+	while (e_sequence->playhead <= end_frame && continueEncode) {
 		start_time = QDateTime::currentMSecsSinceEpoch();
 
 		panel_sequence_viewer->viewer_widget->paintGL();
 
-        double timecode_secs = (double) (sequence->playhead-start_frame) / sequence->getFrameRate();
+        double timecode_secs = (double) (e_sequence->playhead-start_frame) / e_sequence->getFrameRate();
 		if (video_enabled) {
 			// get image from opengl
-            glReadPixels(0, 0, video_frame->linesize[0]/4, sequence->getDimensions().second, GL_RGBA, GL_UNSIGNED_BYTE, video_frame->data[0]);
+            glReadPixels(0, 0, video_frame->linesize[0]/4, e_sequence->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, video_frame->data[0]);
 
 			// change pixel format
 			sws_scale(sws_ctx, video_frame->data, video_frame->linesize, 0, video_frame->height, sws_frame->data, sws_frame->linesize);
@@ -413,14 +413,14 @@ void ExportThread::run() {
 		// encoding stats
 		frame_time = (QDateTime::currentMSecsSinceEpoch()-start_time);
 		total_time += frame_time;
-		remaining_frames = (end_frame-sequence->playhead);
+		remaining_frames = (end_frame-e_sequence->playhead);
 		avg_time = (total_time/frame_count);
 		eta = (remaining_frames*avg_time);
 
 //        dout << "[INFO] Encoded frame" << sequence->playhead << "- took" << frame_time << "ms (avg:" << avg_time << "ms, remaining:" << remaining_frames << ", ETA:" << eta << ")";
 
-		emit progress_changed(qRound(((double) (sequence->playhead-start_frame) / (double) (end_frame-start_frame)) * 100), eta);
-		sequence->playhead++;
+		emit progress_changed(qRound(((double) (e_sequence->playhead-start_frame) / (double) (end_frame-start_frame)) * 100), eta);
+		e_sequence->playhead++;
 		frame_count++;
 	}
 

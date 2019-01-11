@@ -91,7 +91,7 @@ void EffectControls::set_zoom(bool in) {
 void EffectControls::menu_select(QAction* q) {
 	ComboAction* ca = new ComboAction();
 	for (int i=0;i<selected_clips.size();i++) {
-		Clip* c = sequence->clips.at(selected_clips.at(i));
+        Clip* c = e_sequence->clips.at(selected_clips.at(i));
 		if ((c->track < 0) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
 			const EffectMeta* meta = reinterpret_cast<const EffectMeta*>(q->data().value<quintptr>());
 			if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
@@ -106,7 +106,7 @@ void EffectControls::menu_select(QAction* q) {
 			}
 		}
 	}
-	undo_stack.push(ca);
+	e_undo_stack.push(ca);
 	if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
 		update_ui(true);
 	} else {
@@ -131,7 +131,7 @@ void EffectControls::copy(bool del) {
 		ComboAction* ca = new ComboAction();
 		EffectDeleteCommand* del_com = (del) ? new EffectDeleteCommand() : NULL;
 		for (int i=0;i<selected_clips.size();i++) {
-			Clip* c = sequence->clips.at(selected_clips.at(i));
+            Clip* c = e_sequence->clips.at(selected_clips.at(i));
 			for (int j=0;j<c->effects.size();j++) {
                 Effect* effect = c->effects.at(j);
 				if (effect->container->selected) {
@@ -157,7 +157,7 @@ void EffectControls::copy(bool del) {
 				delete del_com;
 			}
 		}
-		undo_stack.push(ca);
+		e_undo_stack.push(ca);
 	}
 }
 
@@ -258,7 +258,7 @@ void EffectControls::clear_effects(bool clear_cache) {
 
 void EffectControls::deselect_all_effects(QWidget* sender) {
 	for (int i=0;i<selected_clips.size();i++) {
-		Clip* c = sequence->clips.at(selected_clips.at(i));
+        Clip* c = e_sequence->clips.at(selected_clips.at(i));
 		for (int j=0;j<c->effects.size();j++) {
 			if (c->effects.at(j)->container != sender) {
 				c->effects.at(j)->container->header_click(false, false);
@@ -459,7 +459,7 @@ void EffectControls::load_effects() {
 	if (!multiple) {
 		// load in new clips
 		for (int i=0;i<selected_clips.size();i++) {
-			Clip* c = sequence->clips.at(selected_clips.at(i));
+            Clip* c = e_sequence->clips.at(selected_clips.at(i));
 			QVBoxLayout* layout;
 			if (c->track < 0) {
 				vcontainer->setVisible(true);
@@ -479,7 +479,7 @@ void EffectControls::load_effects() {
 			}
 		}
 		if (selected_clips.size() > 0) {
-			setWindowTitle(panel_name + sequence->clips.at(selected_clips.at(0))->name);
+            setWindowTitle(panel_name + e_sequence->clips.at(selected_clips.at(0))->name);
 			verticalScrollBar->setMaximum(qMax(0, effects_area->sizeHint().height() - headers->height() + scrollArea->horizontalScrollBar()->height()/* - keyframeView->height() - headers->height()*/));
 			keyframeView->setEnabled(true);
 			headers->setVisible(true);
@@ -493,7 +493,7 @@ void EffectControls::delete_effects() {
 	if (mode == TA_NO_TRANSITION) {
 		EffectDeleteCommand* command = new EffectDeleteCommand();
 		for (int i=0;i<selected_clips.size();i++) {
-			Clip* c = sequence->clips.at(selected_clips.at(i));
+            Clip* c = e_sequence->clips.at(selected_clips.at(i));
 			for (int j=0;j<c->effects.size();j++) {
                 Effect* effect = c->effects.at(j);
 				if (effect->container->selected) {
@@ -503,7 +503,7 @@ void EffectControls::delete_effects() {
 			}
 		}
 		if (command->clips.size() > 0) {
-			undo_stack.push(command);
+			e_undo_stack.push(command);
 			panel_sequence_viewer->viewer_widget->update();
 		} else {
 			delete command;
@@ -549,7 +549,7 @@ void EffectControls::resizeEvent(QResizeEvent*) {
 bool EffectControls::is_focused() {
 	if (this->hasFocus()) return true;
 	for (int i=0;i<selected_clips.size();i++) {
-		Clip* c = sequence->clips.at(selected_clips.at(i));
+        Clip* c = e_sequence->clips.at(selected_clips.at(i));
 		if (c != NULL) {
 			for (int j=0;j<c->effects.size();j++) {
 				if (c->effects.at(j)->container->is_focused()) {

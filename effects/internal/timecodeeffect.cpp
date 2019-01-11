@@ -78,7 +78,7 @@ TimecodeEffect::TimecodeEffect(Clip *c, const EffectMeta* em) :
 
 void TimecodeEffect::redraw(double timecode) {
 	if (tc_select->get_combo_data(timecode).toBool()){
-        display_timecode = prepend_text->get_string_value(timecode) + frame_to_timecode(sequence->playhead, config.timecode_view, sequence->getFrameRate());}
+        display_timecode = prepend_text->get_string_value(timecode) + frame_to_timecode(e_sequence->playhead, config.timecode_view, e_sequence->getFrameRate());}
 	else {
 		double media_rate = parent_clip->getMediaFrameRate();
 		display_timecode = prepend_text->get_string_value(timecode) + frame_to_timecode(timecode * media_rate, config.timecode_view, media_rate);}

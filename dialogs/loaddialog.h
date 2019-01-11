@@ -21,9 +21,8 @@
 #include <QDialog>
 
 class QProgressBar;
-struct Sequence;
 class Media;
-struct Footage;
+class Footage;
 class QHBoxLayout;
 class LoadThread;
 

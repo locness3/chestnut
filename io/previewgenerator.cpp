@@ -46,7 +46,7 @@ extern "C" {
 
 QSemaphore sem(5); // only 5 preview generators can run at one time
 
-PreviewGenerator::PreviewGenerator(Media* i, Footage* m, bool r) :
+PreviewGenerator::PreviewGenerator(Media* i, FootagePtr m, bool r) :
 	QThread(0),
 	fmt_ctx(NULL),
 	media(i),
@@ -70,7 +70,7 @@ void PreviewGenerator::parse_media() {
 	for (int i=0;i<(int)fmt_ctx->nb_streams;i++) {
 		// Find the decoder for the video stream
 		if (avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id) == NULL) {
-			dout << "[ERROR] Unsupported codec in stream" << i << "of file" << footage->name;
+            dout << "[ERROR] Unsupported codec in stream" << i << "of file" << footage->getName();
 		} else {
 			FootageStream ms;
 			ms.preview_done = false;

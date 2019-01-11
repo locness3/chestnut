@@ -25,5 +25,5 @@ CheckboxEx::CheckboxEx(QWidget* parent) : QCheckBox(parent) {
 
 void CheckboxEx::checkbox_command() {
 	CheckboxCommand* c = new CheckboxCommand(this);
-	undo_stack.push(c);
+	e_undo_stack.push(c);
 }

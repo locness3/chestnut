@@ -377,7 +377,7 @@ void MainWindow::delete_slot() {
 	if (panel_timeline->headers->hasFocus()) {
 		panel_timeline->headers->delete_markers();
 	} else if (panel_timeline->focused()) {
-        panel_timeline->delete_selection(sequence->selections, false);
+        panel_timeline->delete_selection(e_sequence->selections, false);
 	} else if (panel_effect_controls->is_focused()) {
 		panel_effect_controls->delete_effects();
 	} else if (panel_project->is_focused()) {
@@ -430,7 +430,7 @@ void MainWindow::zoom_out() {
 }
 
 void MainWindow::export_dialog() {
-	if (sequence == NULL) {
+    if (e_sequence == NULL) {
 		QMessageBox::information(this, "No active sequence", "Please open the sequence you wish to export.", QMessageBox::Ok);
 	} else {
 		ExportDialog e(this);
@@ -439,31 +439,31 @@ void MainWindow::export_dialog() {
 }
 
 void MainWindow::ripple_delete() {
-	if (sequence != NULL) panel_timeline->delete_selection(sequence->selections, true);
+    if (e_sequence != NULL) panel_timeline->delete_selection(e_sequence->selections, true);
 }
 
 void MainWindow::editMenu_About_To_Be_Shown() {
-	undo_action->setEnabled(undo_stack.canUndo());
-	redo_action->setEnabled(undo_stack.canRedo());
+	undo_action->setEnabled(e_undo_stack.canUndo());
+	redo_action->setEnabled(e_undo_stack.canRedo());
 }
 
 void MainWindow::undo() {
 	if (!panel_timeline->importing) { // workaround to prevent crash (and also users should never need to do this)
-		undo_stack.undo();
+		e_undo_stack.undo();
 		update_ui(true);
 	}
 }
 
 void MainWindow::redo() {
-	undo_stack.redo();
+	e_undo_stack.redo();
 	update_ui(true);
 }
 
 void MainWindow::open_speed_dialog() {
-	if (sequence != NULL) {
+    if (e_sequence != NULL) {
 		SpeedDialog s(this);
-		for (int i=0;i<sequence->clips.size();i++) {
-			Clip* c = sequence->clips.at(i);
+        for (int i=0;i<e_sequence->clips.size();i++) {
+            Clip* c = e_sequence->clips.at(i);
 			if (c != NULL && panel_timeline->is_clip_selected(c, true)) {
 				s.clips.append(c);
 			}
@@ -473,7 +473,7 @@ void MainWindow::open_speed_dialog() {
 }
 
 void MainWindow::cut() {
-	if (sequence != NULL) {
+    if (e_sequence != NULL) {
 		QDockWidget* focused_panel = get_focused_panel();
 		if (panel_timeline == focused_panel) {
 			panel_timeline->copy(true);
@@ -484,7 +484,7 @@ void MainWindow::cut() {
 }
 
 void MainWindow::copy() {
-	if (sequence != NULL) {
+    if (e_sequence != NULL) {
 		QDockWidget* focused_panel = get_focused_panel();
 		if (panel_timeline == focused_panel) {
 			panel_timeline->copy(false);
@@ -496,7 +496,7 @@ void MainWindow::copy() {
 
 void MainWindow::paste() {
 	QDockWidget* focused_panel = get_focused_panel();
-	if ((panel_timeline == focused_panel || panel_effect_controls == focused_panel) && sequence != NULL) {
+    if ((panel_timeline == focused_panel || panel_effect_controls == focused_panel) && e_sequence != NULL) {
 		panel_timeline->paste(false);
 	}
 }
@@ -504,7 +504,7 @@ void MainWindow::paste() {
 void MainWindow::new_project() {
 	if (can_close_project()) {
 		panel_effect_controls->clear_effects(true);
-		undo_stack.clear();
+		e_undo_stack.clear();
 		project_url.clear();
 		panel_project->new_project();
 		updateTitle("");
@@ -976,7 +976,7 @@ void MainWindow::paintEvent(QPaintEvent *event) {
 }
 
 void MainWindow::clear_undo_stack() {
-	undo_stack.clear();
+	e_undo_stack.clear();
 }
 
 void MainWindow::open_project() {
@@ -989,7 +989,7 @@ void MainWindow::open_project() {
 void MainWindow::open_project_worker(const QString& fn, bool autorecovery) {
 	updateTitle(fn);
 	panel_project->load_project(autorecovery);
-	undo_stack.clear();
+	e_undo_stack.clear();
 }
 
 void MainWindow::load_with_launch() {
@@ -1083,13 +1083,13 @@ void MainWindow::playpause() {
 }
 
 void MainWindow::prev_cut() {
-	if (sequence != NULL && (panel_timeline->focused() || panel_sequence_viewer->is_focused())) {
+    if (e_sequence != NULL && (panel_timeline->focused() || panel_sequence_viewer->is_focused())) {
 		panel_timeline->previous_cut();
 	}
 }
 
 void MainWindow::next_cut() {
-	if (sequence != NULL && (panel_timeline->focused() || panel_sequence_viewer->is_focused())) {
+    if (e_sequence != NULL && (panel_timeline->focused() || panel_sequence_viewer->is_focused())) {
 		panel_timeline->next_cut();
 	}
 }
@@ -1182,7 +1182,7 @@ void MainWindow::add_default_transition() {
 
 void MainWindow::new_folder() {
 	Media* m = panel_project->new_folder(0);
-	undo_stack.push(new AddMediaCommand(m, panel_project->get_selected_folder()));
+	e_undo_stack.push(new AddMediaCommand(m, panel_project->get_selected_folder()));
 
 	QModelIndex index = project_model.create_index(m->row(), 0, m);
 	switch (config.project_view_type) {
@@ -1358,22 +1358,22 @@ void MainWindow::set_tsa_custom() {
 }
 
 void MainWindow::set_marker() {
-	if (sequence != NULL) panel_timeline->set_marker();
+    if (e_sequence != NULL) panel_timeline->set_marker();
 }
 
 void MainWindow::toggle_enable_clips() {
-	if (sequence != NULL) {
+    if (e_sequence != NULL) {
 		ComboAction* ca = new ComboAction();
 		bool push_undo = false;
-		for (int i=0;i<sequence->clips.size();i++) {
-			Clip* c = sequence->clips.at(i);
+        for (int i=0;i<e_sequence->clips.size();i++) {
+            Clip* c = e_sequence->clips.at(i);
 			if (c != NULL && panel_timeline->is_clip_selected(c, true)) {
 				ca->append(new SetEnableCommand(c, !c->enabled));
 				push_undo = true;
 			}
 		}
 		if (push_undo) {
-			undo_stack.push(ca);
+			e_undo_stack.push(ca);
 			update_ui(true);
 		} else {
 			delete ca;
@@ -1390,13 +1390,13 @@ void MainWindow::edit_to_out_point() {
 }
 
 void MainWindow::nest() {
-	if (sequence != NULL) {
+    if (e_sequence != NULL) {
 		QVector<int> selected_clips;
 		long earliest_point = LONG_MAX;
 
 		// get selected clips
-		for (int i=0;i<sequence->clips.size();i++) {
-			Clip* c = sequence->clips.at(i);
+        for (int i=0;i<e_sequence->clips.size();i++) {
+            Clip* c = e_sequence->clips.at(i);
 			if (c != NULL && panel_timeline->is_clip_selected(c, true)) {
 				selected_clips.append(i);
 				earliest_point = qMin(c->timeline_in, earliest_point);
@@ -1407,22 +1407,23 @@ void MainWindow::nest() {
 		if (!selected_clips.isEmpty()) {
 			ComboAction* ca = new ComboAction();
 
-			Sequence* s = new Sequence();
+            SequencePtr s(new Sequence());
 
 			// create "nest" sequence
             s->setName(panel_project->get_next_sequence_name("Nested Sequence"));
-            s->setDimensions(sequence->getDimensions());
-            s->setFrameRate(sequence->getFrameRate());
-            s->setAudioFrequency(sequence->getAudioFrequency());
-            s->setAudioLayout(sequence->getAudioLayout());
+            s->setWidth(e_sequence->getWidth());
+            s->setHeight(e_sequence->getHeight());
+            s->setFrameRate(e_sequence->getFrameRate());
+            s->setAudioFrequency(e_sequence->getAudioFrequency());
+            s->setAudioLayout(e_sequence->getAudioLayout());
 
 			// copy all selected clips to the nest
 			for (int i=0;i<selected_clips.size();i++) {
 				// delete clip from old sequence
-				ca->append(new DeleteClipAction(sequence, selected_clips.at(i)));
+                ca->append(new DeleteClipAction(e_sequence, selected_clips.at(i)));
 
 				// copy to new
-				Clip* copy = sequence->clips.at(selected_clips.at(i))->copy(s);
+                Clip* copy = e_sequence->clips.at(selected_clips.at(i))->copy(s.operator ->());//FIXME: raw ptr
 				copy->timeline_in -= earliest_point;
 				copy->timeline_out -= earliest_point;
 				s->clips.append(copy);
@@ -1434,13 +1435,13 @@ void MainWindow::nest() {
 			// add nested sequence to active sequence
 			QVector<Media*> media_list;
 			media_list.append(m);
-			panel_timeline->create_ghosts_from_media(sequence, earliest_point, media_list);
-			panel_timeline->add_clips_from_ghosts(ca, sequence);
+            panel_timeline->create_ghosts_from_media(e_sequence, earliest_point, media_list);
+            panel_timeline->add_clips_from_ghosts(ca, e_sequence);
 
 			panel_effect_controls->clear_effects(true);
-			sequence->selections.clear();
+            e_sequence->selections.clear();
 
-			undo_stack.push(ca);
+			e_undo_stack.push(ca);
 
 			update_ui(true);
 		}
@@ -1448,7 +1449,7 @@ void MainWindow::nest() {
 }
 
 void MainWindow::paste_insert() {
-	if (panel_timeline->focused() && sequence != NULL) {
+    if (panel_timeline->focused() && e_sequence != NULL) {
 		panel_timeline->paste(true);
 	}
 }

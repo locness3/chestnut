@@ -296,7 +296,7 @@ void EffectField::ui_element_change() {
 	ComboAction* ca = NULL;
 	if (!dragging_double) ca = new ComboAction();
 	make_key_from_change(ca);
-	if (!dragging_double) undo_stack.push(ca);
+	if (!dragging_double) e_undo_stack.push(ca);
 	emit changed();
 }
 

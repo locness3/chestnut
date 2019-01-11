@@ -579,7 +579,7 @@ void Effect::delete_self() {
 	EffectDeleteCommand* command = new EffectDeleteCommand();
 	command->clips.append(parent_clip);
 	command->fx.append(get_index_in_clip());
-	undo_stack.push(command);
+	e_undo_stack.push(command);
 	update_ui(true);
 }
 
@@ -588,7 +588,7 @@ void Effect::move_up() {
 	command->clip = parent_clip;
 	command->from = get_index_in_clip();
 	command->to = command->from - 1;
-	undo_stack.push(command);
+	e_undo_stack.push(command);
 	update_ui(true);
 }
 
@@ -597,7 +597,7 @@ void Effect::move_down() {
 	command->clip = parent_clip;
 	command->from = get_index_in_clip();
 	command->to = command->from + 1;
-	undo_stack.push(command);
+	e_undo_stack.push(command);
 	update_ui(true);
 }
 
@@ -966,7 +966,7 @@ void Effect::gizmo_move(EffectGizmo* gizmo, int x_movement, int y_movement, doub
 				gizmo->y_field2->set_double_value(gizmo->y_field2->get_double_value(timecode) + y_movement*gizmo->y_field_multi2);
 				gizmo->y_field2->make_key_from_change(ca);
 			}
-			if (done) undo_stack.push(ca);
+			if (done) e_undo_stack.push(ca);
 			break;
 		}
 	}
@@ -987,8 +987,8 @@ void Effect::gizmo_world_to_screen() {
 		for (int j=0;j<g->get_point_count();j++) {
 			QVector4D screen_pos = QVector4D(g->world_pos[j].x(), g->world_pos[j].y(), 0, 1.0) * (view_matrix * projection_matrix);
 
-            int adjusted_sx1 = qRound(((screen_pos.x()*0.5f)+0.5f)*parent_clip->sequence->getDimensions().first);
-            int adjusted_sy1 = qRound((1.0f-((screen_pos.y()*0.5f)+0.5f))*parent_clip->sequence->getDimensions().second);
+            int adjusted_sx1 = qRound(((screen_pos.x()*0.5f)+0.5f)*parent_clip->sequence->getWidth());
+            int adjusted_sy1 = qRound((1.0f-((screen_pos.y()*0.5f)+0.5f))*parent_clip->sequence->getHeight());
 
 			g->screen_pos[j] = QPoint(adjusted_sx1, adjusted_sy1);
 		}

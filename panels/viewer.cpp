@@ -109,7 +109,7 @@ bool Viewer::is_focused() {
 
 void Viewer::set_main_sequence() {
 	clean_created_seq();
-	set_sequence(true, sequence);
+	set_sequence(true, e_sequence);
 }
 
 void Viewer::reset_all_audio() {
@@ -379,9 +379,9 @@ void Viewer::pause() {
 			panel_project->process_file_list(file_list);
 
 			// add it to the sequence
-			Clip* c = new Clip(seq);
+            Clip* c = new Clip(seq.operator ->()); // FIXME: no raw ptr access
 			Media* m = panel_project->last_imported_media.at(0);
-			Footage* f = m->to_footage();
+            FootagePtr f = m->to_footage();
 
 			f->ready_lock.lock();
 
@@ -400,7 +400,7 @@ void Viewer::pause() {
 
 			QVector<Clip*> add_clips;
 			add_clips.append(c);
-			undo_stack.push(new AddClipCommand(seq, add_clips)); // add clip
+			e_undo_stack.push(new AddClipCommand(seq, add_clips)); // add clip
 		}
 	}
 }
@@ -450,28 +450,28 @@ void Viewer::update_viewer() {
 
 void Viewer::clear_in() {
     if (seq->using_workarea) {
-        undo_stack.push(new SetTimelineInOutCommand(seq, true, 0, seq->workarea_out));
+        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, 0, seq->workarea_out));
         update_parents();
     }
 }
 
 void Viewer::clear_out() {
     if (seq->using_workarea) {
-        undo_stack.push(new SetTimelineInOutCommand(seq, true, seq->workarea_in, seq->getEndFrame()));
+        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, seq->workarea_in, seq->getEndFrame()));
         update_parents();
     }
 }
 
 void Viewer::clear_inout_point() {
 	if (seq->using_workarea) {
-		undo_stack.push(new SetTimelineInOutCommand(seq, false, 0, 0));
+		e_undo_stack.push(new SetTimelineInOutCommand(seq, false, 0, 0));
 		update_parents();
     }
 }
 
 void Viewer::toggle_enable_inout() {
     if (seq != NULL && seq->using_workarea) {
-        undo_stack.push(new SetBool(&seq->enable_workarea, !seq->enable_workarea));
+        e_undo_stack.push(new SetBool(&seq->enable_workarea, !seq->enable_workarea));
         update_parents();
     }
 }
@@ -626,12 +626,12 @@ void Viewer::set_media(Media* m) {
 		switch (media->get_type()) {
 		case MEDIA_TYPE_FOOTAGE:
 		{
-			Footage* footage = media->to_footage();
+            FootagePtr footage = media->to_footage();
 
-			seq = new Sequence();
+            seq = SequencePtr(new Sequence());
 			created_sequence = true;
 			seq->wrapper_sequence = true;
-            seq->setName(footage->name);
+            seq->setName(footage->getName());
 
 			seq->using_workarea = footage->using_inout;
 			if (footage->using_inout) {
@@ -643,12 +643,13 @@ void Viewer::set_media(Media* m) {
 
 			if (footage->video_tracks.size() > 0) {
 				const FootageStream& video_stream = footage->video_tracks.at(0);
-                seq->setDimensions(QPair<int,int>(video_stream.video_width, video_stream.video_height));
-                if (video_stream.video_frame_rate > 0 && !video_stream.infinite_length) {
+                seq->setWidth(video_stream.video_width);
+                seq->setHeight(video_stream.video_height);
+                if ( (video_stream.video_frame_rate > 0) && (!video_stream.infinite_length) ) {
                     seq->setFrameRate(video_stream.video_frame_rate * footage->speed);
                 }
 
-				Clip* c = new Clip(seq);
+                Clip* c = new Clip(e_sequence.operator ->()); //FIXME: raw ptr
 				c->media = media;
 				c->media_stream = video_stream.file_index;
 				c->timeline_in = 0;
@@ -659,14 +660,16 @@ void Viewer::set_media(Media* m) {
 				c->recalculateMaxLength();
 				seq->clips.append(c);
 			} else {
-                seq->setDimensions(QPair<int,int>(1920, 1080));
+                // FIXME: magic numbers
+                seq->setWidth(1920);
+                seq->setHeight(1080);
 			}
 
 			if (footage->audio_tracks.size() > 0) {
 				const FootageStream& audio_stream = footage->audio_tracks.at(0);
                 seq->setAudioFrequency(audio_stream.audio_frequency);
 
-				Clip* c = new Clip(seq);
+                Clip* c = new Clip(e_sequence.operator ->()); //FIXME: raw ptr
 				c->media = media;
 				c->media_stream = audio_stream.file_index;
 				c->timeline_in = 0;
@@ -744,13 +747,12 @@ void Viewer::clean_created_seq() {
 			undo_stack.command(i)
 		}*/
 
-		delete seq;
 		seq = NULL;
 		created_sequence = false;
 	}
 }
 
-void Viewer::set_sequence(bool main, Sequence *s) {
+void Viewer::set_sequence(bool main, SequencePtr s) {
 	pause();
 
 	reset_all_audio();
@@ -760,7 +762,7 @@ void Viewer::set_sequence(bool main, Sequence *s) {
 	}
 
 	main_sequence = main;
-	seq = (main) ? sequence : s;
+	seq = (main) ? e_sequence : s;
 
 	bool null_sequence = (seq == NULL);
 

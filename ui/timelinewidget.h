@@ -20,7 +20,11 @@
 
 #include <QTimer>
 #include <QWidget>
+#include <QScrollBar>
+#include <QPainter>
+
 #include "timelinetools.h"
+#include "project/sequence.h"
 
 #define GHOST_THICKNESS 2 // thiccccc
 #define CLIP_TEXT_PADDING 3
@@ -28,14 +32,12 @@
 #define TRACK_MIN_HEIGHT 30
 #define TRACK_HEIGHT_INCREMENT 10
 
-struct Sequence;
+
 struct Clip;
 struct FootageStream;
 class Timeline;
 class TimelineAction;
-class QScrollBar;
 class SetSelectionsCommand;
-class QPainter;
 class Media;
 
 bool same_sign(int a, int b);
@@ -80,7 +82,7 @@ private:
 	QVector<Clip*> pre_clips;
 	QVector<Clip*> post_clips;
 
-	Sequence* self_created_sequence;
+    SequencePtr self_created_sequence;
 
 	// used for "right click ripple"
 	long rc_ripple_min;

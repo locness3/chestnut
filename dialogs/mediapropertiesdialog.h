@@ -20,7 +20,7 @@
 
 #include <QDialog>
 
-struct Footage;
+class Footage;
 class QComboBox;
 class QLineEdit;
 class Media;

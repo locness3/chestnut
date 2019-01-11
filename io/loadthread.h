@@ -24,10 +24,11 @@
 #include <QMutex>
 #include <QWaitCondition>
 
+#include "project/sequence.h"
+
 class Media;
-struct Footage;
+class Footage;
 struct Clip;
-struct Sequence;
 class LoadDialog;
 class TransitionData;
 struct EffectMeta;
@@ -61,7 +62,7 @@ private:
     void read_next_start_element(QXmlStreamReader& stream);
     void update_current_element_count(QXmlStreamReader& stream);
 
-    Sequence* open_seq;
+    SequencePtr open_seq;
     QVector<Media*> loaded_media_items;
     QDir proj_dir;
     QDir internal_proj_dir;

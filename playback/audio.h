@@ -29,7 +29,7 @@
 class QIODevice;
 class QAudioOutput;
 
-struct Sequence;
+
 
 class AudioSenderThread : public QThread {
 	Q_OBJECT

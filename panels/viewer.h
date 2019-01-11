@@ -21,17 +21,20 @@
 #include <QDockWidget>
 #include <QTimer>
 #include <QIcon>
+#include <QPushButton>
+#include <QLabel>
+
+
+#include "project/sequence.h"
 
 class Timeline;
 class ViewerWidget;
 class Media;
-struct Sequence;
+
 class TimelineHeader;
 class ResizableScrollBar;
 class ViewerContainer;
 class LabelSlider;
-class QPushButton;
-class QLabel;
 
 bool frame_rate_is_droppable(float rate);
 long timecode_to_frame(const QString& s, int view, double frame_rate);
@@ -85,7 +88,7 @@ public:
 	ViewerWidget* viewer_widget;
 
 	Media* media;
-	Sequence* seq;
+    SequencePtr seq;
 
 	void resizeEvent(QResizeEvent *event);
 
@@ -107,7 +110,7 @@ private slots:
 
 private:
 	void clean_created_seq();
-    void set_sequence(bool main, Sequence* s);
+    void set_sequence(bool main, SequencePtr s);
 	void set_zoom_value(double d);
 	void set_sb_max();
 

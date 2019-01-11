@@ -86,7 +86,7 @@ void EffectRow::set_keyframe_enabled(bool enabled) {
 		ComboAction* ca = new ComboAction();
 		ca->append(new SetKeyframing(this, true));
 		set_keyframe_now(ca);
-		undo_stack.push(ca);
+		e_undo_stack.push(ca);
 	} else {
 		if (QMessageBox::question(panel_effect_controls, "Disable Keyframes", "Disabling keyframes will delete all current keyframes. Are you sure you want to do this?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
 			// clear
@@ -98,7 +98,7 @@ void EffectRow::set_keyframe_enabled(bool enabled) {
 				}
 			}
 			ca->append(new SetKeyframing(this, false));
-			undo_stack.push(ca);
+			e_undo_stack.push(ca);
 			panel_effect_controls->update_keyframes();
 		} else {
 			setKeyframing(true);
@@ -113,7 +113,7 @@ void EffectRow::goto_previous_key() {
 		EffectField* f = field(i);
 		for (int j=0;j<f->keyframes.size();j++) {
 			long comp = f->keyframes.at(j).time - c->clip_in + c->timeline_in;
-			if (comp < sequence->playhead) {
+			if (comp < e_sequence->playhead) {
 				key = qMax(comp, key);
 			}
 		}
@@ -129,7 +129,7 @@ void EffectRow::toggle_key() {
 		EffectField* f = field(j);
 		for (int i=0;i<f->keyframes.size();i++) {
 			long comp = c->timeline_in - c->clip_in + f->keyframes.at(i).time;
-			if (comp == sequence->playhead) {
+			if (comp == e_sequence->playhead) {
 				key_fields.append(f);
 				key_field_index.append(i);
 			}
@@ -145,7 +145,7 @@ void EffectRow::toggle_key() {
 			ca->append(new KeyframeDelete(key_fields.at(i), key_field_index.at(i)));
 		}
 	}
-	undo_stack.push(ca);
+	e_undo_stack.push(ca);
 	update_ui(false);
 }
 
@@ -156,7 +156,7 @@ void EffectRow::goto_next_key() {
 		EffectField* f = field(i);
 		for (int j=0;j<f->keyframes.size();j++) {
 			long comp = f->keyframes.at(j).time - c->clip_in + c->timeline_in;
-			if (comp > sequence->playhead) {
+			if (comp > e_sequence->playhead) {
 				key = qMin(comp, key);
 			}
 		}
@@ -187,7 +187,7 @@ void EffectRow::add_widget(QWidget* w) {
 
 
 void EffectRow::set_keyframe_now(ComboAction* ca) {
-	long time = sequence->playhead-parent_effect->parent_clip->timeline_in+parent_effect->parent_clip->clip_in;
+	long time = e_sequence->playhead-parent_effect->parent_clip->timeline_in+parent_effect->parent_clip->clip_in;
 
 	if (!just_made_unsafe_keyframe) {
 		EffectKeyframe key;

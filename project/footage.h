@@ -26,11 +26,13 @@
 #include <QPixmap>
 #include <QIcon>
 
+#include "project/projectitem.h"
+
 #define VIDEO_PROGRESSIVE 0
 #define VIDEO_TOP_FIELD_FIRST 1
 #define VIDEO_BOTTOM_FIELD_FIRST 2
 
-struct Sequence;
+
 struct Clip;
 class PreviewGenerator;
 class MediaThrobber;
@@ -56,12 +58,12 @@ struct FootageStream {
 	void make_square_thumb();
 };
 
-struct Footage {
+class Footage : public project::ProjectItem {
+public:
 	Footage();
-	~Footage();
+    virtual ~Footage();
     //FIXME: encapsulation
 	QString url;
-	QString name;
 	int64_t length;
 	QVector<FootageStream> video_tracks;
 	QVector<FootageStream> audio_tracks;
@@ -73,7 +75,7 @@ struct Footage {
     PreviewGenerator* preview_gen = NULL;
 	QMutex ready_lock;
 
-	bool using_inout;
+    bool using_inout = false;
 	long in;
 	long out;
 
@@ -81,5 +83,6 @@ struct Footage {
 	FootageStream *get_stream_from_file_index(bool video, int index);
 	void reset();
 };
+typedef std::shared_ptr<Footage> FootagePtr;
 
 #endif // FOOTAGE_H

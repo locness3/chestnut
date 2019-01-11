@@ -205,7 +205,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 							int folder = 0;
 
 							Media* item = new Media(0);
-							Footage* m = new Footage();
+                            FootagePtr  m = FootagePtr(new Footage());
 
 							m->using_inout = false;
 
@@ -216,7 +216,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								} else if (attr.name() == "folder") {
 									folder = attr.value().toInt();
 								} else if (attr.name() == "name") {
-									m->name = attr.value().toString();
+                                    m->setName(attr.value().toString());
 								} else if (attr.name() == "url") {
 									m->url = attr.value().toString();
 
@@ -264,7 +264,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 						case MEDIA_TYPE_SEQUENCE:
 						{
 							Media* parent = NULL;
-							Sequence* s = new Sequence();
+                            SequencePtr  s(new Sequence());
 
 							// load attributes about sequence
 							for (int j=0;j<stream.attributes().size();j++) {
@@ -277,9 +277,9 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								} else if (attr.name() == "id") {
 									s->save_id = attr.value().toInt();
 								} else if (attr.name() == "width") {
-//									s->width = attr.value().toInt(); //FIXME:
+                                    s->setWidth(attr.value().toUInt());
 								} else if (attr.name() == "height") {
-//									s->height = attr.value().toInt(); //FIXME:
+                                    s->setHeight(attr.value().toUInt());
 								} else if (attr.name() == "framerate") {
                                     s->setFrameRate(attr.value().toDouble());
 								} else if (attr.name() == "afreq") {
@@ -333,7 +333,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								} else if (stream.name() == "clip" && stream.isStartElement()) {
 									int media_type = -1;
 									int media_id, stream_id;
-									Clip* c = new Clip(s);
+                                    Clip* c = new Clip(s.operator ->()); //FIXME: raw ptr
 
 									// backwards compatibility code
 									c->autoscale = false;
@@ -394,7 +394,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 									case MEDIA_TYPE_FOOTAGE:
 										if (media_id >= 0) {
 											for (int j=0;j<loaded_media_items.size();j++) {
-												Footage* m = loaded_media_items.at(j)->to_footage();
+                                                FootagePtr  m = loaded_media_items.at(j)->to_footage();
 												if (m->save_id == media_id) {
 													c->media = loaded_media_items.at(j);
 													c->media_stream = stream_id;
@@ -452,8 +452,10 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 									if (!found) {
 										correct_clip->linked.removeAt(j);
 										j--;
-										if (QMessageBox::warning(mainWindow, "Invalid Clip Link", "This project contains an invalid clip link. It may be corrupt. Would you like to continue loading it?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) {
-											delete s;
+                                        if (QMessageBox::warning(mainWindow,
+                                                                 "Invalid Clip Link", "This project contains an invalid clip link. "
+                                                                 "It may be corrupt. Would you like to continue loading it?",
+                                                                 QMessageBox::Yes, QMessageBox::No) == QMessageBox::No) {
 											return false;
 										}
 									}

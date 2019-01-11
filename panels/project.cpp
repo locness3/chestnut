@@ -228,14 +228,14 @@ QString Project::get_next_sequence_name(QString start) {
 	return name;
 }
 
-Sequence* create_sequence_from_media(QVector<Media*>& media_list) {
-	Sequence* s = new Sequence();
+SequencePtr create_sequence_from_media(QVector<Media*>& media_list) {
+    SequencePtr  s = SequencePtr(new Sequence());
 
     s->setName(panel_project->get_next_sequence_name());
 
     // FIXME: hardcoded default values
-    QPair<int,int> dims(1920,1080);
-    s->setDimensions(dims);
+    s->setWidth(1920);
+    s->setHeight(1080);
     s->setFrameRate(29.97);
     s->setAudioFrequency(48000);
     s->setAudioLayout(3);
@@ -247,14 +247,15 @@ Sequence* create_sequence_from_media(QVector<Media*>& media_list) {
 		switch (media->get_type()) {
 		case MEDIA_TYPE_FOOTAGE:
 		{
-			Footage* m = media->to_footage();
-			if (m->ready) {
+            FootagePtr mediaFootage = media->to_footage();
+            if (mediaFootage->ready) {
 				if (!got_video_values) {
-					for (int j=0;j<m->video_tracks.size();j++) {
-						const FootageStream& ms = m->video_tracks.at(j);
-                        s->setDimensions(QPair<int,int>(ms.video_width, ms.video_height));
+                    for (int j=0;j<mediaFootage->video_tracks.size();j++) {
+                        const FootageStream& ms = mediaFootage->video_tracks.at(j);
+                        s->setWidth(ms.video_width);
+                        s->setHeight(ms.video_height);
 						if (ms.video_frame_rate != 0) {
-                            s->setFrameRate(ms.video_frame_rate * m->speed);
+                            s->setFrameRate(ms.video_frame_rate * mediaFootage->speed);
 
                             if (ms.video_interlacing != VIDEO_PROGRESSIVE) {
                                 s->setFrameRate(s->getFrameRate() * 2);
@@ -267,8 +268,8 @@ Sequence* create_sequence_from_media(QVector<Media*>& media_list) {
 					}
 				}
 				if (!got_audio_values) {
-					for (int j=0;j<m->audio_tracks.size();j++) {
-						const FootageStream& ms = m->audio_tracks.at(j);
+                    for (int j=0;j<mediaFootage->audio_tracks.size();j++) {
+                        const FootageStream& ms = mediaFootage->audio_tracks.at(j);
                         s->setAudioFrequency(ms.audio_frequency);
 						got_audio_values = true;
 						break;
@@ -279,9 +280,10 @@ Sequence* create_sequence_from_media(QVector<Media*>& media_list) {
 			break;
 		case MEDIA_TYPE_SEQUENCE:
 		{
-			Sequence* seq = media->to_sequence();
+            SequencePtr  seq = media->to_sequence();
             if (seq != NULL) {
-                s->setDimensions(seq->getDimensions());
+                s->setWidth(seq->getWidth());
+                s->setHeight(seq->getHeight());
                 s->setFrameRate(seq->getFrameRate());
                 s->setAudioFrequency(seq->getAudioFrequency());
                 s->setAudioLayout(seq->getAudioLayout());
@@ -306,12 +308,12 @@ void Project::duplicate_selected() {
 		dout << "duplicate called";
 		Media* i = item_to_media(items.at(j));
 		if (i->get_type() == MEDIA_TYPE_SEQUENCE) {
-			new_sequence(ca, i->to_sequence()->copy(), false, item_to_media(items.at(j).parent()));
+            new_sequence(ca, SequencePtr(i->to_sequence()->copy()), false, item_to_media(items.at(j).parent()));
 			duped = true;
 		}
 	}
 	if (duped) {
-		undo_stack.push(ca);
+		e_undo_stack.push(ca);
 	} else {
 		delete ca;
 	}
@@ -333,18 +335,18 @@ void Project::replace_media(Media* item, QString filename) {
 	}
 	if (!filename.isEmpty()) {
 		ReplaceMediaCommand* rmc = new ReplaceMediaCommand(item, filename);
-		undo_stack.push(rmc);
+		e_undo_stack.push(rmc);
 	}
 }
 
 void Project::replace_clip_media() {
-	if (sequence == NULL) {
+	if (e_sequence == NULL) {
 		QMessageBox::critical(this, "No active sequence", "No sequence is active, please open the sequence you want to replace clips from.", QMessageBox::Ok);
 	} else {
 		QModelIndexList selected_items = get_current_selected();
 		if (selected_items.size() == 1) {
 			Media* item = item_to_media(selected_items.at(0));
-			if (item->get_type() == MEDIA_TYPE_SEQUENCE && sequence == item->to_sequence()) {
+			if (item->get_type() == MEDIA_TYPE_SEQUENCE && e_sequence == item->to_sequence()) {
 				QMessageBox::critical(this, "Active sequence selected", "You cannot insert a sequence into itself, so no clips of this media would be in this sequence.", QMessageBox::Ok);
 			} else {
 				ReplaceClipMediaDialog dialog(this, item);
@@ -377,14 +379,14 @@ void Project::open_properties() {
 			QString new_name = QInputDialog::getText(this, "Rename '" + item->get_name() + "'", "Enter new name:", QLineEdit::Normal, item->get_name());
 			if (!new_name.isEmpty()) {
 				MediaRename* mr = new MediaRename(item, new_name);
-				undo_stack.push(mr);
+				e_undo_stack.push(mr);
 			}
 		}
 		}
 	}
 }
 
-Media* Project::new_sequence(ComboAction *ca, Sequence *s, bool open, Media* parent) {
+Media* Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, Media* parent) {
 	if (parent == NULL) parent = project_model.get_root();
 	Media* item = new Media(parent);
 	item->set_sequence(s);
@@ -476,18 +478,19 @@ void Project::delete_selected_media() {
 		get_all_media_from_table(items, media_items, MEDIA_TYPE_FOOTAGE);
 		for (int i=0;i<media_items.size();i++) {
 			Media* item = media_items.at(i);
-			Footage* media = item->to_footage();
+            FootagePtr media = item->to_footage();
 			bool confirm_delete = false;
 			for (int j=0;j<sequence_items.size();j++) {
-				Sequence* s = sequence_items.at(j)->to_sequence();
-				for (int k=0;k<s->clips.size();k++) {
-					Clip* c = s->clips.at(k);
+                SequencePtr  seq = sequence_items.at(j)->to_sequence();
+                for (int k=0;k<seq->clips.size();k++) {
+                    Clip* c = seq->clips.at(k);
 					if (c != NULL && c->media == item) {
 						if (!confirm_delete) {
 							// we found a reference, so we know we'll need to ask if the user wants to delete it
 							QMessageBox confirm(this);
 							confirm.setWindowTitle("Delete media in use?");
-                            confirm.setText("The media '" + media->name + "' is currently used in '" + s->getName() + "'. Deleting it will remove all instances in the sequence. Are you sure you want to do this?");
+                            confirm.setText("The media '" + media->getName() + "' is currently used in '" + seq->getName()
+                                            + "'. Deleting it will remove all instances in the sequence. Are you sure you want to do this?");
 							QAbstractButton* yes_button = confirm.addButton(QMessageBox::Yes);
 							QAbstractButton* skip_button = NULL;
 							if (items.size() > 1) skip_button = confirm.addButton("Skip", QMessageBox::NoRole);
@@ -522,18 +525,18 @@ void Project::delete_selected_media() {
 								}
 
 								j = sequence_items.size();
-								k = s->clips.size();
+                                k = seq->clips.size();
 							} else if (confirm.clickedButton() == abort_button) {
 								// break out of loop
 								i = media_items.size();
 								j = sequence_items.size();
-								k = s->clips.size();
+                                k = seq->clips.size();
 
 								remove = false;
 							}
 						}
 						if (confirm_delete) {
-							ca->append(new DeleteClipAction(s, k));
+                            ca->append(new DeleteClipAction(seq, k));
 						}
 					}
 				}
@@ -547,7 +550,7 @@ void Project::delete_selected_media() {
 	// remove
 	if (remove) {
 		panel_effect_controls->clear_effects(true);
-        if (sequence != NULL) sequence->selections.clear();
+        if (e_sequence != NULL) e_sequence->selections.clear();
 
 		// remove media and parents
 		for (int m=0;m<parents.size();m++) {
@@ -565,9 +568,9 @@ void Project::delete_selected_media() {
 			if (items.at(i)->get_type() == MEDIA_TYPE_SEQUENCE) {
 				redraw = true;
 
-				Sequence* s = items.at(i)->to_sequence();
+                SequencePtr  s = items.at(i)->to_sequence();
 
-				if (s == sequence) {
+				if (s == e_sequence) {
 					ca->append(new ChangeSequenceAction(NULL));
 				}
 
@@ -579,16 +582,17 @@ void Project::delete_selected_media() {
 					for (int j=0;j<panel_footage_viewer->seq->clips.size();j++) {
 						Clip* c = panel_footage_viewer->seq->clips.at(j);
 						if (c != NULL) {
-							if (c->media == items.at(i)->to_object()) {
-								panel_footage_viewer->set_media(NULL);
-							}
+                            // TODO: this was never true. object was only ever set to a Footage/Sequence* or NULL
+//							if (c->media == items.at(i)->get_object()) {
+//								panel_footage_viewer->set_media(NULL);
+//							}
 							break;
 						}
 					}
 				}
 			}
 		}
-		undo_stack.push(ca);
+		e_undo_stack.push(ca);
 
 		// redraw clips
 		if (redraw) {
@@ -727,7 +731,7 @@ void Project::process_file_list(QStringList& files, bool recursive, Media* repla
 
 			if (!skip) {
 				Media* item;
-				Footage* m;
+                FootagePtr m;
 
 				if (replace != NULL) {
 					item = replace;
@@ -735,12 +739,12 @@ void Project::process_file_list(QStringList& files, bool recursive, Media* repla
 					m->reset();
 				} else {
 					item = new Media(parent);
-					m = new Footage();
+                    m = FootagePtr(new Footage());
 				}
 
 				m->using_inout = false;
 				m->url = file;
-				m->name = get_file_name_from_path(files.at(i));
+                m->setName(get_file_name_from_path(files.at(i)));
 
 				item->set_footage(m);
 
@@ -763,7 +767,7 @@ void Project::process_file_list(QStringList& files, bool recursive, Media* repla
 	}
 	if (create_undo_action) {
 		if (imported) {
-			undo_stack.push(ca);
+			e_undo_stack.push(ca);
 		} else {
 			delete ca;
 		}
@@ -825,19 +829,19 @@ void Project::import_dialog() {
 }
 
 void Project::delete_clips_using_selected_media() {
-	if (sequence == NULL) {
+	if (e_sequence == NULL) {
 		QMessageBox::critical(this, "No active sequence", "No sequence is active, please open the sequence you want to delete clips from.", QMessageBox::Ok);
 	} else {
 		ComboAction* ca = new ComboAction();
 		bool deleted = false;
 		QModelIndexList items = get_current_selected();
-		for (int i=0;i<sequence->clips.size();i++) {
-			Clip* c = sequence->clips.at(i);
+		for (int i=0;i<e_sequence->clips.size();i++) {
+			Clip* c = e_sequence->clips.at(i);
 			if (c != NULL) {
 				for (int j=0;j<items.size();j++) {
 					Media* m = item_to_media(items.at(j));
 					if (c->media == m) {
-						ca->append(new DeleteClipAction(sequence, i));
+						ca->append(new DeleteClipAction(e_sequence, i));
 						deleted = true;
 					}
 				}
@@ -848,7 +852,7 @@ void Project::delete_clips_using_selected_media() {
 			if (delete_clips_in_clipboard_with_media(ca, m)) deleted = true;
 		}
 		if (deleted) {
-			undo_stack.push(ca);
+			e_undo_stack.push(ca);
 			update_ui(true);
 		} else {
 			delete ca;
@@ -863,7 +867,7 @@ void Project::clear() {
 	// delete sequences first because it's important to close all the clips before deleting the media
 	QVector<Media*> sequences = list_all_project_sequences();
 	for (int i=0;i<sequences.size();i++) {
-		delete sequences.at(i)->to_sequence();
+//		delete sequences.at(i)->to_sequence(); // FIXME: this should be a smart_ptr
 		sequences.at(i)->set_sequence(NULL);
 	}
 
@@ -913,12 +917,12 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 			} else {
 				int folder = root ? 0 : project_model.getItem(parent)->temp_id;
 				if (type == MEDIA_TYPE_FOOTAGE) {
-					Footage* f = m->to_footage();
+                    FootagePtr f = m->to_footage();
 					f->save_id = media_id;
 					stream.writeStartElement("footage");
 					stream.writeAttribute("id", QString::number(media_id));
 					stream.writeAttribute("folder", QString::number(folder));
-					stream.writeAttribute("name", f->name);
+                    stream.writeAttribute("name", f->getName());
 					stream.writeAttribute("url", proj_dir.relativeFilePath(f->url));
 					stream.writeAttribute("duration", QString::number(f->length));
 					stream.writeAttribute("using_inout", QString::number(f->using_inout));
@@ -947,7 +951,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 					stream.writeEndElement();
 					media_id++;
 				} else if (type == MEDIA_TYPE_SEQUENCE) {
-					Sequence* s = m->to_sequence();
+                    SequencePtr  s = m->to_sequence();
 					if (set_ids_only) {
 						s->save_id = sequence_id;
 						sequence_id++;
@@ -956,12 +960,12 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 						stream.writeAttribute("id", QString::number(s->save_id));
 						stream.writeAttribute("folder", QString::number(folder));
                         stream.writeAttribute("name", s->getName());
-                        stream.writeAttribute("width", QString::number(s->getDimensions().first));
-                        stream.writeAttribute("height", QString::number(s->getDimensions().second));
+                        stream.writeAttribute("width", QString::number(s->getWidth()));
+                        stream.writeAttribute("height", QString::number(s->getHeight()));
                         stream.writeAttribute("framerate", QString::number(s->getFrameRate(), 'f', 10));
                         stream.writeAttribute("afreq", QString::number(s->getAudioFrequency()));
                         stream.writeAttribute("alayout", QString::number(s->getAudioLayout()));
-						if (s == sequence) {
+						if (s == e_sequence) {
 							stream.writeAttribute("open", "1");
 						}
                         stream.writeAttribute("workarea", QString::number(s->using_workarea));
@@ -1249,7 +1253,7 @@ void MediaThrobber::stop(int icon_type, bool replace) {
 	// refresh all clips
 	QVector<Media*> sequences = panel_project->list_all_project_sequences();
 	for (int i=0;i<sequences.size();i++) {
-		Sequence* s = sequences.at(i)->to_sequence();
+        SequencePtr  s = sequences.at(i)->to_sequence();
 		for (int j=0;j<s->clips.size();j++) {
 			Clip* c = s->clips.at(j);
 			if (c != NULL) {

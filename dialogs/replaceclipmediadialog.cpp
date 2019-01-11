@@ -88,7 +88,7 @@ void ReplaceClipMediaDialog::replace() {
 		} else if (new_item->get_type() == MEDIA_TYPE_FOLDER) {
 			QMessageBox::critical(this, "Folder selected", "You cannot replace footage with a folder.", QMessageBox::Ok);
 		} else {
-			if (new_item->get_type() == MEDIA_TYPE_SEQUENCE && sequence == new_item->to_sequence()) {
+			if (new_item->get_type() == MEDIA_TYPE_SEQUENCE && e_sequence == new_item->to_sequence()) {
 				QMessageBox::critical(this, "Active sequence selected", "You cannot insert a sequence into itself.", QMessageBox::Ok);
 			} else {
 				ReplaceClipMediaCommand* rcmc = new ReplaceClipMediaCommand(
@@ -97,14 +97,14 @@ void ReplaceClipMediaDialog::replace() {
 							use_same_media_in_points->isChecked()
 						);
 
-				for (int i=0;i<sequence->clips.size();i++) {
-					Clip* c = sequence->clips.at(i);
+				for (int i=0;i<e_sequence->clips.size();i++) {
+					Clip* c = e_sequence->clips.at(i);
 					if (c != NULL && c->media == media) {
 						rcmc->clips.append(c);
 					}
 				}
 
-				undo_stack.push(rcmc);
+				e_undo_stack.push(rcmc);
 
 				close();
 			}

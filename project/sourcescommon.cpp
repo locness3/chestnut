@@ -50,14 +50,14 @@ void SourcesCommon::create_seq_from_selected() {
 		}
 
 		ComboAction* ca = new ComboAction();
-		Sequence* s = create_sequence_from_media(media_list);
+        SequencePtr  s = create_sequence_from_media(media_list);
 
 		// add clips to it
 		panel_timeline->create_ghosts_from_media(s, 0, media_list);
 		panel_timeline->add_clips_from_ghosts(ca, s);
 
 		project_parent->new_sequence(ca, s, true, NULL);
-		undo_stack.push(ca);
+		e_undo_stack.push(ca);
 	}
 }
 
@@ -177,7 +177,7 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *e, const QModelIndexList&
 			panel_footage_viewer->setFocus();
 			break;
 		case MEDIA_TYPE_SEQUENCE:
-			undo_stack.push(new ChangeSequenceAction(item->to_sequence()));
+			e_undo_stack.push(new ChangeSequenceAction(item->to_sequence()));
 			break;
 		}
 	}
@@ -252,7 +252,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 				MediaMove* mm = new MediaMove();
 				mm->to = m;
 				mm->items = move_items;
-				undo_stack.push(mm);
+				e_undo_stack.push(mm);
 			}
 		}
 	}
@@ -260,7 +260,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 
 void SourcesCommon::reveal_in_browser() {
 	Media* media = project_parent->item_to_media(selected_items.at(0));
-	Footage* m = media->to_footage();
+    FootagePtr m = media->to_footage();
 
 #if defined(Q_OS_WIN)
 	QStringList args;
@@ -296,7 +296,7 @@ void SourcesCommon::rename_interval() {
 void SourcesCommon::item_renamed(Media* item) {
 	if (editing_item == item) {
 		MediaRename* mr = new MediaRename(item, "idk");
-		undo_stack.push(mr);
+		e_undo_stack.push(mr);
 		editing_item = NULL;
 	}
 }

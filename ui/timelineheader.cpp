@@ -104,7 +104,7 @@ void TimelineHeader::set_in_point(long new_in) {
 		new_out = viewer->seq->getEndFrame();
 	}
 
-	undo_stack.push(new SetTimelineInOutCommand(viewer->seq, true, new_in, new_out));
+	e_undo_stack.push(new SetTimelineInOutCommand(viewer->seq, true, new_in, new_out));
 	update_parents();
 }
 
@@ -116,7 +116,7 @@ void TimelineHeader::set_out_point(long new_out) {
 		new_in = 0;
 	}
 
-	undo_stack.push(new SetTimelineInOutCommand(viewer->seq, true, new_in, new_out));
+	e_undo_stack.push(new SetTimelineInOutCommand(viewer->seq, true, new_in, new_out));
 	update_parents();
 }
 
@@ -255,7 +255,7 @@ void TimelineHeader::mouseReleaseEvent(QMouseEvent*) {
 	if (viewer->seq != NULL) {
 		dragging = false;
 		if (resizing_workarea) {
-			undo_stack.push(new SetTimelineInOutCommand(viewer->seq, true, temp_workarea_in, temp_workarea_out));
+			e_undo_stack.push(new SetTimelineInOutCommand(viewer->seq, true, temp_workarea_in, temp_workarea_out));
 		} else if (dragging_markers && selected_markers.size() > 0) {
 			bool moved = false;
 			ComboAction* ca = new ComboAction();
@@ -267,7 +267,7 @@ void TimelineHeader::mouseReleaseEvent(QMouseEvent*) {
 				}
 			}
 			if (moved) {
-				undo_stack.push(ca);
+				e_undo_stack.push(ca);
 			} else {
 				delete ca;
 			}
@@ -305,7 +305,7 @@ void TimelineHeader::delete_markers() {
 		for (int i=0;i<selected_markers.size();i++) {
 			dma->markers.append(selected_markers.at(i));
 		}
-		undo_stack.push(dma);
+		e_undo_stack.push(dma);
 		update_parents();
 	}
 }

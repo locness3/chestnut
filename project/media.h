@@ -20,30 +20,33 @@
 
 #include <QList>
 #include <QVariant>
+#include <QIcon>
+
+#include "project/projectitem.h"
+#include "project/sequence.h"
+#include "project/footage.h"
 
 #define MEDIA_TYPE_FOOTAGE 0
 #define MEDIA_TYPE_SEQUENCE 1
 #define MEDIA_TYPE_FOLDER 2
 
-struct Footage;
 class MediaThrobber;
-struct Sequence;
-#include <QIcon>
+
 
 class Media
 {
 public:
     Media(Media* iparent);
     ~Media();
-    Footage *to_footage();
-    Sequence* to_sequence();
-    void set_footage(Footage* f);
-    void set_sequence(Sequence* s);
+    FootagePtr to_footage();
+    SequencePtr to_sequence();
+    void set_footage(FootagePtr ftg);
+    void set_sequence(SequencePtr sqn);
     void set_folder();
     void set_icon(const QIcon &ico);
     void set_parent(Media* p);
     void update_tooltip(const QString& error = 0);
-    void *to_object();
+    project::ProjectItemPtr get_object();
     int get_type();
     const QString& get_name();
     void set_name(const QString& n);
@@ -68,7 +71,7 @@ public:
     int temp_id2;
 private:
     int type;
-    void* object;
+    project::ProjectItemPtr object;
 
     // item functions
     QList<Media*> children;

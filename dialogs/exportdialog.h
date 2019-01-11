@@ -20,7 +20,6 @@
 
 #include <QDialog>
 
-struct Sequence;
 class ExportThread;
 class QComboBox;
 class QSpinBox;

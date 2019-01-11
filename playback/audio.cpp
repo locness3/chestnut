@@ -125,7 +125,7 @@ void clear_audio_ibuffer() {
 }
 
 int current_audio_freq() {
-    return rendering ? sequence->getAudioFrequency() : audio_output->format().sampleRate();
+    return rendering ? e_sequence->getAudioFrequency() : audio_output->format().sampleRate();
 }
 
 int get_buffer_offset_from_frame(double framerate, long frame) {
@@ -186,7 +186,7 @@ int AudioSenderThread::send_audio_to_output(int offset, int max) {
 
 	// send samples to audio monitor cache
 	// TODO make this work for the footage viewer - currently, enabling it causes crash due to an ASSERT
-	Sequence* s = NULL;
+    SequencePtr s;
 	/*if (panel_footage_viewer->playing) {
 		s = panel_footage_viewer->seq;
 	}*/
@@ -304,7 +304,7 @@ void write_wave_trailer(QFile& f) {
 }
 
 bool start_recording() {
-	if (sequence == NULL) {
+	if (e_sequence == NULL) {
 		dout << "[ERROR] No active sequence to record into";
 		return false;
 	}

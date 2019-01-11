@@ -22,6 +22,7 @@
 #include <QMutex>
 #include <QVector>
 #include "project/effect.h"
+#include "project/sequence.h"
 
 #define SKIP_TYPE_DISCARD 0
 #define SKIP_TYPE_SEEK 1
@@ -31,8 +32,8 @@ class Transition;
 class QOpenGLFramebufferObject;
 class ComboAction;
 class Media;
-struct Sequence;
-struct Footage;
+
+class Footage;
 struct FootageStream;
 
 struct AVFormatContext;
@@ -50,7 +51,7 @@ class QOpenGLTexture;
 
 struct Clip
 {
-    Clip(Sequence* s);
+    Clip(Sequence *s);
 	~Clip();
     Clip* copy(Sequence* s);
     void reset_audio();
@@ -66,7 +67,7 @@ struct Clip
 	int getWidth();
 	int getHeight();
 	void refactor_frame_rate(ComboAction* ca, double multiplier, bool change_timeline_points);
-	Sequence* sequence;
+    SequencePtr sequence;
 
 	// queue functions
 	void queue_clear();

@@ -47,12 +47,12 @@ void update_effect_controls() {
 	int aclip = -1;
 	QVector<int> selected_clips;
 	int mode = TA_NO_TRANSITION;
-	if (sequence != NULL) {
-		for (int i=0;i<sequence->clips.size();i++) {
-			Clip* clip = sequence->clips.at(i);
+	if (e_sequence != NULL) {
+		for (int i=0;i<e_sequence->clips.size();i++) {
+			Clip* clip = e_sequence->clips.at(i);
 			if (clip != NULL) {
-				for (int j=0;j<sequence->selections.size();j++) {
-					const Selection& s = sequence->selections.at(j);
+				for (int j=0;j<e_sequence->selections.size();j++) {
+					const Selection& s = e_sequence->selections.at(j);
 					bool add = true;
 					if (clip->timeline_in >= s.in && clip->timeline_out <= s.out && clip->track == s.track) {
 						mode = TA_NO_TRANSITION;
@@ -87,7 +87,7 @@ void update_effect_controls() {
 			if (aclip >= 0) selected_clips.append(aclip);
 			if (vclip >= 0 && aclip >= 0) {
 				bool found = false;
-				Clip* vclip_ref = sequence->clips.at(vclip);
+				Clip* vclip_ref = e_sequence->clips.at(vclip);
 				for (int i=0;i<vclip_ref->linked.size();i++) {
 					if (vclip_ref->linked.at(i) == aclip) {
 						found = true;

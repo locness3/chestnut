@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -22,8 +22,9 @@
 
 #include "debug.h"
 
-Sequence::Sequence() {
+Sequence::Sequence()  {
 }
+
 
 Sequence::~Sequence() {
 	// dealloc all clips
@@ -33,12 +34,13 @@ Sequence::~Sequence() {
 }
 
 Sequence* Sequence::copy() {
-	Sequence* s = new Sequence();
-    s->m_name = m_name + " (copy)";
-    s->m_dimensions = m_dimensions;
-    s->m_frameRate = m_frameRate;
-    s->m_audioFrequency = m_audioFrequency;
-    s->m_audioLayout = m_audioLayout;
+    Sequence* s = new Sequence();
+    s->name = name + " (copy)";
+    s->width = width;
+    s->height = height;
+    s->frame_rate = frame_rate;
+    s->audio_frequency = audio_frequency;
+    s->audio_layout = audio_layout;
 	s->clips.resize(clips.size());
 	for (int i=0;i<clips.size();i++) {
 		Clip* c = clips.at(i);
@@ -102,42 +104,41 @@ void Sequence::hard_delete_transition(Clip *c, int type) {
 }
 
 
-const QString&  Sequence::getName() const {
-    return m_name;
+void Sequence::setWidth(const int val) {
+    width = val;
+}
+int Sequence::getWidth() const {
+    return width;
 }
 
-void Sequence::setName(const QString& name) {
-    m_name = name;
+void Sequence::setHeight(const int val) {
+    height = val;
 }
-
-const QPair<int,int>& Sequence::getDimensions() const {
-    return m_dimensions;
-}
-void Sequence::setDimensions(const QPair<int,int>& dimensions) {
-    m_dimensions = dimensions;
+int Sequence::getHeight() const {
+    return height;
 }
 
 double Sequence::getFrameRate() const {
-    return m_frameRate;
+    return frame_rate;
 }
 void Sequence::setFrameRate(const double frameRate) {
-    m_frameRate = frameRate;
+    frame_rate = frameRate;
 }
 
 
 int Sequence::getAudioFrequency() const {
-    return m_audioFrequency;
+    return audio_frequency;
 }
-void Sequence::setAudioFrequency(const int audioFrequency) {
-    m_audioFrequency = audioFrequency;
+void Sequence::setAudioFrequency(const int frequency) {
+    audio_frequency = frequency;
 }
 
 
 int Sequence::getAudioLayout() const {
-    return m_audioLayout;
+    return audio_layout;
 }
-void Sequence::setAudioLayout(const int audioLayout) {
-    m_audioLayout = audioLayout;
+void Sequence::setAudioLayout(const int layout) {
+    audio_layout = layout;
 }
 void Sequence::getTrackLimits(int* video_tracks, int* audio_tracks) {
 	int vt = 0;
@@ -157,4 +158,4 @@ void Sequence::getTrackLimits(int* video_tracks, int* audio_tracks) {
 }
 
 // static variable for the currently active sequence
-Sequence* sequence = NULL;
+SequencePtr e_sequence;

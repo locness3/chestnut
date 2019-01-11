@@ -54,6 +54,7 @@
 #include <QDesktopWidget>
 #include <QInputDialog>
 #include <QApplication>
+#include <QDebug>
 
 extern "C" {
 	#include <libavformat/avformat.h>
@@ -142,7 +143,7 @@ void ViewerWidget::save_frame() {
 		if (!fn.endsWith(selected_ext,  Qt::CaseInsensitive)) {
 			fn += selected_ext;
 		}
-        QOpenGLFramebufferObject fbo(viewer->seq->getDimensions().first, viewer->seq->getDimensions().second, QOpenGLFramebufferObject::CombinedDepthStencil, GL_TEXTURE_RECTANGLE);
+        QOpenGLFramebufferObject fbo(viewer->seq->getWidth(), viewer->seq->getHeight(), QOpenGLFramebufferObject::CombinedDepthStencil, GL_TEXTURE_RECTANGLE);
 
 		rendering = true;
 		fbo.bind();
@@ -151,7 +152,7 @@ void ViewerWidget::save_frame() {
 
 		paintGL();
 
-        QImage img(viewer->seq->getDimensions().first, viewer->seq->getDimensions().second, QImage::Format_RGBA8888);
+        QImage img(viewer->seq->getWidth(), viewer->seq->getHeight(), QImage::Format_RGBA8888);
 		glReadPixels(0, 0, img.width(), img.height(), GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
 		img.save(fn);
 
@@ -226,7 +227,7 @@ void ViewerWidget::seek_from_click(int x) {
 
 EffectGizmo* ViewerWidget::get_gizmo_from_mouse(int x, int y) {
 	if (gizmos != NULL) {
-        double multiplier = (double) viewer->seq->getDimensions().first / (double) width();
+        double multiplier = (double) viewer->seq->getWidth() / (double) width();
 		QPoint mouse_pos(qRound(x*multiplier), qRound(y*multiplier));
 		int dot_size = 2 * qRound(GIZMO_DOT_SIZE * multiplier);
 		int target_size = 2 * qRound(GIZMO_TARGET_SIZE * multiplier);
@@ -264,7 +265,7 @@ EffectGizmo* ViewerWidget::get_gizmo_from_mouse(int x, int y) {
 
 void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
 	if (selected_gizmo != NULL) {
-        double multiplier = (double) viewer->seq->getDimensions().first / (double) width();
+        double multiplier = (double) viewer->seq->getWidth() / (double) width();
 
 		int x_movement = (event->pos().x() - drag_start_x)*multiplier;
 		int y_movement = (event->pos().y() - drag_start_y)*multiplier;
@@ -477,7 +478,7 @@ int motion_blur_prog = 0;
 int motion_blur_lim = 4;
 
 GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) {
-	Sequence* s = viewer->seq;
+    SequencePtr s = viewer->seq;
 	long playhead = s->playhead;
 
 	if (!nests.isEmpty()) {
@@ -507,7 +508,7 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 				bool clip_is_active = false;
 
 				if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) {
-					Footage* m = c->media->to_footage();
+                    FootagePtr m = c->media->to_footage();
 					if (!m->invalid && !(c->track >= 0 && !is_audio_device_set())) {
 						if (m->ready) {
 							const FootageStream* ms = m->get_stream_from_file_index(c->track < 0, c->media_stream);
@@ -552,8 +553,8 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 		}
 	}
 
-    int half_width = s->getDimensions().first/2;
-    int half_height = s->getDimensions().second/2;
+    int half_width = s->getWidth()/2;
+    int half_height = s->getHeight()/2;
 	if (rendering || !nests.isEmpty()) half_height = -half_height; // invert vertical
 
 	glPushMatrix();
@@ -655,9 +656,9 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 					coords.textureTopLeftQ = coords.textureTopRightQ = coords.textureTopLeftQ = coords.textureBottomLeftQ = 1;
 
 					// set up autoscale
-                    if (c->autoscale && (video_width != s->getDimensions().first && video_height != s->getDimensions().second)) {
-                        float width_multiplier = (float) s->getDimensions().first / (float) video_width;
-                        float height_multiplier = (float) s->getDimensions().second / (float) video_height;
+                    if (c->autoscale && (video_width != s->getWidth() && video_height != s->getHeight())) {
+                        float width_multiplier = (float) s->getWidth() / (float) video_width;
+                        float height_multiplier = (float) s->getHeight() / (float) video_height;
 						float scale_multiplier = qMin(width_multiplier, height_multiplier);
 						glScalef(scale_multiplier, scale_multiplier, 1);
 					}
@@ -703,9 +704,9 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 
 					if (!nests.isEmpty()) {
 						nests.last()->fbo[0]->bind();
-                        glViewport(0, 0, s->getDimensions().first, s->getDimensions().second);
+                        glViewport(0, 0, s->getWidth(), s->getHeight());
 					} else if (rendering) {
-                        glViewport(0, 0, s->getDimensions().first, s->getDimensions().second);
+                        glViewport(0, 0, s->getWidth(), s->getHeight());
 					} else {
 						int widget_width = width();
 						int widget_height = height();
@@ -908,12 +909,12 @@ void ViewerWidget::paintGL() {
 				float color[4];
 				glGetFloatv(GL_CURRENT_COLOR, color);
 
-                float dot_size = GIZMO_DOT_SIZE / width() * viewer->seq->getDimensions().first;
-                float target_size = GIZMO_TARGET_SIZE / width() * viewer->seq->getDimensions().first;
+                float dot_size = GIZMO_DOT_SIZE / width() * viewer->seq->getWidth();
+                float target_size = GIZMO_TARGET_SIZE / width() * viewer->seq->getWidth();
 
 				glPushMatrix();
 				glLoadIdentity();
-                glOrtho(0, viewer->seq->getDimensions().first, viewer->seq->getDimensions().second, 0, -1, 10);
+                glOrtho(0, viewer->seq->getWidth(), viewer->seq->getHeight(), 0, -1, 10);
 				float gizmo_z = 0.0f;
 				for (int j=0;j<gizmos->gizmo_count();j++) {
 					EffectGizmo* g = gizmos->gizmo(j);

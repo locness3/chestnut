@@ -42,7 +42,7 @@
 #include "project/media.h"
 #include "debug.h"
 
-QUndoStack undo_stack;
+QUndoStack e_undo_stack;
 
 ComboAction::ComboAction() {}
 
@@ -92,6 +92,11 @@ MoveClipAction::MoveClipAction(Clip *c, long iin, long iout, long iclip_in, int 
 	old_project_changed(mainWindow->isWindowModified())
 {}
 
+
+MoveClipAction::~MoveClipAction() {
+
+}
+
 void MoveClipAction::undo() {
 	if (relative) {
 		clip->timeline_in -= new_in;
@@ -124,7 +129,7 @@ void MoveClipAction::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-DeleteClipAction::DeleteClipAction(Sequence* s, int clip) :
+DeleteClipAction::DeleteClipAction(SequencePtr s, int clip) :
 	seq(s),
 	index(clip),
 	opening_transition(-1),
@@ -203,7 +208,7 @@ void DeleteClipAction::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-ChangeSequenceAction::ChangeSequenceAction(Sequence* s) :
+ChangeSequenceAction::ChangeSequenceAction(SequencePtr s) :
 	new_sequence(s)
 {}
 
@@ -212,11 +217,11 @@ void ChangeSequenceAction::undo() {
 }
 
 void ChangeSequenceAction::redo() {
-	old_sequence = sequence;
+	old_sequence = e_sequence;
 	set_sequence(new_sequence);
 }
 
-SetTimelineInOutCommand::SetTimelineInOutCommand(Sequence *s, bool enabled, long in, long out) :
+SetTimelineInOutCommand::SetTimelineInOutCommand(SequencePtr s, bool enabled, long in, long out) :
 	seq(s),
 	new_enabled(enabled),
 	new_in(in),
@@ -232,7 +237,7 @@ void SetTimelineInOutCommand::undo() {
 
 	// footage viewer functions
 	if (seq->wrapper_sequence) {
-		Footage* m = seq->clips.at(0)->media->to_footage();
+        FootagePtr  m = seq->clips.at(0)->media->to_footage();
 		m->using_inout = old_enabled;
 		m->in = old_in;
 		m->out = old_out;
@@ -254,7 +259,7 @@ void SetTimelineInOutCommand::redo() {
 
 	// footage viewer functions
 	if (seq->wrapper_sequence) {
-		Footage* m = seq->clips.at(0)->media->to_footage();
+        FootagePtr  m = seq->clips.at(0)->media->to_footage();
 		m->using_inout = new_enabled;
 		m->in = new_in;
 		m->out = new_out;
@@ -370,7 +375,7 @@ void ModifyTransitionCommand::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-DeleteTransitionCommand::DeleteTransitionCommand(Sequence* s, int transition_index) :
+DeleteTransitionCommand::DeleteTransitionCommand(SequencePtr s, int transition_index) :
 	seq(s),
 	index(transition_index),
 	transition(NULL),
@@ -493,7 +498,7 @@ void DeleteMediaCommand::redo() {
 	done = true;
 }
 
-AddClipCommand::AddClipCommand(Sequence* s, QVector<Clip*>& add) :
+AddClipCommand::AddClipCommand(SequencePtr s, QVector<Clip*>& add) :
 	seq(s),
 	clips(add),
 	old_project_changed(mainWindow->isWindowModified())
@@ -530,7 +535,7 @@ void AddClipCommand::redo() {
 		int linkOffset = seq->clips.size();
 		for (int i=0;i<clips.size();i++) {
 			Clip* original = clips.at(i);
-			Clip* copy = original->copy(seq);
+            Clip* copy = original->copy(seq.operator ->()); //FIXME: raw ptr
 			copy->linked.resize(original->linked.size());
 			for (int j=0;j<original->linked.size();j++) {
 				copy->linked[j] = original->linked.at(j) + linkOffset;
@@ -605,7 +610,7 @@ void ReplaceMediaCommand::replace(QString& filename) {
 	// close any clips currently using this media
 	QVector<Media*> all_sequences = panel_project->list_all_project_sequences();
 	for (int i=0;i<all_sequences.size();i++) {
-		Sequence* s = all_sequences.at(i)->to_sequence();
+        SequencePtr s = all_sequences.at(i)->to_sequence();
 		for (int j=0;j<s->clips.size();j++) {
 			Clip* c = s->clips.at(j);
 			if (c != NULL && c->media == item && c->open) {
@@ -816,7 +821,7 @@ void SetAutoscaleAction::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-AddMarkerAction::AddMarkerAction(Sequence* s, long t, QString n) :
+AddMarkerAction::AddMarkerAction(SequencePtr s, long t, QString n) :
 	seq(s),
 	time(t),
 	name(n),
@@ -871,7 +876,7 @@ void MoveMarkerAction::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-DeleteMarkerAction::DeleteMarkerAction(Sequence* s) :
+DeleteMarkerAction::DeleteMarkerAction(SequencePtr s) :
 	seq(s),
 	sorted(false),
 	old_project_changed(mainWindow->isWindowModified())
@@ -937,7 +942,7 @@ void SetBool::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-SetSelectionsCommand::SetSelectionsCommand(Sequence* s) :
+SetSelectionsCommand::SetSelectionsCommand(SequencePtr s) :
 	seq(s),
 	done(true),
 	old_project_changed(mainWindow->isWindowModified())
@@ -974,13 +979,13 @@ void SetEnableCommand::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-EditSequenceCommand::EditSequenceCommand(Media* i, Sequence *s) :
+EditSequenceCommand::EditSequenceCommand(Media* i, SequencePtr s) :
 	item(i),
 	seq(s),
 	old_project_changed(mainWindow->isWindowModified()),
     old_name(s->getName()),
-    old_width(s->getDimensions().first),
-    old_height(s->getDimensions().second),
+    old_width(s->getWidth()),
+    old_height(s->getHeight()),
     old_frame_rate(s->getFrameRate()),
     old_audio_frequency(s->getAudioFrequency()),
     old_audio_layout(s->getAudioLayout())
@@ -988,7 +993,8 @@ EditSequenceCommand::EditSequenceCommand(Media* i, Sequence *s) :
 
 void EditSequenceCommand::undo() {
     seq->setName(old_name);
-    seq->setDimensions(QPair<int,int>(old_width,old_height));
+    seq->setWidth(old_width);
+    seq->setHeight(old_height);
     seq->setFrameRate(old_frame_rate);
     seq->setAudioFrequency(old_audio_frequency);
     seq->setAudioLayout(old_audio_layout);
@@ -999,7 +1005,8 @@ void EditSequenceCommand::undo() {
 
 void EditSequenceCommand::redo() {
     seq->setName(name);
-    seq->setDimensions(QPair<int,int>(width,height));
+    seq->setWidth(width);
+    seq->setHeight(height);
     seq->setFrameRate(frame_rate);
     seq->setAudioFrequency(audio_frequency);
     seq->setAudioLayout(audio_layout);
@@ -1016,7 +1023,7 @@ void EditSequenceCommand::update() {
 		if (seq->clips.at(i) != NULL) seq->clips.at(i)->refresh();
 	}
 
-	if (sequence == seq) {
+	if (e_sequence == seq) {
 		set_sequence(seq);
 	}
 }
@@ -1060,7 +1067,7 @@ void CloseAllClipsCommand::undo() {
 }
 
 void CloseAllClipsCommand::redo() {
-	closeActiveClips(sequence);
+	closeActiveClips(e_sequence);
 }
 
 UpdateFootageTooltip::UpdateFootageTooltip(Media *i) :
@@ -1155,7 +1162,7 @@ void ReloadEffectsCommand::redo() {
 	panel_effect_controls->reload_clips();
 }
 
-RippleAction::RippleAction(Sequence *is, long ipoint, long ilength, const QVector<int> &iignore) :
+RippleAction::RippleAction(SequencePtr is, long ipoint, long ilength, const QVector<int> &iignore) :
 	s(is),
 	point(ipoint),
 	length(ilength),
@@ -1277,7 +1284,7 @@ void RefreshClips::redo() {
 	// close any clips currently using this media
 	QVector<Media*> all_sequences = panel_project->list_all_project_sequences();
 	for (int i=0;i<all_sequences.size();i++) {
-		Sequence* s = all_sequences.at(i)->to_sequence();
+        SequencePtr s = all_sequences.at(i)->to_sequence();
 		for (int j=0;j<s->clips.size();j++) {
 			Clip* c = s->clips.at(j);
 			if (c != NULL && c->media == media) {
