@@ -65,7 +65,7 @@ Clip::Clip(SequencePtr s) :
 Clip::~Clip() {
     if (open) {
         // FIXME: ..... all that over there should be here
-//                close_clip(this, true);
+        //                close_clip(this, true);
     }
 
     //FIXME:
@@ -265,6 +265,7 @@ double Clip::getMediaFrameRate() {
 }
 
 void Clip::recalculateMaxLength() {
+    // TODO: calculated_length on failures
     if (sequence != NULL) {
         double fr = this->sequence->getFrameRate();
 
@@ -277,19 +278,26 @@ void Clip::recalculateMaxLength() {
             case MEDIA_TYPE_FOOTAGE:
             {
                 FootagePtr m = media->get_object<Footage>();
-                const FootageStream* ms = m->get_stream_from_file_index(track < 0, media_stream);
-                if (ms != NULL && ms->infinite_length) {
-                    calculated_length = LONG_MAX;
-                } else {
-                    calculated_length = m->get_length_in_frames(fr);
+                if (m != NULL) {
+                    const FootageStream* ms = m->get_stream_from_file_index(track < 0, media_stream);
+                    if (ms != NULL && ms->infinite_length) {
+                        calculated_length = LONG_MAX;
+                    } else {
+                        calculated_length = m->get_length_in_frames(fr);
+                    }
                 }
             }
                 break;
             case MEDIA_TYPE_SEQUENCE:
             {
                 SequencePtr s = media->get_object<Sequence>();
-                calculated_length = refactor_frame_number(s->getEndFrame(), s->getFrameRate(), fr);
+                if (s != NULL) {
+                    calculated_length = refactor_frame_number(s->getEndFrame(), s->getFrameRate(), fr);
+                }
             }
+                break;
+            default:
+                //TODO: log/something
                 break;
             }
         }
@@ -301,64 +309,116 @@ long Clip::getMaximumLength() {
 }
 
 int Clip::getWidth() {
-    if (media == NULL && sequence != NULL) return sequence->getWidth();
-    switch (media->get_type()) {
-    case MEDIA_TYPE_FOOTAGE:
-    {
-        const FootageStream* ms = media->get_object<Footage>()->get_stream_from_file_index(track < 0, media_stream);
-        if (ms != NULL) return ms->video_width;
-        if (sequence != NULL) return sequence->getWidth();
+    if (media == NULL && sequence != NULL) {
+        return sequence->getWidth();
     }
-    case MEDIA_TYPE_SEQUENCE:
-    {
-        SequencePtr s = media->get_object<Sequence>();
-        return s->getWidth();
-    }
-    }
-    return 0;
-}
 
-int Clip::getHeight() {
-    if (media == NULL && sequence != NULL) return sequence->getHeight();
     switch (media->get_type()) {
     case MEDIA_TYPE_FOOTAGE:
     {
         const FootageStream* ms = media->get_object<Footage>()->get_stream_from_file_index(track < 0, media_stream);
-        if (ms != NULL) return ms->video_height;
-        if (sequence != NULL) return sequence->getHeight();
+        if (ms != NULL) {
+            return ms->video_width;
+        }
+        if (sequence != NULL) {
+            return sequence->getWidth();
+        }
+        break;
     }
     case MEDIA_TYPE_SEQUENCE:
     {
-        SequencePtr s = media->get_object<Sequence>();
-        return s->getHeight();;
+        SequencePtr sequenceNow = media->get_object<Sequence>();
+        if (sequenceNow != NULL) {
+            return sequenceNow->getWidth();
+        }
+        break;
     }
     default:
+        //TODO: log/something
         break;
     }
     return 0;
 }
 
+int Clip::getHeight() {
+    if ( (media == NULL) && (sequence != NULL) ) {
+        return sequence->getHeight();
+    }
+
+    switch (media->get_type()) {
+    case MEDIA_TYPE_FOOTAGE:
+    {
+        const FootageStream* ms = media->get_object<Footage>()->get_stream_from_file_index(track < 0, media_stream);
+        if (ms != NULL) {
+            return ms->video_height;
+        }
+        if (sequence != NULL) {
+            return sequence->getHeight();
+        }
+        break;
+    }
+    case MEDIA_TYPE_SEQUENCE:
+    {
+        SequencePtr s = media->get_object<Sequence>();
+        return s->getHeight();
+        break;
+    }
+    default:
+        //TODO: log/something
+        break;
+    }//switch
+    return 0;
+}
+
 void Clip::refactor_frame_rate(ComboAction* ca, double multiplier, bool change_timeline_points) {
     if (change_timeline_points) {
-        // FIXME: groan Clip::move
-        //        move_clip(ca, this,
-        //                  qRound((double) timeline_in * multiplier),
-        //                  qRound((double) timeline_out * multiplier),
-        //                  qRound((double) clip_in * multiplier),
-        //                  track);
+        if (ca != NULL) {
+            move(*ca,
+                 qRound(static_cast<double>(timeline_in) * multiplier),
+                 qRound(static_cast<double>(timeline_out) * multiplier),
+                 qRound(static_cast<double>(clip_in) * multiplier),
+                 track);
+        }
     }
 
     // move keyframes
     for (int i=0;i<effects.size();i++) {
-        EffectPtr e = effects.at(i);
-        for (int j=0;j<e->row_count();j++) {
-            EffectRowPtr r = e->row(j);
-            for (int l=0;l<r->fieldCount();l++) {
-                EffectField* f = r->field(l);
-                for (int k=0;k<f->keyframes.size();k++) {
+        EffectPtr effectNow = effects.at(i);
+        for (int j=0; j<effectNow->row_count();j++) {
+            EffectRowPtr effectRowNow = effectNow->row(j);
+            for (int l=0; l<effectRowNow->fieldCount(); l++) {
+                EffectField* f = effectRowNow->field(l);
+                for (int k=0; k<f->keyframes.size(); k++) {
                     ca->append(new SetLong(&f->keyframes[k].time, f->keyframes[k].time, f->keyframes[k].time * multiplier));
                 }
             }
+        }
+    }
+}
+
+//TODO: use of pointers is causing holdup
+void Clip::move(ComboAction &ca, const long iin, const long iout,
+                const long iclip_in, const int itrack, const bool verify_transitions,
+                const bool relative)
+{
+    //TODO: check the ClipPtr(this) does what intended
+    ca.append(new MoveClipAction(ClipPtr(this), iin, iout, iclip_in, itrack, relative));
+
+    if (verify_transitions) {
+        if ( (get_opening_transition() != NULL) &&
+             (get_opening_transition()->secondary_clip != NULL) &&
+             (get_opening_transition()->secondary_clip->timeline_out != iin) ) {
+            // separate transition
+            //            ca.append(new SetPointer((void**) &c->get_opening_transition()->secondary_clip, NULL));
+            ca.append(new AddTransitionCommand(get_opening_transition()->secondary_clip, NULL, get_opening_transition(), NULL, TA_CLOSING_TRANSITION, 0));
+        }
+
+        if ( (get_closing_transition() != NULL) &&
+             (get_closing_transition()->secondary_clip != NULL) &&
+             (get_closing_transition()->parent_clip->timeline_in != iout) ) {
+            // separate transition
+            //            ca.append(new SetPointer((void**) &c->get_closing_transition()->secondary_clip, NULL));
+            ca.append(new AddTransitionCommand(ClipPtr(this), NULL, get_closing_transition(), NULL, TA_CLOSING_TRANSITION, 0));
         }
     }
 }

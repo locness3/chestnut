@@ -163,6 +163,11 @@ public:
 	long audio_target_frame;
 private:
 
+    // Comboaction::move_clip() or Clip::move()?
+    void move(ComboAction& ca, const long iin, const long iout,
+              const long iclip_in, const int itrack, const bool verify_transitions = true,
+              const bool relative = false);
+
     // Explicitly impl as required
     Clip();
     Clip(const Clip& cpy);
