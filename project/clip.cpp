@@ -33,6 +33,11 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libavfilter/avfilter.h>
+}
+
+namespace {
+    const bool WAIT_ON_CLOSE = true;
 }
 
 Clip::Clip(SequencePtr s) :
@@ -55,8 +60,7 @@ Clip::Clip(SequencePtr s) :
 
 Clip::~Clip() {
     if (open) {
-        // FIXME: ..... all that over there should be here
-        //                close_clip(this, true);
+        close(WAIT_ON_CLOSE);
     }
 
     //FIXME:
@@ -129,6 +133,96 @@ bool Clip::isActive(const long playhead) {
         }
     }
     return false;
+}
+
+/**
+ * @brief Identify if the clip is being cached
+ * @return true==caching used
+ */
+bool Clip::uses_cacher() const {
+    if (( (timeline_info.media == NULL) && (timeline_info.track >= 0) )
+            || ( (timeline_info.media != NULL) && (timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE))) {
+        return true;
+    }
+    return false;
+
+//    bool clip_uses_cacher(ClipPtr clip) {
+//        return ((clip->timeline_info.media == NULL) && (clip->timeline_info.track >= 0) )
+//                || ( (clip->timeline_info.media != NULL) && (clip->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) );
+//    }
+}
+
+
+/**
+ * @brief Free resources made via libav
+ */
+void Clip::close_worker() {
+    finished_opening = false;
+
+    if (timeline_info.media != NULL && timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
+        queue_clear();
+        // clear resources allocated via libav
+        avfilter_graph_free(&filter_graph);
+        avcodec_close(media_handling.codecCtx);
+        avcodec_free_context(&media_handling.codecCtx);
+        av_dict_free(&media_handling.opts);
+        avformat_close_input(&media_handling.formatCtx);
+    }
+
+    av_frame_free(&media_handling.frame);
+
+    reset();
+
+    dout << "[INFO] Clip closed on track" << timeline_info.track;
+}
+
+
+/**
+ * @brief Close this clip and free up resources
+ * @param wait  Wait on cache?
+ */
+void Clip::close(const bool wait) {
+    if (open) {
+        // destroy opengl texture in main thread
+        if (texture != NULL) {
+            delete texture;
+            texture = NULL;
+        }
+
+        foreach (EffectPtr eff, effects) {
+            if (eff != NULL) {
+                if (eff->is_open()) {
+                    eff->close();
+                }
+            }
+        }
+
+        if (fbo != NULL) {
+            delete fbo[0];
+            delete fbo[1];
+            delete [] fbo;
+            fbo = NULL;
+        }
+
+        if (uses_cacher()) {
+            if (multithreaded) {
+                cacher->caching = false;
+                can_cache.wakeAll();
+                if (wait) {
+                    open_lock.lock();
+                    open_lock.unlock();
+                }
+            } else {
+                close_worker();
+            }
+        } else {
+            if (timeline_info.media != NULL && (timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE)) {
+                closeActiveClips(timeline_info.media->get_object<Sequence>());
+            }
+
+            open = false;
+        }
+    }
 }
 
 void Clip::reset() {
@@ -424,3 +518,4 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
         }
     }
 }
+

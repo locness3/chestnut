@@ -44,6 +44,5 @@ private:
 
 void open_clip_worker(ClipPtr clip);
 void cache_clip_worker(ClipPtr clip, long playhead, bool reset, bool scrubbing, QVector<ClipPtr> nest);
-void close_clip_worker(ClipPtr clip);
 
 #endif // CACHER_H

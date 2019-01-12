@@ -32,11 +32,8 @@ extern bool texture_failed;
 extern bool rendering;
 
 
-
-bool clip_uses_cacher(ClipPtr clip);
 void open_clip(ClipPtr clip, bool multithreaded);
 void cache_clip(ClipPtr clip, long playhead, bool reset, bool scrubbing, QVector<ClipPtr>& nests);
-void close_clip(ClipPtr clip, bool wait);
 void cache_audio_worker(ClipPtr c, bool write_A);
 void cache_video_worker(ClipPtr c, long playhead);
 void handle_media(Sequence* e_sequence, long playhead, bool multithreaded);

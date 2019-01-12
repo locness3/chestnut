@@ -352,7 +352,7 @@ void SpeedDialog::accept() {
 
 	for (int i=0;i<clips.size();i++) {
         ClipPtr c = clips.at(i);
-		if (c->open) close_clip(c, true);
+        c->close(true);
 
         if (c->timeline_info.track >= 0
 				&& maintain_pitch->checkState() != Qt::PartiallyChecked

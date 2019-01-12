@@ -171,9 +171,8 @@ void DeleteClipAction::undo() {
 void DeleteClipAction::redo() {
 	// remove ref to clip
 	ref = seq->clips.at(index);
-	if (ref->open) {
-		close_clip(ref, true);
-	}
+    ref->close(true);
+    
 	seq->clips[index] = NULL;
 
 	// save shared transitions
@@ -514,7 +513,7 @@ void AddClipCommand::undo() {
         ClipPtr   c = seq->clips.last();
         e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track);
 		undone_clips.prepend(c);
-		if (c->open) close_clip(c, true);
+        c->close(true);
 		seq->clips.removeLast();
 	}
 	mainWindow->setWindowModified(old_project_changed);
@@ -609,7 +608,7 @@ void ReplaceMediaCommand::replace(QString& filename) {
 		for (int j=0;j<s->clips.size();j++) {
             ClipPtr   c = s->clips.at(j);
             if (c != NULL && c->timeline_info.media == item && c->open) {
-				close_clip(c, true);
+                c->close(true);
 				c->replaced = true;
 			}
 		}
@@ -647,10 +646,8 @@ void ReplaceClipMediaCommand::replace(bool undo) {
 	}
 
 	for (int i=0;i<clips.size();i++) {
-        ClipPtr   c = clips.at(i);
-		if (c->open) {
-			close_clip(c, true);
-		}
+        ClipPtr c = clips.at(i);
+        c->close(true);
 
 		if (undo) {
 			if (!preserve_clip_ins) {

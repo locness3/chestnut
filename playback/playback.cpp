@@ -53,14 +53,9 @@ extern "C" {
 bool texture_failed = false;
 bool rendering = false;
 
-bool clip_uses_cacher(ClipPtr clip) {
-    return ((clip->timeline_info.media == NULL) && (clip->timeline_info.track >= 0) )
-            || ( (clip->timeline_info.media != NULL) && (clip->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) );
-}
-
 
 void open_clip(ClipPtr clip, bool multithreaded) {
-	if (clip_uses_cacher(clip)) {
+    if (clip->uses_cacher()) {
 		clip->multithreaded = multithreaded;
 		if (multithreaded) {
 			if (clip->open_lock.tryLock()) {
@@ -80,45 +75,8 @@ void open_clip(ClipPtr clip, bool multithreaded) {
 	}
 }
 
-void close_clip(ClipPtr clip, bool wait) {
-	// destroy opengl texture in main thread
-	if (clip->texture != NULL) {
-		delete clip->texture;
-		clip->texture = NULL;
-	}
-
-	for (int i=0;i<clip->effects.size();i++) {
-		if (clip->effects.at(i)->is_open()) clip->effects.at(i)->close();
-	}
-
-	if (clip->fbo != NULL) {
-		delete clip->fbo[0];
-		delete clip->fbo[1];
-		delete [] clip->fbo;
-		clip->fbo = NULL;
-	}
-
-	if (clip_uses_cacher(clip)) {
-		if (clip->multithreaded) {
-			clip->cacher->caching = false;
-			clip->can_cache.wakeAll();
-			if (wait) {
-				clip->open_lock.lock();
-				clip->open_lock.unlock();
-			}
-		} else {
-			close_clip_worker(clip);
-		}
-	} else {
-        if (clip->timeline_info.media != NULL && clip->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE)
-            closeActiveClips(clip->timeline_info.media->get_object<Sequence>());
-
-		clip->open = false;
-	}
-}
-
 void cache_clip(ClipPtr clip, long playhead, bool reset, bool scrubbing, QVector<ClipPtr>& nests) {
-	if (clip_uses_cacher(clip)) {
+    if (clip->uses_cacher()) {
 		if (clip->multithreaded) {
 			clip->cacher->playhead = playhead;
 			clip->cacher->reset = reset;
@@ -383,10 +341,8 @@ void closeActiveClips(SequencePtr s) {
 			if (c != NULL) {
                 if (c->timeline_info.media != NULL && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
                     closeActiveClips(c->timeline_info.media->get_object<Sequence>());
-					if (c->open) close_clip(c, true);
-				} else if (c->open) {
-					close_clip(c, true);
-				}
+                }
+                c->close(true);
 			}
 		}
 	}

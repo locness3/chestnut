@@ -68,6 +68,20 @@ public:
     virtual project::SequenceItemType_E getType() const;
 
     bool isActive(const long playhead);
+    /**
+     * @brief Identify if the clip is being cached
+     * @return true==caching used
+     */
+    bool uses_cacher() const;
+    /**
+     * @brief Free resources made via libav
+     */
+    void close_worker();
+    /**
+     * @brief Close this clip and free up resources
+     * @param wait  Wait on cache?
+     */
+    void close(const bool wait);
 
     void reset_audio();
 	void reset();
@@ -178,6 +192,7 @@ private:
     void move(ComboAction& ca, const long iin, const long iout,
               const long iclip_in, const int itrack, const bool verify_transitions = true,
               const bool relative = false);
+
 
     // Explicitly impl as required
     Clip();

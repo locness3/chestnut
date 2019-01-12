@@ -521,7 +521,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 								clip_is_active = true;
                                 if (c->timeline_info.track >= 0) audio_track_count++;
 							} else if (c->open) {
-								close_clip(c, false);
+                                c->close(false);
 							}
 						} else {
 							//dout << "[WARNING] Media '" + m->name + "' was not ready, retrying...";
@@ -533,7 +533,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 						if (!c->open) open_clip(c, !rendering);
 						clip_is_active = true;
 					} else if (c->open) {
-						close_clip(c, false);
+                        c->close(false);
 					}
 				}
 				if (clip_is_active) {

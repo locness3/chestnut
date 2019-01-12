@@ -915,28 +915,6 @@ void cache_clip_worker(ClipPtr clip, long playhead, bool reset, bool scrubbing, 
 	}
 }
 
-void close_clip_worker(ClipPtr clip) {
-	clip->finished_opening = false;
-
-    if (clip->timeline_info.media != NULL && clip->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
-		clip->queue_clear();
-
-		avfilter_graph_free(&clip->filter_graph);
-
-        avcodec_close(clip->media_handling.codecCtx);
-        avcodec_free_context(&clip->media_handling.codecCtx);
-
-        av_dict_free(&clip->media_handling.opts);
-
-        avformat_close_input(&clip->media_handling.formatCtx);
-	}
-
-    av_frame_free(&clip->media_handling.frame);
-
-	clip->reset();
-
-    dout << "[INFO] Clip closed on track" << clip->timeline_info.track;
-}
 
 void Cacher::run() {
 	// open_lock is used to prevent the clip from being destroyed before the cacher has closed it properly
@@ -964,7 +942,7 @@ void Cacher::run() {
 		}
 	}
 
-	close_clip_worker(clip);
+    clip->close_worker();
 
 	clip->lock.unlock();
 	clip->open_lock.unlock();
