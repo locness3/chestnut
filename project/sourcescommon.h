@@ -35,7 +35,7 @@ public:
     void show_context_menu(QWidget* parent, const QModelIndexList &items);
 
     void mousePressEvent(QMouseEvent* e);
-    void mouseDoubleClickEvent(QMouseEvent* e, const QModelIndexList& selected_items);
+    void mouseDoubleClickEvent(QMouseEvent* e, const QModelIndexList& items);
     void dropEvent(QWidget *parent, QDropEvent* e, const QModelIndex& drop_item, const QModelIndexList &items);
 
     void item_click(Media* m, const QModelIndex &index);
