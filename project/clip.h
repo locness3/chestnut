@@ -61,6 +61,8 @@ public:
 
     virtual project::SequenceItemType_E getType() const;
 
+    bool isActive(const long playhead);
+
     void reset_audio();
 	void reset();
 	void refresh();

@@ -65,12 +65,12 @@ Clip::Clip(SequencePtr s) :
 Clip::~Clip() {
     if (open) {
         // FIXME: .....
-//        close_clip(this, true);
+        //        close_clip(this, true);
     }
 
     //FIXME:
-//    if (opening_transition != -1) this->sequence->hard_delete_transition(this, TA_OPENING_TRANSITION);
-//    if (closing_transition != -1) this->sequence->hard_delete_transition(this, TA_CLOSING_TRANSITION);
+    //    if (opening_transition != -1) this->sequence->hard_delete_transition(this, TA_OPENING_TRANSITION);
+    //    if (closing_transition != -1) this->sequence->hard_delete_transition(this, TA_CLOSING_TRANSITION);
 
     effects.clear();
     av_packet_free(&pkt);
@@ -96,7 +96,7 @@ ClipPtr Clip::copy(SequencePtr s) {
     copy->reverse = reverse;
 
     for (int i=0;i<effects.size();i++) {
-//        copy->effects.append(effects.at(i)->copy(copy)); //TODO:hmm
+        //        copy->effects.append(effects.at(i)->copy(copy)); //TODO:hmm
     }
 
     copy->cached_fr = (this->sequence == NULL) ? cached_fr : this->sequence->getFrameRate();
@@ -114,6 +114,21 @@ project::SequenceItemType_E Clip::getType() const {
     return project::SEQUENCE_ITEM_CLIP;
 }
 
+
+bool Clip::isActive(const long playhead) {
+    if (enabled) {
+        if (sequence != NULL) {
+            if ( get_timeline_in_with_transition() < (playhead + (ceil(sequence->getFrameRate()*2)) ) )  {                      //TODO:what are we checking?
+                if (get_timeline_out_with_transition() > playhead) {                                                            //TODO:what are we checking?
+                    if ( (playhead - get_timeline_in_with_transition() + get_clip_in_with_transition()) < getMaximumLength() ){ //TODO:what are we checking?
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
 
 void Clip::reset() {
     audio_just_reset = false;
@@ -326,11 +341,11 @@ int Clip::getHeight() {
 void Clip::refactor_frame_rate(ComboAction* ca, double multiplier, bool change_timeline_points) {
     if (change_timeline_points) {
         // FIXME: groan Clip::move
-//        move_clip(ca, this,
-//                  qRound((double) timeline_in * multiplier),
-//                  qRound((double) timeline_out * multiplier),
-//                  qRound((double) clip_in * multiplier),
-//                  track);
+        //        move_clip(ca, this,
+        //                  qRound((double) timeline_in * multiplier),
+        //                  qRound((double) timeline_out * multiplier),
+        //                  qRound((double) clip_in * multiplier),
+        //                  track);
     }
 
     // move keyframes

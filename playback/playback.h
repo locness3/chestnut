@@ -50,7 +50,6 @@ int64_t seconds_to_timestamp(ClipPtr c, double seconds);
 int64_t playhead_to_timestamp(ClipPtr c, long playhead);
 
 int retrieve_next_frame(ClipPtr c, AVFrame* f);
-bool is_clip_active(ClipPtr c, long playhead);
 void get_next_audio(ClipPtr c, bool mix);
 void set_sequence(SequencePtr s);
 void closeActiveClips(SequencePtr s);

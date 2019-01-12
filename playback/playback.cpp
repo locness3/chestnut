@@ -367,13 +367,6 @@ int retrieve_next_frame(ClipPtr c, AVFrame* f) {
 	return result;
 }
 
-bool is_clip_active(ClipPtr c, long playhead) {
-	return c->enabled
-            && c->get_timeline_in_with_transition() < playhead + ceil(c->sequence->getFrameRate()*2)
-			&& c->get_timeline_out_with_transition() > playhead
-			&& playhead - c->get_timeline_in_with_transition() + c->get_clip_in_with_transition() < c->getMaximumLength();
-}
-
 void set_sequence(SequencePtr s) {
 	panel_effect_controls->clear_effects(true);
 	e_sequence = s;
