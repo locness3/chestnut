@@ -37,8 +37,8 @@
 #include "ui/resizablescrollbar.h"
 #include "debug.h"
 
-#define FRAMES_IN_ONE_MINUTE 1798 // 1800 - 2
-#define FRAMES_IN_TEN_MINUTES 17978 // (FRAMES_IN_ONE_MINUTE * 10) - 2
+
+
 
 extern "C" {
 	#include <libavformat/avformat.h>
@@ -52,6 +52,17 @@ extern "C" {
 #include <QTimer>
 #include <QHBoxLayout>
 #include <QPushButton>
+
+namespace {
+    const int FRAMES_IN_ONE_MINUTE = 1798; // 1800 - 2
+    const int FRAMES_IN_TEN_MINUTES = 17978; // (FRAMES_IN_ONE_MINUTE * 10) - 2
+
+    const int RECORD_FLASHER_INTERVAL = 500;
+
+    const int MEDIA_WIDTH = 1980;
+    const int MEDIA_HEIGHT = 1080;
+    const int MEDIA_AUDIO_FREQUENCY = 48000;
+}
 
 Viewer::Viewer(QWidget *parent) :
 	QDockWidget(parent),
@@ -83,7 +94,7 @@ Viewer::Viewer(QWidget *parent) :
 	currentTimecode->set_display_type(LABELSLIDER_FRAMENUMBER);
 	connect(currentTimecode, SIGNAL(valueChanged()), this, SLOT(update_playhead()));
 
-	recording_flasher.setInterval(500);
+    recording_flasher.setInterval(RECORD_FLASHER_INTERVAL);
 
 	connect(&playback_updater, SIGNAL(timeout()), this, SLOT(timer_update()));
 	connect(&recording_flasher, SIGNAL(timeout()), this, SLOT(recording_flasher_update()));
@@ -660,9 +671,8 @@ void Viewer::set_media(Media* m) {
 				c->recalculateMaxLength();
 				seq->clips.append(c);
 			} else {
-                // FIXME: magic numbers
-                seq->setWidth(1920);
-                seq->setHeight(1080);
+                seq->setWidth(MEDIA_WIDTH);
+                seq->setHeight(MEDIA_HEIGHT);
 			}
 
 			if (footage->audio_tracks.size() > 0) {
@@ -686,7 +696,7 @@ void Viewer::set_media(Media* m) {
 					viewer_widget->update();
 				}
 			} else {
-                seq->setAudioFrequency(48000);
+                seq->setAudioFrequency(MEDIA_AUDIO_FREQUENCY);
 			}
 
             seq->setAudioLayout(AV_CH_LAYOUT_STEREO);
@@ -695,7 +705,10 @@ void Viewer::set_media(Media* m) {
 		case MEDIA_TYPE_SEQUENCE:
 			seq = media->to_sequence();
 			break;
-		}
+        default:
+            //TODO: log/something
+            break;
+        }//switch
 	}
 	set_sequence(false, seq);
 }
