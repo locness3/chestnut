@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  *
@@ -55,9 +55,9 @@ Clip::Clip(SequencePtr s) :
     use_existing_frame(false),
     filter_graph(NULL),
     fbo(NULL),
-    opts(NULL)
+    media_handling()
 {
-    pkt = av_packet_alloc();
+    media_handling.pkt = av_packet_alloc();
     reset();
 }
 
@@ -73,40 +73,52 @@ Clip::~Clip() {
     //    if (closing_transition != -1) this->sequence->hard_delete_transition(this, TA_CLOSING_TRANSITION);
 
     effects.clear();
-    av_packet_free(&pkt);
+    av_packet_free(&media_handling.pkt);
+}
+
+/**
+ * @brief Copy constructor
+ * @param cpy
+ */
+Clip::Clip(const Clip& cpy)
+{
+
 }
 
 ClipPtr Clip::copy(SequencePtr s) {
-    ClipPtr copy(new Clip(s));
+    ClipPtr copyClip(new Clip(s));
 
-    copy->enabled = enabled;
-    copy->name = QString(name);
-    copy->clip_in = clip_in;
-    copy->timeline_in = timeline_in;
-    copy->timeline_out = timeline_out;
-    copy->track = track;
-    copy->color_r = color_r;
-    copy->color_g = color_g;
-    copy->color_b = color_b;
-    copy->media = media;
-    copy->media_stream = media_stream;
-    copy->autoscale = autoscale;
-    copy->speed = speed;
-    copy->maintain_audio_pitch = maintain_audio_pitch;
-    copy->reverse = reverse;
+    copyClip->enabled = enabled;
+    copyClip->name = QString(name);
+    copyClip->clip_in = clip_in;
+    copyClip->timeline_in = timeline_in;
+    copyClip->timeline_out = timeline_out;
+    copyClip->track = track;
+    copyClip->color_r = color_r;
+    copyClip->color_g = color_g;
+    copyClip->color_b = color_b;
+    copyClip->media = media;
+    copyClip->media_stream = media_stream;
+    copyClip->autoscale = autoscale;
+    copyClip->speed = speed;
+    copyClip->maintain_audio_pitch = maintain_audio_pitch;
+    copyClip->reverse = reverse;
 
-    for (int i=0;i<effects.size();i++) {
+    for (int i=0; i<effects.size(); i++) {
         //        copy->effects.append(effects.at(i)->copy(copy)); //TODO:hmm
     }
 
-    copy->cached_fr = (this->sequence == NULL) ? cached_fr : this->sequence->getFrameRate();
+    copyClip->cached_fr = (this->sequence == NULL) ? cached_fr : this->sequence->getFrameRate();
 
-    if (get_opening_transition() != NULL && get_opening_transition()->secondary_clip == NULL) copy->opening_transition = get_opening_transition()->copy(copy, NULL);
-    if (get_closing_transition() != NULL && get_closing_transition()->secondary_clip == NULL) copy->closing_transition = get_closing_transition()->copy(copy, NULL);
+    if (get_opening_transition() != NULL && get_opening_transition()->secondary_clip == NULL) {
+        copyClip->opening_transition = get_opening_transition()->copy(copyClip, NULL);
+    }
+    if (get_closing_transition() != NULL && get_closing_transition()->secondary_clip == NULL) {
+        copyClip->closing_transition = get_closing_transition()->copy(copyClip, NULL);
+    }
+    copyClip->recalculateMaxLength();
 
-    copy->recalculateMaxLength();
-
-    return copy;
+    return copyClip;
 }
 
 
@@ -131,27 +143,28 @@ bool Clip::isActive(const long playhead) {
 }
 
 void Clip::reset() {
-    audio_just_reset = false;
+    audio_playback.just_reset = false;
     open = false;
     finished_opening = false;
     pkt_written = false;
-    audio_reset = false;
-    frame_sample_index = -1;
-    audio_buffer_write = false;
+    audio_playback.reset = false;
+    audio_playback.frame_sample_index = -1;
+    audio_playback.buffer_write = false;
     texture_frame = -1;
-    formatCtx = NULL;
-    stream = NULL;
-    codec = NULL;
-    codecCtx = NULL;
-    texture = NULL;
     last_invalid_ts = -1;
+    //TODO: check memory has been freed correctly or needs to be done here
+    media_handling.formatCtx = NULL;
+    media_handling.stream = NULL;
+    media_handling.codec = NULL;
+    media_handling.codecCtx = NULL;
+    texture = NULL;
 }
 
 void Clip::reset_audio() {
     if (media == NULL || media->get_type() == MEDIA_TYPE_FOOTAGE) {
-        audio_reset = true;
-        frame_sample_index = -1;
-        audio_buffer_write = 0;
+        audio_playback.reset = true;
+        audio_playback.frame_sample_index = -1;
+        audio_playback.buffer_write = 0;
     } else if (media->get_type() == MEDIA_TYPE_SEQUENCE) {
         SequencePtr nested_sequence = media->get_object<Sequence>();
         for (int i=0;i<nested_sequence->clips.size();i++) {
@@ -271,7 +284,7 @@ void Clip::recalculateMaxLength() {
 
         fr /= speed;
 
-        calculated_length = LONG_MAX;
+        media_handling.calculated_length = LONG_MAX;
 
         if (media != NULL) {
             switch (media->get_type()) {
@@ -281,9 +294,9 @@ void Clip::recalculateMaxLength() {
                 if (m != NULL) {
                     const FootageStream* ms = m->get_stream_from_file_index(track < 0, media_stream);
                     if (ms != NULL && ms->infinite_length) {
-                        calculated_length = LONG_MAX;
+                        media_handling.calculated_length = LONG_MAX;
                     } else {
-                        calculated_length = m->get_length_in_frames(fr);
+                        media_handling.calculated_length = m->get_length_in_frames(fr);
                     }
                 }
             }
@@ -292,7 +305,7 @@ void Clip::recalculateMaxLength() {
             {
                 SequencePtr s = media->get_object<Sequence>();
                 if (s != NULL) {
-                    calculated_length = refactor_frame_number(s->getEndFrame(), s->getFrameRate(), fr);
+                    media_handling.calculated_length = refactor_frame_number(s->getEndFrame(), s->getFrameRate(), fr);
                 }
             }
                 break;
@@ -305,7 +318,7 @@ void Clip::recalculateMaxLength() {
 }
 
 long Clip::getMaximumLength() {
-    return calculated_length;
+    return media_handling.calculated_length;
 }
 
 int Clip::getWidth() {

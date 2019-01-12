@@ -29,6 +29,31 @@ Sequence::Sequence()  {
 Sequence::~Sequence() {
 }
 
+/**
+ * @brief Copy constructor
+ * @param cpy
+ */
+Sequence::Sequence(const Sequence& cpy) :
+    selections(cpy.selections),
+    clips(cpy.clips),
+    save_id(cpy.save_id),
+    using_workarea(cpy.using_workarea),
+    enable_workarea(cpy.enable_workarea),
+    workarea_in(cpy.workarea_in),
+    workarea_out(cpy.workarea_out),
+    transitions(cpy.transitions),
+    markers(cpy.markers),
+    playhead(cpy.playhead),
+    wrapper_sequence(cpy.wrapper_sequence),
+    width(cpy.width),
+    height(cpy.height),
+    frame_rate(cpy.frame_rate),
+    audio_frequency(cpy.audio_frequency),
+    audio_layout(cpy.audio_layout)
+{
+
+}
+
 std::shared_ptr<Sequence> Sequence::copy() {
     std::shared_ptr<Sequence> s(new Sequence());
     s->name = name + " (copy)";

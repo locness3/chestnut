@@ -35,6 +35,11 @@ class Sequence : public project::ProjectItem {
 public:
     Sequence();
     virtual ~Sequence();
+    /**
+     * @brief Copy constructor
+     * @param cpy
+     */
+    Sequence(const Sequence& cpy);
     std::shared_ptr<Sequence> copy();
     void getTrackLimits(int& video_limit, int& audio_limit);
     long getEndFrame();
@@ -69,6 +74,9 @@ private:
     double frame_rate = 0.0;
     int audio_frequency = 0;
     int audio_layout = 0;
+
+    // Impl as required
+    const Sequence& operator=(const Sequence& rhs);
 };
 
 typedef std::shared_ptr<Sequence> SequencePtr;

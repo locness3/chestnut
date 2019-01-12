@@ -56,7 +56,13 @@ class Clip : public project::SequenceItem
 {
 public:
     explicit Clip(SequencePtr s);
-	~Clip();
+    virtual ~Clip();
+    /**
+     * @brief Copy constructor
+     * @param cpy
+     */
+    Clip(const Clip& cpy);
+
     ClipPtr copy(SequencePtr s);
 
     virtual project::SequenceItemType_E getType() const;
@@ -112,18 +118,20 @@ public:
     int closing_transition;
 
 	// media handling
-    AVFormatContext* formatCtx;
-    AVStream* stream;
-    AVCodec* codec;
-    AVCodecContext* codecCtx;
-    AVPacket* pkt;
-	AVFrame* frame;
-    AVDictionary* opts;
-	long calculated_length;
+    struct {
+        AVFormatContext* formatCtx = NULL;
+        AVStream* stream = NULL;
+        AVCodec* codec = NULL;
+        AVCodecContext* codecCtx = NULL;
+        AVPacket* pkt = NULL;
+        AVFrame* frame = NULL;
+        AVDictionary* opts = NULL;
+        long calculated_length = -1;
+    } media_handling;
 
 	// temporary variables
-	int load_id;
-	bool undeletable;
+    int load_id;
+    bool undeletable;
 	bool reached_end;
 	bool pkt_written;
     bool open;
@@ -154,13 +162,15 @@ public:
     QOpenGLTexture* texture;
 	long texture_frame;
 
-	// audio playback variables
-	int64_t reverse_target;
-    int frame_sample_index;
-    int audio_buffer_write;
-    bool audio_reset;
-    bool audio_just_reset;
-	long audio_target_frame;
+    struct AudioPlaybackInfo {
+        // audio playback variables
+        int64_t reverse_target = 0;
+        int frame_sample_index = -1;
+        int buffer_write = -1;
+        bool reset = false;
+        bool just_reset = false;
+        long target_frame = -1;
+    } audio_playback;
 private:
 
     // Comboaction::move_clip() or Clip::move()?
@@ -170,7 +180,6 @@ private:
 
     // Explicitly impl as required
     Clip();
-    Clip(const Clip& cpy);
     const Clip& operator=(const Clip& rhs);
 };
 

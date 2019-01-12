@@ -582,7 +582,8 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 						// set up opengl texture
                         if (clipNow->texture == NULL) {
                             clipNow->texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
-                            clipNow->texture->setSize(clipNow->stream->codecpar->width, clipNow->stream->codecpar->height);
+                            clipNow->texture->setSize(clipNow->media_handling.stream->codecpar->width,
+                                                      clipNow->media_handling.stream->codecpar->height);
                             clipNow->texture->setFormat(get_gl_tex_fmt_from_av(clipNow->pix_fmt));
                             clipNow->texture->setMipLevels(clipNow->texture->maximumMipLevels());
                             clipNow->texture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
@@ -594,7 +595,10 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					case MEDIA_TYPE_SEQUENCE:
 						textureID = -1;
 						break;
-					}
+                    default:
+                        //TODO: log/something
+                        break;
+                    }//switch
 				}
 
                 if (textureID == 0 && clipNow->media != NULL) {
@@ -807,7 +811,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					} else {
                         if (clipNow->lock.tryLock()) {
 							// clip is not caching, start caching audio
-                            cache_clip(clipNow, playhead, clipNow->audio_reset, !render_audio, nests);
+                            cache_clip(clipNow, playhead, clipNow->audio_playback.reset, !render_audio, nests);
                             clipNow->lock.unlock();
 						}
 					}

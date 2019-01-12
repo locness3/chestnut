@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -141,13 +141,13 @@ void get_clip_frame(ClipPtr c, long playhead) {
         const FootageStream* ms = c->media->get_object<Footage>()->get_stream_from_file_index(c->track < 0, c->media_stream);
 
 		int64_t target_pts = qMax(static_cast<int64_t>(0), playhead_to_timestamp(c, playhead));
-		int64_t second_pts = qRound64(av_q2d(av_inv_q(c->stream->time_base)));
+        int64_t second_pts = qRound64(av_q2d(av_inv_q(c->media_handling.stream->time_base)));
 		if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
 			target_pts *= 2;
 			second_pts *= 2;
 		}
 
-		AVFrame* target_frame = NULL;
+        AVFrame* target_frame = NULL;
 
 		bool reset = false;
 		bool cache = true;
@@ -219,7 +219,7 @@ void get_clip_frame(ClipPtr c, long playhead) {
 					}
 				}
 
-				if (next_pts == INT64_MAX) next_pts = target_frame->pts + target_frame->pkt_duration;
+                if (next_pts == INT64_MAX) next_pts = target_frame->pts + target_frame->pkt_duration;
 
 				// we didn't get the exact timestamp
 				if (target_frame->pts != target_pts) {
@@ -238,7 +238,7 @@ void get_clip_frame(ClipPtr c, long playhead) {
 						} else if (target_pts != c->last_invalid_ts && (target_pts < target_frame->pts || pts_diff > second_pts)) {
 
 #ifdef GCF_DEBUG
-							dout << "GCF ==> RESET" << target_pts << "(" << target_frame->pts << "-" << target_frame->pts+target_frame->pkt_duration << ")";
+                            dout << "GCF ==> RESET" << target_pts << "(" << target_frame->pts << "-" << target_frame->pts+target_frame->pkt_duration << ")";
 #endif
 							if (!config.fast_seeking) target_frame = NULL;
 							reset = true;
@@ -314,7 +314,7 @@ double playhead_to_clip_seconds(ClipPtr c, long playhead) {
 }
 
 int64_t seconds_to_timestamp(ClipPtr c, double seconds) {
-	return qRound64(seconds * av_q2d(av_inv_q(c->stream->time_base))) + qMax((int64_t) 0, c->stream->start_time);
+    return qRound64(seconds * av_q2d(av_inv_q(c->media_handling.stream->time_base))) + qMax((int64_t) 0, c->media_handling.stream->start_time);
 }
 
 int64_t playhead_to_timestamp(ClipPtr c, long playhead) {
@@ -327,28 +327,28 @@ int retrieve_next_frame(ClipPtr c, AVFrame* f) {
 
 	// do we need to retrieve a new packet for a new frame?
 	av_frame_unref(f);
-	while ((receive_ret = avcodec_receive_frame(c->codecCtx, f)) == AVERROR(EAGAIN)) {
+    while ((receive_ret = avcodec_receive_frame(c->media_handling.codecCtx, f)) == AVERROR(EAGAIN)) {
 		int read_ret = 0;
 		do {
-			if (c->pkt_written) {
-				av_packet_unref(c->pkt);
-				c->pkt_written = false;
+            if (c->pkt_written) {
+                av_packet_unref(c->media_handling.pkt);
+                c->pkt_written = false;
 			}
-			read_ret = av_read_frame(c->formatCtx, c->pkt);
+            read_ret = av_read_frame(c->media_handling.formatCtx, c->media_handling.pkt);
 			if (read_ret >= 0) {
-				c->pkt_written = true;
+                c->pkt_written = true;
 			}
-		} while (read_ret >= 0 && c->pkt->stream_index != c->media_stream);
+        } while (read_ret >= 0 && c->media_handling.pkt->stream_index != c->media_stream);
 
 		if (read_ret >= 0) {
-			int send_ret = avcodec_send_packet(c->codecCtx, c->pkt);
+            int send_ret = avcodec_send_packet(c->media_handling.codecCtx, c->media_handling.pkt);
 			if (send_ret < 0) {
 				dout << "[ERROR] Failed to send packet to decoder." << send_ret;
 				return send_ret;
 			}
 		} else {
 			if (read_ret == AVERROR_EOF) {
-				int send_ret = avcodec_send_packet(c->codecCtx, NULL);
+                int send_ret = avcodec_send_packet(c->media_handling.codecCtx, NULL);
 				if (send_ret < 0) {
 					dout << "[ERROR] Failed to send packet to decoder." << send_ret;
 					return send_ret;
