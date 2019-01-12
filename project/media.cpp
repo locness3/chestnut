@@ -68,14 +68,6 @@ Media::~Media() {
 	qDeleteAll(children);
 }
 
-//FootagePtr Media::get_object<Footage>() {
-//    return std::dynamic_pointer_cast<Footage>(object);
-//}
-
-//SequencePtr Media::get_object<Sequence>() {
-//    return std::dynamic_pointer_cast<Sequence>(object);
-//}
-
 void Media::clear_object() {
     type = MEDIA_TYPE_NONE;
     object = NULL;
