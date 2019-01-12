@@ -135,6 +135,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &appName) :
 {	
 	setup_debug();
 
+    setWindowIcon(QIcon(":/icons/olive-splash.png"));
 	mainWindow = this;
 
 	// set up style?
