@@ -512,7 +512,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					if (!m->invalid && !(c->track >= 0 && !is_audio_device_set())) {
 						if (m->ready) {
 							const FootageStream* ms = m->get_stream_from_file_index(c->track < 0, c->media_stream);
-							if (ms != NULL && is_clip_active(c, playhead)) {
+                            if ( (ms != NULL) && c->isActive(playhead) ) {
 								// if thread is already working, we don't want to touch this,
 								// but we also don't want to hang the UI thread
 								if (!c->open) {
@@ -529,7 +529,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 						}
 					}
 				} else {
-					if (is_clip_active(c, playhead)) {
+                    if (c->isActive(playhead)) {
 						if (!c->open) open_clip(c, !rendering);
 						clip_is_active = true;
 					} else if (c->open) {
