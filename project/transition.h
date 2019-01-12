@@ -39,7 +39,7 @@ public:
     Transition(ClipPtr c, ClipPtr s, const EffectMeta* em);
     int copy(ClipPtr c, ClipPtr s);
     ClipPtr secondary_clip;
-	void set_length(long l);
+    void set_length(const long value);
     long get_true_length() const;
     long get_length() const;
 private slots:

@@ -55,9 +55,9 @@ int Transition::copy(ClipPtr c, ClipPtr s) {
 	return create_transition(c, s, meta, length);
 }
 
-void Transition::set_length(long l) {
-	length = l;
-	length_field->set_double_value(l);
+void Transition::set_length(const long value) {
+    length = value;
+    length_field->set_double_value(value);
 }
 
 long Transition::get_true_length() const {
