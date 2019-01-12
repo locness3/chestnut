@@ -165,21 +165,24 @@ void SourcesCommon::item_click(Media *m, const QModelIndex& index) {
 	}
 }
 
-void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *e, const QModelIndexList& selected_items) {
+void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *e, const QModelIndexList& items) {
 	stop_rename_timer();
-	if (selected_items.size() == 0) {
+    if (items.size() == 0) {
 		project_parent->import_dialog();
-	} else if (selected_items.size() == 1) {
-		Media* item = project_parent->item_to_media(selected_items.at(0));
+    } else if (items.size() == 1) {
+        Media* item = project_parent->item_to_media(items.at(0));
 		switch (item->get_type()) {
 		case MEDIA_TYPE_FOOTAGE:
-			panel_footage_viewer->set_media(item);
+            panel_footage_viewer->set_media(item); //FIXME: this is causing a crash
 			panel_footage_viewer->setFocus();
 			break;
 		case MEDIA_TYPE_SEQUENCE:
 			e_undo_stack.push(new ChangeSequenceAction(item->to_sequence()));
 			break;
-		}
+        default:
+            //TODO: log/something
+            break;
+        }//switch
 	}
 }
 
