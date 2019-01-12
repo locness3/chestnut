@@ -60,24 +60,30 @@ extern "C" {
 
 #define GL_DEFAULT_BLEND glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
+namespace {
+    const int RETRY_INTERVAL = 50;
+    const int SURFACE_DEPTH = 24;
+    const double DEFAULT_WAVEFORM_ZOOM = 1.0;
+}
+
 ViewerWidget::ViewerWidget(QWidget *parent) :
 	QOpenGLWidget(parent),
 	default_fbo(NULL),
 	waveform(false),
 	dragging(false),
 	selected_gizmo(NULL),
-	waveform_zoom(1.0),
+    waveform_zoom(DEFAULT_WAVEFORM_ZOOM),
 	waveform_scroll(0)
 {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::ClickFocus);
 
 	QSurfaceFormat format;
-	format.setDepthBufferSize(24);
+    format.setDepthBufferSize(SURFACE_DEPTH);
 	setFormat(format);
 
-	// error handler - retries after 50ms if we couldn't get the entire image
-	retry_timer.setInterval(50);
+    // error handler - retries if we couldn't get the entire image
+    retry_timer.setInterval(RETRY_INTERVAL);
 	connect(&retry_timer, SIGNAL(timeout()), this, SLOT(retry()));
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
