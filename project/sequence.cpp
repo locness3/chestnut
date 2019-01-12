@@ -27,14 +27,10 @@ Sequence::Sequence()  {
 
 
 Sequence::~Sequence() {
-	// dealloc all clips
-	for (int i=0;i<clips.size();i++) {
-		delete clips.at(i);
-	}
 }
 
-Sequence* Sequence::copy() {
-    Sequence* s = new Sequence();
+std::shared_ptr<Sequence> Sequence::copy() {
+    std::shared_ptr<Sequence> s(new Sequence());
     s->name = name + " (copy)";
     s->width = width;
     s->height = height;
@@ -42,23 +38,24 @@ Sequence* Sequence::copy() {
     s->audio_frequency = audio_frequency;
     s->audio_layout = audio_layout;
 	s->clips.resize(clips.size());
-	for (int i=0;i<clips.size();i++) {
-		Clip* c = clips.at(i);
-		if (c == NULL) {
-			s->clips[i] = NULL;
-		} else {
-			Clip* copy = c->copy(s);
-			copy->linked = c->linked;
-			s->clips[i] = copy;
-		}
-	}
+
+    for (int i=0;i<clips.size();i++) {
+        ClipPtr c = clips.at(i);
+        if (c == NULL) {
+            s->clips[i] = NULL;
+        } else {
+            ClipPtr copy(c->copy(s));
+            copy->linked = c->linked;
+            s->clips[i] = copy;
+        }
+    }
 	return s;
 }
 
 long Sequence::getEndFrame() {
 	long end = 0;
 	for (int j=0;j<clips.size();j++) {
-		Clip* c = clips.at(j);
+        ClipPtr c = clips.at(j);
 		if (c != NULL && c->timeline_out > end) {
 			end = c->timeline_out;
 		}
@@ -66,7 +63,7 @@ long Sequence::getEndFrame() {
 	return end;
 }
 
-void Sequence::hard_delete_transition(Clip *c, int type) {
+void Sequence::hard_delete_transition(ClipPtr c, int type) {
 	int transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
 	if (transition_index > -1) {
 		bool del = true;
@@ -74,7 +71,7 @@ void Sequence::hard_delete_transition(Clip *c, int type) {
 		Transition* t = transitions.at(transition_index);
 		if (t->secondary_clip != NULL) {
 			for (int i=0;i<clips.size();i++) {
-				Clip* comp = clips.at(i);
+                ClipPtr comp = clips.at(i);
 				if (comp != NULL
 						&& c != comp
 						&& (c->opening_transition == transition_index
@@ -144,7 +141,7 @@ void Sequence::getTrackLimits(int& video_limit, int& audio_limit) {
     video_limit = 0;
     audio_limit = 0;
 	for (int j=0;j<clips.size();j++) {
-        Clip* c = clips.at(j);
+        ClipPtr c = clips.at(j);
         if (c != NULL) {
             if (c->track < 0 && c->track < video_limit) { // video clip
                 video_limit = c->track;

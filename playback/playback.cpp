@@ -53,18 +53,19 @@ extern "C" {
 bool texture_failed = false;
 bool rendering = false;
 
-bool clip_uses_cacher(Clip* clip) {
+bool clip_uses_cacher(ClipPtr clip) {
 	return (clip->media == NULL && clip->track >= 0) || (clip->media != NULL && clip->media->get_type() == MEDIA_TYPE_FOOTAGE);
 }
 
-void open_clip(Clip* clip, bool multithreaded) {
+
+void open_clip(ClipPtr clip, bool multithreaded) {
 	if (clip_uses_cacher(clip)) {
 		clip->multithreaded = multithreaded;
 		if (multithreaded) {
 			if (clip->open_lock.tryLock()) {
 				// maybe keep cacher instance in memory while clip exists for performance?
-				clip->cacher = new Cacher(clip);
-				QObject::connect(clip->cacher, SIGNAL(finished()), clip->cacher, SLOT(deleteLater()));
+                clip->cacher = new Cacher(clip);
+                QObject::connect(clip->cacher, SIGNAL(finished()), clip->cacher, SLOT(deleteLater()));
 				clip->cacher->start((clip->track < 0) ? QThread::HighPriority : QThread::TimeCriticalPriority);
 			}
 		} else {
@@ -78,7 +79,7 @@ void open_clip(Clip* clip, bool multithreaded) {
 	}
 }
 
-void close_clip(Clip* clip, bool wait) {
+void close_clip(ClipPtr clip, bool wait) {
 	// destroy opengl texture in main thread
 	if (clip->texture != NULL) {
 		delete clip->texture;
@@ -115,7 +116,7 @@ void close_clip(Clip* clip, bool wait) {
 	}
 }
 
-void cache_clip(Clip* clip, long playhead, bool reset, bool scrubbing, QVector<Clip*>& nests) {
+void cache_clip(ClipPtr clip, long playhead, bool reset, bool scrubbing, QVector<ClipPtr>& nests) {
 	if (clip_uses_cacher(clip)) {
 		if (clip->multithreaded) {
 			clip->cacher->playhead = playhead;
@@ -131,11 +132,11 @@ void cache_clip(Clip* clip, long playhead, bool reset, bool scrubbing, QVector<C
 	}
 }
 
-double get_timecode(Clip* c, long playhead) {
+double get_timecode(ClipPtr c, long playhead) {
     return ((double)(playhead-c->get_timeline_in_with_transition()+c->get_clip_in_with_transition())/(double)c->sequence->getFrameRate());
 }
 
-void get_clip_frame(Clip* c, long playhead) {
+void get_clip_frame(ClipPtr c, long playhead) {
 	if (c->finished_opening) {
 		const FootageStream* ms = c->media->to_footage()->get_stream_from_file_index(c->track < 0, c->media_stream);
 
@@ -272,7 +273,7 @@ void get_clip_frame(Clip* c, long playhead) {
 			int frame_size;
 
 			for (int i=0;i<c->effects.size();i++) {
-				Effect* e = c->effects.at(i);
+                EffectPtr e = c->effects.at(i);
 				if (e->enable_image) {
 					if (!copied) {
 						frame_size = target_frame->linesize[0]*target_frame->height;
@@ -294,16 +295,16 @@ void get_clip_frame(Clip* c, long playhead) {
 		c->queue_lock.unlock();
 
 		// get more frames
-		QVector<Clip*> empty;
+        QVector<ClipPtr> empty;
 		if (cache) cache_clip(c, playhead, reset, false, empty);
 	}
 }
 
-long playhead_to_clip_frame(Clip* c, long playhead) {
+long playhead_to_clip_frame(ClipPtr c, long playhead) {
 	return (qMax(0L, playhead - c->get_timeline_in_with_transition()) + c->get_clip_in_with_transition());
 }
 
-double playhead_to_clip_seconds(Clip* c, long playhead) {
+double playhead_to_clip_seconds(ClipPtr c, long playhead) {
 	// returns time in seconds
 	long clip_frame = playhead_to_clip_frame(c, playhead);
 	if (c->reverse) clip_frame = c->getMaximumLength() - clip_frame - 1;
@@ -312,15 +313,15 @@ double playhead_to_clip_seconds(Clip* c, long playhead) {
 	return secs;
 }
 
-int64_t seconds_to_timestamp(Clip* c, double seconds) {
+int64_t seconds_to_timestamp(ClipPtr c, double seconds) {
 	return qRound64(seconds * av_q2d(av_inv_q(c->stream->time_base))) + qMax((int64_t) 0, c->stream->start_time);
 }
 
-int64_t playhead_to_timestamp(Clip* c, long playhead) {
+int64_t playhead_to_timestamp(ClipPtr c, long playhead) {
 	return seconds_to_timestamp(c, playhead_to_clip_seconds(c, playhead));
 }
 
-int retrieve_next_frame(Clip* c, AVFrame* f) {
+int retrieve_next_frame(ClipPtr c, AVFrame* f) {
 	int result = 0;
 	int receive_ret;
 
@@ -366,7 +367,7 @@ int retrieve_next_frame(Clip* c, AVFrame* f) {
 	return result;
 }
 
-bool is_clip_active(Clip* c, long playhead) {
+bool is_clip_active(ClipPtr c, long playhead) {
 	return c->enabled
             && c->get_timeline_in_with_transition() < playhead + ceil(c->sequence->getFrameRate()*2)
 			&& c->get_timeline_out_with_transition() > playhead
@@ -384,7 +385,7 @@ void set_sequence(SequencePtr s) {
 void closeActiveClips(SequencePtr s) {
 	if (s != NULL) {
 		for (int i=0;i<s->clips.size();i++) {
-			Clip* c = s->clips.at(i);
+            ClipPtr c = s->clips.at(i);
 			if (c != NULL) {
 				if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_SEQUENCE) {
 					closeActiveClips(c->media->to_sequence());

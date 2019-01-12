@@ -24,21 +24,21 @@
 #include "project/marker.h"
 #include "project/selection.h"
 #include "project/projectitem.h"
-
 //FIXME: this is used EVERYWHERE. This has to be water-tight and heavily tested.
 
-struct Clip;
+class Clip;
 class Transition;
 class Media;
+typedef std::shared_ptr<Clip> ClipPtr;
 
 class Sequence : public project::ProjectItem {
 public:
     Sequence();
     virtual ~Sequence();
-    Sequence* copy();
+    std::shared_ptr<Sequence> copy();
     void getTrackLimits(int& video_limit, int& audio_limit);
     long getEndFrame();
-    void hard_delete_transition(Clip *c, int type);
+    void hard_delete_transition(ClipPtr c, int type);
 
     void setWidth(const int val);
     int getWidth() const;
@@ -52,7 +52,7 @@ public:
     void setAudioLayout(const int layout);
 
     QVector<Selection> selections;
-    QVector<Clip*> clips;
+    QVector<ClipPtr> clips;
     int save_id = 0;
     bool using_workarea = false;
     bool enable_workarea = true;

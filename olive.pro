@@ -121,7 +121,8 @@ SOURCES += \
     ui/embeddedfilechooser.cpp \
     effects/internal/fillleftrighteffect.cpp \
     effects/internal/voideffect.cpp \
-    project/projectitem.cpp
+    project/projectitem.cpp \
+    project/sequenceitem.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -213,7 +214,8 @@ HEADERS += \
     effects/internal/fillleftrighteffect.h \
     effects/internal/voideffect.h \
     ui/defaultshortcut.h \
-    project/projectitem.h
+    project/projectitem.h \
+    project/sequenceitem.h
 
 FORMS +=
 

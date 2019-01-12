@@ -42,16 +42,17 @@ struct TransitionData {
 	int id;
 	QString name;
 	long length;
-	Clip* otc;
-	Clip* ctc;
+    ClipPtr  otc;
+    ClipPtr  ctc;
 };
 
 LoadThread::LoadThread(LoadDialog* l, bool a) : ld(l), autorecovery(a), cancelled(false) {
+    qRegisterMetaType<ClipPtr>("ClipPtr");
 	connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 	connect(this, SIGNAL(success()), this, SLOT(success_func()));
 	connect(this, SIGNAL(error()), this, SLOT(error_func()));
-	connect(this, SIGNAL(start_create_dual_transition(const TransitionData*,Clip*,Clip*,const EffectMeta*)), this, SLOT(create_dual_transition(const TransitionData*,Clip*,Clip*,const EffectMeta*)));
-	connect(this, SIGNAL(start_create_effect_ui(QXmlStreamReader*, Clip*, int, const QString*, const EffectMeta*, long, bool)), this, SLOT(create_effect_ui(QXmlStreamReader*, Clip*, int, const QString*, const EffectMeta*, long, bool)));
+    connect(this, SIGNAL(start_create_dual_transition(const TransitionData*,ClipPtr ,ClipPtr ,const EffectMeta*)), this, SLOT(create_dual_transition(const TransitionData*,ClipPtr ,ClipPtr ,const EffectMeta*)));
+    connect(this, SIGNAL(start_create_effect_ui(QXmlStreamReader*, ClipPtr , int, const QString*, const EffectMeta*, long, bool)), this, SLOT(create_effect_ui(QXmlStreamReader*, ClipPtr , int, const QString*, const EffectMeta*, long, bool)));
 }
 
 const EffectMeta* get_meta_from_name(const QString& name) {
@@ -63,7 +64,7 @@ const EffectMeta* get_meta_from_name(const QString& name) {
 	return NULL;
 }
 
-void LoadThread::load_effect(QXmlStreamReader& stream, Clip* c) {
+void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
 	int effect_id = -1;
 	QString effect_name;
 	bool effect_enabled = true;
@@ -333,7 +334,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								} else if (stream.name() == "clip" && stream.isStartElement()) {
 									int media_type = -1;
 									int media_id, stream_id;
-                                    Clip* c = new Clip(s.operator ->()); //FIXME: raw ptr
+                                    ClipPtr c(new Clip(s));
 
 									// backwards compatibility code
 									c->autoscale = false;
@@ -439,7 +440,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 							// correct links, clip IDs, transitions
 							for (int i=0;i<s->clips.size();i++) {
 								// correct links
-								Clip* correct_clip = s->clips.at(i);
+                                ClipPtr  correct_clip = s->clips.at(i);
 								for (int j=0;j<correct_clip->linked.size();j++) {
 									bool found = false;
 									for (int k=0;k<s->clips.size();k++) {
@@ -481,8 +482,8 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 							// create transitions
 							for (int i=0;i<transition_data.size();i++) {
 								const TransitionData& td = transition_data.at(i);
-								Clip* primary = td.otc;
-								Clip* secondary = td.ctc;
+                                ClipPtr  primary = td.otc;
+                                ClipPtr  secondary = td.ctc;
 								if (primary != NULL || secondary != NULL) {
 									if (primary == NULL) {
 										primary = secondary;
@@ -676,7 +677,7 @@ void LoadThread::success_func() {
 
 void LoadThread::create_effect_ui(
 		QXmlStreamReader* stream,
-		Clip* c,
+        ClipPtr  c,
 		int type,
 		const QString* effect_name,
 		const EffectMeta* meta,
@@ -708,12 +709,12 @@ void LoadThread::create_effect_ui(
 	if (type == TA_NO_TRANSITION) {
 		if (meta == NULL) {
 			// create void effect
-			VoidEffect* ve = new VoidEffect(c, *effect_name);
+            EffectPtr ve(new VoidEffect(c, *effect_name));
 			ve->set_enabled(effect_enabled);
 			ve->load(*stream);
 			c->effects.append(ve);
 		} else {
-			Effect* e = create_effect(c, meta);
+            EffectPtr e(create_effect(c, meta));
 			e->set_enabled(effect_enabled);
 			e->load(*stream);
 
@@ -736,7 +737,7 @@ void LoadThread::create_effect_ui(
 	waitCond.wakeAll();
 }
 
-void LoadThread::create_dual_transition(const TransitionData* td, Clip* primary, Clip* secondary, const EffectMeta* meta) {
+void LoadThread::create_dual_transition(const TransitionData* td, ClipPtr  primary, ClipPtr  secondary, const EffectMeta* meta) {
 	int transition_index = create_transition(primary, secondary, meta);
 	primary->sequence->transitions.at(transition_index)->set_length(td->length);
 	if (td->otc != NULL) td->otc->opening_transition = transition_index;

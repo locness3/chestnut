@@ -26,12 +26,14 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QOpenGLFunctions>
+#include <QOpenGLFramebufferObject>
+
+#include "project/effect.h"
+#include "project/clip.h"
 
 class Viewer;
-struct Clip;
+class Clip;
 struct FootageStream;
-class QOpenGLFramebufferObject;
-class Effect;
 class EffectGizmo;
 class ViewerContainer;
 struct GLTextureCoords;
@@ -40,7 +42,7 @@ class ViewerWidget : public QOpenGLWidget, QOpenGLFunctions
 {
 	Q_OBJECT
 public:
-    ViewerWidget(QWidget *parent = 0);
+    explicit ViewerWidget(QWidget *parent = 0);
 
     void paintGL();
     void initializeGL();
@@ -50,7 +52,7 @@ public:
     QOpenGLFramebufferObject* default_fbo;
 
 	bool waveform;
-	Clip* waveform_clip;
+    ClipPtr waveform_clip;
     const FootageStream* waveform_ms;
     double waveform_zoom;
     int waveform_scroll;
@@ -70,10 +72,12 @@ private:
     void drawTitleSafeArea();
 	bool dragging;
 	void seek_from_click(int x);
-	GLuint compose_sequence(QVector<Clip *> &nests, bool render_audio);
+    GLuint compose_sequence(QVector<ClipPtr > &nests, bool render_audio);
     GLuint draw_clip(QOpenGLFramebufferObject *clip, GLuint texture, bool clear);
-    void process_effect(Clip* c, Effect* e, double timecode, GLTextureCoords& coords, GLuint& composite_texture, bool& fbo_switcher, int data);
-    Effect* gizmos;
+    void process_effect(ClipPtr c, EffectPtr e, double timecode,
+                        GLTextureCoords& coords, GLuint& composite_texture,
+                        bool& fbo_switcher, int data);
+    EffectPtr gizmos;
     int drag_start_x;
     int drag_start_y;
     int gizmo_x_mvmt;

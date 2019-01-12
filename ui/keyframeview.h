@@ -23,7 +23,7 @@
 
 #include "project/effectrow.h"
 
-struct Clip;
+class Clip;
 class Effect;
 class EffectField;
 class TimelineHeader;

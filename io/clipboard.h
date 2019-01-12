@@ -19,15 +19,17 @@
 #define CLIPBOARD_H
 
 #include <QVector>
+#include "project/sequenceitem.h"
 
 class Transition;
+
 
 #define CLIPBOARD_TYPE_CLIP 0
 #define CLIPBOARD_TYPE_EFFECT 1
 
-extern int clipboard_type;
-extern QVector<Transition*> clipboard_transitions;
-extern QVector<void*> clipboard;
+extern int e_clipboard_type;
+extern QVector<Transition*> e_clipboard_transitions;
+extern QVector<project::SequenceItemPtr> e_clipboard;
 void clear_clipboard();
 
 #endif // CLIPBOARD_H

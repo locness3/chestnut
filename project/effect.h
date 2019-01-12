@@ -29,15 +29,19 @@
 #include <QThread>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
+#include <memory>
 
 #include "effectfield.h"
 #include "effectrow.h"
 #include "effectgizmo.h"
+#include "project/sequenceitem.h"
 
 class CollapsibleWidget;
-struct Clip;
+class Clip;
 class Effect;
 class CheckboxEx;
+
+typedef std::shared_ptr<Clip> ClipPtr;
 
 struct EffectMeta {
 	QString name;
@@ -53,9 +57,10 @@ extern QVector<EffectMeta> effects;
 
 double log_volume(double linear);
 void init_effects();
-Effect* create_effect(Clip* c, const EffectMeta *em);
+std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta *em);
 const EffectMeta* get_internal_meta(int internal_id, int type);
 
+//TODO: enum the defines
 #define EFFECT_TYPE_INVALID 0
 #define EFFECT_TYPE_VIDEO 1
 #define EFFECT_TYPE_AUDIO 2
@@ -118,16 +123,13 @@ struct GLTextureCoords {
 qint16 mix_audio_sample(qint16 a, qint16 b);
 
 
-class Effect : public QObject {
+class Effect : public QObject, project::SequenceItem {
 	Q_OBJECT
 public:
-	Effect(Clip* c, const EffectMeta* em);
-	virtual ~Effect();
-	Clip* parent_clip;
-	const EffectMeta* meta;
-	int id;
-	QString name;
-    CollapsibleWidget* container = NULL;
+    Effect(ClipPtr c, const EffectMeta* em);
+    virtual ~Effect();
+    virtual project::SequenceItemType_E getType() const;
+
 
     EffectRowPtr add_row(const QString &name, bool savable = true, bool keyframable = true);
     EffectRowPtr row(int i);
@@ -142,12 +144,13 @@ public:
 
 	virtual void refresh();
 
-	Effect* copy(Clip* c);
-	void copy_field_keyframes(Effect *e);
+    std::shared_ptr<Effect> copy(ClipPtr c);
+    void copy_field_keyframes(std::shared_ptr<Effect> e);
 
     virtual void load(QXmlStreamReader& stream);
 	virtual void custom_load(QXmlStreamReader& stream);
 	virtual void save(QXmlStreamWriter& stream);
+
 
 	// glsl handling
 	bool is_open();
@@ -177,6 +180,13 @@ public:
 	void gizmo_move(EffectGizmo* sender, int x_movement, int y_movement, double timecode, bool done);
 	void gizmo_world_to_screen();
 	bool are_gizmos_enabled();
+
+    ClipPtr parent_clip;
+    const EffectMeta* meta;
+    int id;
+    QString name;
+    CollapsibleWidget* container = NULL;
+
 public slots:
 	void field_changed();
 private slots:
@@ -215,6 +225,8 @@ private:
 	int get_index_in_clip();
 	void validate_meta_path();
 };
+
+typedef std::shared_ptr<Effect> EffectPtr;
 
 class EffectInit : public QThread {
 public:

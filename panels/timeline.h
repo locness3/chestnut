@@ -50,15 +50,15 @@ class ResizableScrollBar;
 class AudioMonitor;
 struct EffectMeta;
 
-struct Clip;
+class Clip;
 class Footage;
 struct FootageStream;
 
 long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate);
 int getScreenPointFromFrame(double zoom, long frame);
 long getFrameFromScreenPoint(double zoom, int x);
-bool selection_contains_transition(const Selection& s, Clip* c, int type);
-void move_clip(ComboAction *ca, Clip *c, long iin, long iout, long iclip_in, int itrack, bool verify_transitions = true, bool relative = false);
+bool selection_contains_transition(const Selection& s, ClipPtr c, int type);
+void move_clip(ComboAction *ca, ClipPtr c, long iin, long iout, long iclip_in, int itrack, bool verify_transitions = true, bool relative = false);
 void ripple_clips(ComboAction *ca, SequencePtr  s, long point, long length, const QVector<int>& ignore = QVector<int>());
 
 struct Ghost {
@@ -98,15 +98,15 @@ public:
 	void set_zoom(bool in);
 	void copy(bool del);
 	void paste(bool insert);
-	Clip* split_clip(ComboAction* ca, int p, long frame);
-	Clip* split_clip(ComboAction* ca, int p, long frame, long post_in);
+    ClipPtr split_clip(ComboAction* ca, int p, long frame);
+    ClipPtr split_clip(ComboAction* ca, int p, long frame, long post_in);
 	bool split_selection(ComboAction* ca);
 	bool split_all_clips_at_point(ComboAction *ca, long point);
 	bool split_clip_and_relink(ComboAction* ca, int clip, long frame, bool relink);
 	void clean_up_selections(QVector<Selection>& areas);
 	void deselect_area(long in, long out, int track);
 	void delete_areas_and_relink(ComboAction *ca, QVector<Selection>& areas);
-	void relink_clips_using_ids(QVector<int>& old_clips, QVector<Clip*>& new_clips);
+    void relink_clips_using_ids(QVector<int>& old_clips, QVector<ClipPtr>& new_clips);
 	void update_sequence();
 	void increase_track_height();
 	void decrease_track_height();
@@ -156,7 +156,7 @@ public:
 	// selecting functions
 	bool selecting;
 	int selection_offset;
-	bool is_clip_selected(Clip* clip, bool containing);
+    bool is_clip_selected(ClipPtr clip, bool containing);
 	void delete_selection(QVector<Selection> &selections, bool ripple);
 	void select_all();
 	bool rect_select_init;

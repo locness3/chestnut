@@ -24,7 +24,7 @@
 
 #include "project/effect.h"
 
-struct Clip;
+class Clip;
 class QMenu;
 class TimelineHeader;
 class QScrollArea;
@@ -88,7 +88,7 @@ private:
 	void show_effect_menu(int type, int subtype);
 	void load_effects();
 	void load_keyframes();
-    void open_effect(QVBoxLayout* layout, Effect* e);
+    void open_effect(QVBoxLayout* layout, EffectPtr e);
 
 	void setup_ui();
 

@@ -37,7 +37,7 @@
 #include "ui/colorbutton.h"
 #include "ui/fontcombobox.h"
 
-TextEffect::TextEffect(Clip *c, const EffectMeta* em) :
+TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
 	Effect(c, em)
 {
 	enable_superimpose = true;

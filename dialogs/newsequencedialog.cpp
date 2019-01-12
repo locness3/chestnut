@@ -108,7 +108,7 @@ void NewSequenceDialog::create() {
 		ca->append(esc);
 
 		for (int i=0;i<existing_sequence->clips.size();i++) {
-			Clip* c = existing_sequence->clips.at(i);
+            ClipPtr c = existing_sequence->clips.at(i);
 			if (c != NULL) {
 				c->refactor_frame_rate(ca, multiplier, true);
 			}

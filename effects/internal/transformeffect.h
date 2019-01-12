@@ -23,7 +23,7 @@
 class TransformEffect : public Effect {
 	Q_OBJECT
 public:
-	TransformEffect(Clip* c, const EffectMeta* em);
+    TransformEffect(ClipPtr c, const EffectMeta* em);
     virtual ~TransformEffect();
 	void refresh();
 	void process_coords(double timecode, GLTextureCoords& coords, int data);

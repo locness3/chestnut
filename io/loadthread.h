@@ -28,7 +28,7 @@
 
 class Media;
 class Footage;
-struct Clip;
+class Clip;
 class LoadDialog;
 class TransitionData;
 struct EffectMeta;
@@ -43,20 +43,20 @@ public:
 signals:
     void success();
 	void error();
-    void start_create_effect_ui(QXmlStreamReader* stream, Clip* c, int type, const QString *effect_name, const EffectMeta* meta, long effect_length, bool effect_enabled);
-	void start_create_dual_transition(const TransitionData* td, Clip* primary, Clip* secondary, const EffectMeta* meta);
+    void start_create_effect_ui(QXmlStreamReader* stream, ClipPtr c, int type, const QString *effect_name, const EffectMeta* meta, long effect_length, bool effect_enabled);
+    void start_create_dual_transition(const TransitionData* td, ClipPtr primary, ClipPtr secondary, const EffectMeta* meta);
     void report_progress(int p);
 private slots:
 	void error_func();
     void success_func();
-    void create_effect_ui(QXmlStreamReader* stream, Clip* c, int type, const QString *effect_name, const EffectMeta* meta, long effect_length, bool effect_enabled);
-	void create_dual_transition(const TransitionData* td, Clip* primary, Clip* secondary, const EffectMeta* meta);
+    void create_effect_ui(QXmlStreamReader* stream, ClipPtr c, int type, const QString *effect_name, const EffectMeta* meta, long effect_length, bool effect_enabled);
+    void create_dual_transition(const TransitionData* td, ClipPtr primary, ClipPtr secondary, const EffectMeta* meta);
 private:
     LoadDialog* ld;
     bool autorecovery;
 
     bool load_worker(QFile& f, QXmlStreamReader& stream, int type);
-    void load_effect(QXmlStreamReader& stream, Clip* c);
+    void load_effect(QXmlStreamReader& stream, ClipPtr c);
 
     void read_next(QXmlStreamReader& stream);
     void read_next_start_element(QXmlStreamReader& stream);
@@ -73,7 +73,7 @@ private:
     bool is_element(QXmlStreamReader& stream);
 
     QVector<Media*> loaded_folders;
-    QVector<Clip*> loaded_clips;
+    QVector<ClipPtr > loaded_clips;
     QVector<Media*> loaded_sequences;
     Media* find_loaded_folder_by_id(int id);
 

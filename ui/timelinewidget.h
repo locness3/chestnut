@@ -33,7 +33,7 @@
 #define TRACK_HEIGHT_INCREMENT 10
 
 
-struct Clip;
+class Clip;
 struct FootageStream;
 class Timeline;
 class TimelineAction;
@@ -41,7 +41,7 @@ class SetSelectionsCommand;
 class Media;
 
 bool same_sign(int a, int b);
-void draw_waveform(Clip* clip, const FootageStream *ms, long media_length, QPainter* p, const QRect& clip_rect, int waveform_start, int waveform_limit, double zoom);
+void draw_waveform(ClipPtr clip, const FootageStream *ms, long media_length, QPainter* p, const QRect& clip_rect, int waveform_start, int waveform_limit, double zoom);
 
 class TimelineWidget : public QWidget {
 	Q_OBJECT
@@ -79,8 +79,8 @@ private:
 	bool track_resizing;
 	int track_target;
 
-	QVector<Clip*> pre_clips;
-	QVector<Clip*> post_clips;
+    QVector<ClipPtr> pre_clips;
+    QVector<ClipPtr> post_clips;
 
     SequencePtr self_created_sequence;
 

@@ -443,9 +443,9 @@ void Project::get_all_media_from_table(QList<Media*>& items, QList<Media*>& list
 
 bool delete_clips_in_clipboard_with_media(ComboAction* ca, Media* m) {
 	int delete_count = 0;
-	if (clipboard_type == CLIPBOARD_TYPE_CLIP) {
-		for (int i=0;i<clipboard.size();i++) {
-			Clip* c = static_cast<Clip*>(clipboard.at(i));
+	if (e_clipboard_type == CLIPBOARD_TYPE_CLIP) {
+		for (int i=0;i<e_clipboard.size();i++) {
+            ClipPtr c = std::dynamic_pointer_cast<Clip>(e_clipboard.at(i));
 			if (c->media == m) {
 				ca->append(new RemoveClipsFromClipboard(i-delete_count));
 				delete_count++;
@@ -483,7 +483,7 @@ void Project::delete_selected_media() {
 			for (int j=0;j<sequence_items.size();j++) {
                 SequencePtr  seq = sequence_items.at(j)->to_sequence();
                 for (int k=0;k<seq->clips.size();k++) {
-                    Clip* c = seq->clips.at(k);
+                    ClipPtr c = seq->clips.at(k);
 					if (c != NULL && c->media == item) {
 						if (!confirm_delete) {
 							// we found a reference, so we know we'll need to ask if the user wants to delete it
@@ -580,7 +580,7 @@ void Project::delete_selected_media() {
 			} else if (items.at(i)->get_type() == MEDIA_TYPE_FOOTAGE) {
 				if (panel_footage_viewer->seq != NULL) {
 					for (int j=0;j<panel_footage_viewer->seq->clips.size();j++) {
-						Clip* c = panel_footage_viewer->seq->clips.at(j);
+                        ClipPtr c = panel_footage_viewer->seq->clips.at(j);
 						if (c != NULL) {
                             // TODO: this was never true. object was only ever set to a Footage/Sequence* or NULL
 //							if (c->media == items.at(i)->get_object()) {
@@ -836,7 +836,7 @@ void Project::delete_clips_using_selected_media() {
 		bool deleted = false;
 		QModelIndexList items = get_current_selected();
 		for (int i=0;i<e_sequence->clips.size();i++) {
-			Clip* c = e_sequence->clips.at(i);
+            ClipPtr c = e_sequence->clips.at(i);
 			if (c != NULL) {
 				for (int j=0;j<items.size();j++) {
 					Media* m = item_to_media(items.at(j));
@@ -866,9 +866,12 @@ void Project::clear() {
 
 	// delete sequences first because it's important to close all the clips before deleting the media
 	QVector<Media*> sequences = list_all_project_sequences();
+    //TODO: are we clearing the right things?
 	for (int i=0;i<sequences.size();i++) {
-//		delete sequences.at(i)->to_sequence(); // FIXME: this should be a smart_ptr
-		sequences.at(i)->set_sequence(NULL);
+        Media* const tmp = sequences.at(i);
+        if (tmp != NULL) {
+            tmp->clear_object();
+        }
 	}
 
 	// delete everything else
@@ -985,7 +988,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 						}
 
 						for (int j=0;j<s->clips.size();j++) {
-							Clip* c = s->clips.at(j);
+                            ClipPtr c = s->clips.at(j);
 							if (c != NULL) {
 								stream.writeStartElement("clip"); // clip
 								stream.writeAttribute("id", QString::number(j));
@@ -1255,7 +1258,7 @@ void MediaThrobber::stop(int icon_type, bool replace) {
 	for (int i=0;i<sequences.size();i++) {
         SequencePtr  s = sequences.at(i)->to_sequence();
 		for (int j=0;j<s->clips.size();j++) {
-			Clip* c = s->clips.at(j);
+            ClipPtr c = s->clips.at(j);
 			if (c != NULL) {
 				c->refresh();
 			}

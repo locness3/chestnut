@@ -29,16 +29,16 @@
 #include "project/selection.h"
 #include "project/effectfield.h"
 #include "project/sequence.h"
+#include "project/effect.h"
+#include "project/clip.h"
 
 class Media;
 class LabelSlider;
-class Effect;
 class SourceTable;
 class EffectRow;
 class EffectField;
 class Transition;
 class EffectGizmo;
-struct Clip;
 
 class Footage;
 struct EffectMeta;
@@ -61,12 +61,12 @@ private:
 
 class MoveClipAction : public QUndoCommand {
 public:
-	MoveClipAction(Clip* c, long iin, long iout, long iclip_in, int itrack, bool irelative);
+    MoveClipAction(ClipPtr c, long iin, long iout, long iclip_in, int itrack, bool irelative);
     ~MoveClipAction();
     void undo();
     void redo();
 private:
-	Clip* clip;
+    ClipPtr clip;
 
 	long old_in;
 	long old_out;
@@ -104,7 +104,7 @@ public:
 	void redo();
 private:
     SequencePtr seq;
-	Clip* ref;
+    ClipPtr ref;
 	int index;
 
 	int opening_transition;
@@ -128,14 +128,14 @@ private:
 
 class AddEffectCommand : public QUndoCommand {
 public:
-	AddEffectCommand(Clip* c, Effect *e, const EffectMeta* m, int insert_pos = -1);
+    AddEffectCommand(ClipPtr c, EffectPtr e, const EffectMeta* m, int insert_pos = -1);
 	~AddEffectCommand();
 	void undo();
 	void redo();
 private:
-	Clip* clip;
+    ClipPtr clip;
 	const EffectMeta* meta;
-	Effect* ref;
+    EffectPtr ref;
 	int pos;
 	bool done;
 	bool old_project_changed;
@@ -143,12 +143,12 @@ private:
 
 class AddTransitionCommand : public QUndoCommand {
 public:
-	AddTransitionCommand(Clip* c, Clip* s, Transition *copy, const EffectMeta* itransition, int itype, int ilength);
+    AddTransitionCommand(ClipPtr c, ClipPtr s, Transition *copy, const EffectMeta* itransition, int itype, int ilength);
 	void undo();
 	void redo();
 private:
-	Clip* clip;
-	Clip* secondary;
+    ClipPtr clip;
+    ClipPtr secondary;
 	Transition* transition_to_copy;
 	const EffectMeta* transition;
 	int type;
@@ -160,11 +160,11 @@ private:
 
 class ModifyTransitionCommand : public QUndoCommand {
 public:
-	ModifyTransitionCommand(Clip* c, int itype, long ilength);
+    ModifyTransitionCommand(ClipPtr c, int itype, long ilength);
 	void undo();
 	void redo();
 private:
-	Clip* clip;
+    ClipPtr clip;
 	int type;
 	long new_length;
 	long old_length;
@@ -181,8 +181,8 @@ private:
     SequencePtr seq;
 	int index;
 	Transition* transition;
-	Clip* otc;
-	Clip* ctc;
+    ClipPtr otc;
+    ClipPtr ctc;
 	bool old_project_changed;
 };
 
@@ -248,14 +248,14 @@ private:
 
 class AddClipCommand : public QUndoCommand {
 public:
-    AddClipCommand(SequencePtr s, QVector<Clip*>& add);
+    AddClipCommand(SequencePtr s, QVector<ClipPtr>& add);
 	~AddClipCommand();
 	void undo();
 	void redo();
 private:
     SequencePtr seq;
-	QVector<Clip*> clips;
-	QVector<Clip*> undone_clips;
+    QVector<ClipPtr> clips;
+    QVector<ClipPtr> undone_clips;
 	bool old_project_changed;
 };
 
@@ -303,7 +303,7 @@ public:
 	ReplaceClipMediaCommand(Media *, Media *, bool);
 	void undo();
 	void redo();
-	QVector<Clip*> clips;
+    QVector<ClipPtr> clips;
 private:
 	Media* old_media;
 	Media* new_media;
@@ -319,12 +319,12 @@ public:
 	~EffectDeleteCommand();
 	void undo();
 	void redo();
-	QVector<Clip*> clips;
+    QVector<ClipPtr> clips;
 	QVector<int> fx;
 private:
 	bool done;
 	bool old_project_changed;
-	QVector<Effect*> deleted_objects;
+    QVector<EffectPtr> deleted_objects;
 };
 
 class MediaMove : public QUndoCommand {
@@ -397,7 +397,7 @@ public:
 	SetAutoscaleAction();
 	void undo();
 	void redo();
-	QVector<Clip*> clips;
+    QVector<ClipPtr> clips;
 private:
 	bool old_project_changed;
 };
@@ -443,11 +443,11 @@ private:
 
 class SetSpeedAction : public QUndoCommand {
 public:
-	SetSpeedAction(Clip* c, double speed);
+    SetSpeedAction(ClipPtr c, double speed);
 	void undo();
 	void redo();
 private:
-	Clip* clip;
+    ClipPtr clip;
 	double old_speed;
 	double new_speed;
 	bool old_project_changed;
@@ -480,11 +480,11 @@ private:
 
 class SetEnableCommand : public QUndoCommand {
 public:
-	SetEnableCommand(Clip* c, bool enable);
+    SetEnableCommand(ClipPtr c, bool enable);
 	void undo();
 	void redo();
 private:
-	Clip* clip;
+    ClipPtr clip;
 	bool old_val;
 	bool new_val;
 	bool old_project_changed;
@@ -585,7 +585,7 @@ public:
 	MoveEffectCommand();
 	void undo();
 	void redo();
-	Clip* clip;
+    ClipPtr clip;
 	int from;
 	int to;
 private:
@@ -600,7 +600,7 @@ public:
 	void redo();
 private:
 	int pos;
-	Clip* clip;
+    ClipPtr clip;
 	bool old_project_changed;
 	bool done;
 };
@@ -608,7 +608,7 @@ private:
 class RenameClipCommand : public QUndoCommand {
 public:
 	RenameClipCommand();
-	QVector<Clip*> clips;
+    QVector<ClipPtr> clips;
 	QString new_name;
 	void undo();
 	void redo();

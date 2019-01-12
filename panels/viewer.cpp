@@ -119,7 +119,7 @@ void Viewer::reset_all_audio() {
         audio_ibuffer_timecode = (double) audio_ibuffer_frame / seq->getFrameRate();
 
 		for (int i=0;i<seq->clips.size();i++) {
-			Clip* c = seq->clips.at(i);
+            ClipPtr c = seq->clips.at(i);
 			if (c != NULL) c->reset_audio();
 		}
 	}
@@ -379,7 +379,7 @@ void Viewer::pause() {
 			panel_project->process_file_list(file_list);
 
 			// add it to the sequence
-            Clip* c = new Clip(seq.operator ->()); // FIXME: no raw ptr access
+            ClipPtr c(new Clip(seq));
 			Media* m = panel_project->last_imported_media.at(0);
             FootagePtr f = m->to_footage();
 
@@ -398,7 +398,7 @@ void Viewer::pause() {
 
 			f->ready_lock.unlock();
 
-			QVector<Clip*> add_clips;
+            QVector<ClipPtr> add_clips;
 			add_clips.append(c);
 			e_undo_stack.push(new AddClipCommand(seq, add_clips)); // add clip
 		}
@@ -649,7 +649,7 @@ void Viewer::set_media(Media* m) {
                     seq->setFrameRate(video_stream.video_frame_rate * footage->speed);
                 }
 
-                Clip* c = new Clip(e_sequence.operator ->()); //FIXME: raw ptr
+                ClipPtr c(new Clip(e_sequence));
 				c->media = media;
 				c->media_stream = video_stream.file_index;
 				c->timeline_in = 0;
@@ -669,7 +669,7 @@ void Viewer::set_media(Media* m) {
 				const FootageStream& audio_stream = footage->audio_tracks.at(0);
                 seq->setAudioFrequency(audio_stream.audio_frequency);
 
-                Clip* c = new Clip(e_sequence.operator ->()); //FIXME: raw ptr
+                ClipPtr c(new Clip(e_sequence));
 				c->media = media;
 				c->media_stream = audio_stream.file_index;
 				c->timeline_in = 0;

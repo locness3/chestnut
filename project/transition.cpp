@@ -37,7 +37,7 @@
 
 #include <QMessageBox>
 
-Transition::Transition(Clip* c, Clip* s, const EffectMeta* em) :
+Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
 	Effect(c, em), secondary_clip(s),
 	length(30)
 {
@@ -51,7 +51,7 @@ Transition::Transition(Clip* c, Clip* s, const EffectMeta* em) :
     length_ui_ele->set_frame_rate(parent_clip->sequence == NULL ? parent_clip->cached_fr : parent_clip->sequence->getFrameRate());
 }
 
-int Transition::copy(Clip *c, Clip* s) {
+int Transition::copy(ClipPtr c, ClipPtr s) {
 	return create_transition(c, s, meta, length);
 }
 
@@ -76,7 +76,7 @@ void Transition::set_length_from_slider() {
 	update_ui(false);
 }
 
-Transition* get_transition_from_meta(Clip* c, Clip* s, const EffectMeta* em) {
+Transition* get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* em) {
 	if (!em->filename.isEmpty()) {
 		// load effect from file
 		return new Transition(c, s, em);
@@ -96,11 +96,11 @@ Transition* get_transition_from_meta(Clip* c, Clip* s, const EffectMeta* em) {
 	return NULL;
 }
 
-int create_transition(Clip* c, Clip* s, const EffectMeta* em, long length) {
+int create_transition(ClipPtr c, ClipPtr s, const EffectMeta* em, long length) {
 	Transition* t = get_transition_from_meta(c, s, em);
 	if (length >= 0) t->set_length(length);
 	if (t != NULL) {
-		QVector<Transition*>& transition_list = (c->sequence == NULL) ? clipboard_transitions : c->sequence->transitions;
+		QVector<Transition*>& transition_list = (c->sequence == NULL) ? e_clipboard_transitions : c->sequence->transitions;
 		transition_list.append(t);
 		return transition_list.size() - 1;
 	}

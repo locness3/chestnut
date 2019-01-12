@@ -23,33 +23,35 @@
 
 #include "project/sequence.h"
 
-struct Clip;
-struct ClipCache;
+class Clip;
+class ClipCache;
 
 struct AVFrame;
 
 extern bool texture_failed;
 extern bool rendering;
 
-bool clip_uses_cacher(Clip* clip);
-void open_clip(Clip* clip, bool multithreaded);
-void cache_clip(Clip* clip, long playhead, bool reset, bool scrubbing, QVector<Clip *> &nests);
-void close_clip(Clip* clip, bool wait);
-void cache_audio_worker(Clip* c, bool write_A);
-void cache_video_worker(Clip* c, long playhead);
+
+
+bool clip_uses_cacher(ClipPtr clip);
+void open_clip(ClipPtr clip, bool multithreaded);
+void cache_clip(ClipPtr clip, long playhead, bool reset, bool scrubbing, QVector<ClipPtr>& nests);
+void close_clip(ClipPtr clip, bool wait);
+void cache_audio_worker(ClipPtr c, bool write_A);
+void cache_video_worker(ClipPtr c, long playhead);
 void handle_media(Sequence* e_sequence, long playhead, bool multithreaded);
-void reset_cache(Clip* c, long target_frame);
-void get_clip_frame(Clip* c, long playhead);
-double get_timecode(Clip* c, long playhead);
+void reset_cache(ClipPtr c, long target_frame);
+void get_clip_frame(ClipPtr c, long playhead);
+double get_timecode(ClipPtr c, long playhead);
 
-long playhead_to_clip_frame(Clip* c, long playhead);
-double playhead_to_clip_seconds(Clip* c, long playhead);
-int64_t seconds_to_timestamp(Clip* c, double seconds);
-int64_t playhead_to_timestamp(Clip* c, long playhead);
+long playhead_to_clip_frame(ClipPtr c, long playhead);
+double playhead_to_clip_seconds(ClipPtr c, long playhead);
+int64_t seconds_to_timestamp(ClipPtr c, double seconds);
+int64_t playhead_to_timestamp(ClipPtr c, long playhead);
 
-int retrieve_next_frame(Clip* c, AVFrame* f);
-bool is_clip_active(Clip* c, long playhead);
-void get_next_audio(Clip* c, bool mix);
+int retrieve_next_frame(ClipPtr c, AVFrame* f);
+bool is_clip_active(ClipPtr c, long playhead);
+void get_next_audio(ClipPtr c, bool mix);
 void set_sequence(SequencePtr s);
 void closeActiveClips(SequencePtr s);
 

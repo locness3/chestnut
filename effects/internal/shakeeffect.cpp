@@ -30,7 +30,7 @@
 
 #include "debug.h"
 
-ShakeEffect::ShakeEffect(Clip *c, const EffectMeta *em) : Effect(c, em) {
+ShakeEffect::ShakeEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
 	enable_coords = true;
 
     EffectRowPtr intensity_row = add_row("Intensity");

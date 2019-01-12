@@ -22,7 +22,7 @@
 
 class AudioNoiseEffect : public Effect {
 public:
-	AudioNoiseEffect(Clip* c, const EffectMeta* em);
+    AudioNoiseEffect(ClipPtr c, const EffectMeta* em);
     virtual void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
 
 	EffectField* amount_val;

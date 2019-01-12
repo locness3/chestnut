@@ -463,7 +463,7 @@ void MainWindow::open_speed_dialog() {
     if (e_sequence != NULL) {
 		SpeedDialog s(this);
         for (int i=0;i<e_sequence->clips.size();i++) {
-            Clip* c = e_sequence->clips.at(i);
+            ClipPtr c = e_sequence->clips.at(i);
 			if (c != NULL && panel_timeline->is_clip_selected(c, true)) {
 				s.clips.append(c);
 			}
@@ -1366,7 +1366,7 @@ void MainWindow::toggle_enable_clips() {
 		ComboAction* ca = new ComboAction();
 		bool push_undo = false;
         for (int i=0;i<e_sequence->clips.size();i++) {
-            Clip* c = e_sequence->clips.at(i);
+            ClipPtr  c = e_sequence->clips.at(i);
 			if (c != NULL && panel_timeline->is_clip_selected(c, true)) {
 				ca->append(new SetEnableCommand(c, !c->enabled));
 				push_undo = true;
@@ -1396,7 +1396,7 @@ void MainWindow::nest() {
 
 		// get selected clips
         for (int i=0;i<e_sequence->clips.size();i++) {
-            Clip* c = e_sequence->clips.at(i);
+            ClipPtr  c = e_sequence->clips.at(i);
 			if (c != NULL && panel_timeline->is_clip_selected(c, true)) {
 				selected_clips.append(i);
 				earliest_point = qMin(c->timeline_in, earliest_point);
@@ -1423,7 +1423,7 @@ void MainWindow::nest() {
                 ca->append(new DeleteClipAction(e_sequence, selected_clips.at(i)));
 
 				// copy to new
-                Clip* copy = e_sequence->clips.at(selected_clips.at(i))->copy(s.operator ->());//FIXME: raw ptr
+                ClipPtr  copy = e_sequence->clips.at(selected_clips.at(i))->copy(s);
 				copy->timeline_in -= earliest_point;
 				copy->timeline_out -= earliest_point;
 				s->clips.append(copy);

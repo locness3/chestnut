@@ -21,20 +21,24 @@
 #include <QWaitCondition>
 #include <QMutex>
 #include <QVector>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLTexture>
+#include <memory>
+#include <QMetaType>
+
 #include "project/effect.h"
 #include "project/sequence.h"
+#include "project/sequenceitem.h"
+#include "project/footage.h"
 
 #define SKIP_TYPE_DISCARD 0
 #define SKIP_TYPE_SEEK 1
 
 class Cacher;
 class Transition;
-class QOpenGLFramebufferObject;
 class ComboAction;
 class Media;
 
-class Footage;
-struct FootageStream;
 
 struct AVFormatContext;
 struct AVStream;
@@ -47,13 +51,16 @@ struct SwrContext;
 struct AVFilterGraph;
 struct AVFilterContext;
 struct AVDictionary;
-class QOpenGLTexture;
 
-struct Clip
+class Clip : public project::SequenceItem
 {
-    Clip(Sequence *s);
+public:
+    explicit Clip(SequencePtr s);
 	~Clip();
-    Clip* copy(Sequence* s);
+    ClipPtr copy(SequencePtr s);
+
+    virtual project::SequenceItemType_E getType() const;
+
     void reset_audio();
 	void reset();
 	void refresh();
@@ -66,14 +73,19 @@ struct Clip
 	void recalculateMaxLength();
 	int getWidth();
 	int getHeight();
-	void refactor_frame_rate(ComboAction* ca, double multiplier, bool change_timeline_points);
-    SequencePtr sequence;
+    void refactor_frame_rate(ComboAction* ca, double multiplier, bool change_timeline_points);
 
 	// queue functions
 	void queue_clear();
 	void queue_remove_earliest();
 
-	// timeline variables (should be copied in copy())
+
+    Transition* get_opening_transition();
+    Transition* get_closing_transition();
+
+    //FIXME: all the class members
+    SequencePtr sequence;
+    // timeline variables (should be copied in copy())
     bool enabled;
     long clip_in;
     long timeline_in;
@@ -92,12 +104,10 @@ struct Clip
 	bool autoscale;
 
 	// other variables (should be deep copied/duplicated in copy())
-    QList<Effect*> effects;
+    QList<EffectPtr> effects;
     QVector<int> linked;
     int opening_transition;
-    Transition* get_opening_transition();
     int closing_transition;
-    Transition* get_closing_transition();
 
 	// media handling
     AVFormatContext* formatCtx;
@@ -149,6 +159,14 @@ struct Clip
     bool audio_reset;
     bool audio_just_reset;
 	long audio_target_frame;
+private:
+
+    // Explicitly impl as required
+    Clip();
+    Clip(const Clip& cpy);
+    const Clip& operator=(const Clip& rhs);
 };
+
+typedef std::shared_ptr<Clip> ClipPtr;
 
 #endif // CLIP_H

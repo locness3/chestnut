@@ -26,9 +26,13 @@
 #include "project/sequence.h"
 #include "project/footage.h"
 
-#define MEDIA_TYPE_FOOTAGE 0
-#define MEDIA_TYPE_SEQUENCE 1
-#define MEDIA_TYPE_FOLDER 2
+
+enum MediaType_E {
+    MEDIA_TYPE_FOOTAGE = 0,
+    MEDIA_TYPE_SEQUENCE = 1,
+    MEDIA_TYPE_FOLDER = 2,
+    MEDIA_TYPE_NONE
+};
 
 class MediaThrobber;
 
@@ -40,6 +44,7 @@ public:
     ~Media();
     FootagePtr to_footage();
     SequencePtr to_sequence();
+    void clear_object();
     void set_footage(FootagePtr ftg);
     void set_sequence(SequencePtr sqn);
     void set_folder();
@@ -47,7 +52,7 @@ public:
     void set_parent(Media* p);
     void update_tooltip(const QString& error = 0);
     project::ProjectItemPtr get_object();
-    int get_type();
+    MediaType_E get_type();
     const QString& get_name();
     void set_name(const QString& n);
     MediaThrobber* throbber;
@@ -70,7 +75,7 @@ public:
     int temp_id;
     int temp_id2;
 private:
-    int type;
+    MediaType_E type;
     project::ProjectItemPtr object;
 
     // item functions

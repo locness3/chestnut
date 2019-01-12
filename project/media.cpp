@@ -60,14 +60,10 @@ Media::Media(Media* iparent) :
 	parent(iparent),
 	throbber(NULL),
 	root(false),
-	type(-1)
+    type(MEDIA_TYPE_NONE)
 {}
 
 Media::~Media() {
-//	switch (get_type()) {
-//	case MEDIA_TYPE_FOOTAGE: delete to_footage(); break;
-//	case MEDIA_TYPE_SEQUENCE: if (object != NULL) delete to_sequence(); break;
-//	}
 	if (throbber != NULL) delete throbber;
 	qDeleteAll(children);
 }
@@ -80,6 +76,10 @@ SequencePtr Media::to_sequence() {
     return std::dynamic_pointer_cast<Sequence>(object);
 }
 
+void Media::clear_object() {
+    type = MEDIA_TYPE_NONE;
+    object = NULL;
+}
 void Media::set_footage(FootagePtr ftg) {
 	type = MEDIA_TYPE_FOOTAGE;
     object = ftg;
@@ -194,7 +194,7 @@ project::ProjectItemPtr Media::get_object() {
 	return object;
 }
 
-int Media::get_type() {
+MediaType_E Media::get_type() {
 	return type;
 }
 

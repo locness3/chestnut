@@ -7,7 +7,7 @@
 #include "ui/collapsiblewidget.h"
 #include "debug.h"
 
-VoidEffect::VoidEffect(Clip *c, const QString& n) : Effect(c, NULL) {
+VoidEffect::VoidEffect(ClipPtr c, const QString& n) : Effect(c, NULL) {
 	name = n;
 	QString display_name;
 	if (n.isEmpty()) {

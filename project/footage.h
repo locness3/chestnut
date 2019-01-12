@@ -33,7 +33,7 @@
 #define VIDEO_BOTTOM_FIELD_FIRST 2
 
 
-struct Clip;
+class Clip;
 class PreviewGenerator;
 class MediaThrobber;
 

@@ -45,7 +45,7 @@
 #define BLEND_MODE_MULTIPLY 2
 #define BLEND_MODE_OVERLAY 3
 
-TransformEffect::TransformEffect(Clip* c, const EffectMeta* em) : Effect(c, em) {
+TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em) {
     enable_coords = true;
     EffectRowPtr position_row = add_row("Position");
     position_x = position_row->add_field(EFFECT_FIELD_DOUBLE, "posx"); // position X

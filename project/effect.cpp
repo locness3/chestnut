@@ -62,25 +62,26 @@
 #include <QMenu>
 
 QVector<EffectMeta> effects;
+typedef std::shared_ptr<Effect> EffectPtr;
 
-Effect* create_effect(Clip* c, const EffectMeta* em) { //FIXME: use of this is causing a lot of leaks
+EffectPtr create_effect(ClipPtr c, const EffectMeta* em) { //FIXME: use of this is causing a lot of leaks
 	if (!em->filename.isEmpty()) {
 		// load effect from file
-		return new Effect(c, em);
+        return EffectPtr(new Effect(c, em));
 	} else if (em->internal >= 0 && em->internal < EFFECT_INTERNAL_COUNT) {
 		// must be an internal effect
 		switch (em->internal) {
-		case EFFECT_INTERNAL_TRANSFORM: return new TransformEffect(c, em);
-		case EFFECT_INTERNAL_TEXT: return new TextEffect(c, em);
-		case EFFECT_INTERNAL_TIMECODE: return new TimecodeEffect(c, em);
-		case EFFECT_INTERNAL_SOLID: return new SolidEffect(c, em);
-		case EFFECT_INTERNAL_NOISE: return new AudioNoiseEffect(c, em);
-		case EFFECT_INTERNAL_VOLUME: return new VolumeEffect(c, em);
-		case EFFECT_INTERNAL_PAN: return new PanEffect(c, em);
-		case EFFECT_INTERNAL_TONE: return new ToneEffect(c, em);
-		case EFFECT_INTERNAL_SHAKE: return new ShakeEffect(c, em);
-		case EFFECT_INTERNAL_CORNERPIN: return new CornerPinEffect(c, em);
-		case EFFECT_INTERNAL_FILLLEFTRIGHT: return new FillLeftRightEffect(c, em);
+        case EFFECT_INTERNAL_TRANSFORM: return EffectPtr(new TransformEffect(c, em));
+        case EFFECT_INTERNAL_TEXT: return EffectPtr(new TextEffect(c, em));
+        case EFFECT_INTERNAL_TIMECODE: return EffectPtr(new TimecodeEffect(c, em));
+        case EFFECT_INTERNAL_SOLID: return EffectPtr(new SolidEffect(c, em));
+        case EFFECT_INTERNAL_NOISE: return EffectPtr(new AudioNoiseEffect(c, em));
+        case EFFECT_INTERNAL_VOLUME: return EffectPtr(new VolumeEffect(c, em));
+        case EFFECT_INTERNAL_PAN: return EffectPtr(new PanEffect(c, em));
+        case EFFECT_INTERNAL_TONE: return EffectPtr(new ToneEffect(c, em));
+        case EFFECT_INTERNAL_SHAKE: return EffectPtr(new ShakeEffect(c, em));
+        case EFFECT_INTERNAL_CORNERPIN: return EffectPtr(new CornerPinEffect(c, em));
+        case EFFECT_INTERNAL_FILLLEFTRIGHT: return EffectPtr(new FillLeftRightEffect(c, em));
 #ifdef _WIN32
 		case EFFECT_INTERNAL_VST: return new VSTHostWin(c, em);
 #endif
@@ -273,7 +274,7 @@ void EffectInit::run() {
 	dout << "[INFO] Finished initializing effects";
 }
 
-Effect::Effect(Clip* c, const EffectMeta *em) :
+Effect::Effect(ClipPtr c, const EffectMeta *em) :
 	parent_clip(c),
 	meta(em),
 	enable_shader(false),
@@ -501,7 +502,12 @@ Effect::~Effect() {
     delete container;
 }
 
-void Effect::copy_field_keyframes(Effect* e) {
+
+project::SequenceItemType_E Effect::getType() const {
+    return project::SEQUENCE_ITEM_EFFECT;
+}
+
+void Effect::copy_field_keyframes(std::shared_ptr<Effect> e) {
 	for (int i=0;i<rows.size();i++) {
         EffectRowPtr row(rows.at(i));
         EffectRowPtr copy_row(e->rows.at(i));
@@ -604,7 +610,7 @@ void Effect::move_down() {
 int Effect::get_index_in_clip() {
 	if (parent_clip != NULL) {
 		for (int i=0;i<parent_clip->effects.size();i++) {
-			if (parent_clip->effects.at(i) == this) {
+            if (parent_clip->effects.at(i).operator ->() == this) {
 				return i;
 			}
 		}
@@ -873,9 +879,9 @@ void Effect::endEffect() {
 
 void Effect::process_image(double, uint8_t *, int) {}
 
-Effect* Effect::copy(Clip* c) {
+EffectPtr Effect::copy(ClipPtr c) {
     // FIXME: leak and not the way to do it
-	Effect* copy = create_effect(c, meta);
+    EffectPtr copy = create_effect(c, meta);
 	copy->set_enabled(is_enabled());
 	copy_field_keyframes(copy);
 	return copy;

@@ -67,7 +67,7 @@ EffectRow::~EffectRow() {
     for (int i=0;i<fields.size();i++) {
         delete fields.at(i);
     }
-    delete label;
+//    delete label;
 }
 
 bool EffectRow::isKeyframing() {
@@ -108,7 +108,7 @@ void EffectRow::set_keyframe_enabled(bool enabled) {
 
 void EffectRow::goto_previous_key() {
 	long key = LONG_MIN;
-	Clip* c = parent_effect->parent_clip;
+    ClipPtr c = parent_effect->parent_clip;
 	for (int i=0;i<fieldCount();i++) {
 		EffectField* f = field(i);
 		for (int j=0;j<f->keyframes.size();j++) {
@@ -124,7 +124,7 @@ void EffectRow::goto_previous_key() {
 void EffectRow::toggle_key() {
 	QVector<EffectField*> key_fields;
 	QVector<int> key_field_index;
-	Clip* c = parent_effect->parent_clip;
+    ClipPtr c = parent_effect->parent_clip;
 	for (int j=0;j<fieldCount();j++) {
 		EffectField* f = field(j);
 		for (int i=0;i<f->keyframes.size();i++) {
@@ -151,7 +151,7 @@ void EffectRow::toggle_key() {
 
 void EffectRow::goto_next_key() {
 	long key = LONG_MAX;
-	Clip* c = parent_effect->parent_clip;
+    ClipPtr c = parent_effect->parent_clip;
 	for (int i=0;i<fieldCount();i++) {
 		EffectField* f = field(i);
 		for (int j=0;j<f->keyframes.size();j++) {

@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -91,7 +91,7 @@ void EffectControls::set_zoom(bool in) {
 void EffectControls::menu_select(QAction* q) {
 	ComboAction* ca = new ComboAction();
 	for (int i=0;i<selected_clips.size();i++) {
-        Clip* c = e_sequence->clips.at(selected_clips.at(i));
+        ClipPtr c = e_sequence->clips.at(selected_clips.at(i));
 		if ((c->track < 0) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
 			const EffectMeta* meta = reinterpret_cast<const EffectMeta*>(q->data().value<quintptr>());
 			if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
@@ -131,17 +131,17 @@ void EffectControls::copy(bool del) {
 		ComboAction* ca = new ComboAction();
 		EffectDeleteCommand* del_com = (del) ? new EffectDeleteCommand() : NULL;
 		for (int i=0;i<selected_clips.size();i++) {
-            Clip* c = e_sequence->clips.at(selected_clips.at(i));
+            ClipPtr c = e_sequence->clips.at(selected_clips.at(i));
 			for (int j=0;j<c->effects.size();j++) {
-                Effect* effect = c->effects.at(j);
+                EffectPtr effect = c->effects.at(j);
 				if (effect->container->selected) {
 					if (!cleared) {
 						clear_clipboard();
 						cleared = true;
-						clipboard_type = CLIPBOARD_TYPE_EFFECT;
+                        e_clipboard_type = CLIPBOARD_TYPE_EFFECT;
 					}
 
-					clipboard.append(effect->copy(NULL));
+//                    clipboard.append(std::dynamic_pointer_cast<project::SequenceItemPtr>(effect->copy(NULL))); //FIXME:
 
 					if (del_com != NULL) {
 						del_com->clips.append(c);
@@ -258,7 +258,7 @@ void EffectControls::clear_effects(bool clear_cache) {
 
 void EffectControls::deselect_all_effects(QWidget* sender) {
 	for (int i=0;i<selected_clips.size();i++) {
-        Clip* c = e_sequence->clips.at(selected_clips.at(i));
+        ClipPtr c = e_sequence->clips.at(selected_clips.at(i));
 		for (int j=0;j<c->effects.size();j++) {
 			if (c->effects.at(j)->container != sender) {
 				c->effects.at(j)->container->header_click(false, false);
@@ -268,7 +268,7 @@ void EffectControls::deselect_all_effects(QWidget* sender) {
 	panel_sequence_viewer->viewer_widget->update();
 }
 
-void EffectControls::open_effect(QVBoxLayout* layout, Effect *e) {
+void EffectControls::open_effect(QVBoxLayout* layout, EffectPtr e) {
 	CollapsibleWidget* container = e->container;
 	layout->addWidget(container);
 	connect(container, SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
@@ -459,7 +459,7 @@ void EffectControls::load_effects() {
 	if (!multiple) {
 		// load in new clips
 		for (int i=0;i<selected_clips.size();i++) {
-            Clip* c = e_sequence->clips.at(selected_clips.at(i));
+            ClipPtr c = e_sequence->clips.at(selected_clips.at(i));
 			QVBoxLayout* layout;
 			if (c->track < 0) {
 				vcontainer->setVisible(true);
@@ -493,9 +493,9 @@ void EffectControls::delete_effects() {
 	if (mode == TA_NO_TRANSITION) {
 		EffectDeleteCommand* command = new EffectDeleteCommand();
 		for (int i=0;i<selected_clips.size();i++) {
-            Clip* c = e_sequence->clips.at(selected_clips.at(i));
+            ClipPtr c = e_sequence->clips.at(selected_clips.at(i));
 			for (int j=0;j<c->effects.size();j++) {
-                Effect* effect = c->effects.at(j);
+                EffectPtr effect = c->effects.at(j);
 				if (effect->container->selected) {
 					command->clips.append(c);
 					command->fx.append(j);
@@ -549,7 +549,7 @@ void EffectControls::resizeEvent(QResizeEvent*) {
 bool EffectControls::is_focused() {
 	if (this->hasFocus()) return true;
 	for (int i=0;i<selected_clips.size();i++) {
-        Clip* c = e_sequence->clips.at(selected_clips.at(i));
+        ClipPtr c = e_sequence->clips.at(selected_clips.at(i));
 		if (c != NULL) {
 			for (int j=0;j<c->effects.size();j++) {
 				if (c->effects.at(j)->container->is_focused()) {

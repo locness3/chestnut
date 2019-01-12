@@ -22,7 +22,6 @@
 #include "panels/timeline.h"
 #include "panels/project.h"
 #include "project/sequence.h"
-#include "project/clip.h"
 #include "project/effect.h"
 #include "project/transition.h"
 #include "playback/playback.h"
@@ -448,7 +447,8 @@ GLuint ViewerWidget::draw_clip(QOpenGLFramebufferObject* fbo, GLuint texture, bo
 	return fbo->texture();
 }
 
-void ViewerWidget::process_effect(Clip* c, Effect* e, double timecode, GLTextureCoords& coords, GLuint& composite_texture, bool& fbo_switcher, int data) {
+void ViewerWidget::process_effect(ClipPtr c, EffectPtr e, double timecode,
+                                  GLTextureCoords& coords, GLuint& composite_texture, bool& fbo_switcher, int data) {
 	if (e->is_enabled()) {
 		if (e->enable_coords) {
 			e->process_coords(timecode, coords, data);
@@ -477,7 +477,7 @@ void ViewerWidget::process_effect(Clip* c, Effect* e, double timecode, GLTexture
 int motion_blur_prog = 0;
 int motion_blur_lim = 4;
 
-GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) {
+GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio) {
     SequencePtr s = viewer->seq;
 	long playhead = s->playhead;
 
@@ -497,10 +497,10 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 
 	int audio_track_count = 0;
 
-	QVector<Clip*> current_clips;
+    QVector<ClipPtr> current_clips;
 
 	for (int i=0;i<s->clips.size();i++) {
-		Clip* c = s->clips.at(i);
+        ClipPtr c = s->clips.at(i);
 
 		// if clip starts within one second and/or hasn't finished yet
 		if (c != NULL) {
@@ -565,31 +565,31 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 		GL_DEFAULT_BLEND
 		glColor4f(1.0, 1.0, 1.0, 1.0);
 
-		Clip* c = current_clips.at(i);
+        ClipPtr clipNow = current_clips.at(i);
 
-		if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE && !c->finished_opening) {
+        if (clipNow->media != NULL && clipNow->media->get_type() == MEDIA_TYPE_FOOTAGE && !clipNow->finished_opening) {
 			dout << "[WARNING] Tried to display clip" << i << "but it's closed";
 			texture_failed = true;
 		} else {
-			if (c->track < 0) {
+            if (clipNow->track < 0) {
 				GLuint textureID = 0;
-				int video_width = c->getWidth();
-				int video_height = c->getHeight();
+                int video_width = clipNow->getWidth();
+                int video_height = clipNow->getHeight();
 
-				if (c->media != NULL) {
-					switch (c->media->get_type()) {
+                if (clipNow->media != NULL) {
+                    switch (clipNow->media->get_type()) {
 					case MEDIA_TYPE_FOOTAGE:
 						// set up opengl texture
-						if (c->texture == NULL) {
-							c->texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
-							c->texture->setSize(c->stream->codecpar->width, c->stream->codecpar->height);
-							c->texture->setFormat(get_gl_tex_fmt_from_av(c->pix_fmt));
-							c->texture->setMipLevels(c->texture->maximumMipLevels());
-							c->texture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
-							c->texture->allocateStorage(get_gl_pix_fmt_from_av(c->pix_fmt), QOpenGLTexture::UInt8);
+                        if (clipNow->texture == NULL) {
+                            clipNow->texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+                            clipNow->texture->setSize(clipNow->stream->codecpar->width, clipNow->stream->codecpar->height);
+                            clipNow->texture->setFormat(get_gl_tex_fmt_from_av(clipNow->pix_fmt));
+                            clipNow->texture->setMipLevels(clipNow->texture->maximumMipLevels());
+                            clipNow->texture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
+                            clipNow->texture->allocateStorage(get_gl_pix_fmt_from_av(clipNow->pix_fmt), QOpenGLTexture::UInt8);
 						}
-						get_clip_frame(c, playhead);
-						textureID = c->texture->textureId();
+                        get_clip_frame(clipNow, playhead);
+                        textureID = clipNow->texture->textureId();
 						break;
 					case MEDIA_TYPE_SEQUENCE:
 						textureID = -1;
@@ -597,17 +597,17 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 					}
 				}
 
-				if (textureID == 0 && c->media != NULL) {
+                if (textureID == 0 && clipNow->media != NULL) {
 					dout << "[WARNING] Texture hasn't been created yet";
 					texture_failed = true;
-				} else if (playhead >= c->get_timeline_in_with_transition()) {
+                } else if (playhead >= clipNow->get_timeline_in_with_transition()) {
 					glPushMatrix();
 
 					// start preparing cache
-					if (c->fbo == NULL) {
-						c->fbo = new QOpenGLFramebufferObject* [2];
-						c->fbo[0] = new QOpenGLFramebufferObject(video_width, video_height);
-						c->fbo[1] = new QOpenGLFramebufferObject(video_width, video_height);
+                    if (clipNow->fbo == NULL) {
+                        clipNow->fbo = new QOpenGLFramebufferObject* [2];
+                        clipNow->fbo[0] = new QOpenGLFramebufferObject(video_width, video_height);
+                        clipNow->fbo[1] = new QOpenGLFramebufferObject(video_width, video_height);
 					}
 
 					// clear fbos
@@ -624,21 +624,21 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 
 					GLuint composite_texture;
 
-					if (c->media == NULL) {
-						c->fbo[fbo_switcher]->bind();
+                    if (clipNow->media == NULL) {
+                        clipNow->fbo[fbo_switcher]->bind();
 						glClear(GL_COLOR_BUFFER_BIT);
-						c->fbo[fbo_switcher]->release();
-						composite_texture = c->fbo[fbo_switcher]->texture();
+                        clipNow->fbo[fbo_switcher]->release();
+                        composite_texture = clipNow->fbo[fbo_switcher]->texture();
 					} else {
 						// for nested sequences
-						if (c->media->get_type()== MEDIA_TYPE_SEQUENCE) {
-							nests.append(c);
+                        if (clipNow->media->get_type()== MEDIA_TYPE_SEQUENCE) {
+                            nests.append(clipNow);
 							textureID = compose_sequence(nests, render_audio);
 							nests.removeLast();
 							fbo_switcher = true;
 						}
 
-						composite_texture = draw_clip(c->fbo[fbo_switcher], textureID, true);
+                        composite_texture = draw_clip(clipNow->fbo[fbo_switcher], textureID, true);
 					}
 
 					fbo_switcher = !fbo_switcher;
@@ -656,7 +656,7 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 					coords.textureTopLeftQ = coords.textureTopRightQ = coords.textureTopLeftQ = coords.textureBottomLeftQ = 1;
 
 					// set up autoscale
-                    if (c->autoscale && (video_width != s->getWidth() && video_height != s->getHeight())) {
+                    if (clipNow->autoscale && (video_width != s->getWidth() && video_height != s->getHeight())) {
                         float width_multiplier = (float) s->getWidth() / (float) video_width;
                         float height_multiplier = (float) s->getHeight() / (float) video_height;
 						float scale_multiplier = qMin(width_multiplier, height_multiplier);
@@ -664,14 +664,14 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 					}
 
 					// EFFECT CODE START
-					double timecode = get_timecode(c, playhead);
+                    double timecode = get_timecode(clipNow, playhead);
 
-					Effect* first_gizmo_effect = NULL;
-					Effect* selected_effect = NULL;
+                    EffectPtr first_gizmo_effect;
+                    EffectPtr selected_effect;
 
-					for (int j=0;j<c->effects.size();j++) {
-						Effect* e = c->effects.at(j);
-						process_effect(c, e, timecode, coords, composite_texture, fbo_switcher, TA_NO_TRANSITION);
+                    for (int j=0;j<clipNow->effects.size();j++) {
+                        EffectPtr e = clipNow->effects.at(j);
+                        process_effect(clipNow, e, timecode, coords, composite_texture, fbo_switcher, TA_NO_TRANSITION);
 
 						if (e->are_gizmos_enabled()) {
 							if (first_gizmo_effect == NULL) first_gizmo_effect = e;
@@ -682,22 +682,26 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 					if (!rendering) {
 						if (selected_effect != NULL) {
 							gizmos = selected_effect;
-						} else if (panel_timeline->is_clip_selected(c, true)) {
+                        } else if (panel_timeline->is_clip_selected(clipNow, true)) {
 							gizmos = first_gizmo_effect;
 						}
 					}
 
-					if (c->get_opening_transition() != NULL) {
-						int transition_progress = playhead - c->get_timeline_in_with_transition();
-						if (transition_progress < c->get_opening_transition()->get_length()) {
-							process_effect(c, c->get_opening_transition(), (double)transition_progress/(double)c->get_opening_transition()->get_length(), coords, composite_texture, fbo_switcher, TA_OPENING_TRANSITION);
+                    if (clipNow->get_opening_transition() != NULL) {
+                        int transition_progress = playhead - clipNow->get_timeline_in_with_transition();
+                        if (transition_progress < clipNow->get_opening_transition()->get_length()) {
+                            // FIXME:
+//                            process_effect(clipNow, clipNow->get_opening_transition(),
+//                                           (double)transition_progress/(double)clipNow->get_opening_transition()->get_length(),
+//                                           coords, composite_texture, fbo_switcher, TA_OPENING_TRANSITION);
 						}
 					}
 
-					if (c->get_closing_transition() != NULL) {
-						int transition_progress = playhead - (c->get_timeline_out_with_transition() - c->get_closing_transition()->get_length());
-						if (transition_progress >= 0 && transition_progress < c->get_closing_transition()->get_length()) {
-							process_effect(c, c->get_closing_transition(), (double)transition_progress/(double)c->get_closing_transition()->get_length(), coords, composite_texture, fbo_switcher, TA_CLOSING_TRANSITION);
+                    if (clipNow->get_closing_transition() != NULL) {
+                        int transition_progress = playhead - (clipNow->get_timeline_out_with_transition() - clipNow->get_closing_transition()->get_length());
+                        if (transition_progress >= 0 && transition_progress < clipNow->get_closing_transition()->get_length()) {
+                            //FIXME:
+//                            process_effect(clipNow, clipNow->get_closing_transition(), (double)transition_progress/(double)clipNow->get_closing_transition()->get_length(), coords, composite_texture, fbo_switcher, TA_CLOSING_TRANSITION);
 						}
 					}
 					// EFFECT CODE END
@@ -796,24 +800,24 @@ GLuint ViewerWidget::compose_sequence(QVector<Clip*>& nests, bool render_audio) 
 				}
 			} else {
 				if (render_audio || (config.enable_audio_scrubbing && audio_scrub)) {
-					if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_SEQUENCE) {
-						nests.append(c);
+                    if (clipNow->media != NULL && clipNow->media->get_type() == MEDIA_TYPE_SEQUENCE) {
+                        nests.append(clipNow);
 						compose_sequence(nests, render_audio);
 						nests.removeLast();
 					} else {
-						if (c->lock.tryLock()) {
+                        if (clipNow->lock.tryLock()) {
 							// clip is not caching, start caching audio
-							cache_clip(c, playhead, c->audio_reset, !render_audio, nests);
-							c->lock.unlock();
+                            cache_clip(clipNow, playhead, clipNow->audio_reset, !render_audio, nests);
+                            clipNow->lock.unlock();
 						}
 					}
 				}
 
 				// visually update all the keyframe values
-				if (c->sequence == viewer->seq) { // only if you can currently see them
-                    double ts = (playhead - c->get_timeline_in_with_transition() + c->get_clip_in_with_transition())/s->getFrameRate();
-					for (int i=0;i<c->effects.size();i++) {
-						Effect* e = c->effects.at(i);
+                if (clipNow->sequence == viewer->seq) { // only if you can currently see them
+                    double ts = (playhead - clipNow->get_timeline_in_with_transition() + clipNow->get_clip_in_with_transition())/s->getFrameRate();
+                    for (int i=0;i<clipNow->effects.size();i++) {
+                        EffectPtr e = clipNow->effects.at(i);
 						for (int j=0;j<e->row_count();j++) {
                             EffectRowPtr r = e->row(j);
 							for (int k=0;k<r->fieldCount();k++) {
@@ -866,7 +870,7 @@ void ViewerWidget::paintGL() {
 			// compose video preview
 			glClearColor(0, 0, 0, 0);
 
-			QVector<Clip*> nests;
+            QVector<ClipPtr> nests;
 
 			compose_sequence(nests, render_audio);
 

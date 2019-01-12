@@ -98,7 +98,7 @@ void ReplaceClipMediaDialog::replace() {
 						);
 
 				for (int i=0;i<e_sequence->clips.size();i++) {
-					Clip* c = e_sequence->clips.at(i);
+                    ClipPtr c = e_sequence->clips.at(i);
 					if (c != NULL && c->media == media) {
 						rcmc->clips.append(c);
 					}

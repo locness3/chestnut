@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -20,7 +20,8 @@
 
 #include <QDialog>
 
-struct Clip;
+#include "project/clip.h"
+
 class LabelSlider;
 class QCheckBox;
 
@@ -29,9 +30,9 @@ class SpeedDialog : public QDialog
 	Q_OBJECT
 public:
 	SpeedDialog(QWidget* parent = 0);
-	QVector<Clip*> clips;
+    QVector<ClipPtr> clips;
 
-	void run();
+    void run();
 private slots:
 	void percent_update();
 	void duration_update();

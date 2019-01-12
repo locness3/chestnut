@@ -22,7 +22,7 @@
 
 class VolumeEffect : public Effect {
 public:
-	VolumeEffect(Clip* c, const EffectMeta* em);
+    VolumeEffect(ClipPtr c, const EffectMeta* em);
 	void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
 
 	EffectField* volume_val;

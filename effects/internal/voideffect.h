@@ -11,7 +11,7 @@
 
 class VoidEffect : public Effect {
 public:
-    VoidEffect(Clip* c, const QString& n);
+    VoidEffect(ClipPtr c, const QString& n);
     void load(QXmlStreamReader &stream) override;
     void save(QXmlStreamWriter &stream) override;
 private:
