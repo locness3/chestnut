@@ -68,13 +68,13 @@ Media::~Media() {
 	qDeleteAll(children);
 }
 
-FootagePtr Media::to_footage() {
-    return std::dynamic_pointer_cast<Footage>(object);
-}
+//FootagePtr Media::get_object<Footage>() {
+//    return std::dynamic_pointer_cast<Footage>(object);
+//}
 
-SequencePtr Media::to_sequence() {
-    return std::dynamic_pointer_cast<Sequence>(object);
-}
+//SequencePtr Media::get_object<Sequence>() {
+//    return std::dynamic_pointer_cast<Sequence>(object);
+//}
 
 void Media::clear_object() {
     type = MEDIA_TYPE_NONE;
@@ -111,7 +111,7 @@ void Media::update_tooltip(const QString& error) {
 	switch (type) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
-        FootagePtr f = to_footage();
+        FootagePtr f = get_object<Footage>();
         tooltip = "Name: " + f->getName() + "\nFilename: " + f->url + "\n";
 
 		if (error.isEmpty()) {
@@ -178,7 +178,7 @@ void Media::update_tooltip(const QString& error) {
 		break;
 	case MEDIA_TYPE_SEQUENCE:
 	{
-        SequencePtr s = to_sequence();
+        SequencePtr s = get_object<Sequence>();
         tooltip = "Name: " + s->getName()
                        + "\nVideo Dimensions: " + QString::number(s->getWidth()) + "x" + QString::number(s->getHeight())
                        + "\nFrame Rate: " + QString::number(s->getFrameRate())
@@ -190,26 +190,22 @@ void Media::update_tooltip(const QString& error) {
 
 }
 
-project::ProjectItemPtr Media::get_object() {
-	return object;
-}
-
-MediaType_E Media::get_type() {
+MediaType_E Media::get_type() const {
 	return type;
 }
 
 const QString &Media::get_name() {
 	switch (type) {
-    case MEDIA_TYPE_FOOTAGE: return to_footage()->getName();
-    case MEDIA_TYPE_SEQUENCE: return to_sequence()->getName();
+    case MEDIA_TYPE_FOOTAGE: return get_object<Footage>()->getName();
+    case MEDIA_TYPE_SEQUENCE: return get_object<Sequence>()->getName();
 	default: return folder_name;
 	}
 }
 
 void Media::set_name(const QString &name) {
 	switch (type) {
-    case MEDIA_TYPE_FOOTAGE: to_footage()->setName(name); break;
-    case MEDIA_TYPE_SEQUENCE: to_sequence()->setName(name); break;
+    case MEDIA_TYPE_FOOTAGE: get_object<Footage>()->setName(name); break;
+    case MEDIA_TYPE_SEQUENCE: get_object<Sequence>()->setName(name); break;
     case MEDIA_TYPE_FOLDER: folder_name = name; break;
 	}
 }
@@ -218,11 +214,11 @@ double Media::get_frame_rate(int stream) {
 	switch (get_type()) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
-        FootagePtr f = to_footage();
+        FootagePtr f = get_object<Footage>();
 		if (stream < 0) return f->video_tracks.at(0).video_frame_rate * f->speed;
 		return f->get_stream_from_file_index(true, stream)->video_frame_rate * f->speed;
 	}
-    case MEDIA_TYPE_SEQUENCE: return to_sequence()->getFrameRate();
+    case MEDIA_TYPE_SEQUENCE: return get_object<Sequence>()->getFrameRate();
 	}
     return 0.0;
 }
@@ -231,11 +227,11 @@ int Media::get_sampling_rate(int stream) {
 	switch (get_type()) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
-        FootagePtr f = to_footage();
+        FootagePtr f = get_object<Footage>();
 		if (stream < 0) return f->audio_tracks.at(0).audio_frequency * f->speed;
-		return to_footage()->get_stream_from_file_index(false, stream)->audio_frequency * f->speed;
+        return get_object<Footage>()->get_stream_from_file_index(false, stream)->audio_frequency * f->speed;
 	}
-    case MEDIA_TYPE_SEQUENCE: return to_sequence()->getAudioFrequency();
+    case MEDIA_TYPE_SEQUENCE: return get_object<Sequence>()->getAudioFrequency();
 	}
 	return 0;
 }
@@ -273,7 +269,7 @@ QVariant Media::data(int column, int role) {
 	case Qt::DecorationRole:
 		if (column == 0) {
 			if (get_type() == MEDIA_TYPE_FOOTAGE) {
-                FootagePtr f = to_footage();
+                FootagePtr f = get_object<Footage>();
 				if (f->video_tracks.size() > 0
 						&& f->video_tracks.at(0).preview_done) {
 					return f->video_tracks.at(0).video_preview_square;
@@ -289,11 +285,11 @@ QVariant Media::data(int column, int role) {
 		case 1:
 			if (root) return "Duration";
 			if (get_type() == MEDIA_TYPE_SEQUENCE) {
-                SequencePtr s = to_sequence();
+                SequencePtr s = get_object<Sequence>();
                 return frame_to_timecode(s->getEndFrame(), config.timecode_view, s->getFrameRate());
 			}
 			if (get_type() == MEDIA_TYPE_FOOTAGE) {
-                FootagePtr f = to_footage();
+                FootagePtr f = get_object<Footage>();
 				double r = 30;
 
 				if (f->video_tracks.size() > 0 && !qIsNull(f->video_tracks.at(0).video_frame_rate))
@@ -307,7 +303,7 @@ QVariant Media::data(int column, int role) {
 			if (root) return "Rate";
 			if (get_type() == MEDIA_TYPE_SEQUENCE) return QString::number(get_frame_rate()) + " FPS";
 			if (get_type() == MEDIA_TYPE_FOOTAGE) {
-                FootagePtr f = to_footage();
+                FootagePtr f = get_object<Footage>();
 				double r;
 				if (f->video_tracks.size() > 0 && !qIsNull(r = get_frame_rate())) {
 					return QString::number(get_frame_rate()) + " FPS";

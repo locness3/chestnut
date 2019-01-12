@@ -247,7 +247,7 @@ SequencePtr create_sequence_from_media(QVector<Media*>& media_list) {
 		switch (media->get_type()) {
 		case MEDIA_TYPE_FOOTAGE:
 		{
-            FootagePtr mediaFootage = media->to_footage();
+            FootagePtr mediaFootage = media->get_object<Footage>();
             if (mediaFootage->ready) {
 				if (!got_video_values) {
                     for (int j=0;j<mediaFootage->video_tracks.size();j++) {
@@ -280,7 +280,7 @@ SequencePtr create_sequence_from_media(QVector<Media*>& media_list) {
 			break;
 		case MEDIA_TYPE_SEQUENCE:
 		{
-            SequencePtr  seq = media->to_sequence();
+            SequencePtr  seq = media->get_object<Sequence>();
             if (seq != NULL) {
                 s->setWidth(seq->getWidth());
                 s->setHeight(seq->getHeight());
@@ -308,7 +308,7 @@ void Project::duplicate_selected() {
 		dout << "duplicate called";
 		Media* i = item_to_media(items.at(j));
 		if (i->get_type() == MEDIA_TYPE_SEQUENCE) {
-            new_sequence(ca, SequencePtr(i->to_sequence()->copy()), false, item_to_media(items.at(j).parent()));
+            new_sequence(ca, SequencePtr(i->get_object<Sequence>()->copy()), false, item_to_media(items.at(j).parent()));
 			duped = true;
 		}
 	}
@@ -346,7 +346,7 @@ void Project::replace_clip_media() {
 		QModelIndexList selected_items = get_current_selected();
 		if (selected_items.size() == 1) {
 			Media* item = item_to_media(selected_items.at(0));
-			if (item->get_type() == MEDIA_TYPE_SEQUENCE && e_sequence == item->to_sequence()) {
+            if (item->get_type() == MEDIA_TYPE_SEQUENCE && e_sequence == item->get_object<Sequence>()) {
 				QMessageBox::critical(this, "Active sequence selected", "You cannot insert a sequence into itself, so no clips of this media would be in this sequence.", QMessageBox::Ok);
 			} else {
 				ReplaceClipMediaDialog dialog(this, item);
@@ -478,10 +478,10 @@ void Project::delete_selected_media() {
 		get_all_media_from_table(items, media_items, MEDIA_TYPE_FOOTAGE);
 		for (int i=0;i<media_items.size();i++) {
 			Media* item = media_items.at(i);
-            FootagePtr media = item->to_footage();
+            FootagePtr media = item->get_object<Footage>();
 			bool confirm_delete = false;
 			for (int j=0;j<sequence_items.size();j++) {
-                SequencePtr  seq = sequence_items.at(j)->to_sequence();
+                SequencePtr  seq = sequence_items.at(j)->get_object<Sequence>();
                 for (int k=0;k<seq->clips.size();k++) {
                     ClipPtr c = seq->clips.at(k);
 					if (c != NULL && c->media == item) {
@@ -568,7 +568,7 @@ void Project::delete_selected_media() {
 			if (items.at(i)->get_type() == MEDIA_TYPE_SEQUENCE) {
 				redraw = true;
 
-                SequencePtr  s = items.at(i)->to_sequence();
+                SequencePtr  s = items.at(i)->get_object<Sequence>();
 
 				if (s == e_sequence) {
 					ca->append(new ChangeSequenceAction(NULL));
@@ -610,8 +610,8 @@ void Project::start_preview_generator(Media* item, bool replacing) {
 	item->throbber = throbber;
 	QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);
 
-    PreviewGenerator* pg = new PreviewGenerator(item, item->to_footage(), replacing); //FIXME: leak
-	item->to_footage()->preview_gen = pg;
+    PreviewGenerator* pg = new PreviewGenerator(item, item->get_object<Footage>(), replacing); //FIXME: leak
+    item->get_object<Footage>()->preview_gen = pg;
 	connect(pg, SIGNAL(set_icon(int, bool)), throbber, SLOT(stop(int, bool)));
 	pg->start(QThread::LowPriority);
 }
@@ -735,7 +735,7 @@ void Project::process_file_list(QStringList& files, bool recursive, Media* repla
 
 				if (replace != NULL) {
 					item = replace;
-					m = replace->to_footage();
+                    m = replace->get_object<Footage>();
 					m->reset();
 				} else {
 					item = new Media(parent);
@@ -920,7 +920,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 			} else {
 				int folder = root ? 0 : project_model.getItem(parent)->temp_id;
 				if (type == MEDIA_TYPE_FOOTAGE) {
-                    FootagePtr f = m->to_footage();
+                    FootagePtr f = m->get_object<Footage>();
 					f->save_id = media_id;
 					stream.writeStartElement("footage");
 					stream.writeAttribute("id", QString::number(media_id));
@@ -954,7 +954,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 					stream.writeEndElement();
 					media_id++;
 				} else if (type == MEDIA_TYPE_SEQUENCE) {
-                    SequencePtr  s = m->to_sequence();
+                    SequencePtr  s = m->get_object<Sequence>();
 					if (set_ids_only) {
 						s->save_id = sequence_id;
 						sequence_id++;
@@ -1014,11 +1014,11 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 									stream.writeAttribute("type", QString::number(c->media->get_type()));
 									switch (c->media->get_type()) {
 									case MEDIA_TYPE_FOOTAGE:
-										stream.writeAttribute("media", QString::number(c->media->to_footage()->save_id));
+                                        stream.writeAttribute("media", QString::number(c->media->get_object<Footage>()->save_id));
 										stream.writeAttribute("stream", QString::number(c->media_stream));
 										break;
 									case MEDIA_TYPE_SEQUENCE:
-										stream.writeAttribute("sequence", QString::number(c->media->to_sequence()->save_id));
+                                        stream.writeAttribute("sequence", QString::number(c->media->get_object<Sequence>()->save_id));
 										break;
 									}
 								}
@@ -1256,7 +1256,7 @@ void MediaThrobber::stop(int icon_type, bool replace) {
 	// refresh all clips
 	QVector<Media*> sequences = panel_project->list_all_project_sequences();
 	for (int i=0;i<sequences.size();i++) {
-        SequencePtr  s = sequences.at(i)->to_sequence();
+        SequencePtr  s = sequences.at(i)->get_object<Sequence>();
 		for (int j=0;j<s->clips.size();j++) {
             ClipPtr c = s->clips.at(j);
 			if (c != NULL) {

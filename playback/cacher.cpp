@@ -265,7 +265,7 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
 #ifdef AUDIOWARNINGS
 									dout << "pre cutoff deets::: rev_frame.pts:" << rev_frame->pts << "rev_frame.nb_samples" << rev_frame->nb_samples << "rev_target:" << c->reverse_target;
 #endif
-									double playback_speed = c->speed * c->media->to_footage()->speed;
+                                    double playback_speed = c->speed * c->media->get_object<Footage>()->speed;
 									rev_frame->nb_samples = qRound64(static_cast<double>(c->reverse_target - rev_frame->pts) / c->stream->codecpar->sample_rate * (current_audio_freq() / playback_speed));
 #ifdef AUDIOWARNINGS
 									dout << "post cutoff deets::" << rev_frame->nb_samples;
@@ -469,7 +469,7 @@ void cache_video_worker(ClipPtr c, long playhead) {
 		while (true) {
 			AVFrame* frame = av_frame_alloc();
 
-            FootagePtr media = c->media->to_footage();
+            FootagePtr media = c->media->get_object<Footage>();
 			const FootageStream* ms = media->get_stream_from_file_index(true, c->media_stream);
 
 			while ((retr_ret = av_buffersink_get_frame(c->buffersink_ctx, frame)) == AVERROR(EAGAIN)) {
@@ -567,7 +567,7 @@ void reset_cache(ClipPtr c, long target_frame) {
 			c->frame->pts = 0;
 		}
 	} else {
-		const FootageStream* ms = c->media->to_footage()->get_stream_from_file_index(c->track < 0, c->media_stream);
+        const FootageStream* ms = c->media->get_object<Footage>()->get_stream_from_file_index(c->track < 0, c->media_stream);
 		if (ms->infinite_length) {
 			/*avcodec_flush_buffers(c->codecCtx);
 			av_seek_frame(c->formatCtx, ms->file_index, 0, AVSEEK_FLAG_BACKWARD);*/
@@ -658,7 +658,7 @@ void open_clip_worker(ClipPtr clip) {
 		}
 	} else if (clip->media->get_type() == MEDIA_TYPE_FOOTAGE) {
 		// opens file resource for FFmpeg and prepares Clip struct for playback
-        FootagePtr m = clip->media->to_footage();
+        FootagePtr m = clip->media->get_object<Footage>();
 		QByteArray ba = m->url.toUtf8();
 		const char* filename = ba.constData();
 		const FootageStream* ms = m->get_stream_from_file_index(clip->track < 0, clip->media_stream);

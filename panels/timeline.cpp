@@ -190,7 +190,7 @@ void Timeline::create_ghosts_from_media(SequencePtr seq, long entry_point, QVect
 
 		switch (medium->get_type()) {
 		case MEDIA_TYPE_FOOTAGE:
-            ftg = medium->to_footage();
+            ftg = medium->get_object<Footage>();
             media = ftg;
             can_import = ftg->ready;
             if (ftg->using_inout) {
@@ -201,7 +201,7 @@ void Timeline::create_ghosts_from_media(SequencePtr seq, long entry_point, QVect
 			}
 			break;
 		case MEDIA_TYPE_SEQUENCE:
-            lcl_seq = medium->to_sequence();
+            lcl_seq = medium->get_object<Sequence>();
             sequence_length = lcl_seq->getEndFrame();
             if (lcl_seq != NULL) {
                 sequence_length = refactor_frame_number(sequence_length, lcl_seq->getFrameRate(), seq->getFrameRate());
@@ -301,7 +301,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
 		c->track = g.track;
 		if (c->media->get_type() == MEDIA_TYPE_FOOTAGE) {
             //FIXME: magic numbers
-            FootagePtr m = c->media->to_footage();
+            FootagePtr m = c->media->get_object<Footage>();
 			if (m->video_tracks.size() == 0) {
 				// audio only (greenish)
 				c->color_r = 128;
@@ -325,7 +325,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
 			c->color_g = 128;
 			c->color_b = 128;
 
-            SequencePtr media = c->media->to_sequence();
+            SequencePtr media = c->media->get_object<Sequence>();
             c->name = media->getName();
 		}
 		c->recalculateMaxLength();

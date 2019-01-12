@@ -483,7 +483,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
 	if (!nests.isEmpty()) {
 		for (int i=0;i<nests.size();i++) {
-			s = nests.at(i)->media->to_sequence();
+            s = nests.at(i)->media->get_object<Sequence>();
 			playhead += nests.at(i)->clip_in - nests.at(i)->get_timeline_in_with_transition();
             playhead = refactor_frame_number(playhead, nests.at(i)->sequence->getFrameRate(), s->getFrameRate());
 		}
@@ -508,7 +508,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 				bool clip_is_active = false;
 
 				if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) {
-                    FootagePtr m = c->media->to_footage();
+                    FootagePtr m = c->media->get_object<Footage>();
 					if (!m->invalid && !(c->track >= 0 && !is_audio_device_set())) {
 						if (m->ready) {
 							const FootageStream* ms = m->get_stream_from_file_index(c->track < 0, c->media_stream);

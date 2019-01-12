@@ -286,7 +286,7 @@ void TimelineWidget::open_sequence_properties() {
 	}
 	panel_project->get_all_media_from_table(all_top_level_items, sequence_items, MEDIA_TYPE_SEQUENCE); // find all sequences in project
 	for (int i=0;i<sequence_items.size();i++) {
-		if (sequence_items.at(i)->to_sequence() == e_sequence) {
+		if (sequence_items.at(i)->get_object<Sequence>() == e_sequence) {
 			NewSequenceDialog nsd(this, sequence_items.at(i));
 			nsd.exec();
 			return;
@@ -336,7 +336,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
 			for (int i=0;i<panel_project->last_imported_media.size();i++) {
 				// waits for media to have a duration
 				// TODO would be much nicer if this was multithreaded
-                FootagePtr f = panel_project->last_imported_media.at(i)->to_footage();
+                FootagePtr f = panel_project->last_imported_media.at(i)->get_object<Footage>();
                 //FIXME: lock
                 f->ready_lock.lock();
 				f->ready_lock.unlock();
@@ -1300,7 +1300,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
 
 		const FootageStream* ms = NULL;
 		if (g.clip != -1 && c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) {
-			ms = c->media->to_footage()->get_stream_from_file_index(c->track < 0, c->media_stream);
+			ms = c->media->get_object<Footage>()->get_stream_from_file_index(c->track < 0, c->media_stream);
 		}
 
 		// validate ghosts for trimming
@@ -2302,7 +2302,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
 					if (clip->media != NULL && clip->media->get_type() == MEDIA_TYPE_FOOTAGE) {
 						bool draw_checkerboard = false;
 						QRect checkerboard_rect(clip_rect);
-                        FootagePtr m = clip->media->to_footage();
+                        FootagePtr m = clip->media->get_object<Footage>();
 						FootageStream* ms = m->get_stream_from_file_index(clip->track < 0, clip->media_stream);
 						if (ms == NULL) {
 							draw_checkerboard = true;

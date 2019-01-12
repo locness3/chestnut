@@ -392,7 +392,7 @@ void Viewer::pause() {
 			// add it to the sequence
             ClipPtr c(new Clip(seq));
 			Media* m = panel_project->last_imported_media.at(0);
-            FootagePtr f = m->to_footage();
+            FootagePtr f = m->get_object<Footage>();
 
 			f->ready_lock.lock();
 
@@ -637,7 +637,7 @@ void Viewer::set_media(Media* m) {
 		switch (media->get_type()) {
 		case MEDIA_TYPE_FOOTAGE:
 		{
-            FootagePtr footage = media->to_footage();
+            FootagePtr footage = media->get_object<Footage>();
 
             seq = SequencePtr(new Sequence());
 			created_sequence = true;
@@ -703,7 +703,7 @@ void Viewer::set_media(Media* m) {
 		}
 			break;
 		case MEDIA_TYPE_SEQUENCE:
-			seq = media->to_sequence();
+            seq = media->get_object<Sequence>();
 			break;
         default:
             //TODO: log/something

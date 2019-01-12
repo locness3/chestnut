@@ -40,10 +40,14 @@ class MediaThrobber;
 class Media
 {
 public:
-    Media(Media* iparent);
+    explicit Media(Media* iparent);
     ~Media();
-    FootagePtr to_footage();
-    SequencePtr to_sequence();
+
+    template<typename T>
+    std::shared_ptr<T> get_object() {
+        return std::dynamic_pointer_cast<T>(object);
+    }
+
     void clear_object();
     void set_footage(FootagePtr ftg);
     void set_sequence(SequencePtr sqn);
@@ -51,8 +55,7 @@ public:
     void set_icon(const QIcon &ico);
     void set_parent(Media* p);
     void update_tooltip(const QString& error = 0);
-    project::ProjectItemPtr get_object();
-    MediaType_E get_type();
+    MediaType_E get_type() const;
     const QString& get_name();
     void set_name(const QString& n);
     MediaThrobber* throbber;
@@ -84,6 +87,11 @@ private:
     QString folder_name;
     QString tooltip;
     QIcon icon;
+
+    // Explicity impl as required
+    Media();
+    Media(const Media& cpy);
+    const Media& operator=(const Media& rhs);
 };
 
 #endif // MEDIA_H

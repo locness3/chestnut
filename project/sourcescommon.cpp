@@ -177,7 +177,7 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *e, const QModelIndexList&
 			panel_footage_viewer->setFocus();
 			break;
 		case MEDIA_TYPE_SEQUENCE:
-			e_undo_stack.push(new ChangeSequenceAction(item->to_sequence()));
+			e_undo_stack.push(new ChangeSequenceAction(item->get_object<Sequence>()));
 			break;
         default:
             //TODO: log/something
@@ -263,7 +263,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 
 void SourcesCommon::reveal_in_browser() {
 	Media* media = project_parent->item_to_media(selected_items.at(0));
-    FootagePtr m = media->to_footage();
+    FootagePtr m = media->get_object<Footage>();
 
 #if defined(Q_OS_WIN)
 	QStringList args;

@@ -395,7 +395,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 									case MEDIA_TYPE_FOOTAGE:
 										if (media_id >= 0) {
 											for (int j=0;j<loaded_media_items.size();j++) {
-                                                FootagePtr  m = loaded_media_items.at(j)->to_footage();
+                                                FootagePtr  m = loaded_media_items.at(j)->get_object<Footage>();
 												if (m->save_id == media_id) {
 													c->media = loaded_media_items.at(j);
 													c->media_stream = stream_id;
@@ -613,7 +613,7 @@ void LoadThread::run() {
 			// attach nested sequence clips to their sequences
 			for (int i=0;i<loaded_clips.size();i++) {
 				for (int j=0;j<loaded_sequences.size();j++) {
-					if (loaded_clips.at(i)->media == NULL && loaded_clips.at(i)->media_stream == loaded_sequences.at(j)->to_sequence()->save_id) {
+					if (loaded_clips.at(i)->media == NULL && loaded_clips.at(i)->media_stream == loaded_sequences.at(j)->get_object<Sequence>()->save_id) {
 						loaded_clips.at(i)->media = loaded_sequences.at(j);
 						loaded_clips.at(i)->refresh();
 						break;

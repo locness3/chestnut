@@ -110,7 +110,7 @@ void close_clip(ClipPtr clip, bool wait) {
 		}
 	} else {
 		if (clip->media != NULL && clip->media->get_type() == MEDIA_TYPE_SEQUENCE)
-			closeActiveClips(clip->media->to_sequence());
+            closeActiveClips(clip->media->get_object<Sequence>());
 
 		clip->open = false;
 	}
@@ -138,7 +138,7 @@ double get_timecode(ClipPtr c, long playhead) {
 
 void get_clip_frame(ClipPtr c, long playhead) {
 	if (c->finished_opening) {
-		const FootageStream* ms = c->media->to_footage()->get_stream_from_file_index(c->track < 0, c->media_stream);
+        const FootageStream* ms = c->media->get_object<Footage>()->get_stream_from_file_index(c->track < 0, c->media_stream);
 
 		int64_t target_pts = qMax(static_cast<int64_t>(0), playhead_to_timestamp(c, playhead));
 		int64_t second_pts = qRound64(av_q2d(av_inv_q(c->stream->time_base)));
@@ -309,7 +309,7 @@ double playhead_to_clip_seconds(ClipPtr c, long playhead) {
 	long clip_frame = playhead_to_clip_frame(c, playhead);
 	if (c->reverse) clip_frame = c->getMaximumLength() - clip_frame - 1;
     double secs = ((double) clip_frame/c->sequence->getFrameRate())*c->speed;
-	if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) secs *= c->media->to_footage()->speed;
+    if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) secs *= c->media->get_object<Footage>()->speed;
 	return secs;
 }
 
@@ -381,7 +381,7 @@ void closeActiveClips(SequencePtr s) {
             ClipPtr c = s->clips.at(i);
 			if (c != NULL) {
 				if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_SEQUENCE) {
-					closeActiveClips(c->media->to_sequence());
+                    closeActiveClips(c->media->get_object<Sequence>());
 					if (c->open) close_clip(c, true);
 				} else if (c->open) {
 					close_clip(c, true);

@@ -237,7 +237,7 @@ void SetTimelineInOutCommand::undo() {
 
 	// footage viewer functions
 	if (seq->wrapper_sequence) {
-        FootagePtr  m = seq->clips.at(0)->media->to_footage();
+        FootagePtr  m = seq->clips.at(0)->media->get_object<Footage>();
 		m->using_inout = old_enabled;
 		m->in = old_in;
 		m->out = old_out;
@@ -259,7 +259,7 @@ void SetTimelineInOutCommand::redo() {
 
 	// footage viewer functions
 	if (seq->wrapper_sequence) {
-        FootagePtr  m = seq->clips.at(0)->media->to_footage();
+        FootagePtr  m = seq->clips.at(0)->media->get_object<Footage>();
 		m->using_inout = new_enabled;
 		m->in = new_in;
 		m->out = new_out;
@@ -598,14 +598,14 @@ ReplaceMediaCommand::ReplaceMediaCommand(Media* i, QString s) :
 	new_filename(s),
 	old_project_changed(mainWindow->isWindowModified())
 {
-	old_filename = item->to_footage()->url;
+	old_filename = item->get_object<Footage>()->url;
 }
 
 void ReplaceMediaCommand::replace(QString& filename) {
 	// close any clips currently using this media
 	QVector<Media*> all_sequences = panel_project->list_all_project_sequences();
 	for (int i=0;i<all_sequences.size();i++) {
-        SequencePtr s = all_sequences.at(i)->to_sequence();
+        SequencePtr s = all_sequences.at(i)->get_object<Sequence>();
 		for (int j=0;j<s->clips.size();j++) {
             ClipPtr   c = s->clips.at(j);
 			if (c != NULL && c->media == item && c->open) {
@@ -618,7 +618,7 @@ void ReplaceMediaCommand::replace(QString& filename) {
 	// replace media
 	QStringList files;
 	files.append(filename);
-	item->to_footage()->ready_lock.lock();
+	item->get_object<Footage>()->ready_lock.lock();
 	panel_project->process_file_list(files, false, item, NULL);
 }
 
@@ -1278,7 +1278,7 @@ void RefreshClips::redo() {
 	// close any clips currently using this media
 	QVector<Media*> all_sequences = panel_project->list_all_project_sequences();
 	for (int i=0;i<all_sequences.size();i++) {
-        SequencePtr s = all_sequences.at(i)->to_sequence();
+        SequencePtr s = all_sequences.at(i)->get_object<Sequence>();
 		for (int j=0;j<s->clips.size();j++) {
             ClipPtr   c = s->clips.at(j);
 			if (c != NULL && c->media == media) {
