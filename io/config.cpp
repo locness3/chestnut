@@ -26,7 +26,7 @@
 
 #include "debug.h"
 
-Config config;
+Config e_config;
 
 Config::Config()
 	: saved_layout(false),
@@ -225,7 +225,7 @@ void Config::save(QString path) {
 	stream.writeTextElement("HoverFocus", QString::number(hover_focus));
 	stream.writeTextElement("ProjectViewType", QString::number(project_view_type));
 	stream.writeTextElement("SetNameWithMarker", QString::number(set_name_with_marker));
-	stream.writeTextElement("ShowProjectToolbar", QString::number(panel_project->toolbar_widget->isVisible()));
+	stream.writeTextElement("ShowProjectToolbar", QString::number(e_panel_project->toolbar_widget->isVisible()));
 	stream.writeTextElement("DisableMultithreadedImages", QString::number(disable_multithreading_for_images));
 	stream.writeTextElement("PreviousFrameQueueSize", QString::number(previous_queue_size));
 	stream.writeTextElement("PreviousFrameQueueType", QString::number(previous_queue_type));

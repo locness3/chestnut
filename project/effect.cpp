@@ -262,7 +262,7 @@ void init_effects() {
 }
 
 EffectInit::EffectInit() {
-	panel_effect_controls->effects_loaded.lock();
+	e_panel_effect_controls->effects_loaded.lock();
 }
 
 void EffectInit::run() {
@@ -270,7 +270,7 @@ void EffectInit::run() {
 	load_internal_effects();
 	load_shader_effects();
 	load_vst_effects();
-	panel_effect_controls->effects_loaded.unlock();
+	e_panel_effect_controls->effects_loaded.unlock();
 	dout << "[INFO] Finished initializing effects";
 }
 
@@ -552,8 +552,8 @@ int Effect::gizmo_count(){
 void Effect::refresh() {}
 
 void Effect::field_changed() {
-	panel_sequence_viewer->viewer_widget->update();
-	panel_graph_editor->update_panel();
+	e_panel_sequence_viewer->viewer_widget->update();
+	e_panel_graph_editor->update_panel();
 }
 
 void Effect::show_context_menu(const QPoint& pos) {

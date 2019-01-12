@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -69,7 +69,7 @@ void apply_audio_effects(ClipPtr c, double timecode_start, AVFrame* frame, int n
 		if (e->is_enabled()) e->process_audio(timecode_start, timecode_end, frame->data[0], nb_bytes, 2);
 	}
 	if (c->get_opening_transition() != NULL) {
-		if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) {
+        if (c->timeline_info.media != NULL && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
             double transition_start = (c->get_clip_in_with_transition() / c->sequence->getFrameRate());
             double transition_end = (c->get_clip_in_with_transition() + c->get_opening_transition()->get_length()) / c->sequence->getFrameRate();
 			if (timecode_end < transition_end) {
@@ -81,7 +81,7 @@ void apply_audio_effects(ClipPtr c, double timecode_start, AVFrame* frame, int n
 		}
 	}
 	if (c->get_closing_transition() != NULL) {
-		if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) {
+        if (c->timeline_info.media != NULL && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
 			long length_with_transitions = c->get_timeline_out_with_transition() - c->get_timeline_in_with_transition();
             double transition_start = (c->get_clip_in_with_transition() + length_with_transitions - c->get_closing_transition()->get_length()) / c->sequence->getFrameRate();
             double transition_end = (c->get_clip_in_with_transition() + length_with_transitions) / c->sequence->getFrameRate();
@@ -134,7 +134,7 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
         AVFrame* av_frame;
 		int nb_bytes = INT_MAX;
 
-		if (c->media == NULL) {
+        if (c->timeline_info.media == NULL) {
             av_frame = c->media_handling.frame;
             nb_bytes = av_frame->nb_samples * av_get_bytes_per_sample(static_cast<AVSampleFormat>(av_frame->format)) * av_frame->channels;
             while ((c->audio_playback.frame_sample_index == -1 || c->audio_playback.frame_sample_index >= nb_bytes) && nb_bytes > 0) {
@@ -152,7 +152,7 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
                     c->audio_playback.frame_sample_index += offset;
 				}
 			}
-		} else if (c->media->get_type() == MEDIA_TYPE_FOOTAGE) {
+        } else if (c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
             double timebase = av_q2d(c->media_handling.stream->time_base);
 
             av_frame = c->queue.at(0);
@@ -164,7 +164,7 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
 				if (!c->reached_end) {
 					int loop = 0;
 
-                    if (c->reverse && !c->audio_playback.just_reset) {
+                    if (c->timeline_info.reverse && !c->audio_playback.just_reset) {
                         avcodec_flush_buffers(c->media_handling.codecCtx);
 						c->reached_end = false;
                         int64_t backtrack_seek = qMax(c->audio_playback.reverse_target - static_cast<int64_t>(av_q2d(av_inv_q(c->media_handling.stream->time_base))), static_cast<int64_t>(0));
@@ -194,7 +194,7 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
 										dout << "reached EOF while reading";
 #endif
 									// TODO revise usage of reached_end in audio
-									if (!c->reverse) {
+                                    if (!c->timeline_info.reverse) {
 										c->reached_end = true;
 									} else {
 									}
@@ -215,11 +215,11 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
 #ifdef AUDIOWARNINGS
 								dout << "reached EOF while pulling from filtergraph";
 #endif
-								if (!c->reverse) break;
+                                if (!c->timeline_info.reverse) break;
 							}
 						}
 
-						if (c->reverse) {
+                        if (c->timeline_info.reverse) {
 							if (loop > 1) {
 								AVFrame* rev_frame = c->queue.at(1);
 								if (ret != AVERROR_EOF) {
@@ -265,7 +265,7 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
 #ifdef AUDIOWARNINGS
                                     dout << "pre cutoff deets::: rev_frame.pts:" << rev_frame->pts << "rev_frame.nb_samples" << rev_frame->nb_samples << "rev_target:" << c->audio_playback.reverse_target;
 #endif
-                                    double playback_speed = c->speed * c->media->get_object<Footage>()->speed;
+                                    double playback_speed = c->timeline_info.speed * c->timeline_info.media->get_object<Footage>()->speed;
                                     rev_frame->nb_samples = qRound64(static_cast<double>(c->audio_playback.reverse_target - rev_frame->pts) / c->media_handling.stream->codecpar->sample_rate * (current_audio_freq() / playback_speed));
 #ifdef AUDIOWARNINGS
 									dout << "post cutoff deets::" << rev_frame->nb_samples;
@@ -330,7 +330,7 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
                     dout << "fsts:" << frame_sts << "tsts:" << target_sts << "nbs:" << nb_samples << "nbb:" << nb_bytes << "rev_targetToSec:" << (c->audio_playback.reverse_target * timebase);
                     dout << "fsi-calc:" << c->audio_playback.frame_sample_index;
 #endif
-                    if (c->reverse) c->audio_playback.frame_sample_index = nb_bytes - c->audio_playback.frame_sample_index;
+                    if (c->timeline_info.reverse) c->audio_playback.frame_sample_index = nb_bytes - c->audio_playback.frame_sample_index;
                     c->audio_playback.just_reset = false;
 				}
 
@@ -360,7 +360,7 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
 				}
 			}
 
-            if (c->reverse) av_frame = c->queue.at(1);
+            if (c->timeline_info.reverse) av_frame = c->queue.at(1);
 
 #ifdef AUDIOWARNINGS
             dout << "j" << c->audio_playback.frame_sample_index << nb_bytes;
@@ -427,8 +427,8 @@ void cache_audio_worker(ClipPtr c, bool scrubbing, QVector<ClipPtr>& nests) {
 		}
 	}
 
-	QMetaObject::invokeMethod(panel_footage_viewer, "play_wake", Qt::QueuedConnection);
-	QMetaObject::invokeMethod(panel_sequence_viewer, "play_wake", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(e_panel_footage_viewer, "play_wake", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(e_panel_sequence_viewer, "play_wake", Qt::QueuedConnection);
 }
 
 void cache_video_worker(ClipPtr c, long playhead) {
@@ -440,12 +440,12 @@ void cache_video_worker(ClipPtr c, long playhead) {
 	if (c->ignore_reverse) {
 		// waiting for one frame
 		limit = c->queue.size() + 1;
-	} else if (c->reverse) {
+    } else if (c->timeline_info.reverse) {
 		limit *= 2;
 	}
 
 	if (c->queue.size() < limit) {
-		bool reverse = (c->reverse && !c->ignore_reverse);
+        bool reverse = (c->timeline_info.reverse && !c->ignore_reverse);
 		c->ignore_reverse = false;
 
 		int64_t smallest_pts = INT64_MAX;
@@ -469,8 +469,8 @@ void cache_video_worker(ClipPtr c, long playhead) {
 		while (true) {
 			AVFrame* frame = av_frame_alloc();
 
-            FootagePtr media = c->media->get_object<Footage>();
-			const FootageStream* ms = media->get_stream_from_file_index(true, c->media_stream);
+            FootagePtr media = c->timeline_info.media->get_object<Footage>();
+            const FootageStream* ms = media->get_stream_from_file_index(true, c->timeline_info.media_stream);
 
 			while ((retr_ret = av_buffersink_get_frame(c->buffersink_ctx, frame)) == AVERROR(EAGAIN)) {
 				if (c->multithreaded && c->cacher->interrupt) return; // abort
@@ -487,7 +487,7 @@ void cache_video_worker(ClipPtr c, long playhead) {
 						send_it = true;
 					} else if (send_frame->pts > target_pts - eighth_second) {
 						send_it = true;
-					} else if (media->get_stream_from_file_index(true, c->media_stream)->infinite_length) {
+                    } else if (media->get_stream_from_file_index(true, c->timeline_info.media_stream)->infinite_length) {
 						send_it = true;
 					} else {
 						dout << "skipped adding a frame to the queue - fpts:" << send_frame->pts << "target:" << target_pts;
@@ -558,8 +558,8 @@ void cache_video_worker(ClipPtr c, long playhead) {
 
 void reset_cache(ClipPtr c, long target_frame) {
 	// if we seek to a whole other place in the timeline, we'll need to reset the cache with new values
-	if (c->media == NULL) {
-		if (c->track >= 0) {
+    if (c->timeline_info.media == NULL) {
+        if (c->timeline_info.track >= 0) {
 			// tone clip
 			c->reached_end = false;
             c->audio_playback.target_frame = target_frame;
@@ -567,7 +567,7 @@ void reset_cache(ClipPtr c, long target_frame) {
             c->media_handling.frame->pts = 0;
 		}
 	} else {
-        const FootageStream* ms = c->media->get_object<Footage>()->get_stream_from_file_index(c->track < 0, c->media_stream);
+        const FootageStream* ms = c->timeline_info.media->get_object<Footage>()->get_stream_from_file_index(c->timeline_info.track < 0, c->timeline_info.media_stream);
 		if (ms->infinite_length) {
             /*avcodec_flush_buffers(c->media_handling.codecCtx);
             av_seek_frame(c->media_handling.formatCtx, ms->file_index, 0, AVSEEK_FLAG_BACKWARD);*/
@@ -581,7 +581,7 @@ void reset_cache(ClipPtr c, long target_frame) {
 				int64_t target_ts = seconds_to_timestamp(c, playhead_to_clip_seconds(c, target_frame));
 				int64_t seek_ts = target_ts;
                 int64_t timebase_half_second = qRound64(av_q2d(av_inv_q(c->media_handling.stream->time_base)));
-				if (c->reverse) seek_ts -= timebase_half_second;
+                if (c->timeline_info.reverse) seek_ts -= timebase_half_second;
 
 				while (true) {
 					// flush ffmpeg codecs
@@ -619,7 +619,7 @@ void reset_cache(ClipPtr c, long target_frame) {
 
 				int64_t timestamp = seconds_to_timestamp(c, playhead_to_clip_seconds(c, target_frame));
 
-				if (c->reverse) {
+                if (c->timeline_info.reverse) {
                     c->audio_playback.reverse_target = timestamp;
                     timestamp -= av_q2d(av_inv_q(c->media_handling.stream->time_base));
 #ifdef AUDIOWARNINGS
@@ -642,8 +642,8 @@ Cacher::Cacher(ClipPtr c) : clip(c) {}
 AVSampleFormat sample_format = AV_SAMPLE_FMT_S16;
 
 void open_clip_worker(ClipPtr clip) {
-	if (clip->media == NULL) {
-		if (clip->track >= 0) {
+    if (clip->timeline_info.media == NULL) {
+        if (clip->timeline_info.track >= 0) {
             clip->media_handling.frame = av_frame_alloc();
             clip->media_handling.frame->format = sample_format;
             clip->media_handling.frame->channel_layout = clip->sequence->getAudioLayout();
@@ -656,12 +656,12 @@ void open_clip_worker(ClipPtr clip) {
 			}
             clip->audio_playback.reset = true;
 		}
-	} else if (clip->media->get_type() == MEDIA_TYPE_FOOTAGE) {
+    } else if (clip->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
 		// opens file resource for FFmpeg and prepares Clip struct for playback
-        FootagePtr m = clip->media->get_object<Footage>();
+        FootagePtr m = clip->timeline_info.media->get_object<Footage>();
 		QByteArray ba = m->url.toUtf8();
 		const char* filename = ba.constData();
-		const FootageStream* ms = m->get_stream_from_file_index(clip->track < 0, clip->media_stream);
+        const FootageStream* ms = m->get_stream_from_file_index(clip->timeline_info.track < 0, clip->timeline_info.media_stream);
 
 		int errCode = avformat_open_input(
                 &clip->media_handling.formatCtx,
@@ -695,15 +695,15 @@ void open_clip_worker(ClipPtr clip) {
 			clip->max_queue_size = 1;
 		} else {
 			clip->max_queue_size = 0;
-			if (config.upcoming_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
-				clip->max_queue_size += qCeil(config.upcoming_queue_size);
+            if (e_config.upcoming_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
+                clip->max_queue_size += qCeil(e_config.upcoming_queue_size);
 			} else {
-				clip->max_queue_size += qCeil(ms->video_frame_rate * m->speed * config.upcoming_queue_size);
+                clip->max_queue_size += qCeil(ms->video_frame_rate * m->speed * e_config.upcoming_queue_size);
 			}
-			if (config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
-				clip->max_queue_size += qCeil(config.previous_queue_size);
+            if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
+                clip->max_queue_size += qCeil(e_config.previous_queue_size);
 			} else {
-				clip->max_queue_size += qCeil(ms->video_frame_rate * m->speed * config.previous_queue_size);
+                clip->max_queue_size += qCeil(ms->video_frame_rate * m->speed * e_config.previous_queue_size);
 			}
 		}
 
@@ -716,7 +716,7 @@ void open_clip_worker(ClipPtr clip) {
              clip->media_handling.stream->codecpar->codec_id != AV_CODEC_ID_APNG &&
              clip->media_handling.stream->codecpar->codec_id != AV_CODEC_ID_TIFF &&
              clip->media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PSD)
-				|| !config.disable_multithreading_for_images) {
+                || !e_config.disable_multithreading_for_images) {
             av_dict_set(&clip->media_handling.opts, "threads", "auto", 0);
 		}
         if (clip->media_handling.stream->codecpar->codec_id == AV_CODEC_ID_H264) {
@@ -799,7 +799,7 @@ void open_clip_worker(ClipPtr clip) {
 
 			// set up cache
 			clip->queue.append(av_frame_alloc());
-			if (clip->reverse) {
+            if (clip->timeline_info.reverse) {
 				AVFrame* reverse_frame = av_frame_alloc();
 
 				reverse_frame->format = sample_format;
@@ -834,11 +834,11 @@ void open_clip_worker(ClipPtr clip) {
 
 			int target_sample_rate = current_audio_freq();
 
-			double playback_speed = clip->speed * m->speed;
+            double playback_speed = clip->timeline_info.speed * m->speed;
 
 			if (qFuzzyCompare(playback_speed, 1.0)) {
 				avfilter_link(clip->buffersrc_ctx, 0, clip->buffersink_ctx, 0);
-			} else if (clip->maintain_audio_pitch) {
+            } else if (clip->timeline_info.maintain_audio_pitch) {
 				AVFilterContext* previous_filter = clip->buffersrc_ctx;
 				AVFilterContext* last_filter = clip->buffersrc_ctx;
 
@@ -892,7 +892,7 @@ void open_clip_worker(ClipPtr clip) {
 
 	clip->finished_opening = true;
 
-	dout << "[INFO] Clip opened on track" << clip->track;
+    dout << "[INFO] Clip opened on track" << clip->timeline_info.track;
 }
 
 void cache_clip_worker(ClipPtr clip, long playhead, bool reset, bool scrubbing, QVector<ClipPtr> nests) {
@@ -902,11 +902,11 @@ void cache_clip_worker(ClipPtr clip, long playhead, bool reset, bool scrubbing, 
         clip->audio_playback.reset = false;
 	}
 
-	if (clip->media == NULL) {
-		if (clip->track >= 0) {
+    if (clip->timeline_info.media == NULL) {
+        if (clip->timeline_info.track >= 0) {
 			cache_audio_worker(clip, scrubbing, nests);
 		}
-	} else if (clip->media->get_type() == MEDIA_TYPE_FOOTAGE) {
+    } else if (clip->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
         if (clip->media_handling.stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
 			cache_video_worker(clip, playhead);
         } else if (clip->media_handling.stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
@@ -918,7 +918,7 @@ void cache_clip_worker(ClipPtr clip, long playhead, bool reset, bool scrubbing, 
 void close_clip_worker(ClipPtr clip) {
 	clip->finished_opening = false;
 
-	if (clip->media != NULL && clip->media->get_type() == MEDIA_TYPE_FOOTAGE) {
+    if (clip->timeline_info.media != NULL && clip->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
 		clip->queue_clear();
 
 		avfilter_graph_free(&clip->filter_graph);
@@ -935,7 +935,7 @@ void close_clip_worker(ClipPtr clip) {
 
 	clip->reset();
 
-	dout << "[INFO] Clip closed on track" << clip->track;
+    dout << "[INFO] Clip closed on track" << clip->timeline_info.track;
 }
 
 void Cacher::run() {
@@ -955,7 +955,7 @@ void Cacher::run() {
 		} else {
 			while (true) {
 				cache_clip_worker(clip, playhead, reset, scrubbing, nests);
-				if (clip->multithreaded && clip->cacher->interrupt && clip->track < 0) {
+                if (clip->multithreaded && clip->cacher->interrupt && clip->timeline_info.track < 0) {
 					clip->cacher->interrupt = false;
 				} else {
 					break;

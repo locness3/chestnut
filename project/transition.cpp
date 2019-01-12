@@ -39,7 +39,7 @@
 
 Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
 	Effect(c, em), secondary_clip(s),
-	length(30)
+    length(30)//FIXME: magic numbers
 {
 	length_field = add_row("Length:", false)->add_field(EFFECT_FIELD_DOUBLE, "length");
 	connect(length_field, SIGNAL(changed()), this, SLOT(set_length_from_slider()));
@@ -48,7 +48,7 @@ Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
 
 	LabelSlider* length_ui_ele = static_cast<LabelSlider*>(length_field->ui_element);
 	length_ui_ele->set_display_type(LABELSLIDER_FRAMENUMBER);
-    length_ui_ele->set_frame_rate(parent_clip->sequence == NULL ? parent_clip->cached_fr : parent_clip->sequence->getFrameRate());
+    length_ui_ele->set_frame_rate(parent_clip->sequence == NULL ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->getFrameRate());
 }
 
 int Transition::copy(ClipPtr c, ClipPtr s) {

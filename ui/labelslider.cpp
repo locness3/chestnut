@@ -80,7 +80,7 @@ QString LabelSlider::valueToString(double v) {
 		return "---";
 	} else {
 		switch (display_type) {
-		case LABELSLIDER_FRAMENUMBER: return frame_to_timecode(v, config.timecode_view, frame_rate);
+		case LABELSLIDER_FRAMENUMBER: return frame_to_timecode(v, e_config.timecode_view, frame_rate);
 		case LABELSLIDER_PERCENT: return QString::number((v*100), 'f', decimal_places) + "%";
 		}
 		return QString::number(v, 'f', decimal_places);
@@ -170,7 +170,7 @@ void LabelSlider::mouseReleaseEvent(QMouseEvent*) {
 							valueToString(internal_value)
 						);
                 if (s.isEmpty()) return;
-				d = timecode_to_frame(s, config.timecode_view, frame_rate); // string to frame number
+				d = timecode_to_frame(s, e_config.timecode_view, frame_rate); // string to frame number
 			} else {
                 bool ok;
 				d = QInputDialog::getDouble(

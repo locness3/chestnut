@@ -340,8 +340,8 @@ void ExportDialog::render_thread_finished() {
 		QMessageBox::critical(this, "Export Failed", "Export failed - " + export_error, QMessageBox::Ok);
 	}
 	prep_ui_for_render(false);
-	panel_sequence_viewer->viewer_widget->makeCurrent();
-	panel_sequence_viewer->viewer_widget->initializeGL();
+	e_panel_sequence_viewer->viewer_widget->makeCurrent();
+	e_panel_sequence_viewer->viewer_widget->initializeGL();
 	update_ui(false);
 	if (progressBar->value() == 100) accept();
 }
@@ -501,8 +501,8 @@ void ExportDialog::export_action() {
 		mainWindow->autorecover_interval();
 
 		rendering = true;
-		panel_sequence_viewer->viewer_widget->context()->doneCurrent();
-		panel_sequence_viewer->viewer_widget->context()->moveToThread(et);
+		e_panel_sequence_viewer->viewer_widget->context()->doneCurrent();
+		e_panel_sequence_viewer->viewer_widget->context()->moveToThread(et);
 
 		prep_ui_for_render(true);
 
@@ -548,7 +548,7 @@ void ExportDialog::update_progress_bar(int value, qint64 remaining_ms) {
 }
 
 void ExportDialog::cancel_render() {
-	panel_sequence_viewer->viewer_widget->force_quit = true;
+	e_panel_sequence_viewer->viewer_widget->force_quit = true;
 	et->continueEncode = false;
 	cancelled = true;
 }

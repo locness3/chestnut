@@ -284,7 +284,7 @@ void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
 void ViewerWidget::mousePressEvent(QMouseEvent* event) {
 	if (waveform) {
 		seek_from_click(event->x());
-	} else if (event->buttons() & Qt::MiddleButton || panel_timeline->tool == TIMELINE_TOOL_HAND) {
+    } else if (event->buttons() & Qt::MiddleButton || e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
 		container->dragScrollPress(event->pos());
 	} else {
 		drag_start_x = event->pos().x();
@@ -304,13 +304,13 @@ void ViewerWidget::mousePressEvent(QMouseEvent* event) {
 
 void ViewerWidget::mouseMoveEvent(QMouseEvent* event) {
 	unsetCursor();
-	if (panel_timeline->tool == TIMELINE_TOOL_HAND) {
+    if (e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
 		setCursor(Qt::OpenHandCursor);
 	}
 	if (dragging) {
 		if (waveform) {
 			seek_from_click(event->x());
-		} else if (event->buttons() & Qt::MiddleButton || panel_timeline->tool == TIMELINE_TOOL_HAND) {
+        } else if (event->buttons() & Qt::MiddleButton || e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
 			container->dragScrollMove(event->pos());
 		} else if (gizmos == NULL) {
 			QDrag* drag = new QDrag(this);
@@ -343,11 +343,11 @@ void ViewerWidget::drawTitleSafeArea() {
 	double viewportAr = (double) width() / (double) height();
 	double halfAr = viewportAr*0.5;
 
-	if (config.use_custom_title_safe_ratio && config.custom_title_safe_ratio > 0) {
-		if (config.custom_title_safe_ratio > viewportAr) {
-			halfHeight = (config.custom_title_safe_ratio/viewportAr)*0.5;
+    if (e_config.use_custom_title_safe_ratio && e_config.custom_title_safe_ratio > 0) {
+        if (e_config.custom_title_safe_ratio > viewportAr) {
+            halfHeight = (e_config.custom_title_safe_ratio/viewportAr)*0.5;
 		} else {
-			halfWidth = (viewportAr/config.custom_title_safe_ratio)*0.5;
+            halfWidth = (viewportAr/e_config.custom_title_safe_ratio)*0.5;
 		}
 	}
 
@@ -483,8 +483,8 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
 	if (!nests.isEmpty()) {
 		for (int i=0;i<nests.size();i++) {
-            s = nests.at(i)->media->get_object<Sequence>();
-			playhead += nests.at(i)->clip_in - nests.at(i)->get_timeline_in_with_transition();
+            s = nests.at(i)->timeline_info.media->get_object<Sequence>();
+            playhead += nests.at(i)->timeline_info.clip_in - nests.at(i)->get_timeline_in_with_transition();
             playhead = refactor_frame_number(playhead, nests.at(i)->sequence->getFrameRate(), s->getFrameRate());
 		}
 
@@ -504,14 +504,14 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
 		// if clip starts within one second and/or hasn't finished yet
 		if (c != NULL) {
-			if (!(!nests.isEmpty() && !same_sign(c->track, nests.last()->track))) {
+            if (!(!nests.isEmpty() && !same_sign(c->timeline_info.track, nests.last()->timeline_info.track))) {
 				bool clip_is_active = false;
 
-				if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) {
-                    FootagePtr m = c->media->get_object<Footage>();
-					if (!m->invalid && !(c->track >= 0 && !is_audio_device_set())) {
+                if (c->timeline_info.media != NULL && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
+                    FootagePtr m = c->timeline_info.media->get_object<Footage>();
+                    if (!m->invalid && !(c->timeline_info.track >= 0 && !is_audio_device_set())) {
 						if (m->ready) {
-							const FootageStream* ms = m->get_stream_from_file_index(c->track < 0, c->media_stream);
+                            const FootageStream* ms = m->get_stream_from_file_index(c->timeline_info.track < 0, c->timeline_info.media_stream);
                             if ( (ms != NULL) && c->isActive(playhead) ) {
 								// if thread is already working, we don't want to touch this,
 								// but we also don't want to hang the UI thread
@@ -519,7 +519,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 									open_clip(c, !rendering);
 								}
 								clip_is_active = true;
-								if (c->track >= 0) audio_track_count++;
+                                if (c->timeline_info.track >= 0) audio_track_count++;
 							} else if (c->open) {
 								close_clip(c, false);
 							}
@@ -539,7 +539,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 				if (clip_is_active) {
 					bool added = false;
 					for (int j=0;j<current_clips.size();j++) {
-						if (current_clips.at(j)->track < c->track) {
+                        if (current_clips.at(j)->timeline_info.track < c->timeline_info.track) {
 							current_clips.insert(j, c);
 							added = true;
 							break;
@@ -567,17 +567,19 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
         ClipPtr clipNow = current_clips.at(i);
 
-        if (clipNow->media != NULL && clipNow->media->get_type() == MEDIA_TYPE_FOOTAGE && !clipNow->finished_opening) {
+        if (clipNow->timeline_info.media != NULL
+                && clipNow->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE
+                && !clipNow->finished_opening) {
 			dout << "[WARNING] Tried to display clip" << i << "but it's closed";
 			texture_failed = true;
 		} else {
-            if (clipNow->track < 0) {
+            if (clipNow->timeline_info.track < 0) {
 				GLuint textureID = 0;
                 int video_width = clipNow->getWidth();
                 int video_height = clipNow->getHeight();
 
-                if (clipNow->media != NULL) {
-                    switch (clipNow->media->get_type()) {
+                if (clipNow->timeline_info.media != NULL) {
+                    switch (clipNow->timeline_info.media->get_type()) {
 					case MEDIA_TYPE_FOOTAGE:
 						// set up opengl texture
                         if (clipNow->texture == NULL) {
@@ -601,7 +603,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
                     }//switch
 				}
 
-                if (textureID == 0 && clipNow->media != NULL) {
+                if (textureID == 0 && clipNow->timeline_info.media != NULL) {
 					dout << "[WARNING] Texture hasn't been created yet";
 					texture_failed = true;
                 } else if (playhead >= clipNow->get_timeline_in_with_transition()) {
@@ -628,14 +630,14 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
 					GLuint composite_texture;
 
-                    if (clipNow->media == NULL) {
+                    if (clipNow->timeline_info.media == NULL) {
                         clipNow->fbo[fbo_switcher]->bind();
 						glClear(GL_COLOR_BUFFER_BIT);
                         clipNow->fbo[fbo_switcher]->release();
                         composite_texture = clipNow->fbo[fbo_switcher]->texture();
 					} else {
 						// for nested sequences
-                        if (clipNow->media->get_type()== MEDIA_TYPE_SEQUENCE) {
+                        if (clipNow->timeline_info.media->get_type()== MEDIA_TYPE_SEQUENCE) {
                             nests.append(clipNow);
 							textureID = compose_sequence(nests, render_audio);
 							nests.removeLast();
@@ -660,7 +662,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					coords.textureTopLeftQ = coords.textureTopRightQ = coords.textureTopLeftQ = coords.textureBottomLeftQ = 1;
 
 					// set up autoscale
-                    if (clipNow->autoscale && (video_width != s->getWidth() && video_height != s->getHeight())) {
+                    if (clipNow->timeline_info.autoscale && (video_width != s->getWidth() && video_height != s->getHeight())) {
                         float width_multiplier = (float) s->getWidth() / (float) video_width;
                         float height_multiplier = (float) s->getHeight() / (float) video_height;
 						float scale_multiplier = qMin(width_multiplier, height_multiplier);
@@ -686,7 +688,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					if (!rendering) {
 						if (selected_effect != NULL) {
 							gizmos = selected_effect;
-                        } else if (panel_timeline->is_clip_selected(clipNow, true)) {
+                        } else if (e_panel_timeline->is_clip_selected(clipNow, true)) {
 							gizmos = first_gizmo_effect;
 						}
 					}
@@ -803,8 +805,9 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					motion_blur_prog++;*/
 				}
 			} else {
-				if (render_audio || (config.enable_audio_scrubbing && audio_scrub)) {
-                    if (clipNow->media != NULL && clipNow->media->get_type() == MEDIA_TYPE_SEQUENCE) {
+                if (render_audio || (e_config.enable_audio_scrubbing && audio_scrub)) {
+                    if (clipNow->timeline_info.media != NULL &&
+                            clipNow->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
                         nests.append(clipNow);
 						compose_sequence(nests, render_audio);
 						nests.removeLast();
@@ -893,7 +896,7 @@ void ViewerWidget::paintGL() {
 				wr.setX(wr.x() - waveform_scroll);
 
 				p.setPen(Qt::green);
-				draw_waveform(waveform_clip, waveform_ms, waveform_clip->timeline_out, &p, wr, waveform_scroll, width()+waveform_scroll, waveform_zoom);
+                draw_waveform(waveform_clip, waveform_ms, waveform_clip->timeline_info.out, &p, wr, waveform_scroll, width()+waveform_scroll, waveform_zoom);
 				p.setPen(Qt::red);
 				int playhead_x = getScreenPointFromFrame(waveform_zoom, viewer->seq->playhead) - waveform_scroll;
 				p.drawLine(playhead_x, 0, playhead_x, height());
@@ -909,7 +912,7 @@ void ViewerWidget::paintGL() {
 				}
 			}
 
-			if (config.show_title_safe_area && !rendering) {
+            if (e_config.show_title_safe_area && !rendering) {
 				drawTitleSafeArea();
 			}
 

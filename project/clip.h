@@ -94,22 +94,23 @@ public:
     //FIXME: all the class members
     SequencePtr sequence;
     // timeline variables (should be copied in copy())
-    bool enabled;
-    long clip_in;
-    long timeline_in;
-    long timeline_out;
-    int track;
-	QString name;
-    quint8 color_r;
-    quint8 color_g;
-    quint8 color_b;    
-    Media* media;
-    int media_stream;	
-	double speed;
-    double cached_fr;
-	bool reverse;
-	bool maintain_audio_pitch;
-	bool autoscale;
+
+    struct {
+        bool enabled = true;
+        long clip_in = 0;
+        long in = 0;
+        long out = 0;
+        int track = 0;
+        QString name;
+        QColor color;
+        Media* media = NULL;
+        int media_stream;
+        double speed = 1.0;
+        double cached_fr;
+        bool reverse = false;
+        bool maintain_audio_pitch;
+        bool autoscale;
+    } timeline_info;
 
 	// other variables (should be deep copied/duplicated in copy())
     QList<EffectPtr> effects;

@@ -85,7 +85,7 @@ int TimelineHeader::getHeaderScreenPointFromFrame(long frame) {
 
 void TimelineHeader::set_playhead(int mouse_x) {
 	long frame = getHeaderFrameFromScreenPoint(mouse_x);
-	if (snapping) panel_timeline->snap_to_timeline(&frame, false, true, true);
+	if (snapping) e_panel_timeline->snap_to_timeline(&frame, false, true, true);
 	if (frame != viewer->seq->playhead) {
 		viewer->seek(frame);
 	}
@@ -189,7 +189,7 @@ void TimelineHeader::mouseMoveEvent(QMouseEvent* event) {
 		if (dragging) {
 			if (resizing_workarea) {
 				long frame = getHeaderFrameFromScreenPoint(event->pos().x());
-				if (snapping) panel_timeline->snap_to_timeline(&frame, true, true, false);
+				if (snapping) e_panel_timeline->snap_to_timeline(&frame, true, true, false);
 
 				if (resizing_workarea_in) {
 					temp_workarea_in = qMax(qMin(temp_workarea_out-1, frame), 0L);
@@ -204,7 +204,7 @@ void TimelineHeader::mouseMoveEvent(QMouseEvent* event) {
 				// snap markers
 				for (int i=0;i<selected_markers.size();i++) {
 					long fm = selected_marker_original_times.at(i) + frame_movement;
-					if (snapping && panel_timeline->snap_to_timeline(&fm, true, false, true)) {
+					if (snapping && e_panel_timeline->snap_to_timeline(&fm, true, false, true)) {
 						frame_movement = fm - selected_marker_original_times.at(i);
 						break;
 					}
@@ -276,7 +276,7 @@ void TimelineHeader::mouseReleaseEvent(QMouseEvent*) {
 		resizing_workarea = false;
 		dragging = false;
 		dragging_markers = false;
-		panel_timeline->snapped = false;
+		e_panel_timeline->snapped = false;
 		update_parents();
 	}
 }
@@ -345,7 +345,7 @@ void TimelineHeader::paintEvent(QPaintEvent*) {
 			// draw text
 			bool draw_text = false;
 			if (text_enabled && lineX-textWidth > lastTextBoundary) {
-                timecode = frame_to_timecode(frame + in_visible, config.timecode_view, viewer->seq->getFrameRate());
+                timecode = frame_to_timecode(frame + in_visible, e_config.timecode_view, viewer->seq->getFrameRate());
 				fullTextWidth = fm.width(timecode);
 				textWidth = fullTextWidth>>1;
 				text_x = lineX-textWidth;

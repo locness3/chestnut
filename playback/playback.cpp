@@ -54,7 +54,8 @@ bool texture_failed = false;
 bool rendering = false;
 
 bool clip_uses_cacher(ClipPtr clip) {
-	return (clip->media == NULL && clip->track >= 0) || (clip->media != NULL && clip->media->get_type() == MEDIA_TYPE_FOOTAGE);
+    return ((clip->timeline_info.media == NULL) && (clip->timeline_info.track >= 0) )
+            || ( (clip->timeline_info.media != NULL) && (clip->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) );
 }
 
 
@@ -66,8 +67,8 @@ void open_clip(ClipPtr clip, bool multithreaded) {
 				// maybe keep cacher instance in memory while clip exists for performance?
                 clip->cacher = new Cacher(clip);
                 QObject::connect(clip->cacher, SIGNAL(finished()), clip->cacher, SLOT(deleteLater()));
-				clip->cacher->start((clip->track < 0) ? QThread::HighPriority : QThread::TimeCriticalPriority);
-			}
+                clip->cacher->start((clip->timeline_info.track < 0) ? QThread::HighPriority : QThread::TimeCriticalPriority);
+            }
 		} else {
 			clip->finished_opening = false;
 			clip->open = true;
@@ -109,8 +110,8 @@ void close_clip(ClipPtr clip, bool wait) {
 			close_clip_worker(clip);
 		}
 	} else {
-		if (clip->media != NULL && clip->media->get_type() == MEDIA_TYPE_SEQUENCE)
-            closeActiveClips(clip->media->get_object<Sequence>());
+        if (clip->timeline_info.media != NULL && clip->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE)
+            closeActiveClips(clip->timeline_info.media->get_object<Sequence>());
 
 		clip->open = false;
 	}
@@ -138,7 +139,7 @@ double get_timecode(ClipPtr c, long playhead) {
 
 void get_clip_frame(ClipPtr c, long playhead) {
 	if (c->finished_opening) {
-        const FootageStream* ms = c->media->get_object<Footage>()->get_stream_from_file_index(c->track < 0, c->media_stream);
+        const FootageStream* ms = c->timeline_info.media->get_object<Footage>()->get_stream_from_file_index(c->timeline_info.track < 0, c->timeline_info.media_stream);
 
 		int64_t target_pts = qMax(static_cast<int64_t>(0), playhead_to_timestamp(c, playhead));
         int64_t second_pts = qRound64(av_q2d(av_inv_q(c->media_handling.stream->time_base)));
@@ -150,7 +151,7 @@ void get_clip_frame(ClipPtr c, long playhead) {
         AVFrame* target_frame = NULL;
 
 		bool reset = false;
-		bool cache = true;
+        bool cache = true;
 
 		c->queue_lock.lock();
 		if (c->queue.size() > 0) {
@@ -183,8 +184,8 @@ void get_clip_frame(ClipPtr c, long playhead) {
 				int64_t minimum_ts = target_frame->pts;
 
 				int previous_frame_count = 0;
-				if (config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
-					minimum_ts -= (second_pts*config.previous_queue_size);
+                if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
+                    minimum_ts -= (second_pts*e_config.previous_queue_size);
 				}
 
 				//dout << "closest frame was" << closest_frame << "with" << target_frame->pts << "/" << target_pts;
@@ -192,8 +193,8 @@ void get_clip_frame(ClipPtr c, long playhead) {
 					if (c->queue.at(i)->pts > target_frame->pts && c->queue.at(i)->pts < next_pts) {
 						next_pts = c->queue.at(i)->pts;
 					}
-					if (c->queue.at(i) != target_frame && ((c->queue.at(i)->pts > minimum_ts) == c->reverse)) {
-						if (config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
+                    if (c->queue.at(i) != target_frame && ((c->queue.at(i)->pts > minimum_ts) == c->timeline_info.reverse)) {
+                        if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
 							//dout << "removed frame at" << i << "because its pts was" << c->queue.at(i)->pts << "compared to" << target_frame->pts;
 							av_frame_free(&c->queue[i]); // may be a little heavy for the main thread?
 							c->queue.removeAt(i);
@@ -205,8 +206,8 @@ void get_clip_frame(ClipPtr c, long playhead) {
 					}
 				}
 
-				if (config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
-					while (previous_frame_count > qCeil(config.previous_queue_size)) {
+                if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
+                    while (previous_frame_count > qCeil(e_config.previous_queue_size)) {
 						int smallest = 0;
 						for (int i=1;i<c->queue.size();i++) {
 							if (c->queue.at(i)->pts < c->queue.at(smallest)->pts) {
@@ -240,7 +241,7 @@ void get_clip_frame(ClipPtr c, long playhead) {
 #ifdef GCF_DEBUG
                             dout << "GCF ==> RESET" << target_pts << "(" << target_frame->pts << "-" << target_frame->pts+target_frame->pkt_duration << ")";
 #endif
-							if (!config.fast_seeking) target_frame = NULL;
+                            if (!e_config.fast_seeking) target_frame = NULL;
 							reset = true;
 							c->last_invalid_ts = target_pts;
 						} else {
@@ -307,9 +308,9 @@ long playhead_to_clip_frame(ClipPtr c, long playhead) {
 double playhead_to_clip_seconds(ClipPtr c, long playhead) {
 	// returns time in seconds
 	long clip_frame = playhead_to_clip_frame(c, playhead);
-	if (c->reverse) clip_frame = c->getMaximumLength() - clip_frame - 1;
-    double secs = ((double) clip_frame/c->sequence->getFrameRate())*c->speed;
-    if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_FOOTAGE) secs *= c->media->get_object<Footage>()->speed;
+    if (c->timeline_info.reverse) clip_frame = c->getMaximumLength() - clip_frame - 1;
+    double secs = ((double) clip_frame/c->sequence->getFrameRate())*c->timeline_info.speed;
+    if (c->timeline_info.media != NULL && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) secs *= c->timeline_info.media->get_object<Footage>()->speed;
 	return secs;
 }
 
@@ -338,7 +339,7 @@ int retrieve_next_frame(ClipPtr c, AVFrame* f) {
 			if (read_ret >= 0) {
                 c->pkt_written = true;
 			}
-        } while (read_ret >= 0 && c->media_handling.pkt->stream_index != c->media_stream);
+        } while (read_ret >= 0 && c->media_handling.pkt->stream_index != c->timeline_info.media_stream);
 
 		if (read_ret >= 0) {
             int send_ret = avcodec_send_packet(c->media_handling.codecCtx, c->media_handling.pkt);
@@ -368,11 +369,11 @@ int retrieve_next_frame(ClipPtr c, AVFrame* f) {
 }
 
 void set_sequence(SequencePtr s) {
-	panel_effect_controls->clear_effects(true);
+    e_panel_effect_controls->clear_effects(true);
 	e_sequence = s;
-	panel_sequence_viewer->set_main_sequence();
-	panel_timeline->update_sequence();
-	panel_timeline->setFocus();
+    e_panel_sequence_viewer->set_main_sequence();
+    e_panel_timeline->update_sequence();
+    e_panel_timeline->setFocus();
 }
 
 void closeActiveClips(SequencePtr s) {
@@ -380,8 +381,8 @@ void closeActiveClips(SequencePtr s) {
 		for (int i=0;i<s->clips.size();i++) {
             ClipPtr c = s->clips.at(i);
 			if (c != NULL) {
-				if (c->media != NULL && c->media->get_type() == MEDIA_TYPE_SEQUENCE) {
-                    closeActiveClips(c->media->get_object<Sequence>());
+                if (c->timeline_info.media != NULL && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
+                    closeActiveClips(c->timeline_info.media->get_object<Sequence>());
 					if (c->open) close_clip(c, true);
 				} else if (c->open) {
 					close_clip(c, true);

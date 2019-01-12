@@ -94,7 +94,7 @@ Project::Project(QWidget *parent) :
 
 	// optional toolbar
 	toolbar_widget = new QWidget();
-	toolbar_widget->setVisible(config.show_project_toolbar);
+	toolbar_widget->setVisible(e_config.show_project_toolbar);
 	QHBoxLayout* toolbar = new QHBoxLayout();
 	toolbar->setMargin(0);
 	toolbar->setSpacing(0);
@@ -231,7 +231,7 @@ QString Project::get_next_sequence_name(QString start) {
 SequencePtr create_sequence_from_media(QVector<Media*>& media_list) {
     SequencePtr  s = SequencePtr(new Sequence());
 
-    s->setName(panel_project->get_next_sequence_name());
+    s->setName(e_panel_project->get_next_sequence_name());
 
     // FIXME: hardcoded default values
     s->setWidth(1920);
@@ -446,7 +446,7 @@ bool delete_clips_in_clipboard_with_media(ComboAction* ca, Media* m) {
 	if (e_clipboard_type == CLIPBOARD_TYPE_CLIP) {
 		for (int i=0;i<e_clipboard.size();i++) {
             ClipPtr c = std::dynamic_pointer_cast<Clip>(e_clipboard.at(i));
-			if (c->media == m) {
+			if (c->timeline_info.media == m) {
 				ca->append(new RemoveClipsFromClipboard(i-delete_count));
 				delete_count++;
 			}
@@ -484,7 +484,7 @@ void Project::delete_selected_media() {
                 SequencePtr  seq = sequence_items.at(j)->get_object<Sequence>();
                 for (int k=0;k<seq->clips.size();k++) {
                     ClipPtr c = seq->clips.at(k);
-					if (c != NULL && c->media == item) {
+					if (c != NULL && c->timeline_info.media == item) {
 						if (!confirm_delete) {
 							// we found a reference, so we know we'll need to ask if the user wants to delete it
 							QMessageBox confirm(this);
@@ -549,7 +549,7 @@ void Project::delete_selected_media() {
 
 	// remove
 	if (remove) {
-		panel_effect_controls->clear_effects(true);
+        e_panel_effect_controls->clear_effects(true);
         if (e_sequence != NULL) e_sequence->selections.clear();
 
 		// remove media and parents
@@ -574,16 +574,16 @@ void Project::delete_selected_media() {
 					ca->append(new ChangeSequenceAction(NULL));
 				}
 
-				if (s == panel_footage_viewer->seq) {
-					panel_footage_viewer->set_media(NULL);
+                if (s == e_panel_footage_viewer->seq) {
+                    e_panel_footage_viewer->set_media(NULL);
 				}
 			} else if (items.at(i)->get_type() == MEDIA_TYPE_FOOTAGE) {
-				if (panel_footage_viewer->seq != NULL) {
-					for (int j=0;j<panel_footage_viewer->seq->clips.size();j++) {
-                        ClipPtr c = panel_footage_viewer->seq->clips.at(j);
+                if (e_panel_footage_viewer->seq != NULL) {
+                    for (int j=0;j<e_panel_footage_viewer->seq->clips.size();j++) {
+                        ClipPtr c = e_panel_footage_viewer->seq->clips.at(j);
 						if (c != NULL) {
                             // TODO: this was never true. object was only ever set to a Footage/Sequence* or NULL
-//							if (c->media == items.at(i)->get_object()) {
+//							if (c->timeline_info.media == items.at(i)->get_object()) {
 //								panel_footage_viewer->set_media(NULL);
 //							}
 							break;
@@ -621,7 +621,7 @@ void Project::process_file_list(QStringList& files, bool recursive, Media* repla
 
 	QVector<QString> image_sequence_urls;
 	QVector<bool> image_sequence_importassequence;
-	QStringList image_sequence_formats = config.img_seq_formats.split("|");
+	QStringList image_sequence_formats = e_config.img_seq_formats.split("|");
 
 	if (!recursive) last_imported_media.clear();
 
@@ -797,7 +797,7 @@ bool Project::reveal_media(Media *media, QModelIndex parent) {
 
 			QModelIndex hierarchy = sorted_index.parent();
 
-			if (config.project_view_type == PROJECT_VIEW_TREE) {
+			if (e_config.project_view_type == PROJECT_VIEW_TREE) {
 				while (hierarchy.isValid()) {
 					tree_view->setExpanded(hierarchy, true);
 					hierarchy = hierarchy.parent();
@@ -805,7 +805,7 @@ bool Project::reveal_media(Media *media, QModelIndex parent) {
 
 				// select item
 				tree_view->selectionModel()->select(sorted_index, QItemSelectionModel::Select);
-			} else if (config.project_view_type == PROJECT_VIEW_ICON) {
+			} else if (e_config.project_view_type == PROJECT_VIEW_ICON) {
 				icon_view->setRootIndex(hierarchy);
 				icon_view->selectionModel()->select(sorted_index, QItemSelectionModel::Select);
 				set_up_dir_enabled();
@@ -840,7 +840,7 @@ void Project::delete_clips_using_selected_media() {
 			if (c != NULL) {
 				for (int j=0;j<items.size();j++) {
 					Media* m = item_to_media(items.at(j));
-					if (c->media == m) {
+					if (c->timeline_info.media == m) {
 						ca->append(new DeleteClipAction(e_sequence, i));
 						deleted = true;
 					}
@@ -862,7 +862,7 @@ void Project::delete_clips_using_selected_media() {
 
 void Project::clear() {
 	// clear effects cache
-	panel_effect_controls->clear_effects(true);
+    e_panel_effect_controls->clear_effects(true);
 
 	// delete sequences first because it's important to close all the clips before deleting the media
 	QVector<Media*> sequences = list_all_project_sequences();
@@ -881,7 +881,7 @@ void Project::clear() {
 void Project::new_project() {
 	// clear existing project
 	set_sequence(NULL);
-	panel_footage_viewer->set_media(NULL);
+    e_panel_footage_viewer->set_media(NULL);
 	clear();
 	mainWindow->setWindowModified(false);
 }
@@ -992,33 +992,33 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 							if (c != NULL) {
 								stream.writeStartElement("clip"); // clip
 								stream.writeAttribute("id", QString::number(j));
-								stream.writeAttribute("enabled", QString::number(c->enabled));
-								stream.writeAttribute("name", c->name);
-								stream.writeAttribute("clipin", QString::number(c->clip_in));
-								stream.writeAttribute("in", QString::number(c->timeline_in));
-								stream.writeAttribute("out", QString::number(c->timeline_out));
-								stream.writeAttribute("track", QString::number(c->track));
+								stream.writeAttribute("enabled", QString::number(c->timeline_info.enabled));
+                                stream.writeAttribute("name", c->timeline_info.name);
+								stream.writeAttribute("clipin", QString::number(c->timeline_info.clip_in));
+								stream.writeAttribute("in", QString::number(c->timeline_info.in));
+								stream.writeAttribute("out", QString::number(c->timeline_info.out));
+                                stream.writeAttribute("track", QString::number(c->timeline_info.track));
 								stream.writeAttribute("opening", QString::number(c->opening_transition));
 								stream.writeAttribute("closing", QString::number(c->closing_transition));
 
-								stream.writeAttribute("r", QString::number(c->color_r));
-								stream.writeAttribute("g", QString::number(c->color_g));
-								stream.writeAttribute("b", QString::number(c->color_b));
+                                stream.writeAttribute("r", QString::number(c->timeline_info.color.red()));
+                                stream.writeAttribute("g", QString::number(c->timeline_info.color.green()));
+                                stream.writeAttribute("b", QString::number(c->timeline_info.color.blue()));
 
-								stream.writeAttribute("autoscale", QString::number(c->autoscale));
-								stream.writeAttribute("speed", QString::number(c->speed, 'f', 10));
-								stream.writeAttribute("maintainpitch", QString::number(c->maintain_audio_pitch));
-								stream.writeAttribute("reverse", QString::number(c->reverse));
+								stream.writeAttribute("autoscale", QString::number(c->timeline_info.autoscale));
+                                stream.writeAttribute("speed", QString::number(c->timeline_info.speed, 'f', 10));
+								stream.writeAttribute("maintainpitch", QString::number(c->timeline_info.maintain_audio_pitch));
+								stream.writeAttribute("reverse", QString::number(c->timeline_info.reverse));
 
-								if (c->media != NULL) {
-									stream.writeAttribute("type", QString::number(c->media->get_type()));
-									switch (c->media->get_type()) {
+								if (c->timeline_info.media != NULL) {
+									stream.writeAttribute("type", QString::number(c->timeline_info.media->get_type()));
+									switch (c->timeline_info.media->get_type()) {
 									case MEDIA_TYPE_FOOTAGE:
-                                        stream.writeAttribute("media", QString::number(c->media->get_object<Footage>()->save_id));
-										stream.writeAttribute("stream", QString::number(c->media_stream));
+                                        stream.writeAttribute("media", QString::number(c->timeline_info.media->get_object<Footage>()->save_id));
+                                        stream.writeAttribute("stream", QString::number(c->timeline_info.media_stream));
 										break;
 									case MEDIA_TYPE_SEQUENCE:
-                                        stream.writeAttribute("sequence", QString::number(c->media->get_object<Sequence>()->save_id));
+                                        stream.writeAttribute("sequence", QString::number(c->timeline_info.media->get_object<Sequence>()->save_id));
 										break;
 									}
 								}
@@ -1109,10 +1109,10 @@ void Project::save_project(bool autorecovery) {
 }
 
 void Project::update_view_type() {
-	tree_view->setVisible(config.project_view_type == PROJECT_VIEW_TREE);
-	icon_view_container->setVisible(config.project_view_type == PROJECT_VIEW_ICON);
+	tree_view->setVisible(e_config.project_view_type == PROJECT_VIEW_TREE);
+	icon_view_container->setVisible(e_config.project_view_type == PROJECT_VIEW_ICON);
 
-	switch (config.project_view_type) {
+	switch (e_config.project_view_type) {
 	case PROJECT_VIEW_TREE:
 		sources_common->view = tree_view;
 		break;
@@ -1123,12 +1123,12 @@ void Project::update_view_type() {
 }
 
 void Project::set_icon_view() {
-	config.project_view_type = PROJECT_VIEW_ICON;
+	e_config.project_view_type = PROJECT_VIEW_ICON;
 	update_view_type();
 }
 
 void Project::set_tree_view() {
-	config.project_view_type = PROJECT_VIEW_TREE;
+	e_config.project_view_type = PROJECT_VIEW_TREE;
 	update_view_type();
 }
 
@@ -1212,10 +1212,10 @@ QVector<Media*> Project::list_all_project_sequences() {
 }
 
 QModelIndexList Project::get_current_selected() {
-	if (config.project_view_type == PROJECT_VIEW_TREE) {
-		return panel_project->tree_view->selectionModel()->selectedRows();
+	if (e_config.project_view_type == PROJECT_VIEW_TREE) {
+        return e_panel_project->tree_view->selectionModel()->selectedRows();
 	}
-	return panel_project->icon_view->selectionModel()->selectedIndexes();
+    return e_panel_project->icon_view->selectionModel()->selectedIndexes();
 }
 
 #define THROBBER_LIMIT 20
@@ -1254,7 +1254,7 @@ void MediaThrobber::stop(int icon_type, bool replace) {
 	}
 
 	// refresh all clips
-	QVector<Media*> sequences = panel_project->list_all_project_sequences();
+    QVector<Media*> sequences = e_panel_project->list_all_project_sequences();
 	for (int i=0;i<sequences.size();i++) {
         SequencePtr  s = sequences.at(i)->get_object<Sequence>();
 		for (int j=0;j<s->clips.size();j++) {
@@ -1268,7 +1268,7 @@ void MediaThrobber::stop(int icon_type, bool replace) {
 	// redraw clips
 	update_ui(replace);
 
-	panel_project->tree_view->viewport()->update();
+    e_panel_project->tree_view->viewport()->update();
 	item->throbber = NULL;
 	deleteLater();
 }

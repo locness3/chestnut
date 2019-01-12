@@ -325,9 +325,9 @@ bool ExportThread::setupContainer() {
 }
 
 void ExportThread::run() {
-	panel_sequence_viewer->pause();
+	e_panel_sequence_viewer->pause();
 
-	if (!panel_sequence_viewer->viewer_widget->context()->makeCurrent(&surface)) {
+	if (!e_panel_sequence_viewer->viewer_widget->context()->makeCurrent(&surface)) {
 		dout << "[ERROR] Make current failed";
 		ed->export_error = "could not make OpenGL context current";
 		return;
@@ -353,13 +353,13 @@ void ExportThread::run() {
 		}
 	}
 
-	panel_sequence_viewer->seek(start_frame);
-	panel_sequence_viewer->reset_all_audio();
+	e_panel_sequence_viewer->seek(start_frame);
+	e_panel_sequence_viewer->reset_all_audio();
 
     QOpenGLFramebufferObject fbo(e_sequence->getWidth(), e_sequence->getHeight(), QOpenGLFramebufferObject::CombinedDepthStencil, GL_TEXTURE_RECTANGLE);
 	fbo.bind();
 
-	panel_sequence_viewer->viewer_widget->default_fbo = &fbo;
+	e_panel_sequence_viewer->viewer_widget->default_fbo = &fbo;
 
 	long file_audio_samples = 0;
 	qint64 start_time, frame_time, avg_time, eta, total_time = 0;
@@ -368,7 +368,7 @@ void ExportThread::run() {
 	while (e_sequence->playhead <= end_frame && continueEncode) {
 		start_time = QDateTime::currentMSecsSinceEpoch();
 
-		panel_sequence_viewer->viewer_widget->paintGL();
+		e_panel_sequence_viewer->viewer_widget->paintGL();
 
         double timecode_secs = (double) (e_sequence->playhead-start_frame) / e_sequence->getFrameRate();
 		if (video_enabled) {
@@ -429,7 +429,7 @@ void ExportThread::run() {
         if (audio_enabled) apkt_alloc = true;
     }
 
-	panel_sequence_viewer->viewer_widget->default_fbo = NULL;
+	e_panel_sequence_viewer->viewer_widget->default_fbo = NULL;
 	rendering = false;
 
 	fbo.release();
@@ -493,8 +493,8 @@ void ExportThread::run() {
 
 	delete [] c_filename;
 
-	panel_sequence_viewer->viewer_widget->context()->doneCurrent();
-	panel_sequence_viewer->viewer_widget->context()->moveToThread(qApp->thread());
+	e_panel_sequence_viewer->viewer_widget->context()->doneCurrent();
+	e_panel_sequence_viewer->viewer_widget->context()->moveToThread(qApp->thread());
 
 	rendering = false;
 }

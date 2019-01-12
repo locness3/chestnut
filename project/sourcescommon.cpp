@@ -53,8 +53,8 @@ void SourcesCommon::create_seq_from_selected() {
         SequencePtr  s = create_sequence_from_media(media_list);
 
 		// add clips to it
-		panel_timeline->create_ghosts_from_media(s, 0, media_list);
-		panel_timeline->add_clips_from_ghosts(ca, s);
+		e_panel_timeline->create_ghosts_from_media(s, 0, media_list);
+		e_panel_timeline->add_clips_from_ghosts(ca, s);
 
 		project_parent->new_sequence(ca, s, true, NULL);
 		e_undo_stack.push(ca);
@@ -173,8 +173,8 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *e, const QModelIndexList&
         Media* item = project_parent->item_to_media(items.at(0));
 		switch (item->get_type()) {
 		case MEDIA_TYPE_FOOTAGE:
-            panel_footage_viewer->set_media(item); //FIXME: this is causing a crash
-			panel_footage_viewer->setFocus();
+            e_panel_footage_viewer->set_media(item); //FIXME: this is causing a crash
+			e_panel_footage_viewer->setFocus();
 			break;
 		case MEDIA_TYPE_SEQUENCE:
 			e_undo_stack.push(new ChangeSequenceAction(item->get_object<Sequence>()));
@@ -202,7 +202,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 					&& drop_item.isValid()
 					&& m->get_type() == MEDIA_TYPE_FOOTAGE
 					&& !QFileInfo(paths.at(0)).isDir()
-					&& config.drop_on_media_to_replace
+					&& e_config.drop_on_media_to_replace
 					&& QMessageBox::question(parent, "Replace Media", "You dropped a file onto '" + m->get_name() + "'. Would you like to replace it with the dropped file?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
 				replace = true;
 				project_parent->replace_media(m, paths.at(0));
@@ -216,7 +216,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 						parent = drop_item.parent();
 					}
 				}
-				project_parent->process_file_list(paths, false, NULL, panel_project->item_to_media(parent));
+				project_parent->process_file_list(paths, false, NULL, e_panel_project->item_to_media(parent));
 			}
 		}
 		event->acceptProposedAction();

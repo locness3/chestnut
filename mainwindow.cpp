@@ -97,24 +97,24 @@ namespace
 
 
 void MainWindow::setup_layout(bool reset) {
-	panel_project->show();
-	panel_effect_controls->show();
-	panel_footage_viewer->show();
-	panel_sequence_viewer->show();
-	panel_timeline->show();
-	panel_graph_editor->hide();
+    e_panel_project->show();
+    e_panel_effect_controls->show();
+    e_panel_footage_viewer->show();
+    e_panel_sequence_viewer->show();
+    e_panel_timeline->show();
+    e_panel_graph_editor->hide();
 
-	addDockWidget(Qt::TopDockWidgetArea, panel_project);
-	addDockWidget(Qt::TopDockWidgetArea, panel_footage_viewer);
-	tabifyDockWidget(panel_footage_viewer, panel_effect_controls);
-	panel_footage_viewer->raise();
-	addDockWidget(Qt::TopDockWidgetArea, panel_sequence_viewer);
-	addDockWidget(Qt::BottomDockWidgetArea, panel_timeline);
-	panel_graph_editor->setFloating(true);
+    addDockWidget(Qt::TopDockWidgetArea, e_panel_project);
+    addDockWidget(Qt::TopDockWidgetArea, e_panel_footage_viewer);
+    tabifyDockWidget(e_panel_footage_viewer, e_panel_effect_controls);
+    e_panel_footage_viewer->raise();
+    addDockWidget(Qt::TopDockWidgetArea, e_panel_sequence_viewer);
+    addDockWidget(Qt::BottomDockWidgetArea, e_panel_timeline);
+    e_panel_graph_editor->setFloating(true);
 
 // workaround for strange Qt dock bug (see https://bugreports.qt.io/browse/QTBUG-65592)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-	resizeDocks({panel_project}, {40}, Qt::Horizontal);
+    resizeDocks({e_panel_project}, {40}, Qt::Horizontal);
 #endif
 
 	// load panels from file
@@ -230,7 +230,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &appName) :
 		config_dir.mkpath(".");
         config_fn = config_path + "/" + FILE_CONFIG;
 		if (QFileInfo::exists(config_fn)) {
-			config.load(config_fn);
+			e_config.load(config_fn);
 		}
 	}
 
@@ -374,58 +374,58 @@ void MainWindow::show_about() {
 }
 
 void MainWindow::delete_slot() {
-	if (panel_timeline->headers->hasFocus()) {
-		panel_timeline->headers->delete_markers();
-	} else if (panel_timeline->focused()) {
-        panel_timeline->delete_selection(e_sequence->selections, false);
-	} else if (panel_effect_controls->is_focused()) {
-		panel_effect_controls->delete_effects();
-	} else if (panel_project->is_focused()) {
-		panel_project->delete_selected_media();
-	} else if (panel_effect_controls->keyframe_focus()) {
-		panel_effect_controls->delete_selected_keyframes();
-	} else if (panel_graph_editor->view_is_focused()) {
-		panel_graph_editor->delete_selected_keys();
+    if (e_panel_timeline->headers->hasFocus()) {
+        e_panel_timeline->headers->delete_markers();
+    } else if (e_panel_timeline->focused()) {
+        e_panel_timeline->delete_selection(e_sequence->selections, false);
+    } else if (e_panel_effect_controls->is_focused()) {
+        e_panel_effect_controls->delete_effects();
+    } else if (e_panel_project->is_focused()) {
+        e_panel_project->delete_selected_media();
+    } else if (e_panel_effect_controls->keyframe_focus()) {
+        e_panel_effect_controls->delete_selected_keyframes();
+    } else if (e_panel_graph_editor->view_is_focused()) {
+        e_panel_graph_editor->delete_selected_keys();
 	}
 }
 
 void MainWindow::select_all() {
-	if (panel_timeline->focused()) {
-		panel_timeline->select_all();
-	} else if (panel_graph_editor->view_is_focused()) {
-		panel_graph_editor->select_all();
+    if (e_panel_timeline->focused()) {
+        e_panel_timeline->select_all();
+    } else if (e_panel_graph_editor->view_is_focused()) {
+        e_panel_graph_editor->select_all();
 	}
 }
 
 void MainWindow::new_sequence() {
 	NewSequenceDialog nsd(this);
-	nsd.set_sequence_name(panel_project->get_next_sequence_name());
+    nsd.set_sequence_name(e_panel_project->get_next_sequence_name());
 	nsd.exec();
 }
 
 void MainWindow::zoom_in() {
 	QDockWidget* focused_panel = get_focused_panel();
-	if (focused_panel == panel_timeline) {
-		panel_timeline->set_zoom(true);
-	} else if (focused_panel == panel_effect_controls) {
-		panel_effect_controls->set_zoom(true);
-	} else if (focused_panel == panel_footage_viewer) {
-		panel_footage_viewer->set_zoom(true);
-	} else if (focused_panel == panel_sequence_viewer) {
-		panel_sequence_viewer->set_zoom(true);
+    if (focused_panel == e_panel_timeline) {
+        e_panel_timeline->set_zoom(true);
+    } else if (focused_panel == e_panel_effect_controls) {
+        e_panel_effect_controls->set_zoom(true);
+    } else if (focused_panel == e_panel_footage_viewer) {
+        e_panel_footage_viewer->set_zoom(true);
+    } else if (focused_panel == e_panel_sequence_viewer) {
+        e_panel_sequence_viewer->set_zoom(true);
 	}
 }
 
 void MainWindow::zoom_out() {
 	QDockWidget* focused_panel = get_focused_panel();
-	if (focused_panel == panel_timeline) {
-		panel_timeline->set_zoom(false);
-	} else if (focused_panel == panel_effect_controls) {
-		panel_effect_controls->set_zoom(false);
-	} else if (focused_panel == panel_footage_viewer) {
-		panel_footage_viewer->set_zoom(false);
-	} else if (focused_panel == panel_sequence_viewer) {
-		panel_sequence_viewer->set_zoom(false);
+    if (focused_panel == e_panel_timeline) {
+        e_panel_timeline->set_zoom(false);
+    } else if (focused_panel == e_panel_effect_controls) {
+        e_panel_effect_controls->set_zoom(false);
+    } else if (focused_panel == e_panel_footage_viewer) {
+        e_panel_footage_viewer->set_zoom(false);
+    } else if (focused_panel == e_panel_sequence_viewer) {
+        e_panel_sequence_viewer->set_zoom(false);
 	}
 }
 
@@ -439,7 +439,7 @@ void MainWindow::export_dialog() {
 }
 
 void MainWindow::ripple_delete() {
-    if (e_sequence != NULL) panel_timeline->delete_selection(e_sequence->selections, true);
+    if (e_sequence != NULL) e_panel_timeline->delete_selection(e_sequence->selections, true);
 }
 
 void MainWindow::editMenu_About_To_Be_Shown() {
@@ -448,7 +448,7 @@ void MainWindow::editMenu_About_To_Be_Shown() {
 }
 
 void MainWindow::undo() {
-	if (!panel_timeline->importing) { // workaround to prevent crash (and also users should never need to do this)
+    if (!e_panel_timeline->importing) { // workaround to prevent crash (and also users should never need to do this)
 		e_undo_stack.undo();
 		update_ui(true);
 	}
@@ -464,7 +464,7 @@ void MainWindow::open_speed_dialog() {
 		SpeedDialog s(this);
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr c = e_sequence->clips.at(i);
-			if (c != NULL && panel_timeline->is_clip_selected(c, true)) {
+            if (c != NULL && e_panel_timeline->is_clip_selected(c, true)) {
 				s.clips.append(c);
 			}
 		}
@@ -475,10 +475,10 @@ void MainWindow::open_speed_dialog() {
 void MainWindow::cut() {
     if (e_sequence != NULL) {
 		QDockWidget* focused_panel = get_focused_panel();
-		if (panel_timeline == focused_panel) {
-			panel_timeline->copy(true);
-		} else if (panel_effect_controls == focused_panel) {
-			panel_effect_controls->copy(true);
+        if (e_panel_timeline == focused_panel) {
+            e_panel_timeline->copy(true);
+        } else if (e_panel_effect_controls == focused_panel) {
+            e_panel_effect_controls->copy(true);
 		}
 	}
 }
@@ -486,36 +486,36 @@ void MainWindow::cut() {
 void MainWindow::copy() {
     if (e_sequence != NULL) {
 		QDockWidget* focused_panel = get_focused_panel();
-		if (panel_timeline == focused_panel) {
-			panel_timeline->copy(false);
-		} else if (panel_effect_controls == focused_panel) {
-			panel_effect_controls->copy(false);
+        if (e_panel_timeline == focused_panel) {
+            e_panel_timeline->copy(false);
+        } else if (e_panel_effect_controls == focused_panel) {
+            e_panel_effect_controls->copy(false);
 		}
 	}
 }
 
 void MainWindow::paste() {
 	QDockWidget* focused_panel = get_focused_panel();
-    if ((panel_timeline == focused_panel || panel_effect_controls == focused_panel) && e_sequence != NULL) {
-		panel_timeline->paste(false);
+    if ((e_panel_timeline == focused_panel || e_panel_effect_controls == focused_panel) && e_sequence != NULL) {
+        e_panel_timeline->paste(false);
 	}
 }
 
 void MainWindow::new_project() {
 	if (can_close_project()) {
-		panel_effect_controls->clear_effects(true);
+        e_panel_effect_controls->clear_effects(true);
 		e_undo_stack.clear();
 		project_url.clear();
-		panel_project->new_project();
+        e_panel_project->new_project();
 		updateTitle("");
 		update_ui(false);
-		panel_project->tree_view->update();
+        e_panel_project->tree_view->update();
 	}
 }
 
 void MainWindow::autorecover_interval() {
 	if (!rendering && isWindowModified()) {
-		panel_project->save_project(true);
+        e_panel_project->save_project(true);
 		dout << "[INFO] Auto-recovery project saved";
 	}
 }
@@ -527,7 +527,7 @@ bool MainWindow::save_project_as() {
 			fn += ".ove";
 		}
 		updateTitle(fn);
-		panel_project->save_project(false);
+        e_panel_project->save_project(false);
 		return true;
 	}
 	return false;
@@ -537,7 +537,7 @@ bool MainWindow::save_project() {
 	if (project_url.isEmpty()) {
 		return save_project_as();
 	} else {
-		panel_project->save_project(false);
+        e_panel_project->save_project(false);
 		return true;
 	}
 }
@@ -577,7 +577,7 @@ void MainWindow::setup_menus() {
     file_menu->addAction("&Open Project", this, SLOT(open_project()), QKeySequence(ui::defaults::shortcut::OPEN_PROJECT));
 
     clear_open_recent_action = new QAction("Clear Recent List"); //FIXME: leak.
-    connect(clear_open_recent_action, SIGNAL(triggered()), panel_project, SLOT(clear_recent_projects()));
+    connect(clear_open_recent_action, SIGNAL(triggered()), e_panel_project, SLOT(clear_recent_projects()));
 
 	open_recent = file_menu->addMenu("Open Recent");
 
@@ -588,7 +588,7 @@ void MainWindow::setup_menus() {
 
 	file_menu->addSeparator();
 
-    file_menu->addAction("&Import...", panel_project, SLOT(import_dialog()),  QKeySequence(ui::defaults::shortcut::IMPORT));
+    file_menu->addAction("&Import...", e_panel_project, SLOT(import_dialog()),  QKeySequence(ui::defaults::shortcut::IMPORT));
 
 	file_menu->addSeparator();
 
@@ -615,18 +615,18 @@ void MainWindow::setup_menus() {
     edit_menu->addAction("Duplicate", this, SLOT(duplicate()),  QKeySequence(ui::defaults::shortcut::DUPLICATE));
     edit_menu->addAction("Delete", this, SLOT(delete_slot()),  QKeySequence(ui::defaults::shortcut::DELETE));
     edit_menu->addAction("Ripple Delete", this, SLOT(ripple_delete()),  QKeySequence(ui::defaults::shortcut::RIPPLE_DELETE));
-    edit_menu->addAction("Split", panel_timeline, SLOT(split_at_playhead()),  QKeySequence(ui::defaults::shortcut::SPLIT));
+    edit_menu->addAction("Split", e_panel_timeline, SLOT(split_at_playhead()),  QKeySequence(ui::defaults::shortcut::SPLIT));
 
 	edit_menu->addSeparator();
 
     edit_menu->addAction("Select &All", this, SLOT(select_all()),  QKeySequence(ui::defaults::shortcut::SELECT_ALL));
 
-    edit_menu->addAction("Deselect All", panel_timeline, SLOT(deselect()),  QKeySequence(ui::defaults::shortcut::DESELECT_ALL));
+    edit_menu->addAction("Deselect All", e_panel_timeline, SLOT(deselect()),  QKeySequence(ui::defaults::shortcut::DESELECT_ALL));
 
 	edit_menu->addSeparator();
 
     edit_menu->addAction("Add Default Transition", this, SLOT(add_default_transition()),  QKeySequence(ui::defaults::shortcut::ADD_DEFAULT_TRANSITION));
-    edit_menu->addAction("Link/Unlink", panel_timeline, SLOT(toggle_links()),  QKeySequence(ui::defaults::shortcut::TOGGLE_LINKS));
+    edit_menu->addAction("Link/Unlink", e_panel_timeline, SLOT(toggle_links()),  QKeySequence(ui::defaults::shortcut::TOGGLE_LINKS));
     edit_menu->addAction("Enable/Disable", this, SLOT(toggle_enable_clips()),  QKeySequence(ui::defaults::shortcut::TOGGLE_CLIPS));
 	edit_menu->addAction("Nest", this, SLOT(nest()));
 
@@ -657,18 +657,18 @@ void MainWindow::setup_menus() {
     view_menu->addAction("Increase Track Height", this, SLOT(zoom_in_tracks()),  QKeySequence(ui::defaults::shortcut::INCREASE_TRACK_HEIGHT));
     view_menu->addAction("Decrease Track Height", this, SLOT(zoom_out_tracks()), QKeySequence(ui::defaults::shortcut::DECREASE_TRACK_HEIGHT));
 
-    show_all = view_menu->addAction("Toggle Show All", panel_timeline, SLOT(toggle_show_all()), QKeySequence(ui::defaults::shortcut::TOGGLE_SHOW_ALL));
+    show_all = view_menu->addAction("Toggle Show All", e_panel_timeline, SLOT(toggle_show_all()), QKeySequence(ui::defaults::shortcut::TOGGLE_SHOW_ALL));
 	show_all->setCheckable(true);
 
 	view_menu->addSeparator();
 
 	track_lines = view_menu->addAction("Track Lines", this, SLOT(toggle_bool_action()));
 	track_lines->setCheckable(true);
-	track_lines->setData(reinterpret_cast<quintptr>(&config.show_track_lines));
+	track_lines->setData(reinterpret_cast<quintptr>(&e_config.show_track_lines));
 
 	rectified_waveforms = view_menu->addAction("Rectified Waveforms", this, SLOT(toggle_bool_action()));
 	rectified_waveforms->setCheckable(true);
-	rectified_waveforms->setData(reinterpret_cast<quintptr>(&config.rectified_waveforms));
+	rectified_waveforms->setData(reinterpret_cast<quintptr>(&e_config.rectified_waveforms));
 
 	view_menu->addSeparator();
 
@@ -737,27 +737,27 @@ void MainWindow::setup_menus() {
 
 	QAction* window_project_action = window_menu->addAction("Project", this, SLOT(toggle_panel_visibility()));
 	window_project_action->setCheckable(true);
-	window_project_action->setData(reinterpret_cast<quintptr>(panel_project));
+    window_project_action->setData(reinterpret_cast<quintptr>(e_panel_project));
 
 	QAction* window_effectcontrols_action = window_menu->addAction("Effect Controls", this, SLOT(toggle_panel_visibility()));
 	window_effectcontrols_action->setCheckable(true);
-	window_effectcontrols_action->setData(reinterpret_cast<quintptr>(panel_effect_controls));
+    window_effectcontrols_action->setData(reinterpret_cast<quintptr>(e_panel_effect_controls));
 
 	QAction* window_timeline_action = window_menu->addAction("Timeline", this, SLOT(toggle_panel_visibility()));
 	window_timeline_action->setCheckable(true);
-	window_timeline_action->setData(reinterpret_cast<quintptr>(panel_timeline));
+    window_timeline_action->setData(reinterpret_cast<quintptr>(e_panel_timeline));
 
 	QAction* window_graph_editor_action = window_menu->addAction("Graph Editor", this, SLOT(toggle_panel_visibility()));
 	window_graph_editor_action->setCheckable(true);
-	window_graph_editor_action->setData(reinterpret_cast<quintptr>(panel_graph_editor));
+    window_graph_editor_action->setData(reinterpret_cast<quintptr>(e_panel_graph_editor));
 
 	QAction* window_footageviewer_action = window_menu->addAction("Footage Viewer", this, SLOT(toggle_panel_visibility()));
 	window_footageviewer_action->setCheckable(true);
-	window_footageviewer_action->setData(reinterpret_cast<quintptr>(panel_footage_viewer));
+    window_footageviewer_action->setData(reinterpret_cast<quintptr>(e_panel_footage_viewer));
 
 	QAction* window_sequenceviewer_action = window_menu->addAction("Sequence Viewer", this, SLOT(toggle_panel_visibility()));
 	window_sequenceviewer_action->setCheckable(true);
-	window_sequenceviewer_action->setData(reinterpret_cast<quintptr>(panel_sequence_viewer));
+    window_sequenceviewer_action->setData(reinterpret_cast<quintptr>(e_panel_sequence_viewer));
 
 	window_menu->addSeparator();
 
@@ -770,99 +770,99 @@ void MainWindow::setup_menus() {
 
 	pointer_tool_action = tools_menu->addAction("Pointer Tool", this, SLOT(menu_click_button()), QKeySequence("V"));
 	pointer_tool_action->setCheckable(true);
-	pointer_tool_action->setData(reinterpret_cast<quintptr>(panel_timeline->toolArrowButton));
+    pointer_tool_action->setData(reinterpret_cast<quintptr>(e_panel_timeline->toolArrowButton));
 
 	edit_tool_action = tools_menu->addAction("Edit Tool", this, SLOT(menu_click_button()), QKeySequence("X"));
 	edit_tool_action->setCheckable(true);
-	edit_tool_action->setData(reinterpret_cast<quintptr>(panel_timeline->toolEditButton));
+    edit_tool_action->setData(reinterpret_cast<quintptr>(e_panel_timeline->toolEditButton));
 
 	ripple_tool_action = tools_menu->addAction("Ripple Tool", this, SLOT(menu_click_button()), QKeySequence("B"));
 	ripple_tool_action->setCheckable(true);
-	ripple_tool_action->setData(reinterpret_cast<quintptr>(panel_timeline->toolRippleButton));
+    ripple_tool_action->setData(reinterpret_cast<quintptr>(e_panel_timeline->toolRippleButton));
 
 	razor_tool_action = tools_menu->addAction("Razor Tool", this, SLOT(menu_click_button()), QKeySequence("C"));
 	razor_tool_action->setCheckable(true);
-	razor_tool_action->setData(reinterpret_cast<quintptr>(panel_timeline->toolRazorButton));
+    razor_tool_action->setData(reinterpret_cast<quintptr>(e_panel_timeline->toolRazorButton));
 
 	slip_tool_action = tools_menu->addAction("Slip Tool", this, SLOT(menu_click_button()), QKeySequence("Y"));
 	slip_tool_action->setCheckable(true);
-	slip_tool_action->setData(reinterpret_cast<quintptr>(panel_timeline->toolSlipButton));
+    slip_tool_action->setData(reinterpret_cast<quintptr>(e_panel_timeline->toolSlipButton));
 
 	slide_tool_action = tools_menu->addAction("Slide Tool", this, SLOT(menu_click_button()), QKeySequence("U"));
 	slide_tool_action->setCheckable(true);
-	slide_tool_action->setData(reinterpret_cast<quintptr>(panel_timeline->toolSlideButton));
+    slide_tool_action->setData(reinterpret_cast<quintptr>(e_panel_timeline->toolSlideButton));
 
 	hand_tool_action = tools_menu->addAction("Hand Tool", this, SLOT(menu_click_button()), QKeySequence("H"));
 	hand_tool_action->setCheckable(true);
-	hand_tool_action->setData(reinterpret_cast<quintptr>(panel_timeline->toolHandButton));
+    hand_tool_action->setData(reinterpret_cast<quintptr>(e_panel_timeline->toolHandButton));
 
 	transition_tool_action = tools_menu->addAction("Transition Tool", this, SLOT(menu_click_button()), QKeySequence("T"));
 	transition_tool_action->setCheckable(true);
-	transition_tool_action->setData(reinterpret_cast<quintptr>(panel_timeline->toolTransitionButton));
+    transition_tool_action->setData(reinterpret_cast<quintptr>(e_panel_timeline->toolTransitionButton));
 
 	tools_menu->addSeparator();
 
 	snap_toggle = tools_menu->addAction("Enable Snapping", this, SLOT(menu_click_button()), QKeySequence("S"));
 	snap_toggle->setCheckable(true);
-	snap_toggle->setData(reinterpret_cast<quintptr>(panel_timeline->snappingButton));
+    snap_toggle->setData(reinterpret_cast<quintptr>(e_panel_timeline->snappingButton));
 
 	tools_menu->addSeparator();
 
 	selecting_also_seeks = tools_menu->addAction("Selecting Also Seeks", this, SLOT(toggle_bool_action()));
 	selecting_also_seeks->setCheckable(true);
-	selecting_also_seeks->setData(reinterpret_cast<quintptr>(&config.select_also_seeks));
+	selecting_also_seeks->setData(reinterpret_cast<quintptr>(&e_config.select_also_seeks));
 
 	edit_tool_also_seeks = tools_menu->addAction("Edit Tool Also Seeks", this, SLOT(toggle_bool_action()));
 	edit_tool_also_seeks->setCheckable(true);
-	edit_tool_also_seeks->setData(reinterpret_cast<quintptr>(&config.edit_tool_also_seeks));
+	edit_tool_also_seeks->setData(reinterpret_cast<quintptr>(&e_config.edit_tool_also_seeks));
 
 	edit_tool_selects_links = tools_menu->addAction("Edit Tool Selects Links", this, SLOT(toggle_bool_action()));
 	edit_tool_selects_links->setCheckable(true);
-	edit_tool_selects_links->setData(reinterpret_cast<quintptr>(&config.edit_tool_selects_links));
+	edit_tool_selects_links->setData(reinterpret_cast<quintptr>(&e_config.edit_tool_selects_links));
 
 	seek_to_end_of_pastes = tools_menu->addAction("Seek to the End of Pastes", this, SLOT(toggle_bool_action()));
 	seek_to_end_of_pastes->setCheckable(true);
-	seek_to_end_of_pastes->setData(reinterpret_cast<quintptr>(&config.paste_seeks));
+	seek_to_end_of_pastes->setData(reinterpret_cast<quintptr>(&e_config.paste_seeks));
 
 	scroll_wheel_zooms = tools_menu->addAction("Scroll Wheel Zooms", this, SLOT(toggle_bool_action()));
 	scroll_wheel_zooms->setCheckable(true);
-	scroll_wheel_zooms->setData(reinterpret_cast<quintptr>(&config.scroll_zooms));
+	scroll_wheel_zooms->setData(reinterpret_cast<quintptr>(&e_config.scroll_zooms));
 
 	enable_drag_files_to_timeline = tools_menu->addAction("Enable Drag Files to Timeline", this, SLOT(toggle_bool_action()));
 	enable_drag_files_to_timeline->setCheckable(true);
-	enable_drag_files_to_timeline->setData(reinterpret_cast<quintptr>(&config.enable_drag_files_to_timeline));
+	enable_drag_files_to_timeline->setData(reinterpret_cast<quintptr>(&e_config.enable_drag_files_to_timeline));
 
 	autoscale_by_default = tools_menu->addAction("Auto-Scale By Default", this, SLOT(toggle_bool_action()));
 	autoscale_by_default->setCheckable(true);
-	autoscale_by_default->setData(reinterpret_cast<quintptr>(&config.autoscale_by_default));
+	autoscale_by_default->setData(reinterpret_cast<quintptr>(&e_config.autoscale_by_default));
 
 	enable_seek_to_import = tools_menu->addAction("Enable Seek to Import", this, SLOT(toggle_bool_action()));
 	enable_seek_to_import->setCheckable(true);
-	enable_seek_to_import->setData(reinterpret_cast<quintptr>(&config.enable_seek_to_import));
+	enable_seek_to_import->setData(reinterpret_cast<quintptr>(&e_config.enable_seek_to_import));
 
 	enable_audio_scrubbing = tools_menu->addAction("Audio Scrubbing", this, SLOT(toggle_bool_action()));
 	enable_audio_scrubbing->setCheckable(true);
-	enable_audio_scrubbing->setData(reinterpret_cast<quintptr>(&config.enable_audio_scrubbing));
+	enable_audio_scrubbing->setData(reinterpret_cast<quintptr>(&e_config.enable_audio_scrubbing));
 
 	enable_drop_on_media_to_replace = tools_menu->addAction("Enable Drop on Media to Replace", this, SLOT(toggle_bool_action()));
 	enable_drop_on_media_to_replace->setCheckable(true);
-	enable_drop_on_media_to_replace->setData(reinterpret_cast<quintptr>(&config.drop_on_media_to_replace));
+	enable_drop_on_media_to_replace->setData(reinterpret_cast<quintptr>(&e_config.drop_on_media_to_replace));
 
 	enable_hover_focus = tools_menu->addAction("Enable Hover Focus", this, SLOT(toggle_bool_action()));
 	enable_hover_focus->setCheckable(true);
-	enable_hover_focus->setData(reinterpret_cast<quintptr>(&config.hover_focus));
+	enable_hover_focus->setData(reinterpret_cast<quintptr>(&e_config.hover_focus));
 
 	set_name_and_marker = tools_menu->addAction("Ask For Name When Setting Marker", this, SLOT(toggle_bool_action()));
 	set_name_and_marker->setCheckable(true);
-	set_name_and_marker->setData(reinterpret_cast<quintptr>(&config.set_name_with_marker));
+	set_name_and_marker->setData(reinterpret_cast<quintptr>(&e_config.set_name_with_marker));
 
 	loop_action = tools_menu->addAction("Loop", this, SLOT(toggle_bool_action()));
 	loop_action->setCheckable(true);
-	loop_action->setData(reinterpret_cast<quintptr>(&config.loop));
+	loop_action->setData(reinterpret_cast<quintptr>(&e_config.loop));
 
 	pause_at_out_point_action = tools_menu->addAction("Pause At Out Point", this, SLOT(toggle_bool_action()));
 	pause_at_out_point_action->setCheckable(true);
-	pause_at_out_point_action->setData(reinterpret_cast<quintptr>(&config.pause_at_out_point));
+	pause_at_out_point_action->setData(reinterpret_cast<quintptr>(&e_config.pause_at_out_point));
 
 	tools_menu->addSeparator();
 
@@ -923,11 +923,11 @@ void MainWindow::updateTitle(const QString& url) {
 
 void MainWindow::closeEvent(QCloseEvent *e) {
 	if (can_close_project()) {
-		panel_effect_controls->clear_effects(true);
+        e_panel_effect_controls->clear_effects(true);
 
 		set_sequence(NULL);
 
-		panel_footage_viewer->set_main_sequence();
+        e_panel_footage_viewer->set_main_sequence();
 
 		QString data_dir = get_data_path();
 		QString config_dir = get_config_path();
@@ -938,7 +938,7 @@ void MainWindow::closeEvent(QCloseEvent *e) {
 		}
 		if (!config_dir.isEmpty() && !config_fn.isEmpty()) {
 			// save settings
-			config.save(config_fn);
+			e_config.save(config_fn);
 
 			// save panel layout
 			QFile panel_config(config_dir + "/layout");
@@ -988,7 +988,7 @@ void MainWindow::open_project() {
 
 void MainWindow::open_project_worker(const QString& fn, bool autorecovery) {
 	updateTitle(fn);
-	panel_project->load_project(autorecovery);
+    e_panel_project->load_project(autorecovery);
 	e_undo_stack.clear();
 }
 
@@ -1006,91 +1006,91 @@ void MainWindow::reset_layout() {
 }
 
 void MainWindow::go_to_in() {
-	if (panel_timeline->focused()
-			|| panel_sequence_viewer->is_focused()
-			|| panel_effect_controls->keyframe_focus()
-			|| panel_graph_editor->view_is_focused()) {
-		panel_sequence_viewer->go_to_in();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->go_to_in();
+    if (e_panel_timeline->focused()
+            || e_panel_sequence_viewer->is_focused()
+            || e_panel_effect_controls->keyframe_focus()
+            || e_panel_graph_editor->view_is_focused()) {
+        e_panel_sequence_viewer->go_to_in();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->go_to_in();
 	}
 }
 
 void MainWindow::go_to_out() {
-	if (panel_timeline->focused()
-			|| panel_sequence_viewer->is_focused()
-			|| panel_effect_controls->keyframe_focus()
-			|| panel_graph_editor->view_is_focused()) {
-		panel_sequence_viewer->go_to_out();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->go_to_out();
+    if (e_panel_timeline->focused()
+            || e_panel_sequence_viewer->is_focused()
+            || e_panel_effect_controls->keyframe_focus()
+            || e_panel_graph_editor->view_is_focused()) {
+        e_panel_sequence_viewer->go_to_out();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->go_to_out();
 	}
 }
 
 void MainWindow::go_to_start() {
-	if (panel_timeline->focused()
-			|| panel_sequence_viewer->is_focused()
-			|| panel_effect_controls->keyframe_focus()
-			|| panel_graph_editor->view_is_focused()) {
-		panel_sequence_viewer->go_to_start();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->go_to_start();
+    if (e_panel_timeline->focused()
+            || e_panel_sequence_viewer->is_focused()
+            || e_panel_effect_controls->keyframe_focus()
+            || e_panel_graph_editor->view_is_focused()) {
+        e_panel_sequence_viewer->go_to_start();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->go_to_start();
 	}
 }
 
 void MainWindow::prev_frame() {
-	if (panel_timeline->focused()
-			|| panel_sequence_viewer->is_focused()
-			|| panel_effect_controls->keyframe_focus()
-			|| panel_graph_editor->view_is_focused()) {
-		panel_sequence_viewer->previous_frame();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->previous_frame();
+    if (e_panel_timeline->focused()
+            || e_panel_sequence_viewer->is_focused()
+            || e_panel_effect_controls->keyframe_focus()
+            || e_panel_graph_editor->view_is_focused()) {
+        e_panel_sequence_viewer->previous_frame();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->previous_frame();
 	}
 }
 
 void MainWindow::next_frame() {
-	if (panel_timeline->focused()
-			|| panel_sequence_viewer->is_focused()
-			|| panel_effect_controls->keyframe_focus()
-			|| panel_graph_editor->view_is_focused()) {
-		panel_sequence_viewer->next_frame();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->next_frame();
+    if (e_panel_timeline->focused()
+            || e_panel_sequence_viewer->is_focused()
+            || e_panel_effect_controls->keyframe_focus()
+            || e_panel_graph_editor->view_is_focused()) {
+        e_panel_sequence_viewer->next_frame();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->next_frame();
 	}
 }
 
 void MainWindow::go_to_end() {
-	if (panel_timeline->focused()
-			|| panel_sequence_viewer->is_focused()
-			|| panel_effect_controls->keyframe_focus()
-			|| panel_graph_editor->view_is_focused()) {
-		panel_sequence_viewer->go_to_end();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->go_to_end();
+    if (e_panel_timeline->focused()
+            || e_panel_sequence_viewer->is_focused()
+            || e_panel_effect_controls->keyframe_focus()
+            || e_panel_graph_editor->view_is_focused()) {
+        e_panel_sequence_viewer->go_to_end();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->go_to_end();
 	}
 }
 
 void MainWindow::playpause() {
-	if (panel_timeline->focused()
-			|| panel_sequence_viewer->is_focused()
-			|| panel_effect_controls->keyframe_focus()
-			|| panel_graph_editor->view_is_focused()) {
-		panel_sequence_viewer->toggle_play();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->toggle_play();
+    if (e_panel_timeline->focused()
+            || e_panel_sequence_viewer->is_focused()
+            || e_panel_effect_controls->keyframe_focus()
+            || e_panel_graph_editor->view_is_focused()) {
+        e_panel_sequence_viewer->toggle_play();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->toggle_play();
 	}
 }
 
 void MainWindow::prev_cut() {
-    if (e_sequence != NULL && (panel_timeline->focused() || panel_sequence_viewer->is_focused())) {
-		panel_timeline->previous_cut();
+    if (e_sequence != NULL && (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused())) {
+        e_panel_timeline->previous_cut();
 	}
 }
 
 void MainWindow::next_cut() {
-    if (e_sequence != NULL && (panel_timeline->focused() || panel_sequence_viewer->is_focused())) {
-		panel_timeline->next_cut();
+    if (e_sequence != NULL && (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused())) {
+        e_panel_timeline->next_cut();
 	}
 }
 
@@ -1102,11 +1102,11 @@ void MainWindow::preferences()
 }
 
 void MainWindow::zoom_in_tracks() {
-	panel_timeline->increase_track_height();
+    e_panel_timeline->increase_track_height();
 }
 
 void MainWindow::zoom_out_tracks() {
-	panel_timeline->decrease_track_height();
+    e_panel_timeline->decrease_track_height();
 }
 
 void MainWindow::windowMenu_About_To_Be_Shown() {
@@ -1122,20 +1122,20 @@ void MainWindow::windowMenu_About_To_Be_Shown() {
 void MainWindow::viewMenu_About_To_Be_Shown() {
 	set_bool_action_checked(track_lines);
 
-	set_int_action_checked(frames_action, config.timecode_view);
-	set_int_action_checked(drop_frame_action, config.timecode_view);
-	set_int_action_checked(nondrop_frame_action, config.timecode_view);
-	set_int_action_checked(milliseconds_action, config.timecode_view);
+	set_int_action_checked(frames_action, e_config.timecode_view);
+	set_int_action_checked(drop_frame_action, e_config.timecode_view);
+	set_int_action_checked(nondrop_frame_action, e_config.timecode_view);
+	set_int_action_checked(milliseconds_action, e_config.timecode_view);
 
-	title_safe_off->setChecked(!config.show_title_safe_area);
-	title_safe_default->setChecked(config.show_title_safe_area && !config.use_custom_title_safe_ratio);
-	title_safe_43->setChecked(config.show_title_safe_area && config.use_custom_title_safe_ratio && config.custom_title_safe_ratio == 4.0/3.0);
-	title_safe_169->setChecked(config.show_title_safe_area && config.use_custom_title_safe_ratio && config.custom_title_safe_ratio == 16.0/9.0);
-	title_safe_custom->setChecked(config.show_title_safe_area && config.use_custom_title_safe_ratio && !title_safe_43->isChecked() && !title_safe_169->isChecked());
+	title_safe_off->setChecked(!e_config.show_title_safe_area);
+	title_safe_default->setChecked(e_config.show_title_safe_area && !e_config.use_custom_title_safe_ratio);
+	title_safe_43->setChecked(e_config.show_title_safe_area && e_config.use_custom_title_safe_ratio && e_config.custom_title_safe_ratio == 4.0/3.0);
+	title_safe_169->setChecked(e_config.show_title_safe_area && e_config.use_custom_title_safe_ratio && e_config.custom_title_safe_ratio == 16.0/9.0);
+	title_safe_custom->setChecked(e_config.show_title_safe_area && e_config.use_custom_title_safe_ratio && !title_safe_43->isChecked() && !title_safe_169->isChecked());
 
 	full_screen->setChecked(windowState() == Qt::WindowFullScreen);
 
-	show_all->setChecked(panel_timeline->showing_all);
+    show_all->setChecked(e_panel_timeline->showing_all);
 }
 
 void MainWindow::toolMenu_About_To_Be_Shown() {
@@ -1165,32 +1165,32 @@ void MainWindow::toolMenu_About_To_Be_Shown() {
 	set_bool_action_checked(loop_action);
 	set_bool_action_checked(pause_at_out_point_action);
 
-	set_int_action_checked(no_autoscroll, config.autoscroll);
-	set_int_action_checked(page_autoscroll, config.autoscroll);
-	set_int_action_checked(smooth_autoscroll, config.autoscroll);
+	set_int_action_checked(no_autoscroll, e_config.autoscroll);
+	set_int_action_checked(page_autoscroll, e_config.autoscroll);
+	set_int_action_checked(smooth_autoscroll, e_config.autoscroll);
 }
 
 void MainWindow::duplicate() {
-	if (panel_project->is_focused()) {
-		panel_project->duplicate_selected();
+    if (e_panel_project->is_focused()) {
+        e_panel_project->duplicate_selected();
 	}
 }
 
 void MainWindow::add_default_transition() {
-	if (panel_timeline->focused()) panel_timeline->add_transition();
+    if (e_panel_timeline->focused()) e_panel_timeline->add_transition();
 }
 
 void MainWindow::new_folder() {
-	Media* m = panel_project->new_folder(0);
-	e_undo_stack.push(new AddMediaCommand(m, panel_project->get_selected_folder()));
+    Media* m = e_panel_project->new_folder(0);
+    e_undo_stack.push(new AddMediaCommand(m, e_panel_project->get_selected_folder()));
 
 	QModelIndex index = project_model.create_index(m->row(), 0, m);
-	switch (config.project_view_type) {
+	switch (e_config.project_view_type) {
 	case PROJECT_VIEW_TREE:
-		panel_project->tree_view->edit(panel_project->sorter->mapFromSource(index));
+        e_panel_project->tree_view->edit(e_panel_project->sorter->mapFromSource(index));
 		break;
 	case PROJECT_VIEW_ICON:
-		panel_project->icon_view->edit(panel_project->sorter->mapFromSource(index));
+        e_panel_project->icon_view->edit(e_panel_project->sorter->mapFromSource(index));
 		break;
 	}
 }
@@ -1223,7 +1223,7 @@ void MainWindow::load_recent_project() {
 	if (!QFile::exists(recent_url)) {
 		if (QMessageBox::question(this, "Missing recent project", "The project '" + recent_url + "' no longer exists. Would you like to remove it from the recent projects list?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
 			recent_projects.removeAt(index);
-			panel_project->save_recent_projects();
+            e_panel_project->save_recent_projects();
 		}
 	} else if (can_close_project()) {
 		open_project_worker(recent_url, false);
@@ -1231,50 +1231,50 @@ void MainWindow::load_recent_project() {
 }
 
 void MainWindow::ripple_to_in_point() {
-	if (panel_timeline->focused()) panel_timeline->ripple_to_in_point(true, true);
+    if (e_panel_timeline->focused()) e_panel_timeline->ripple_to_in_point(true, true);
 }
 
 void MainWindow::ripple_to_out_point() {
-	if (panel_timeline->focused()) panel_timeline->ripple_to_in_point(false, true);
+    if (e_panel_timeline->focused()) e_panel_timeline->ripple_to_in_point(false, true);
 }
 
 void MainWindow::set_in_point() {
-	if (panel_timeline->focused() || panel_sequence_viewer->is_focused()) {
-		panel_sequence_viewer->set_in_point();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->set_in_point();
+    if (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused()) {
+        e_panel_sequence_viewer->set_in_point();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->set_in_point();
 	}
 }
 
 void MainWindow::set_out_point() {
-	if (panel_timeline->focused() || panel_sequence_viewer->is_focused()) {
-		panel_sequence_viewer->set_out_point();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->set_out_point();
+    if (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused()) {
+        e_panel_sequence_viewer->set_out_point();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->set_out_point();
 	}
 }
 
 void MainWindow::clear_in() {
-    if (panel_timeline->focused() || panel_sequence_viewer->is_focused()) {
-        panel_sequence_viewer->clear_in();
-    } else if (panel_footage_viewer->is_focused()) {
-        panel_footage_viewer->clear_in();
+    if (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused()) {
+        e_panel_sequence_viewer->clear_in();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->clear_in();
     }
 }
 
 void MainWindow::clear_out() {
-    if (panel_timeline->focused() || panel_sequence_viewer->is_focused()) {
-        panel_sequence_viewer->clear_out();
-    } else if (panel_footage_viewer->is_focused()) {
-        panel_footage_viewer->clear_out();
+    if (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused()) {
+        e_panel_sequence_viewer->clear_out();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->clear_out();
     }
 }
 
 void MainWindow::clear_inout() {
-	if (panel_timeline->focused() || panel_sequence_viewer->is_focused()) {
-		panel_sequence_viewer->clear_inout_point();
-	} else if (panel_footage_viewer->is_focused()) {
-		panel_footage_viewer->clear_inout_point();
+    if (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused()) {
+        e_panel_sequence_viewer->clear_inout_point();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->clear_inout_point();
 	}
 }
 
@@ -1288,49 +1288,49 @@ void MainWindow::toggle_full_screen() {
 }
 
 void MainWindow::delete_inout() {
-	if (panel_timeline->focused()) {
-		panel_timeline->delete_in_out(false);
+    if (e_panel_timeline->focused()) {
+        e_panel_timeline->delete_in_out(false);
 	}
 }
 
 void MainWindow::ripple_delete_inout()
 {
-	if (panel_timeline->focused()) {
-		panel_timeline->delete_in_out(true);
+    if (e_panel_timeline->focused()) {
+        e_panel_timeline->delete_in_out(true);
 	}
 }
 
 void MainWindow::enable_inout() {
-    if (panel_timeline->focused() || panel_sequence_viewer->is_focused()) {
-        panel_sequence_viewer->toggle_enable_inout();
-    } else if (panel_footage_viewer->is_focused()) {
-        panel_footage_viewer->toggle_enable_inout();
+    if (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused()) {
+        e_panel_sequence_viewer->toggle_enable_inout();
+    } else if (e_panel_footage_viewer->is_focused()) {
+        e_panel_footage_viewer->toggle_enable_inout();
     }
 }
 
 void MainWindow::set_tsa_default() {
-	config.show_title_safe_area = true;
-	config.use_custom_title_safe_ratio = false;
-	panel_sequence_viewer->viewer_widget->update();
+	e_config.show_title_safe_area = true;
+	e_config.use_custom_title_safe_ratio = false;
+    e_panel_sequence_viewer->viewer_widget->update();
 }
 
 void MainWindow::set_tsa_disable() {
-	config.show_title_safe_area = false;
-	panel_sequence_viewer->viewer_widget->update();
+	e_config.show_title_safe_area = false;
+    e_panel_sequence_viewer->viewer_widget->update();
 }
 
 void MainWindow::set_tsa_43() {
-	config.show_title_safe_area = true;
-	config.use_custom_title_safe_ratio = true;
-	config.custom_title_safe_ratio = 4.0/3.0;
-	panel_sequence_viewer->viewer_widget->update();
+	e_config.show_title_safe_area = true;
+	e_config.use_custom_title_safe_ratio = true;
+	e_config.custom_title_safe_ratio = 4.0/3.0;
+    e_panel_sequence_viewer->viewer_widget->update();
 }
 
 void MainWindow::set_tsa_169() {
-	config.show_title_safe_area = true;
-	config.use_custom_title_safe_ratio = true;
-	config.custom_title_safe_ratio = 16.0/9.0;
-	panel_sequence_viewer->viewer_widget->update();
+	e_config.show_title_safe_area = true;
+	e_config.use_custom_title_safe_ratio = true;
+	e_config.custom_title_safe_ratio = 16.0/9.0;
+    e_panel_sequence_viewer->viewer_widget->update();
 }
 
 void MainWindow::set_tsa_custom() {
@@ -1350,15 +1350,15 @@ void MainWindow::set_tsa_custom() {
 	if (!input.isEmpty()) {
 		QStringList inputList = input.split(':');
 
-		config.show_title_safe_area = true;
-		config.use_custom_title_safe_ratio = true;
-		config.custom_title_safe_ratio = inputList.at(0).toDouble()/inputList.at(1).toDouble();
-		panel_sequence_viewer->viewer_widget->update();
+		e_config.show_title_safe_area = true;
+		e_config.use_custom_title_safe_ratio = true;
+		e_config.custom_title_safe_ratio = inputList.at(0).toDouble()/inputList.at(1).toDouble();
+        e_panel_sequence_viewer->viewer_widget->update();
 	}
 }
 
 void MainWindow::set_marker() {
-    if (e_sequence != NULL) panel_timeline->set_marker();
+    if (e_sequence != NULL) e_panel_timeline->set_marker();
 }
 
 void MainWindow::toggle_enable_clips() {
@@ -1367,8 +1367,8 @@ void MainWindow::toggle_enable_clips() {
 		bool push_undo = false;
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr  c = e_sequence->clips.at(i);
-			if (c != NULL && panel_timeline->is_clip_selected(c, true)) {
-				ca->append(new SetEnableCommand(c, !c->enabled));
+            if (c != NULL && e_panel_timeline->is_clip_selected(c, true)) {
+                ca->append(new SetEnableCommand(c, !c->timeline_info.enabled));
 				push_undo = true;
 			}
 		}
@@ -1382,11 +1382,11 @@ void MainWindow::toggle_enable_clips() {
 }
 
 void MainWindow::edit_to_in_point() {
-	if (panel_timeline->focused()) panel_timeline->ripple_to_in_point(true, false);
+    if (e_panel_timeline->focused()) e_panel_timeline->ripple_to_in_point(true, false);
 }
 
 void MainWindow::edit_to_out_point() {
-	if (panel_timeline->focused()) panel_timeline->ripple_to_in_point(false, false);
+    if (e_panel_timeline->focused()) e_panel_timeline->ripple_to_in_point(false, false);
 }
 
 void MainWindow::nest() {
@@ -1397,9 +1397,9 @@ void MainWindow::nest() {
 		// get selected clips
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr  c = e_sequence->clips.at(i);
-			if (c != NULL && panel_timeline->is_clip_selected(c, true)) {
+            if (c != NULL && e_panel_timeline->is_clip_selected(c, true)) {
 				selected_clips.append(i);
-				earliest_point = qMin(c->timeline_in, earliest_point);
+                earliest_point = qMin(c->timeline_info.in, earliest_point);
 			}
 		}
 
@@ -1410,7 +1410,7 @@ void MainWindow::nest() {
             SequencePtr s(new Sequence());
 
 			// create "nest" sequence
-            s->setName(panel_project->get_next_sequence_name("Nested Sequence"));
+            s->setName(e_panel_project->get_next_sequence_name("Nested Sequence"));
             s->setWidth(e_sequence->getWidth());
             s->setHeight(e_sequence->getHeight());
             s->setFrameRate(e_sequence->getFrameRate());
@@ -1424,21 +1424,21 @@ void MainWindow::nest() {
 
 				// copy to new
                 ClipPtr  copy = e_sequence->clips.at(selected_clips.at(i))->copy(s);
-				copy->timeline_in -= earliest_point;
-				copy->timeline_out -= earliest_point;
+				copy->timeline_info.in -= earliest_point;
+                copy->timeline_info.out -= earliest_point;
 				s->clips.append(copy);
 			}
 
 			// add sequence to project
-			Media* m = panel_project->new_sequence(ca, s, false, NULL);
+            Media* m = e_panel_project->new_sequence(ca, s, false, NULL);
 
 			// add nested sequence to active sequence
 			QVector<Media*> media_list;
 			media_list.append(m);
-            panel_timeline->create_ghosts_from_media(e_sequence, earliest_point, media_list);
-            panel_timeline->add_clips_from_ghosts(ca, e_sequence);
+            e_panel_timeline->create_ghosts_from_media(e_sequence, earliest_point, media_list);
+            e_panel_timeline->add_clips_from_ghosts(ca, e_sequence);
 
-			panel_effect_controls->clear_effects(true);
+            e_panel_effect_controls->clear_effects(true);
             e_sequence->selections.clear();
 
 			e_undo_stack.push(ca);
@@ -1449,8 +1449,8 @@ void MainWindow::nest() {
 }
 
 void MainWindow::paste_insert() {
-    if (panel_timeline->focused() && e_sequence != NULL) {
-		panel_timeline->paste(true);
+    if (e_panel_timeline->focused() && e_sequence != NULL) {
+        e_panel_timeline->paste(true);
 	}
 }
 
@@ -1463,14 +1463,14 @@ void MainWindow::toggle_bool_action() {
 
 void MainWindow::set_autoscroll() {
 	QAction* action = static_cast<QAction*>(sender());
-	config.autoscroll = action->data().toInt();
+	e_config.autoscroll = action->data().toInt();
 }
 
 void MainWindow::menu_click_button() {
-	if (panel_timeline->focused()
-			|| panel_effect_controls->keyframe_focus()
-			|| panel_footage_viewer->is_focused()
-			|| panel_sequence_viewer->is_focused())
+    if (e_panel_timeline->focused()
+            || e_panel_effect_controls->keyframe_focus()
+            || e_panel_footage_viewer->is_focused()
+            || e_panel_sequence_viewer->is_focused())
 		reinterpret_cast<QPushButton*>(static_cast<QAction*>(sender())->data().value<quintptr>())->click();
 }
 
@@ -1482,6 +1482,6 @@ void MainWindow::toggle_panel_visibility() {
 
 void MainWindow::set_timecode_view() {
 	QAction* action = static_cast<QAction*>(sender());
-	config.timecode_view = action->data().toInt();
+	e_config.timecode_view = action->data().toInt();
 	update_ui(false);
 }

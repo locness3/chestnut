@@ -63,7 +63,7 @@ void init_audio() {
 	stop_audio();
 
 	QAudioFormat audio_format;
-	audio_format.setSampleRate(config.audio_rate);
+	audio_format.setSampleRate(e_config.audio_rate);
 	audio_format.setChannelCount(2);
 	audio_format.setSampleSize(16);
 	audio_format.setCodec("audio/pcm");
@@ -160,7 +160,7 @@ void AudioSenderThread::run() {
 		cond.wait(&lock);
 		if (close) {
 			break;
-		} else if (panel_sequence_viewer->playing || panel_footage_viewer->playing || audio_scrub) {
+		} else if (e_panel_sequence_viewer->playing || e_panel_footage_viewer->playing || audio_scrub) {
 			int written_bytes = 0;
 
 			int adjusted_read_index = audio_ibuffer_read%audio_ibuffer_size;
@@ -190,15 +190,15 @@ int AudioSenderThread::send_audio_to_output(int offset, int max) {
 	/*if (panel_footage_viewer->playing) {
 		s = panel_footage_viewer->seq;
 	}*/
-	if (panel_sequence_viewer->playing) {
-		s = panel_sequence_viewer->seq;
+	if (e_panel_sequence_viewer->playing) {
+		s = e_panel_sequence_viewer->seq;
 	}
 	if (s != NULL) {
-		if (panel_timeline->audio_monitor->sample_cache_offset == -1) {
-			panel_timeline->audio_monitor->sample_cache_offset = s->playhead;
+		if (e_panel_timeline->audio_monitor->sample_cache_offset == -1) {
+			e_panel_timeline->audio_monitor->sample_cache_offset = s->playhead;
 		}
         int channel_count = av_get_channel_layout_nb_channels(s->getAudioLayout());
-		long sample_cache_playhead = panel_timeline->audio_monitor->sample_cache_offset + (panel_timeline->audio_monitor->sample_cache.size()/channel_count);
+		long sample_cache_playhead = e_panel_timeline->audio_monitor->sample_cache_offset + (e_panel_timeline->audio_monitor->sample_cache.size()/channel_count);
 		int next_buffer_offset, buffer_offset_adjusted, i;
         int buffer_offset = get_buffer_offset_from_frame(s->getFrameRate(), sample_cache_playhead);
 		if (samples.size() != channel_count) samples.resize(channel_count);
@@ -215,7 +215,7 @@ int AudioSenderThread::send_audio_to_output(int offset, int max) {
 					buffer_offset += 2;
 				}
 			}
-			panel_timeline->audio_monitor->sample_cache.append(samples);
+			e_panel_timeline->audio_monitor->sample_cache.append(samples);
 			buffer_offset = next_buffer_offset;
 		}
 	}
@@ -330,8 +330,8 @@ bool start_recording() {
 	}
 
 	QAudioFormat audio_format = audio_output->format();
-	if (config.recording_mode != audio_format.channelCount()) {
-		audio_format.setChannelCount(config.recording_mode);
+	if (e_config.recording_mode != audio_format.channelCount()) {
+		audio_format.setChannelCount(e_config.recording_mode);
 	}
 	QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
 	if (!info.isFormatSupported(audio_format)) {

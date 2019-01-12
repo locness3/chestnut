@@ -28,12 +28,12 @@ class QWidget;
 class QDockWidget;
 class QScrollBar;
 
-extern Project* panel_project;
-extern EffectControls* panel_effect_controls;
-extern Viewer* panel_sequence_viewer;
-extern Viewer* panel_footage_viewer;
-extern Timeline* panel_timeline;
-extern GraphEditor* panel_graph_editor;
+extern Project* e_panel_project;
+extern EffectControls* e_panel_effect_controls;
+extern Viewer* e_panel_sequence_viewer;
+extern Viewer* e_panel_footage_viewer;
+extern Timeline* e_panel_timeline;
+extern GraphEditor* e_panel_graph_editor;
 
 void update_ui(bool modified);
 QDockWidget* get_focused_panel();

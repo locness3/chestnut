@@ -41,6 +41,7 @@
 #define FRAME_QUEUE_TYPE_FRAMES 0
 #define FRAME_QUEUE_TYPE_SECONDS 1
 
+//FIXME; oh,wow
 struct Config {
 	Config();
 	bool saved_layout;
@@ -82,6 +83,6 @@ struct Config {
 	void save(QString path);
 };
 
-extern Config config;
+extern Config e_config;
 
 #endif // CONFIG_H

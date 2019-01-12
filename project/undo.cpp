@@ -80,10 +80,10 @@ void ComboAction::appendPost(QUndoCommand* u) {
 
 MoveClipAction::MoveClipAction(ClipPtr c, long iin, long iout, long iclip_in, int itrack, bool irelative) :
 	clip(c),
-	old_in(c->timeline_in),
-	old_out(c->timeline_out),
-	old_clip_in(c->clip_in),
-	old_track(c->track),
+    old_in(c->timeline_info.in),
+    old_out(c->timeline_info.out),
+    old_clip_in(c->timeline_info.clip_in),
+    old_track(c->timeline_info.track),
 	new_in(iin),
 	new_out(iout),
 	new_clip_in(iclip_in),
@@ -99,15 +99,15 @@ MoveClipAction::~MoveClipAction() {
 
 void MoveClipAction::undo() {
 	if (relative) {
-		clip->timeline_in -= new_in;
-		clip->timeline_out -= new_out;
-		clip->clip_in -= new_clip_in;
-		clip->track -= new_track;
+        clip->timeline_info.in -= new_in;
+        clip->timeline_info.out -= new_out;
+        clip->timeline_info.clip_in -= new_clip_in;
+        clip->timeline_info.track -= new_track;
 	} else {
-		clip->timeline_in = old_in;
-		clip->timeline_out = old_out;
-		clip->clip_in = old_clip_in;
-		clip->track = old_track;
+        clip->timeline_info.in = old_in;
+        clip->timeline_info.out = old_out;
+        clip->timeline_info.clip_in = old_clip_in;
+        clip->timeline_info.track = old_track;
 	}
 
 	mainWindow->setWindowModified(old_project_changed);
@@ -115,15 +115,15 @@ void MoveClipAction::undo() {
 
 void MoveClipAction::redo() {
 	if (relative) {
-		clip->timeline_in += new_in;
-		clip->timeline_out += new_out;
-		clip->clip_in += new_clip_in;
-		clip->track += new_track;
+        clip->timeline_info.in += new_in;
+        clip->timeline_info.out += new_out;
+        clip->timeline_info.clip_in += new_clip_in;
+        clip->timeline_info.track += new_track;
 	} else {
-		clip->timeline_in = new_in;
-		clip->timeline_out = new_out;
-		clip->clip_in = new_clip_in;
-		clip->track = new_track;
+        clip->timeline_info.in = new_in;
+        clip->timeline_info.out = new_out;
+        clip->timeline_info.clip_in = new_clip_in;
+        clip->timeline_info.track = new_track;
 	}
 
 	mainWindow->setWindowModified(true);
@@ -237,7 +237,7 @@ void SetTimelineInOutCommand::undo() {
 
 	// footage viewer functions
 	if (seq->wrapper_sequence) {
-        FootagePtr  m = seq->clips.at(0)->media->get_object<Footage>();
+        FootagePtr  m = seq->clips.at(0)->timeline_info.media->get_object<Footage>();
 		m->using_inout = old_enabled;
 		m->in = old_in;
 		m->out = old_out;
@@ -259,7 +259,7 @@ void SetTimelineInOutCommand::redo() {
 
 	// footage viewer functions
 	if (seq->wrapper_sequence) {
-        FootagePtr  m = seq->clips.at(0)->media->get_object<Footage>();
+        FootagePtr  m = seq->clips.at(0)->timeline_info.media->get_object<Footage>();
 		m->using_inout = new_enabled;
 		m->in = new_in;
 		m->out = new_out;
@@ -509,10 +509,10 @@ AddClipCommand::~AddClipCommand() {
 }
 
 void AddClipCommand::undo() {
-	panel_effect_controls->clear_effects(true);
+    e_panel_effect_controls->clear_effects(true);
 	for (int i=0;i<clips.size();i++) {
         ClipPtr   c = seq->clips.last();
-		panel_timeline->deselect_area(c->timeline_in, c->timeline_out, c->track);
+        e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track);
 		undone_clips.prepend(c);
 		if (c->open) close_clip(c, true);
 		seq->clips.removeLast();
@@ -603,12 +603,12 @@ ReplaceMediaCommand::ReplaceMediaCommand(Media* i, QString s) :
 
 void ReplaceMediaCommand::replace(QString& filename) {
 	// close any clips currently using this media
-	QVector<Media*> all_sequences = panel_project->list_all_project_sequences();
+    QVector<Media*> all_sequences = e_panel_project->list_all_project_sequences();
 	for (int i=0;i<all_sequences.size();i++) {
         SequencePtr s = all_sequences.at(i)->get_object<Sequence>();
 		for (int j=0;j<s->clips.size();j++) {
             ClipPtr   c = s->clips.at(j);
-			if (c != NULL && c->media == item && c->open) {
+            if (c != NULL && c->timeline_info.media == item && c->open) {
 				close_clip(c, true);
 				c->replaced = true;
 			}
@@ -619,7 +619,7 @@ void ReplaceMediaCommand::replace(QString& filename) {
 	QStringList files;
 	files.append(filename);
 	item->get_object<Footage>()->ready_lock.lock();
-	panel_project->process_file_list(files, false, item, NULL);
+    e_panel_project->process_file_list(files, false, item, NULL);
 }
 
 void ReplaceMediaCommand::undo() {
@@ -654,17 +654,17 @@ void ReplaceClipMediaCommand::replace(bool undo) {
 
 		if (undo) {
 			if (!preserve_clip_ins) {
-				c->clip_in = old_clip_ins.at(i);
+                c->timeline_info.clip_in = old_clip_ins.at(i);
 			}
 
-			c->media = old_media;
+            c->timeline_info.media = old_media;
 		} else {
 			if (!preserve_clip_ins) {
-				old_clip_ins.append(c->clip_in);
-				c->clip_in = 0;
+                old_clip_ins.append(c->timeline_info.clip_in);
+                c->timeline_info.clip_in = 0;
 			}
 
-			c->media = new_media;
+            c->timeline_info.media = new_media;
 		}
 
 		c->replaced = true;
@@ -701,7 +701,7 @@ void EffectDeleteCommand::undo() {
         ClipPtr   c = clips.at(i);
 		c->effects.insert(fx.at(i), deleted_objects.at(i));
 	}
-	panel_effect_controls->reload_clips();
+    e_panel_effect_controls->reload_clips();
 	done = false;
 	mainWindow->setWindowModified(old_project_changed);
 }
@@ -716,7 +716,7 @@ void EffectDeleteCommand::redo() {
 		deleted_objects.append(e);
 		c->effects.removeAt(fx_id);
 	}
-	panel_effect_controls->reload_clips();
+    e_panel_effect_controls->reload_clips();
 	done = true;
 	mainWindow->setWindowModified(true);
 }
@@ -803,17 +803,17 @@ SetAutoscaleAction::SetAutoscaleAction() :
 
 void SetAutoscaleAction::undo() {
 	for (int i=0;i<clips.size();i++) {
-		clips.at(i)->autoscale = !clips.at(i)->autoscale;
+        clips.at(i)->timeline_info.autoscale = !clips.at(i)->timeline_info.autoscale;
 	}
-	panel_sequence_viewer->viewer_widget->update();
+    e_panel_sequence_viewer->viewer_widget->update();
 	mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetAutoscaleAction::redo() {
 	for (int i=0;i<clips.size();i++) {
-		clips.at(i)->autoscale = !clips.at(i)->autoscale;
+        clips.at(i)->timeline_info.autoscale = !clips.at(i)->timeline_info.autoscale;
 	}
-	panel_sequence_viewer->viewer_widget->update();
+    e_panel_sequence_viewer->viewer_widget->update();
 	mainWindow->setWindowModified(true);
 }
 
@@ -904,19 +904,19 @@ void DeleteMarkerAction::redo() {
 
 SetSpeedAction::SetSpeedAction(ClipPtr   c, double speed) :
 	clip(c),
-	old_speed(c->speed),
+    old_speed(c->timeline_info.speed),
 	new_speed(speed),
 	old_project_changed(mainWindow->isWindowModified())
 {}
 
 void SetSpeedAction::undo() {
-	clip->speed = old_speed;
+    clip->timeline_info.speed = old_speed;
 	clip->recalculateMaxLength();
 	mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetSpeedAction::redo() {
-	clip->speed = new_speed;
+    clip->timeline_info.speed = new_speed;
 	clip->recalculateMaxLength();
 	mainWindow->setWindowModified(true);
 }
@@ -960,18 +960,18 @@ void SetSelectionsCommand::redo() {
 
 SetEnableCommand::SetEnableCommand(ClipPtr   c, bool enable) :
 	clip(c),
-	old_val(c->enabled),
+    old_val(c->timeline_info.enabled),
 	new_val(enable),
 	old_project_changed(mainWindow->isWindowModified())
 {}
 
 void SetEnableCommand::undo() {
-	clip->enabled = old_val;
+    clip->timeline_info.enabled = old_val;
 	mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetEnableCommand::redo() {
-	clip->enabled = new_val;
+    clip->timeline_info.enabled = new_val;
 	mainWindow->setWindowModified(true);
 }
 
@@ -1119,15 +1119,15 @@ RenameClipCommand::RenameClipCommand() :
 
 void RenameClipCommand::undo() {
 	for (int i=0;i<clips.size();i++) {
-		clips.at(i)->name = old_names.at(i);
+        clips.at(i)->setName(old_names.at(i));
 	}
 }
 
 void RenameClipCommand::redo() {
 	old_names.resize(clips.size());
 	for (int i=0;i<clips.size();i++) {
-		old_names[i] = clips.at(i)->name;
-		clips.at(i)->name = new_name;
+        old_names[i] = clips.at(i)->getName();
+        clips.at(i)->setName(new_name);
 	}
 }
 
@@ -1153,7 +1153,7 @@ void ReloadEffectsCommand::undo() {
 }
 
 void ReloadEffectsCommand::redo() {
-	panel_effect_controls->reload_clips();
+    e_panel_effect_controls->reload_clips();
 }
 
 RippleAction::RippleAction(SequencePtr is, long ipoint, long ilength, const QVector<int> &iignore) :
@@ -1174,7 +1174,7 @@ void RippleAction::redo() {
 		if (!ignore.contains(i)) {
             ClipPtr   c = s->clips.at(i);
 			if (c != NULL) {
-				if (c->timeline_in >= point) {
+                if (c->timeline_info.in >= point) {
 					move_clip(ca, c, length, length, 0, 0, true, true);
 				}
 			}
@@ -1276,12 +1276,12 @@ void RefreshClips::undo() {
 
 void RefreshClips::redo() {
 	// close any clips currently using this media
-	QVector<Media*> all_sequences = panel_project->list_all_project_sequences();
+    QVector<Media*> all_sequences = e_panel_project->list_all_project_sequences();
 	for (int i=0;i<all_sequences.size();i++) {
         SequencePtr s = all_sequences.at(i)->get_object<Sequence>();
 		for (int j=0;j<s->clips.size();j++) {
             ClipPtr   c = s->clips.at(j);
-			if (c != NULL && c->media == media) {
+            if (c != NULL && c->timeline_info.media == media) {
 				c->replaced = true;
 				c->refresh();
 			}

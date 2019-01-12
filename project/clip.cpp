@@ -37,16 +37,6 @@ extern "C" {
 
 Clip::Clip(SequencePtr s) :
     sequence(s),
-    enabled(true),
-    clip_in(0),
-    timeline_in(0),
-    timeline_out(0),
-    track(0),
-    media(NULL),
-    speed(1.0),
-    reverse(false),
-    maintain_audio_pitch(false),
-    autoscale(config.autoscale_by_default),
     opening_transition(-1),
     closing_transition(-1),
     undeletable(false),
@@ -58,6 +48,7 @@ Clip::Clip(SequencePtr s) :
     media_handling()
 {
     media_handling.pkt = av_packet_alloc();
+    timeline_info.autoscale = e_config.autoscale_by_default;
     reset();
 }
 
@@ -88,27 +79,25 @@ Clip::Clip(const Clip& cpy)
 ClipPtr Clip::copy(SequencePtr s) {
     ClipPtr copyClip(new Clip(s));
 
-    copyClip->enabled = enabled;
-    copyClip->name = QString(name);
-    copyClip->clip_in = clip_in;
-    copyClip->timeline_in = timeline_in;
-    copyClip->timeline_out = timeline_out;
-    copyClip->track = track;
-    copyClip->color_r = color_r;
-    copyClip->color_g = color_g;
-    copyClip->color_b = color_b;
-    copyClip->media = media;
-    copyClip->media_stream = media_stream;
-    copyClip->autoscale = autoscale;
-    copyClip->speed = speed;
-    copyClip->maintain_audio_pitch = maintain_audio_pitch;
-    copyClip->reverse = reverse;
+    copyClip->timeline_info.enabled = timeline_info.enabled;
+    copyClip->timeline_info.name = timeline_info.name;
+    copyClip->timeline_info.clip_in = timeline_info.clip_in;
+    copyClip->timeline_info.in = timeline_info.in;
+    copyClip->timeline_info.out = timeline_info.out;
+    copyClip->timeline_info.track = timeline_info.track;
+    copyClip->timeline_info.color = timeline_info.color;
+    copyClip->timeline_info.media = timeline_info.media;
+    copyClip->timeline_info.media_stream = timeline_info.media_stream;
+    copyClip->timeline_info.autoscale = timeline_info.autoscale;
+    copyClip->timeline_info.speed = timeline_info.speed;
+    copyClip->timeline_info.maintain_audio_pitch = timeline_info.maintain_audio_pitch;
+    copyClip->timeline_info.reverse = timeline_info.reverse;
 
     for (int i=0; i<effects.size(); i++) {
         //        copy->effects.append(effects.at(i)->copy(copy)); //TODO:hmm
     }
 
-    copyClip->cached_fr = (this->sequence == NULL) ? cached_fr : this->sequence->getFrameRate();
+    copyClip->timeline_info.cached_fr = (this->sequence == NULL) ? timeline_info.cached_fr : this->sequence->getFrameRate();
 
     if (get_opening_transition() != NULL && get_opening_transition()->secondary_clip == NULL) {
         copyClip->opening_transition = get_opening_transition()->copy(copyClip, NULL);
@@ -128,7 +117,7 @@ project::SequenceItemType_E Clip::getType() const {
 
 
 bool Clip::isActive(const long playhead) {
-    if (enabled) {
+    if (timeline_info.enabled) {
         if (sequence != NULL) {
             if ( get_timeline_in_with_transition() < (playhead + (ceil(sequence->getFrameRate()*2)) ) )  {                      //TODO:what are we checking?
                 if (get_timeline_out_with_transition() > playhead) {                                                            //TODO:what are we checking?
@@ -161,12 +150,12 @@ void Clip::reset() {
 }
 
 void Clip::reset_audio() {
-    if (media == NULL || media->get_type() == MEDIA_TYPE_FOOTAGE) {
+    if (timeline_info.media == NULL || timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
         audio_playback.reset = true;
         audio_playback.frame_sample_index = -1;
         audio_playback.buffer_write = 0;
-    } else if (media->get_type() == MEDIA_TYPE_SEQUENCE) {
-        SequencePtr nested_sequence = media->get_object<Sequence>();
+    } else if (timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
+        SequencePtr nested_sequence = timeline_info.media->get_object<Sequence>();
         for (int i=0;i<nested_sequence->clips.size();i++) {
             ClipPtr c(nested_sequence->clips.at(i));
             if (c != NULL) c->reset_audio();
@@ -176,13 +165,13 @@ void Clip::reset_audio() {
 
 void Clip::refresh() {
     // validates media if it was replaced
-    if (replaced && media != NULL && media->get_type() == MEDIA_TYPE_FOOTAGE) {
-        FootagePtr m = media->get_object<Footage>();
+    if (replaced && timeline_info.media != NULL && timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
+        FootagePtr m = timeline_info.media->get_object<Footage>();
 
-        if (track < 0 && m->video_tracks.size() > 0)  {
-            media_stream = m->video_tracks.at(0).file_index;
-        } else if (track >= 0 && m->audio_tracks.size() > 0) {
-            media_stream = m->audio_tracks.at(0).file_index;
+        if (timeline_info.track < 0 && m->video_tracks.size() > 0)  {
+            timeline_info.media_stream = m->video_tracks.at(0).file_index;
+        } else if (timeline_info.track >= 0 && m->audio_tracks.size() > 0) {
+            timeline_info.media_stream = m->audio_tracks.at(0).file_index;
         }
     }
     replaced = false;
@@ -240,37 +229,37 @@ Transition* Clip::get_closing_transition() {
 long Clip::get_clip_in_with_transition() {
     if (get_opening_transition() != NULL && get_opening_transition()->secondary_clip != NULL) {
         // we must be the secondary clip, so return (timeline in - length)
-        return clip_in - get_opening_transition()->get_true_length();
+        return timeline_info.clip_in - get_opening_transition()->get_true_length();
     }
-    return clip_in;
+    return timeline_info.clip_in;
 }
 
 long Clip::get_timeline_in_with_transition() {
     if (get_opening_transition() != NULL && get_opening_transition()->secondary_clip != NULL) {
         // we must be the secondary clip, so return (timeline in - length)
-        return timeline_in - get_opening_transition()->get_true_length();
+        return timeline_info.in - get_opening_transition()->get_true_length();
     }
-    return timeline_in;
+    return timeline_info.in;
 }
 
 long Clip::get_timeline_out_with_transition() {
     if (get_closing_transition() != NULL && get_closing_transition()->secondary_clip != NULL) {
         // we must be the primary clip, so return (timeline out + length2)
-        return timeline_out + get_closing_transition()->get_true_length();
+        return timeline_info.out + get_closing_transition()->get_true_length();
     } else {
-        return timeline_out;
+        return timeline_info.out;
     }
 }
 
 // timeline functions
 long Clip::getLength() {
-    return timeline_out - timeline_in;
+    return timeline_info.out - timeline_info.in;
 }
 
 double Clip::getMediaFrameRate() {
-    Q_ASSERT(track < 0);
-    if (media != NULL) {
-        double rate = media->get_frame_rate(media_stream);
+    Q_ASSERT(timeline_info.track < 0);
+    if (timeline_info.media != NULL) {
+        double rate = timeline_info.media->get_frame_rate(timeline_info.media_stream);
         if (!qIsNaN(rate)) return rate;
     }
     if (sequence != NULL) return sequence->getFrameRate();
@@ -282,17 +271,17 @@ void Clip::recalculateMaxLength() {
     if (sequence != NULL) {
         double fr = this->sequence->getFrameRate();
 
-        fr /= speed;
+        fr /= timeline_info.speed;
 
         media_handling.calculated_length = LONG_MAX;
 
-        if (media != NULL) {
-            switch (media->get_type()) {
+        if (timeline_info.media != NULL) {
+            switch (timeline_info.media->get_type()) {
             case MEDIA_TYPE_FOOTAGE:
             {
-                FootagePtr m = media->get_object<Footage>();
+                FootagePtr m = timeline_info.media->get_object<Footage>();
                 if (m != NULL) {
-                    const FootageStream* ms = m->get_stream_from_file_index(track < 0, media_stream);
+                    const FootageStream* ms = m->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream);
                     if (ms != NULL && ms->infinite_length) {
                         media_handling.calculated_length = LONG_MAX;
                     } else {
@@ -303,7 +292,7 @@ void Clip::recalculateMaxLength() {
                 break;
             case MEDIA_TYPE_SEQUENCE:
             {
-                SequencePtr s = media->get_object<Sequence>();
+                SequencePtr s = timeline_info.media->get_object<Sequence>();
                 if (s != NULL) {
                     media_handling.calculated_length = refactor_frame_number(s->getEndFrame(), s->getFrameRate(), fr);
                 }
@@ -322,14 +311,14 @@ long Clip::getMaximumLength() {
 }
 
 int Clip::getWidth() {
-    if (media == NULL && sequence != NULL) {
+    if (timeline_info.media == NULL && sequence != NULL) {
         return sequence->getWidth();
     }
 
-    switch (media->get_type()) {
+    switch (timeline_info.media->get_type()) {
     case MEDIA_TYPE_FOOTAGE:
     {
-        const FootageStream* ms = media->get_object<Footage>()->get_stream_from_file_index(track < 0, media_stream);
+        const FootageStream* ms = timeline_info.media->get_object<Footage>()->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream);
         if (ms != NULL) {
             return ms->video_width;
         }
@@ -340,7 +329,7 @@ int Clip::getWidth() {
     }
     case MEDIA_TYPE_SEQUENCE:
     {
-        SequencePtr sequenceNow = media->get_object<Sequence>();
+        SequencePtr sequenceNow = timeline_info.media->get_object<Sequence>();
         if (sequenceNow != NULL) {
             return sequenceNow->getWidth();
         }
@@ -354,14 +343,14 @@ int Clip::getWidth() {
 }
 
 int Clip::getHeight() {
-    if ( (media == NULL) && (sequence != NULL) ) {
+    if ( (timeline_info.media == NULL) && (sequence != NULL) ) {
         return sequence->getHeight();
     }
 
-    switch (media->get_type()) {
+    switch (timeline_info.media->get_type()) {
     case MEDIA_TYPE_FOOTAGE:
     {
-        const FootageStream* ms = media->get_object<Footage>()->get_stream_from_file_index(track < 0, media_stream);
+        const FootageStream* ms = timeline_info.media->get_object<Footage>()->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream);
         if (ms != NULL) {
             return ms->video_height;
         }
@@ -372,7 +361,7 @@ int Clip::getHeight() {
     }
     case MEDIA_TYPE_SEQUENCE:
     {
-        SequencePtr s = media->get_object<Sequence>();
+        SequencePtr s = timeline_info.media->get_object<Sequence>();
         return s->getHeight();
         break;
     }
@@ -387,10 +376,10 @@ void Clip::refactor_frame_rate(ComboAction* ca, double multiplier, bool change_t
     if (change_timeline_points) {
         if (ca != NULL) {
             move(*ca,
-                 qRound(static_cast<double>(timeline_in) * multiplier),
-                 qRound(static_cast<double>(timeline_out) * multiplier),
-                 qRound(static_cast<double>(clip_in) * multiplier),
-                 track);
+                 qRound(static_cast<double>(timeline_info.in) * multiplier),
+                 qRound(static_cast<double>(timeline_info.out) * multiplier),
+                 qRound(static_cast<double>(timeline_info.clip_in) * multiplier),
+                 timeline_info.track);
         }
     }
 
@@ -420,7 +409,7 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
     if (verify_transitions) {
         if ( (get_opening_transition() != NULL) &&
              (get_opening_transition()->secondary_clip != NULL) &&
-             (get_opening_transition()->secondary_clip->timeline_out != iin) ) {
+             (get_opening_transition()->secondary_clip->timeline_info.out != iin) ) {
             // separate transition
             //            ca.append(new SetPointer((void**) &c->get_opening_transition()->secondary_clip, NULL));
             ca.append(new AddTransitionCommand(get_opening_transition()->secondary_clip, NULL, get_opening_transition(), NULL, TA_CLOSING_TRANSITION, 0));
@@ -428,7 +417,7 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
 
         if ( (get_closing_transition() != NULL) &&
              (get_closing_transition()->secondary_clip != NULL) &&
-             (get_closing_transition()->parent_clip->timeline_in != iout) ) {
+             (get_closing_transition()->parent_clip->timeline_info.in != iout) ) {
             // separate transition
             //            ca.append(new SetPointer((void**) &c->get_closing_transition()->secondary_clip, NULL));
             ca.append(new AddTransitionCommand(ClipPtr(this), NULL, get_closing_transition(), NULL, TA_CLOSING_TRANSITION, 0));

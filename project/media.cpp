@@ -126,7 +126,7 @@ void Media::update_tooltip(const QString& error) {
 						if (f->video_tracks.at(i).video_interlacing == VIDEO_PROGRESSIVE) {
 							tooltip += QString::number(f->video_tracks.at(i).video_frame_rate * f->speed);
 						} else {
-							tooltip += QString::number(f->video_tracks.at(i).video_frame_rate * f->speed * 2);
+                            tooltip += QString::number(f->video_tracks.at(i).video_frame_rate * f->speed * 2);
 							tooltip += " fields (" + QString::number(f->video_tracks.at(i).video_frame_rate * f->speed) + " frames)";
 						}
 					}
@@ -278,7 +278,7 @@ QVariant Media::data(int column, int role) {
 			if (root) return "Duration";
 			if (get_type() == MEDIA_TYPE_SEQUENCE) {
                 SequencePtr s = get_object<Sequence>();
-                return frame_to_timecode(s->getEndFrame(), config.timecode_view, s->getFrameRate());
+                return frame_to_timecode(s->getEndFrame(), e_config.timecode_view, s->getFrameRate());
 			}
 			if (get_type() == MEDIA_TYPE_FOOTAGE) {
                 FootagePtr f = get_object<Footage>();
@@ -288,7 +288,7 @@ QVariant Media::data(int column, int role) {
 					r = f->video_tracks.at(0).video_frame_rate * f->speed;
 
 				long len = f->get_length_in_frames(r);
-				if (len > 0) return frame_to_timecode(len, config.timecode_view, r);
+				if (len > 0) return frame_to_timecode(len, e_config.timecode_view, r);
 			}
 			break;
 		case 2:

@@ -30,12 +30,12 @@
 
 #include <QScrollBar>
 
-Project* panel_project = 0;
-EffectControls* panel_effect_controls = 0;
-Viewer* panel_sequence_viewer = 0;
-Viewer* panel_footage_viewer = 0;
-Timeline* panel_timeline = 0;
-GraphEditor* panel_graph_editor = 0;
+Project* e_panel_project = 0;
+EffectControls* e_panel_effect_controls = 0;
+Viewer* e_panel_sequence_viewer = 0;
+Viewer* e_panel_footage_viewer = 0;
+Timeline* e_panel_timeline = 0;
+GraphEditor* e_panel_graph_editor = 0;
 
 void update_effect_controls() {
 	// SEND CLIPS TO EFFECT CONTROLS
@@ -54,7 +54,7 @@ void update_effect_controls() {
 				for (int j=0;j<e_sequence->selections.size();j++) {
 					const Selection& s = e_sequence->selections.at(j);
 					bool add = true;
-					if (clip->timeline_in >= s.in && clip->timeline_out <= s.out && clip->track == s.track) {
+                    if (clip->timeline_info.in >= s.in && clip->timeline_info.out <= s.out && clip->timeline_info.track == s.track) {
 						mode = TA_NO_TRANSITION;
 					} else if (selection_contains_transition(s, clip, TA_OPENING_TRANSITION)) {
 						mode = TA_OPENING_TRANSITION;
@@ -65,9 +65,9 @@ void update_effect_controls() {
 					}
 
 					if (add) {
-						if (clip->track < 0 && vclip == -1) {
+                        if (clip->timeline_info.track < 0 && vclip == -1) {
 							vclip = i;
-						} else if (clip->track >= 0 && aclip == -1) {
+                        } else if (clip->timeline_info.track >= 0 && aclip == -1) {
 							aclip = i;
 						} else {
 							vclip = -2;
@@ -103,19 +103,19 @@ void update_effect_controls() {
 		}
 	}
 
-	bool same = (selected_clips.size() == panel_effect_controls->selected_clips.size());
+    bool same = (selected_clips.size() == e_panel_effect_controls->selected_clips.size());
 	if (same) {
 		for (int i=0;i<selected_clips.size();i++) {
-			if (selected_clips.at(i) != panel_effect_controls->selected_clips.at(i)) {
+            if (selected_clips.at(i) != e_panel_effect_controls->selected_clips.at(i)) {
 				same = false;
 				break;
 			}
 		}
 	}
 
-	if (panel_effect_controls->multiple != multiple || !same) {
-		panel_effect_controls->multiple = multiple;
-		panel_effect_controls->set_clips(selected_clips, mode);
+    if (e_panel_effect_controls->multiple != multiple || !same) {
+        e_panel_effect_controls->multiple = multiple;
+        e_panel_effect_controls->set_clips(selected_clips, mode);
 	}
 }
 
@@ -123,38 +123,38 @@ void update_ui(bool modified) {
 	if (modified) {
 		update_effect_controls();
 	}
-	panel_effect_controls->update_keyframes();
-	panel_timeline->repaint_timeline();
-	panel_sequence_viewer->update_viewer();
-	panel_graph_editor->update_panel();
+    e_panel_effect_controls->update_keyframes();
+    e_panel_timeline->repaint_timeline();
+    e_panel_sequence_viewer->update_viewer();
+    e_panel_graph_editor->update_panel();
 }
 
 QDockWidget *get_focused_panel() {
 	QDockWidget* w = NULL;
-	if (config.hover_focus) {
-		if (panel_project->underMouse()) {
-			w = panel_project;
-		} else if (panel_effect_controls->underMouse()) {
-			w = panel_effect_controls;
-		} else if (panel_sequence_viewer->underMouse()) {
-			w = panel_sequence_viewer;
-		} else if (panel_footage_viewer->underMouse()) {
-			w = panel_footage_viewer;
-		} else if (panel_timeline->underMouse()) {
-			w = panel_timeline;
+	if (e_config.hover_focus) {
+        if (e_panel_project->underMouse()) {
+            w = e_panel_project;
+        } else if (e_panel_effect_controls->underMouse()) {
+            w = e_panel_effect_controls;
+        } else if (e_panel_sequence_viewer->underMouse()) {
+            w = e_panel_sequence_viewer;
+        } else if (e_panel_footage_viewer->underMouse()) {
+            w = e_panel_footage_viewer;
+        } else if (e_panel_timeline->underMouse()) {
+            w = e_panel_timeline;
 		}
 	}
 	if (w == NULL) {
-		if (panel_project->is_focused()) {
-			w = panel_project;
-		} else if (panel_effect_controls->keyframe_focus() || panel_effect_controls->is_focused()) {
-			w = panel_effect_controls;
-		} else if (panel_sequence_viewer->is_focused()) {
-			w = panel_sequence_viewer;
-		} else if (panel_footage_viewer->is_focused()) {
-			w = panel_footage_viewer;
-		} else if (panel_timeline->focused()) {
-			w = panel_timeline;
+        if (e_panel_project->is_focused()) {
+            w = e_panel_project;
+        } else if (e_panel_effect_controls->keyframe_focus() || e_panel_effect_controls->is_focused()) {
+            w = e_panel_effect_controls;
+        } else if (e_panel_sequence_viewer->is_focused()) {
+            w = e_panel_sequence_viewer;
+        } else if (e_panel_footage_viewer->is_focused()) {
+            w = e_panel_footage_viewer;
+        } else if (e_panel_timeline->focused()) {
+            w = e_panel_timeline;
 		}
 	}
 	return w;
@@ -162,32 +162,32 @@ QDockWidget *get_focused_panel() {
 
 void alloc_panels(QWidget* parent) {
 	// TODO maybe replace these with non-pointers later on?
-	panel_sequence_viewer = new Viewer(parent);
-	panel_sequence_viewer->setObjectName("seq_viewer");
-	panel_footage_viewer = new Viewer(parent);
-	panel_footage_viewer->setObjectName("footage_viewer");
-	panel_project = new Project(parent);
-	panel_project->setObjectName("proj_root");
-	panel_effect_controls = new EffectControls(parent);
+    e_panel_sequence_viewer = new Viewer(parent);
+    e_panel_sequence_viewer->setObjectName("seq_viewer");
+    e_panel_footage_viewer = new Viewer(parent);
+    e_panel_footage_viewer->setObjectName("footage_viewer");
+    e_panel_project = new Project(parent);
+    e_panel_project->setObjectName("proj_root");
+    e_panel_effect_controls = new EffectControls(parent);
     init_effects();
-	panel_effect_controls->setObjectName("fx_controls");
-	panel_timeline = new Timeline(parent);
-	panel_timeline->setObjectName("timeline");
-	panel_graph_editor = new GraphEditor(parent);
-	panel_graph_editor->setObjectName("graph_editor");
+    e_panel_effect_controls->setObjectName("fx_controls");
+    e_panel_timeline = new Timeline(parent);
+    e_panel_timeline->setObjectName("timeline");
+    e_panel_graph_editor = new GraphEditor(parent);
+    e_panel_graph_editor->setObjectName("graph_editor");
 }
 
 void free_panels() {
-	delete panel_sequence_viewer;
-	panel_sequence_viewer = NULL;
-	delete panel_footage_viewer;
-	panel_footage_viewer = NULL;
-	delete panel_project;
-	panel_project = NULL;
-	delete panel_effect_controls;
-	panel_effect_controls = NULL;
-	delete panel_timeline;
-	panel_timeline = NULL;
+    delete e_panel_sequence_viewer;
+    e_panel_sequence_viewer = NULL;
+    delete e_panel_footage_viewer;
+    e_panel_footage_viewer = NULL;
+    delete e_panel_project;
+    e_panel_project = NULL;
+    delete e_panel_effect_controls;
+    e_panel_effect_controls = NULL;
+    delete e_panel_timeline;
+    e_panel_timeline = NULL;
 }
 
 void scroll_to_frame_internal(QScrollBar* bar, long frame, double zoom, int area_width) {

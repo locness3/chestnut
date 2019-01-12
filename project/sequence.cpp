@@ -81,8 +81,8 @@ long Sequence::getEndFrame() {
 	long end = 0;
 	for (int j=0;j<clips.size();j++) {
         ClipPtr c = clips.at(j);
-		if (c != NULL && c->timeline_out > end) {
-			end = c->timeline_out;
+        if (c != NULL && c->timeline_info.out > end) {
+            end = c->timeline_info.out;
 		}
 	}
 	return end;
@@ -168,10 +168,10 @@ void Sequence::getTrackLimits(int& video_limit, int& audio_limit) {
 	for (int j=0;j<clips.size();j++) {
         ClipPtr c = clips.at(j);
         if (c != NULL) {
-            if (c->track < 0 && c->track < video_limit) { // video clip
-                video_limit = c->track;
-            } else if (c->track > audio_limit) {
-                audio_limit = c->track;
+            if (c->timeline_info.track < 0 && c->timeline_info.track < video_limit) { // video clip
+                video_limit = c->timeline_info.track;
+            } else if (c->timeline_info.track > audio_limit) {
+                audio_limit = c->timeline_info.track;
 			}
 		}
     }//for

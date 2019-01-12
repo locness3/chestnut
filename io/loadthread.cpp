@@ -83,7 +83,7 @@ void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
 	}
 
 	// wait for effects to be loaded
-	panel_effect_controls->effects_loaded.lock();
+    e_panel_effect_controls->effects_loaded.lock();
 
 	const EffectMeta* meta = NULL;
 
@@ -92,7 +92,7 @@ void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
 		meta = get_meta_from_name(effect_name);
 	}
 
-	panel_effect_controls->effects_loaded.unlock();
+    e_panel_effect_controls->effects_loaded.unlock();
 
 	QString tag = stream.name().toString();
 
@@ -186,7 +186,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 						switch (type) {
 						case MEDIA_TYPE_FOLDER:
 						{
-							Media* folder = panel_project->new_folder(0);
+                            Media* folder = e_panel_project->new_folder(0);
 							folder->temp_id2 = 0;
 							for (int j=0;j<stream.attributes().size();j++) {
 								const QXmlStreamAttribute& attr = stream.attributes().at(j);
@@ -250,7 +250,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								} else if (attr.name() == "out") {
 									m->out = attr.value().toLong();
 								} else if (attr.name() == "speed") {
-									m->speed = attr.value().toDouble();
+                                    m->speed = attr.value().toDouble();
 								}
 							}
 
@@ -337,45 +337,45 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                     ClipPtr c(new Clip(s));
 
 									// backwards compatibility code
-									c->autoscale = false;
+                                    c->timeline_info.autoscale = false;
 
-									c->media = NULL;
+                                    c->timeline_info.media = NULL;
 
 									for (int j=0;j<stream.attributes().size();j++) {
 										const QXmlStreamAttribute& attr = stream.attributes().at(j);
 										if (attr.name() == "name") {
-											c->name = attr.value().toString();
+                                            c->timeline_info.name = attr.value().toString();
 										} else if (attr.name() == "enabled") {
-											c->enabled = (attr.value() == "1");
+											c->timeline_info.enabled = (attr.value() == "1");
 										} else if (attr.name() == "id") {
 											c->load_id = attr.value().toInt();
 										} else if (attr.name() == "clipin") {
-											c->clip_in = attr.value().toLong();
+											c->timeline_info.clip_in = attr.value().toLong();
 										} else if (attr.name() == "in") {
-											c->timeline_in = attr.value().toLong();
+											c->timeline_info.in = attr.value().toLong();
 										} else if (attr.name() == "out") {
-											c->timeline_out = attr.value().toLong();
+											c->timeline_info.out = attr.value().toLong();
 										} else if (attr.name() == "track") {
-											c->track = attr.value().toInt();
+                                            c->timeline_info.track = attr.value().toInt();
 										} else if (attr.name() == "r") {
-											c->color_r = attr.value().toInt();
+                                            c->timeline_info.color.setRed(attr.value().toInt());
 										} else if (attr.name() == "g") {
-											c->color_g = attr.value().toInt();
+                                            c->timeline_info.color.setGreen(attr.value().toInt());
 										} else if (attr.name() == "b") {
-											c->color_b = attr.value().toInt();
+                                            c->timeline_info.color.setBlue(attr.value().toInt());
 										} else if (attr.name() == "autoscale") {
-											c->autoscale = (attr.value() == "1");
+                                            c->timeline_info.autoscale = (attr.value() == "1");
 										} else if (attr.name() == "media") {
 											media_type = MEDIA_TYPE_FOOTAGE;
 											media_id = attr.value().toInt();
 										} else if (attr.name() == "stream") {
 											stream_id = attr.value().toInt();
 										} else if (attr.name() == "speed") {
-											c->speed = attr.value().toDouble();
+                                            c->timeline_info.speed = attr.value().toDouble();
 										} else if (attr.name() == "maintainpitch") {
-											c->maintain_audio_pitch = (attr.value() == "1");
+                                            c->timeline_info.maintain_audio_pitch = (attr.value() == "1");
 										} else if (attr.name() == "reverse") {
-											c->reverse = (attr.value() == "1");
+                                            c->timeline_info.reverse = (attr.value() == "1");
 										} else if (attr.name() == "opening") {
 											c->opening_transition = attr.value().toInt();
 										} else if (attr.name() == "closing") {
@@ -384,8 +384,8 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 											media_type = MEDIA_TYPE_SEQUENCE;
 
 											// since we haven't finished loading sequences, we defer linking this until later
-											c->media = NULL;
-											c->media_stream = attr.value().toInt();
+                                            c->timeline_info.media = NULL;
+                                            c->timeline_info.media_stream = attr.value().toInt();
 											loaded_clips.append(c);
 										}
 									}
@@ -397,8 +397,8 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 											for (int j=0;j<loaded_media_items.size();j++) {
                                                 FootagePtr  m = loaded_media_items.at(j)->get_object<Footage>();
 												if (m->save_id == media_id) {
-													c->media = loaded_media_items.at(j);
-													c->media_stream = stream_id;
+                                                    c->timeline_info.media = loaded_media_items.at(j);
+                                                    c->timeline_info.media_stream = stream_id;
 													break;
 												}
 											}
@@ -502,7 +502,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								}
 							}
 
-							Media* m = panel_project->new_sequence(NULL, s, false, parent);
+                            Media* m = e_panel_project->new_sequence(NULL, s, false, parent);
 
 							loaded_sequences.append(m);
 						}
@@ -613,8 +613,9 @@ void LoadThread::run() {
 			// attach nested sequence clips to their sequences
 			for (int i=0;i<loaded_clips.size();i++) {
 				for (int j=0;j<loaded_sequences.size();j++) {
-					if (loaded_clips.at(i)->media == NULL && loaded_clips.at(i)->media_stream == loaded_sequences.at(j)->get_object<Sequence>()->save_id) {
-						loaded_clips.at(i)->media = loaded_sequences.at(j);
+                    if ( (loaded_clips.at(i)->timeline_info.media == NULL)
+                            && (loaded_clips.at(i)->timeline_info.media_stream == loaded_sequences.at(j)->get_object<Sequence>()->save_id) ) {
+                        loaded_clips.at(i)->timeline_info.media = loaded_sequences.at(j);
 						loaded_clips.at(i)->refresh();
 						break;
 					}
@@ -627,7 +628,7 @@ void LoadThread::run() {
 		emit success(); // run in main thread
 
 		for (int i=0;i<loaded_media_items.size();i++) {
-			panel_project->start_preview_generator(loaded_media_items.at(i), true);
+            e_panel_project->start_preview_generator(loaded_media_items.at(i), true);
 		}
 	}
 
@@ -667,7 +668,7 @@ void LoadThread::success_func() {
 		}
 		mainWindow->updateTitle(orig_filename);
 	} else {
-		panel_project->add_recent_project(project_url);
+        e_panel_project->add_recent_project(project_url);
 	}
 
 	mainWindow->setWindowModified(autorecovery);

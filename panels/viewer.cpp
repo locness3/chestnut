@@ -62,6 +62,8 @@ namespace {
     const int MEDIA_WIDTH = 1980;
     const int MEDIA_HEIGHT = 1080;
     const int MEDIA_AUDIO_FREQUENCY = 48000;
+
+    const QColor PAUSE_COLOR(128,192,128); // RGB
 }
 
 Viewer::Viewer(QWidget *parent) :
@@ -267,8 +269,8 @@ void Viewer::seek(long p) {
 	pause();
 	seq->playhead = p;
 	if (main_sequence) {
-		panel_timeline->scroll_to_frame(p);
-		panel_effect_controls->scroll_to_frame(p);
+        e_panel_timeline->scroll_to_frame(p);
+        e_panel_effect_controls->scroll_to_frame(p);
 	}
 	update_parents();
 	reset_all_audio();
@@ -315,7 +317,7 @@ void Viewer::cue_recording(long start, long end, int track) {
 	recording_start = start;
 	recording_end = end;
 	recording_track = track;
-	panel_sequence_viewer->seek(recording_start);
+    e_panel_sequence_viewer->seek(recording_start);
 	cue_recording_internal = true;
 	recording_flasher.start();
 }
@@ -339,13 +341,13 @@ void Viewer::toggle_play() {
 }
 
 void Viewer::play() {
-	if (panel_sequence_viewer->playing) panel_sequence_viewer->pause();
-	if (panel_footage_viewer->playing) panel_footage_viewer->pause();
+    if (e_panel_sequence_viewer->playing) e_panel_sequence_viewer->pause();
+    if (e_panel_footage_viewer->playing) e_panel_footage_viewer->pause();
 
 	if (seq != NULL) {
 		if (!is_recording_cued()
 				&& seq->playhead >= get_seq_out()
-				&& (config.loop || !main_sequence)) {
+				&& (e_config.loop || !main_sequence)) {
 			seek(get_seq_in());
 		}
 
@@ -387,25 +389,23 @@ void Viewer::pause() {
 			// import audio
 			QStringList file_list;
 			file_list.append(get_recorded_audio_filename());
-			panel_project->process_file_list(file_list);
+            e_panel_project->process_file_list(file_list);
 
 			// add it to the sequence
             ClipPtr c(new Clip(seq));
-			Media* m = panel_project->last_imported_media.at(0);
+            Media* m = e_panel_project->last_imported_media.at(0);
             FootagePtr f = m->get_object<Footage>();
 
 			f->ready_lock.lock();
 
-			c->media = m; // latest media
-			c->media_stream = 0;
-			c->timeline_in = recording_start;
-            c->timeline_out = recording_start + f->get_length_in_frames(seq->getFrameRate());
-			c->clip_in = 0;
-			c->track = recording_track;
-			c->color_r = 128;
-			c->color_g = 192;
-			c->color_b = 128;
-			c->name = m->get_name();
+            c->timeline_info.media = m; // latest media
+            c->timeline_info.media_stream = 0;
+            c->timeline_info.in = recording_start;
+            c->timeline_info.out = recording_start + f->get_length_in_frames(seq->getFrameRate());
+            c->timeline_info.clip_in = 0;
+            c->timeline_info.track = recording_track;
+            c->timeline_info.color = PAUSE_COLOR;
+            c->timeline_info.name = m->get_name();
 
 			f->ready_lock.unlock();
 
@@ -421,7 +421,7 @@ void Viewer::update_playhead_timecode(long p) {
 }
 
 void Viewer::update_end_timecode() {
-    endTimecode->setText((seq == NULL) ? frame_to_timecode(0, config.timecode_view, 30) : frame_to_timecode(seq->getEndFrame(), config.timecode_view, seq->getFrameRate()));
+    endTimecode->setText((seq == NULL) ? frame_to_timecode(0, e_config.timecode_view, 30) : frame_to_timecode(seq->getEndFrame(), e_config.timecode_view, seq->getFrameRate()));
 }
 
 void Viewer::update_header_zoom() {
@@ -661,13 +661,13 @@ void Viewer::set_media(Media* m) {
                 }
 
                 ClipPtr c(new Clip(e_sequence));
-				c->media = media;
-				c->media_stream = video_stream.file_index;
-				c->timeline_in = 0;
-                c->timeline_out = footage->get_length_in_frames(seq->getFrameRate());
-                if (c->timeline_out <= 0) c->timeline_out = 150;
-				c->track = -1;
-				c->clip_in = 0;
+                c->timeline_info.media= media;
+                c->timeline_info.media_stream = video_stream.file_index;
+                c->timeline_info.in = 0;
+                c->timeline_info.out = footage->get_length_in_frames(seq->getFrameRate());
+                if (c->timeline_info.out <= 0) c->timeline_info.out = 150;
+                c->timeline_info.track = -1;
+                c->timeline_info.clip_in = 0;
 				c->recalculateMaxLength();
 				seq->clips.append(c);
 			} else {
@@ -680,12 +680,12 @@ void Viewer::set_media(Media* m) {
                 seq->setAudioFrequency(audio_stream.audio_frequency);
 
                 ClipPtr c(new Clip(e_sequence));
-				c->media = media;
-				c->media_stream = audio_stream.file_index;
-				c->timeline_in = 0;
-                c->timeline_out = footage->get_length_in_frames(seq->getFrameRate());
-				c->track = 0;
-				c->clip_in = 0;
+                c->timeline_info.media= media;
+                c->timeline_info.media_stream = audio_stream.file_index;
+                c->timeline_info.in = 0;
+                c->timeline_info.out = footage->get_length_in_frames(seq->getFrameRate());
+                c->timeline_info.track = 0;
+                c->timeline_info.clip_in = 0;
 				c->recalculateMaxLength();
 				seq->clips.append(c);
 
@@ -728,10 +728,10 @@ void Viewer::timer_update() {
 			&& playing
 			&& seq->playhead >= end_frame
 			&& previous_playhead < end_frame) {
-		if (!config.pause_at_out_point && config.loop) {
+		if (!e_config.pause_at_out_point && e_config.loop) {
 			seek(get_seq_in());
 			play();
-		} else if (config.pause_at_out_point || !main_sequence) {
+		} else if (e_config.pause_at_out_point || !main_sequence) {
 			pause();
 		}
 	} else if (recording && recording_start != recording_end && seq->playhead >= recording_end) {

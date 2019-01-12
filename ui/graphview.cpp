@@ -218,7 +218,7 @@ QVector<int> sort_keys_from_field(EffectField* field) {
 void GraphView::paintEvent(QPaintEvent *) {
 	QPainter p(this);
 
-	if (panel_sequence_viewer->seq != NULL) {
+    if (e_panel_sequence_viewer->seq != NULL) {
 		// draw grid lines
 
 		p.setPen(Qt::gray);
@@ -328,7 +328,7 @@ void GraphView::paintEvent(QPaintEvent *) {
 
 		// draw playhead
 		p.setPen(Qt::red);
-		int playhead_x = get_screen_x(panel_sequence_viewer->seq->playhead - visible_in);
+        int playhead_x = get_screen_x(e_panel_sequence_viewer->seq->playhead - visible_in);
 		p.drawLine(playhead_x, 0, playhead_x, height());
 
 		if (rect_select) {
@@ -455,7 +455,7 @@ void GraphView::mousePressEvent(QMouseEvent *event) {
 void GraphView::mouseMoveEvent(QMouseEvent *event) {
 	if (!mousedown || !click_add) unsetCursor();
 	if (mousedown) {
-		if (event->buttons() & Qt::MiddleButton || panel_timeline->tool == TIMELINE_TOOL_HAND) {
+        if (event->buttons() & Qt::MiddleButton || e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
 			set_scroll_x(x_scroll + start_x - event->pos().x());
 			set_scroll_y(y_scroll + event->pos().y() - start_y);
 			start_x = event->pos().x();
@@ -762,7 +762,7 @@ void GraphView::set_row(EffectRow *r) {
 		if (row != NULL) {
 			field_visibility.resize(row->fieldCount());
 			field_visibility.fill(true);
-			visible_in = row->parent_effect->parent_clip->timeline_in;
+            visible_in = row->parent_effect->parent_clip->timeline_info.in;
 			set_view_to_all();
 		} else {
 			update();

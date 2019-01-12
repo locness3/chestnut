@@ -88,7 +88,7 @@ void EffectRow::set_keyframe_enabled(bool enabled) {
 		set_keyframe_now(ca);
 		e_undo_stack.push(ca);
 	} else {
-		if (QMessageBox::question(panel_effect_controls, "Disable Keyframes", "Disabling keyframes will delete all current keyframes. Are you sure you want to do this?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+        if (QMessageBox::question(e_panel_effect_controls, "Disable Keyframes", "Disabling keyframes will delete all current keyframes. Are you sure you want to do this?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
 			// clear
 			ComboAction* ca = new ComboAction();
 			for (int i=0;i<fieldCount();i++) {
@@ -99,7 +99,7 @@ void EffectRow::set_keyframe_enabled(bool enabled) {
 			}
 			ca->append(new SetKeyframing(this, false));
 			e_undo_stack.push(ca);
-			panel_effect_controls->update_keyframes();
+            e_panel_effect_controls->update_keyframes();
 		} else {
 			setKeyframing(true);
 		}
@@ -112,13 +112,13 @@ void EffectRow::goto_previous_key() {
 	for (int i=0;i<fieldCount();i++) {
 		EffectField* f = field(i);
 		for (int j=0;j<f->keyframes.size();j++) {
-			long comp = f->keyframes.at(j).time - c->clip_in + c->timeline_in;
+            long comp = f->keyframes.at(j).time - c->timeline_info.clip_in + c->timeline_info.in;
 			if (comp < e_sequence->playhead) {
 				key = qMax(comp, key);
 			}
 		}
 	}
-	if (key != LONG_MIN) panel_sequence_viewer->seek(key);
+    if (key != LONG_MIN) e_panel_sequence_viewer->seek(key);
 }
 
 void EffectRow::toggle_key() {
@@ -128,7 +128,7 @@ void EffectRow::toggle_key() {
 	for (int j=0;j<fieldCount();j++) {
 		EffectField* f = field(j);
 		for (int i=0;i<f->keyframes.size();i++) {
-			long comp = c->timeline_in - c->clip_in + f->keyframes.at(i).time;
+            long comp = c->timeline_info.in - c->timeline_info.clip_in + f->keyframes.at(i).time;
 			if (comp == e_sequence->playhead) {
 				key_fields.append(f);
 				key_field_index.append(i);
@@ -155,17 +155,17 @@ void EffectRow::goto_next_key() {
 	for (int i=0;i<fieldCount();i++) {
 		EffectField* f = field(i);
 		for (int j=0;j<f->keyframes.size();j++) {
-			long comp = f->keyframes.at(j).time - c->clip_in + c->timeline_in;
+            long comp = f->keyframes.at(j).time - c->timeline_info.clip_in + c->timeline_info.in;
 			if (comp > e_sequence->playhead) {
 				key = qMin(comp, key);
 			}
 		}
 	}
-	if (key != LONG_MAX) panel_sequence_viewer->seek(key);
+    if (key != LONG_MAX) e_panel_sequence_viewer->seek(key);
 }
 
 void EffectRow::focus_row() {
-	panel_graph_editor->set_row(this);
+    e_panel_graph_editor->set_row(this);
 }
 
 EffectField* EffectRow::add_field(int type, const QString& id, int colspan) {
@@ -187,7 +187,7 @@ void EffectRow::add_widget(QWidget* w) {
 
 
 void EffectRow::set_keyframe_now(ComboAction* ca) {
-	long time = e_sequence->playhead-parent_effect->parent_clip->timeline_in+parent_effect->parent_clip->clip_in;
+    long time = e_sequence->playhead-parent_effect->parent_clip->timeline_info.in + parent_effect->parent_clip->timeline_info.clip_in;
 
 	if (!just_made_unsafe_keyframe) {
 		EffectKeyframe key;
@@ -239,7 +239,7 @@ void EffectRow::set_keyframe_now(ComboAction* ca) {
 		just_made_unsafe_keyframe = false;
 	}
 
-	panel_effect_controls->update_keyframes();
+    e_panel_effect_controls->update_keyframes();
 
 
 
@@ -255,7 +255,7 @@ void EffectRow::set_keyframe_now(ComboAction* ca) {
 
 
 	/*int index = -1;
-	long time = sequence->playhead-parent_effect->parent_clip->timeline_in+parent_effect->parent_clip->clip_in;
+    long time = sequence->playhead-parent_effect->parent_clip->timeline_in+parent_effect->parent_clip->timeline_info.clip_in;
 	for (int j=0;j<fieldCount();j++) {
 		EffectField* f = field(j);
 		for (int i=0;i<f->keyframes.size();i++) {

@@ -59,7 +59,7 @@ EffectControls::EffectControls(QWidget *parent) :
 	setup_ui();
 
 	clear_effects(false);
-	headers->viewer = panel_sequence_viewer;
+	headers->viewer = e_panel_sequence_viewer;
 	headers->snapping = false;
 
 	effects_area->parent_widget = scrollArea;
@@ -92,7 +92,7 @@ void EffectControls::menu_select(QAction* q) {
 	ComboAction* ca = new ComboAction();
 	for (int i=0;i<selected_clips.size();i++) {
         ClipPtr c = e_sequence->clips.at(selected_clips.at(i));
-		if ((c->track < 0) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
+        if ((c->timeline_info.track < 0) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
 			const EffectMeta* meta = reinterpret_cast<const EffectMeta*>(q->data().value<quintptr>());
 			if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
 				if (c->get_opening_transition() == NULL) {
@@ -111,7 +111,7 @@ void EffectControls::menu_select(QAction* q) {
 		update_ui(true);
 	} else {
 		reload_clips();
-		panel_sequence_viewer->viewer_widget->update();
+		e_panel_sequence_viewer->viewer_widget->update();
 	}
 }
 
@@ -234,7 +234,7 @@ void EffectControls::clear_effects(bool clear_cache) {
 	deselect_all_effects(NULL);
 
 	// clear graph editor
-	if (panel_graph_editor != NULL) panel_graph_editor->set_row(NULL);
+	if (e_panel_graph_editor != NULL) e_panel_graph_editor->set_row(NULL);
 
 	QVBoxLayout* video_layout = static_cast<QVBoxLayout*>(video_effect_area->layout());
 	QVBoxLayout* audio_layout = static_cast<QVBoxLayout*>(audio_effect_area->layout());
@@ -265,7 +265,7 @@ void EffectControls::deselect_all_effects(QWidget* sender) {
 			}
 		}
 	}
-	panel_sequence_viewer->viewer_widget->update();
+	e_panel_sequence_viewer->viewer_widget->update();
 }
 
 void EffectControls::open_effect(QVBoxLayout* layout, EffectPtr e) {
@@ -461,7 +461,7 @@ void EffectControls::load_effects() {
 		for (int i=0;i<selected_clips.size();i++) {
             ClipPtr c = e_sequence->clips.at(selected_clips.at(i));
 			QVBoxLayout* layout;
-			if (c->track < 0) {
+            if (c->timeline_info.track < 0) {
 				vcontainer->setVisible(true);
 				layout = static_cast<QVBoxLayout*>(video_effect_area->layout());
 			} else {
@@ -479,7 +479,7 @@ void EffectControls::load_effects() {
 			}
 		}
 		if (selected_clips.size() > 0) {
-            setWindowTitle(panel_name + e_sequence->clips.at(selected_clips.at(0))->name);
+            setWindowTitle(panel_name + e_sequence->clips.at(selected_clips.at(0))->timeline_info.name);
 			verticalScrollBar->setMaximum(qMax(0, effects_area->sizeHint().height() - headers->height() + scrollArea->horizontalScrollBar()->height()/* - keyframeView->height() - headers->height()*/));
 			keyframeView->setEnabled(true);
 			headers->setVisible(true);
@@ -504,7 +504,7 @@ void EffectControls::delete_effects() {
 		}
 		if (command->clips.size() > 0) {
 			e_undo_stack.push(command);
-			panel_sequence_viewer->viewer_widget->update();
+			e_panel_sequence_viewer->viewer_widget->update();
 		} else {
 			delete command;
 		}

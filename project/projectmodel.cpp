@@ -33,8 +33,8 @@ ProjectModel::~ProjectModel() {
 }
 
 void ProjectModel::destroy_root() {
-	if (panel_sequence_viewer != NULL) panel_sequence_viewer->viewer_widget->delete_function();
-	if (panel_footage_viewer != NULL) panel_footage_viewer->viewer_widget->delete_function();
+	if (e_panel_sequence_viewer != NULL) e_panel_sequence_viewer->viewer_widget->delete_function();
+	if (e_panel_footage_viewer != NULL) e_panel_footage_viewer->viewer_widget->delete_function();
 
 	if (root_item != NULL) {
 		delete root_item;
