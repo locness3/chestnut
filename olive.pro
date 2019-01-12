@@ -237,7 +237,7 @@ unix:!mac {
     CONFIG += link_pkgconfig
     PKGCONFIG += libavutil libavformat libavcodec libavfilter libswscale libswresample
 }
-QMAKE_CXXFLAGS += -std=c++11 -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
+QMAKE_CXXFLAGS += -std=c++11 -Wextra -Wshadow -Wnon-virtual-dtor -Weffc++ -pedantic
 QMAKE_CXXFLAGS_DEBUG += -g3
 QMAKE_CXXFLAGS_RELEASE += -g1
 
