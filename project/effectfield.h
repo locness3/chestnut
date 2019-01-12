@@ -29,6 +29,7 @@
 #include <QObject>
 #include <QVariant>
 #include <QVector>
+#include <memory>
 
 #include "keyframe.h"
 
@@ -95,5 +96,6 @@ signals:
 	void toggled(bool);
 	void clicked();
 };
+typedef std::shared_ptr<EffectField> EffectFieldPtr;
 
 #endif // EFFECTFIELD_H
