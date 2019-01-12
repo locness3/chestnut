@@ -24,7 +24,6 @@
 #include "project/footage.h"
 #include "io/config.h"
 #include "playback/playback.h"
-#include "playback/cacher.h"
 #include "playback/audio.h"
 #include "panels/project.h"
 #include "project/sequence.h"

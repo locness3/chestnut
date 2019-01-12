@@ -24,7 +24,6 @@
 #include "project/sequence.h"
 #include "project/clip.h"
 #include "playback/playback.h"
-#include "playback/cacher.h"
 #include "project/footage.h"
 #include "project/undo.h"
 #include "project/media.h"

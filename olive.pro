@@ -56,7 +56,6 @@ SOURCES += \
     dialogs/exportdialog.cpp \
     ui/collapsiblewidget.cpp \
     panels/panels.cpp \
-    playback/cacher.cpp \
     io/exportthread.cpp \
     ui/timelineheader.cpp \
     io/previewgenerator.cpp \
@@ -146,7 +145,6 @@ HEADERS += \
     dialogs/exportdialog.h \
     ui/collapsiblewidget.h \
     panels/panels.h \
-    playback/cacher.h \
     io/exportthread.h \
     ui/timelinetools.h \
     ui/timelineheader.h \

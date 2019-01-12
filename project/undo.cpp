@@ -33,7 +33,6 @@
 #include "project/effect.h"
 #include "project/transition.h"
 #include "project/footage.h"
-#include "playback/cacher.h"
 #include "ui/labelslider.h"
 #include "ui/viewerwidget.h"
 #include "project/marker.h"

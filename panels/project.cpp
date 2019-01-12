@@ -31,7 +31,6 @@
 #include "project/undo.h"
 #include "mainwindow.h"
 #include "io/config.h"
-#include "playback/cacher.h"
 #include "dialogs/replaceclipmediadialog.h"
 #include "panels/effectcontrols.h"
 #include "dialogs/newsequencedialog.h"

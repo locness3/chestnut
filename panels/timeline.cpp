@@ -26,7 +26,6 @@
 #include "ui/viewerwidget.h"
 #include "playback/audio.h"
 #include "panels/viewer.h"
-#include "playback/cacher.h"
 #include "playback/playback.h"
 #include "project/undo.h"
 #include "project/media.h"
