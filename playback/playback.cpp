@@ -53,43 +53,7 @@ extern "C" {
 bool e_texture_failed = false;
 bool e_rendering = false;
 
-//TODO:
-void open_clip(ClipPtr clip, bool multithreaded) {
-    if (clip->uses_cacher()) {
-		clip->multithreaded = multithreaded;
-		if (multithreaded) {
-			if (clip->open_lock.tryLock()) {
-				// maybe keep cacher instance in memory while clip exists for performance?
-                clip->cacher = new Cacher(clip);
-                QObject::connect(clip->cacher, SIGNAL(finished()), clip->cacher, SLOT(deleteLater()));
-                clip->cacher->start((clip->timeline_info.track < 0) ? QThread::HighPriority : QThread::TimeCriticalPriority);
-            }
-		} else {
-			clip->finished_opening = false;
-			clip->open = true;
 
-//			open_clip_worker(clip);
-		}
-	} else {
-		clip->open = true;
-	}
-}
-
-void cache_clip(ClipPtr clip, long playhead, bool reset, bool scrubbing, QVector<ClipPtr>& nests) {
-    if (clip->uses_cacher()) {
-		if (clip->multithreaded) {
-			clip->cacher->playhead = playhead;
-			clip->cacher->reset = reset;
-			clip->cacher->nests = nests;
-			clip->cacher->scrubbing = scrubbing;
-			if (reset && clip->queue.size() > 0) clip->cacher->interrupt = true;
-
-			clip->can_cache.wakeAll();
-		} else {
-			cache_clip_worker(clip, playhead, reset, scrubbing, nests);
-		}
-	}
-}
 
 double get_timecode(ClipPtr c, long playhead) {
     return ((double)(playhead-c->get_timeline_in_with_transition()+c->get_clip_in_with_transition())/(double)c->sequence->getFrameRate());
@@ -255,7 +219,9 @@ void get_clip_frame(ClipPtr c, long playhead) {
 
 		// get more frames
         QVector<ClipPtr> empty;
-		if (cache) cache_clip(c, playhead, reset, false, empty);
+        if (cache) {
+            c->cache(playhead, reset, false, empty);
+        }
 	}
 }
 
@@ -280,51 +246,51 @@ int64_t playhead_to_timestamp(ClipPtr c, long playhead) {
 	return seconds_to_timestamp(c, playhead_to_clip_seconds(c, playhead));
 }
 
-int retrieve_next_frame(ClipPtr c, AVFrame* f) {
-	int result = 0;
-	int receive_ret;
+//int retrieve_next_frame(ClipPtr c, AVFrame* f) {
+//	int result = 0;
+//	int receive_ret;
 
-	// do we need to retrieve a new packet for a new frame?
-	av_frame_unref(f);
-    while ((receive_ret = avcodec_receive_frame(c->media_handling.codecCtx, f)) == AVERROR(EAGAIN)) {
-		int read_ret = 0;
-		do {
-            if (c->pkt_written) {
-                av_packet_unref(c->media_handling.pkt);
-                c->pkt_written = false;
-			}
-            read_ret = av_read_frame(c->media_handling.formatCtx, c->media_handling.pkt);
-			if (read_ret >= 0) {
-                c->pkt_written = true;
-			}
-        } while (read_ret >= 0 && c->media_handling.pkt->stream_index != c->timeline_info.media_stream);
+//	// do we need to retrieve a new packet for a new frame?
+//	av_frame_unref(f);
+//    while ((receive_ret = avcodec_receive_frame(c->media_handling.codecCtx, f)) == AVERROR(EAGAIN)) {
+//		int read_ret = 0;
+//		do {
+//            if (c->pkt_written) {
+//                av_packet_unref(c->media_handling.pkt);
+//                c->pkt_written = false;
+//			}
+//            read_ret = av_read_frame(c->media_handling.formatCtx, c->media_handling.pkt);
+//			if (read_ret >= 0) {
+//                c->pkt_written = true;
+//			}
+//        } while (read_ret >= 0 && c->media_handling.pkt->stream_index != c->timeline_info.media_stream);
 
-		if (read_ret >= 0) {
-            int send_ret = avcodec_send_packet(c->media_handling.codecCtx, c->media_handling.pkt);
-			if (send_ret < 0) {
-				dout << "[ERROR] Failed to send packet to decoder." << send_ret;
-				return send_ret;
-			}
-		} else {
-			if (read_ret == AVERROR_EOF) {
-                int send_ret = avcodec_send_packet(c->media_handling.codecCtx, NULL);
-				if (send_ret < 0) {
-					dout << "[ERROR] Failed to send packet to decoder." << send_ret;
-					return send_ret;
-				}
-			} else {
-				dout << "[ERROR] Could not read frame." << read_ret;
-				return read_ret; // skips trying to find a frame at all
-			}
-		}
-	}
-	if (receive_ret < 0) {
-		if (receive_ret != AVERROR_EOF) dout << "[ERROR] Failed to receive packet from decoder." << receive_ret;
-		result = receive_ret;
-	}
+//		if (read_ret >= 0) {
+//            int send_ret = avcodec_send_packet(c->media_handling.codecCtx, c->media_handling.pkt);
+//			if (send_ret < 0) {
+//				dout << "[ERROR] Failed to send packet to decoder." << send_ret;
+//				return send_ret;
+//			}
+//		} else {
+//			if (read_ret == AVERROR_EOF) {
+//                int send_ret = avcodec_send_packet(c->media_handling.codecCtx, NULL);
+//				if (send_ret < 0) {
+//					dout << "[ERROR] Failed to send packet to decoder." << send_ret;
+//					return send_ret;
+//				}
+//			} else {
+//				dout << "[ERROR] Could not read frame." << read_ret;
+//				return read_ret; // skips trying to find a frame at all
+//			}
+//		}
+//	}
+//	if (receive_ret < 0) {
+//		if (receive_ret != AVERROR_EOF) dout << "[ERROR] Failed to receive packet from decoder." << receive_ret;
+//		result = receive_ret;
+//	}
 
-	return result;
-}
+//	return result;
+//}
 
 void set_sequence(SequencePtr s) {
     e_panel_effect_controls->clear_effects(true);

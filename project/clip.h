@@ -34,7 +34,6 @@
 #define SKIP_TYPE_DISCARD 0
 #define SKIP_TYPE_SEEK 1
 
-class Cacher;
 class Transition;
 class ComboAction;
 class Media;
@@ -52,7 +51,7 @@ struct AVFilterGraph;
 struct AVFilterContext;
 struct AVDictionary;
 
-class Clip : public project::SequenceItem
+class Clip : public project::SequenceItem, QThread
 {
 public:
     explicit Clip(SequencePtr s);
@@ -83,10 +82,26 @@ public:
      */
     void close_worker();
     /**
+     * @brief Open clip and allocate necessary resources
+     * @param open_multithreaded
+     * @return true==success
+     */
+    bool open(const bool open_multithreaded);
+    /**
      * @brief Close this clip and free up resources
      * @param wait  Wait on cache?
      */
     void close(const bool wait);
+    /**
+     * @brief Cache the clip at a certain point
+     * @param playhead
+     * @param reset
+     * @param scrubbing
+     * @param nests
+     * @return  true==cached
+     */
+    bool cache(const long playhead, const bool do_reset, const bool scrubbing, QVector<ClipPtr>& nests);
+
 
     void reset_audio();
 	void reset();
@@ -109,6 +124,12 @@ public:
 
     Transition* get_opening_transition();
     Transition* get_closing_transition();
+
+    /**
+     * @brief get_frame
+     * @param playhead
+     */
+    void get_frame(const long playhead);
 
     //FIXME: all the class members
     SequencePtr sequence;
@@ -154,7 +175,7 @@ public:
     bool undeletable;
 	bool reached_end;
 	bool pkt_written;
-    bool open;
+    bool is_open;
     bool finished_opening;
     bool replaced;
 	bool ignore_reverse;
@@ -163,7 +184,6 @@ public:
 	// caching functions
 	bool use_existing_frame;
     bool multithreaded;
-	Cacher* cacher;
     QWaitCondition can_cache;
 	int max_queue_size;
 	QVector<AVFrame*> queue;
@@ -191,7 +211,53 @@ public:
         bool just_reset = false;
         long target_frame = -1;
     } audio_playback;
+
+
+protected:
+    virtual void run();
+
 private:
+
+    struct {
+        bool caching = false;
+        // must be set before caching
+        long playhead = -1;
+        bool reset = false;
+        bool scrubbing = false;
+        bool interrupt = false;
+        QVector<ClipPtr> nests = QVector<ClipPtr>();
+    } cache_info;
+
+    void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
+
+
+    // TODO: to be moved from playback.h
+    long playhead_to_frame(const long playhead);
+    void get_next_audio(const bool mix);
+
+    double get_timecode(const long playhead);
+    int64_t playhead_to_timestamp(const long playhead);
+    bool retrieve_next_frame(AVFrame* frame);
+    double playhead_to_seconds(const long playhead);
+    int64_t seconds_to_timestamp(const double seconds);
+
+    void cache_audio_worker(const bool scrubbing, QVector<ClipPtr>& nests);
+    void cache_video_worker(const long playhead);
+
+
+    /**
+     * @brief To set up the caching thread?
+     * @param playhead
+     * @param reset
+     * @param scrubbing
+     * @param nests
+     */
+    void cache_worker(const long playhead, const bool reset, const bool scrubbing, QVector<ClipPtr>& nests);
+    /**
+     * @brief reset_cache
+     * @param target_frame
+     */
+    void reset_cache(const long target_frame);
 
     // Comboaction::move_clip() or Clip::move()?
     void move(ComboAction& ca, const long iin, const long iout,

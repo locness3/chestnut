@@ -515,12 +515,14 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
                             if ( (ms != NULL) && c->isActive(playhead) ) {
 								// if thread is already working, we don't want to touch this,
 								// but we also don't want to hang the UI thread
-								if (!c->open) {
-                                    open_clip(c, !e_rendering);
+                                if (!c->is_open) {
+                                    c->open(!e_rendering);
 								}
 								clip_is_active = true;
-                                if (c->timeline_info.track >= 0) audio_track_count++;
-							} else if (c->open) {
+                                if (c->timeline_info.track >= 0) {
+                                    audio_track_count++;
+                                }
+                            } else if (c->is_open) {
                                 c->close(false);
 							}
 						} else {
@@ -530,9 +532,11 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					}
 				} else {
                     if (c->isActive(playhead)) {
-                        if (!c->open) open_clip(c, !e_rendering);
+                        if (!c->is_open) {
+                            c->open(!e_rendering);
+                        }
 						clip_is_active = true;
-					} else if (c->open) {
+                    } else if (c->is_open) {
                         c->close(false);
 					}
 				}
@@ -591,7 +595,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
                             clipNow->texture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
                             clipNow->texture->allocateStorage(get_gl_pix_fmt_from_av(clipNow->pix_fmt), QOpenGLTexture::UInt8);
 						}
-                        get_clip_frame(clipNow, playhead);
+                        clipNow->get_frame(playhead);
                         textureID = clipNow->texture->textureId();
 						break;
 					case MEDIA_TYPE_SEQUENCE:
@@ -814,7 +818,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					} else {
                         if (clipNow->lock.tryLock()) {
 							// clip is not caching, start caching audio
-                            cache_clip(clipNow, playhead, clipNow->audio_playback.reset, !render_audio, nests);
+                            clipNow->cache(playhead, clipNow->audio_playback.reset, !render_audio, nests);
                             clipNow->lock.unlock();
 						}
 					}

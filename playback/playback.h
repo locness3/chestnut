@@ -31,9 +31,6 @@ struct AVFrame;
 extern bool e_texture_failed;
 extern bool e_rendering;
 
-
-void open_clip(ClipPtr clip, bool multithreaded);
-void cache_clip(ClipPtr clip, long playhead, bool reset, bool scrubbing, QVector<ClipPtr>& nests);
 void cache_audio_worker(ClipPtr c, bool write_A);
 void cache_video_worker(ClipPtr c, long playhead);
 void handle_media(Sequence* e_sequence, long playhead, bool multithreaded);
@@ -46,7 +43,7 @@ double playhead_to_clip_seconds(ClipPtr c, long playhead);
 int64_t seconds_to_timestamp(ClipPtr c, double seconds);
 int64_t playhead_to_timestamp(ClipPtr c, long playhead);
 
-int retrieve_next_frame(ClipPtr c, AVFrame* f);
+//int retrieve_next_frame(ClipPtr c, AVFrame* f);
 void get_next_audio(ClipPtr c, bool mix);
 void set_sequence(SequencePtr s);
 void closeActiveClips(SequencePtr s);

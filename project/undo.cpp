@@ -607,7 +607,7 @@ void ReplaceMediaCommand::replace(QString& filename) {
         SequencePtr s = all_sequences.at(i)->get_object<Sequence>();
 		for (int j=0;j<s->clips.size();j++) {
             ClipPtr   c = s->clips.at(j);
-            if (c != NULL && c->timeline_info.media == item && c->open) {
+            if (c != NULL && c->timeline_info.media == item && c->is_open) {
                 c->close(true);
 				c->replaced = true;
 			}

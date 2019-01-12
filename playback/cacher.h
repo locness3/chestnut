@@ -20,6 +20,8 @@
 
 #include <QThread>
 #include <QVector>
+#include <memory>
+
 #include "project/clip.h"
 
 class Cacher : public QThread
@@ -27,21 +29,22 @@ class Cacher : public QThread
 //	Q_OBJECT
 public:
     Cacher(ClipPtr c);
-    void run();
-
-	bool caching;
+    bool caching = false;
 
 	// must be set before caching
-	long playhead;
-	bool reset;
-    bool scrubbing;
-    bool interrupt;
-    QVector<ClipPtr> nests;
+    long playhead = -1;
+    bool reset = false;
+    bool scrubbing = false;
+    bool interrupt = false;
+    QVector<ClipPtr> nests = QVector<ClipPtr>();
+
+protected:
+    virtual void run();
 
 private:
     ClipPtr clip;
 };
+typedef std::shared_ptr<Cacher> CacherPtr;
 
-void cache_clip_worker(ClipPtr clip, long playhead, bool reset, bool scrubbing, QVector<ClipPtr> nest);
 
 #endif // CACHER_H
