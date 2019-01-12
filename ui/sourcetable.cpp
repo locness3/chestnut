@@ -70,7 +70,12 @@ void SourceTable::mousePressEvent(QMouseEvent* event) {
 }
 
 void SourceTable::mouseDoubleClickEvent(QMouseEvent* event) {
-	project_parent->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
+    //FIXME: crash happening here
+    if (project_parent != NULL) {
+        if (project_parent->sources_common != NULL) {
+            project_parent->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
+        }
+    }
 }
 
 void SourceTable::dragEnterEvent(QDragEnterEvent *event) {
