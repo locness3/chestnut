@@ -58,7 +58,6 @@ public:
     MediaType_E get_type() const;
     const QString& get_name();
     void set_name(const QString& n);
-    MediaThrobber* throbber;
 
 	double get_frame_rate(int stream = -1);
 	int get_sampling_rate(int stream = -1);
@@ -74,9 +73,10 @@ public:
     Media *parentItem();
     void removeChild(int i);
 
+    MediaThrobber* throbber;
     bool root;
-    int temp_id;
-    int temp_id2;
+    int temp_id = 0;
+    int temp_id2 = 0;
 private:
     MediaType_E type;
     project::ProjectItemPtr object;
