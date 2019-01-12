@@ -135,7 +135,7 @@ public:
     EffectRowPtr row(int i);
 	int row_count();
 
-	EffectGizmo* add_gizmo(int type);
+    EffectGizmo* add_gizmo(GizmoType_E type);
 	EffectGizmo* gizmo(int i);
 	int gizmo_count();
 

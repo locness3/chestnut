@@ -18,10 +18,6 @@
 #ifndef EFFECTGIZMO_H
 #define EFFECTGIZMO_H
 
-#define GIZMO_TYPE_DOT 0
-#define GIZMO_TYPE_POLY 1
-#define GIZMO_TYPE_TARGET 2
-
 #define GIZMO_DOT_SIZE 2.5F
 #define GIZMO_TARGET_SIZE 5.0F
 
@@ -31,12 +27,20 @@
 #include <QVector>
 #include <QColor>
 
+#include <memory>
+
 class EffectField;
+
+enum GizmoType_E {
+    GIZMO_TYPE_DOT = 0,
+    GIZMO_TYPE_POLY = 1,
+    GIZMO_TYPE_TARGET = 2
+};
 
 class EffectGizmo
 {
 public:
-    EffectGizmo(int type);
+    EffectGizmo(const GizmoType_E type);
 
     QVector<QPoint> world_pos;
     QVector<QPoint> screen_pos;
@@ -55,13 +59,15 @@ public:
     QColor color;
     int get_point_count();
 
-    int get_type();
+    GizmoType_E get_type() const;
 
-    int get_cursor();
-    void set_cursor(int c);
+    int get_cursor() const;
+    void set_cursor(const int value);
 private:
-    int type;
+    GizmoType_E type;
     int cursor;
 };
+
+typedef std::shared_ptr<EffectGizmo> EffectGizmoPtr;
 
 #endif // EFFECTGIZMO_H

@@ -535,7 +535,7 @@ int Effect::row_count() {
 	return rows.size();
 }
 
-EffectGizmo *Effect::add_gizmo(int type) {
+EffectGizmo *Effect::add_gizmo(GizmoType_E type) {
 	EffectGizmo* gizmo = new EffectGizmo(type);
 	gizmos.append(gizmo);
 	return gizmo;
