@@ -430,7 +430,7 @@ void ExportThread::run() {
     }
 
 	e_panel_sequence_viewer->viewer_widget->default_fbo = NULL;
-	rendering = false;
+	e_rendering = false;
 
 	fbo.release();
 
@@ -496,5 +496,5 @@ void ExportThread::run() {
 	e_panel_sequence_viewer->viewer_widget->context()->doneCurrent();
 	e_panel_sequence_viewer->viewer_widget->context()->moveToThread(qApp->thread());
 
-	rendering = false;
+	e_rendering = false;
 }

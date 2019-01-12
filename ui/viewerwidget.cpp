@@ -144,7 +144,7 @@ void ViewerWidget::save_frame() {
 		}
         QOpenGLFramebufferObject fbo(viewer->seq->getWidth(), viewer->seq->getHeight(), QOpenGLFramebufferObject::CombinedDepthStencil, GL_TEXTURE_RECTANGLE);
 
-		rendering = true;
+        e_rendering = true;
 		fbo.bind();
 
 		default_fbo = &fbo;
@@ -157,7 +157,7 @@ void ViewerWidget::save_frame() {
 
 		fbo.release();
 		default_fbo = NULL;
-		rendering = false;
+        e_rendering = false;
 	}
 }
 
@@ -206,7 +206,7 @@ void ViewerWidget::initializeGL() {
 //}
 
 void ViewerWidget::paintEvent(QPaintEvent *e) {
-    if (!rendering) {
+    if (!e_rendering) {
         QOpenGLContext* const ctxt = context();
         if (ctxt != NULL) {
             if (ctxt->thread() == this->thread()) {
@@ -464,7 +464,7 @@ void ViewerWidget::process_effect(ClipPtr c, EffectPtr e, double timecode,
 				GLuint superimpose_texture = e->process_superimpose(timecode);
 				if (superimpose_texture == 0) {
 					dout << "[WARNING] Superimpose texture was NULL, retrying...";
-					texture_failed = true;
+                    e_texture_failed = true;
 				} else {
 					composite_texture = draw_clip(c->fbo[!fbo_switcher], superimpose_texture, false);
 				}
@@ -516,7 +516,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 								// if thread is already working, we don't want to touch this,
 								// but we also don't want to hang the UI thread
 								if (!c->open) {
-									open_clip(c, !rendering);
+                                    open_clip(c, !e_rendering);
 								}
 								clip_is_active = true;
                                 if (c->timeline_info.track >= 0) audio_track_count++;
@@ -525,12 +525,12 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 							}
 						} else {
 							//dout << "[WARNING] Media '" + m->name + "' was not ready, retrying...";
-							texture_failed = true;
+                            e_texture_failed = true;
 						}
 					}
 				} else {
                     if (c->isActive(playhead)) {
-						if (!c->open) open_clip(c, !rendering);
+                        if (!c->open) open_clip(c, !e_rendering);
 						clip_is_active = true;
 					} else if (c->open) {
                         c->close(false);
@@ -555,7 +555,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
     int half_width = s->getWidth()/2;
     int half_height = s->getHeight()/2;
-	if (rendering || !nests.isEmpty()) half_height = -half_height; // invert vertical
+    if (e_rendering || !nests.isEmpty()) half_height = -half_height; // invert vertical
 
 	glPushMatrix();
 	glLoadIdentity();
@@ -571,7 +571,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
                 && clipNow->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE
                 && !clipNow->finished_opening) {
 			dout << "[WARNING] Tried to display clip" << i << "but it's closed";
-			texture_failed = true;
+            e_texture_failed = true;
 		} else {
             if (clipNow->timeline_info.track < 0) {
 				GLuint textureID = 0;
@@ -605,7 +605,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
                 if (textureID == 0 && clipNow->timeline_info.media != NULL) {
 					dout << "[WARNING] Texture hasn't been created yet";
-					texture_failed = true;
+                    e_texture_failed = true;
                 } else if (playhead >= clipNow->get_timeline_in_with_transition()) {
 					glPushMatrix();
 
@@ -685,7 +685,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 						}
 					}
 
-					if (!rendering) {
+                    if (!e_rendering) {
 						if (selected_effect != NULL) {
 							gizmos = selected_effect;
                         } else if (e_panel_timeline->is_clip_selected(clipNow, true)) {
@@ -715,7 +715,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					if (!nests.isEmpty()) {
 						nests.last()->fbo[0]->bind();
                         glViewport(0, 0, s->getWidth(), s->getHeight());
-					} else if (rendering) {
+                    } else if (e_rendering) {
                         glViewport(0, 0, s->getWidth(), s->getHeight());
 					} else {
 						int widget_width = width();
@@ -857,7 +857,7 @@ void ViewerWidget::paintGL() {
 	if (viewer->seq != NULL) {
 		gizmos = NULL;
 
-		bool render_audio = (viewer->playing || rendering);
+        bool render_audio = (viewer->playing || e_rendering);
 		bool loop = false;
 		do {
 			loop = false;
@@ -868,9 +868,9 @@ void ViewerWidget::paintGL() {
 			glEnable(GL_BLEND);
 			glEnable(GL_DEPTH);
 
-			texture_failed = false;
+            e_texture_failed = false;
 
-			if (!rendering) retry_timer.stop();
+            if (!e_rendering) retry_timer.stop();
 
 			glClear(GL_COLOR_BUFFER_BIT);
 
@@ -903,8 +903,8 @@ void ViewerWidget::paintGL() {
 			}
 
 			if (force_quit) break;
-			if (texture_failed) {
-				if (rendering) {
+            if (e_texture_failed) {
+                if (e_rendering) {
 					dout << "[INFO] Texture failed - looping";
 					loop = true;
 				} else {
@@ -912,7 +912,7 @@ void ViewerWidget::paintGL() {
 				}
 			}
 
-            if (e_config.show_title_safe_area && !rendering) {
+            if (e_config.show_title_safe_area && !e_rendering) {
 				drawTitleSafeArea();
 			}
 

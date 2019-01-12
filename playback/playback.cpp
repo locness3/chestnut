@@ -50,10 +50,10 @@ extern "C" {
 //#define GCF_DEBUG
 #endif
 
-bool texture_failed = false;
-bool rendering = false;
+bool e_texture_failed = false;
+bool e_rendering = false;
 
-
+//TODO:
 void open_clip(ClipPtr clip, bool multithreaded) {
     if (clip->uses_cacher()) {
 		clip->multithreaded = multithreaded;
@@ -68,7 +68,7 @@ void open_clip(ClipPtr clip, bool multithreaded) {
 			clip->finished_opening = false;
 			clip->open = true;
 
-			open_clip_worker(clip);
+//			open_clip_worker(clip);
 		}
 	} else {
 		clip->open = true;
@@ -219,7 +219,7 @@ void get_clip_frame(ClipPtr c, long playhead) {
 
 		if (target_frame == NULL || reset) {
 			// reset cache
-			texture_failed = true;
+            e_texture_failed = true;
 			dout << "[INFO] Frame queue couldn't keep up - either the user seeked or the system is overloaded (queue size:" << c->queue.size() << ")";
 		}
 

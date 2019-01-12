@@ -514,7 +514,7 @@ void MainWindow::new_project() {
 }
 
 void MainWindow::autorecover_interval() {
-	if (!rendering && isWindowModified()) {
+	if (!e_rendering && isWindowModified()) {
         e_panel_project->save_project(true);
 		dout << "[INFO] Auto-recovery project saved";
 	}

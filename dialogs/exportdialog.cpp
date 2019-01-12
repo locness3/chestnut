@@ -500,7 +500,7 @@ void ExportDialog::export_action() {
 
 		mainWindow->autorecover_interval();
 
-		rendering = true;
+		e_rendering = true;
 		e_panel_sequence_viewer->viewer_widget->context()->doneCurrent();
 		e_panel_sequence_viewer->viewer_widget->context()->moveToThread(et);
 

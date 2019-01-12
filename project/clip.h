@@ -74,6 +74,11 @@ public:
      */
     bool uses_cacher() const;
     /**
+     * @brief open_worker
+     * @return true==success
+     */
+    bool open_worker();
+    /**
      * @brief Free resources made via libav
      */
     void close_worker();

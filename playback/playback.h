@@ -28,8 +28,8 @@ class ClipCache;
 
 struct AVFrame;
 
-extern bool texture_failed;
-extern bool rendering;
+extern bool e_texture_failed;
+extern bool e_rendering;
 
 
 void open_clip(ClipPtr clip, bool multithreaded);
