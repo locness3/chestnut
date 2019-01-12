@@ -60,11 +60,11 @@ void Transition::set_length(long l) {
 	length_field->set_double_value(l);
 }
 
-long Transition::get_true_length() {
+long Transition::get_true_length() const {
 	return length;
 }
 
-long Transition::get_length() {
+long Transition::get_length() const {
 	if (secondary_clip != NULL) {
 		return length * 2;
 	}

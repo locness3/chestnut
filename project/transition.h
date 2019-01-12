@@ -40,8 +40,8 @@ public:
     int copy(ClipPtr c, ClipPtr s);
     ClipPtr secondary_clip;
 	void set_length(long l);
-	long get_true_length();
-	long get_length();
+    long get_true_length() const;
+    long get_length() const;
 private slots:
 	void set_length_from_slider();
 private:
