@@ -34,7 +34,7 @@ class EffectRow : public QObject {
 public:
 	EffectRow(Effect* parent, bool save, QGridLayout* uilayout, const QString& n, int row, bool keyframable = true);
     virtual ~EffectRow();
-	EffectField* add_field(int type, const QString &id, int colspan = 1);
+    EffectField* add_field(int type, const QString &id, int colspan = 1); //FIXME: use of this is leaking memory
 	void add_widget(QWidget *w);
 	EffectField* field(int i);
 	int fieldCount();
