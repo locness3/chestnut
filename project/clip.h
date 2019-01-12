@@ -130,6 +130,12 @@ public:
      * @param playhead
      */
     void get_frame(const long playhead);
+    /**
+     * @brief get_timecode
+     * @param playhead
+     * @return
+     */
+    double get_timecode(const long playhead);
 
     //FIXME: all the class members
     SequencePtr sequence;
@@ -141,15 +147,15 @@ public:
         long in = 0;
         long out = 0;
         int track = 0;
-        QString name;
-        QColor color;
+        QString name = "";
+        QColor color = {0,0,0};
         Media* media = NULL;
-        int media_stream;
+        int media_stream = -1;
         double speed = 1.0;
-        double cached_fr;
+        double cached_fr = 0.0;
         bool reverse = false;
-        bool maintain_audio_pitch;
-        bool autoscale;
+        bool maintain_audio_pitch = true;
+        bool autoscale = true;
     } timeline_info;
 
 	// other variables (should be deep copied/duplicated in copy())
@@ -221,7 +227,7 @@ private:
     struct {
         bool caching = false;
         // must be set before caching
-        long playhead = -1;
+        long playhead = 0;
         bool reset = false;
         bool scrubbing = false;
         bool interrupt = false;
@@ -230,12 +236,8 @@ private:
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 
-
-    // TODO: to be moved from playback.h
+    // TODO: all the _playhead_ var could be in the end cache_info.playhead
     long playhead_to_frame(const long playhead);
-    void get_next_audio(const bool mix);
-
-    double get_timecode(const long playhead);
     int64_t playhead_to_timestamp(const long playhead);
     bool retrieve_next_frame(AVFrame* frame);
     double playhead_to_seconds(const long playhead);

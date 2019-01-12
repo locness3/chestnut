@@ -33,8 +33,8 @@ private slots:
 	void replace();
 private:
 	Media* media;
-	QTreeView* tree;
-	QCheckBox* use_same_media_in_points;
+    QTreeView* tree = NULL;
+    QCheckBox* use_same_media_in_points = NULL;
 };
 
 #endif // REPLACECLIPMEDIADIALOG_H

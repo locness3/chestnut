@@ -113,7 +113,8 @@ ClipPtr Clip::copy(SequencePtr s) {
     copyClip->timeline_info.reverse = timeline_info.reverse;
 
     for (int i=0; i<effects.size(); i++) {
-        //        copy->effects.append(effects.at(i)->copy(copy)); //TODO:hmm
+         //TODO:hmm
+        copyClip->effects.append(effects.at(i)->copy(copyClip));
     }
 
     copyClip->timeline_info.cached_fr = (this->sequence == NULL) ? timeline_info.cached_fr : this->sequence->getFrameRate();
@@ -417,8 +418,8 @@ bool Clip::open_worker() {
 
     finished_opening = true;
 
-    dout << "[INFO] Clip opened on track" << timeline_info.track;
-    return false;
+    dinfo << "Clip opened on track" << timeline_info.track;
+    return true;
 }
 
 /**
@@ -441,7 +442,7 @@ void Clip::close_worker() {
 
     reset();
 
-    dout << "[INFO] Clip closed on track" << timeline_info.track;
+    dinfo << "Clip closed on track" << timeline_info.track;
 }
 
 
@@ -535,6 +536,7 @@ void Clip::close(const bool wait) {
  */
 bool Clip::cache(const long playhead, const bool do_reset, const bool scrubbing, QVector<ClipPtr>& nests) {
     if (!uses_cacher()) {
+        dwarning << "Not using caching";
         return false;
     }
 
@@ -674,9 +676,6 @@ void Clip::get_frame(const long playhead) {
         if (queue.size() > 0) {
             if (ms->infinite_length) {
                 target_frame = queue.at(0);
-#ifdef GCF_DEBUG
-                dout << "GCF ==> USE PRECISE (INFINITE)";
-#endif
             } else {
                 // correct frame may be somewhere else in the queue
                 int closest_frame = 0;
@@ -685,9 +684,6 @@ void Clip::get_frame(const long playhead) {
                     //dout << "results for" << i << qAbs(queue.at(i)->pts - target_pts) << qAbs(queue.at(closest_frame)->pts - target_pts) << queue.at(i)->pts << target_pts;
 
                     if (queue.at(i)->pts == target_pts) {
-#ifdef GCF_DEBUG
-                        dout << "GCF ==> USE PRECISE";
-#endif
                         closest_frame = i;
                         break;
                     } else if (queue.at(i)->pts > queue.at(closest_frame)->pts && queue.at(i)->pts < target_pts) {
@@ -744,30 +740,23 @@ void Clip::get_frame(const long playhead) {
                 // we didn't get the exact timestamp
                 if (target_frame->pts != target_pts) {
                     if (target_pts > target_frame->pts && target_pts <= next_pts) {
-#ifdef GCF_DEBUG
-                        dout << "GCF ==> USE IMPRECISE";
-#endif
+                        //TODO: uhh
                     } else {
                         int64_t pts_diff = qAbs(target_pts - target_frame->pts);
                         if (reached_end && target_pts > target_frame->pts) {
-#ifdef GCF_DEBUG
-                            dout << "GCF ==> EOF TOLERANT";
-#endif
                             reached_end = false;
                             use_cache = false;
                         } else if (target_pts != last_invalid_ts && (target_pts < target_frame->pts || pts_diff > second_pts)) {
-
-#ifdef GCF_DEBUG
-                            dout << "GCF ==> RESET" << target_pts << "(" << target_frame->pts << "-" << target_frame->pts+target_frame->pkt_duration << ")";
-#endif
-                            if (!e_config.fast_seeking) target_frame = NULL;
+                            if (!e_config.fast_seeking) {
+                                target_frame = NULL;
+                            }
                             reset = true;
+                            dinfo << "Resetting";
                             last_invalid_ts = target_pts;
                         } else {
-#ifdef GCF_DEBUG
-                            dout << "GCF ==> WAIT - target pts:" << target_pts << "closest frame:" << target_frame->pts;
-#endif
-                            if (queue.size() >= max_queue_size) queue_remove_earliest();
+                            if (queue.size() >= max_queue_size) {
+                                queue_remove_earliest();
+                            }
                             ignore_reverse = true;
                             target_frame = NULL;
                         }
@@ -775,13 +764,14 @@ void Clip::get_frame(const long playhead) {
                 }
             }
         } else {
+            dinfo << "Resetting";
             reset = true;
         }
 
         if (target_frame == NULL || reset) {
             // reset cache
             e_texture_failed = true;
-            dout << "[INFO] Frame queue couldn't keep up - either the user seeked or the system is overloaded (queue size:" << queue.size() << ")";
+            dout << "[INFO] Frame queue couldn't keep up - either the user seeked or the system is overloaded (queue size:" << queue.size() <<  ") " << reset;
         }
 
         if (target_frame != NULL) {
@@ -819,9 +809,16 @@ void Clip::get_frame(const long playhead) {
         if (use_cache) {
             cache(playhead, reset, false, empty);
         }
+    } else {
+        dwarning << "Not finished opening";
     }
 }
 
+
+double Clip::get_timecode(const long playhead) {
+    return (static_cast<double>(playhead - get_timeline_in_with_transition() + get_clip_in_with_transition())
+            / static_cast<double>(sequence->getFrameRate()) );
+}
 
 long Clip::get_clip_in_with_transition() {
     if (get_opening_transition() != NULL && get_opening_transition()->secondary_clip != NULL) {
@@ -1003,28 +1000,33 @@ void Clip::run() {
     cache_info.caching = true;
     cache_info.interrupt = false;
 
-    open_worker();
+    if (open_worker()) {
+        dinfo << "Cache thread starting";
+        while (cache_info.caching) {
+            can_cache.wait(&lock);
+            if (!cache_info.caching) {
+                break;
+            } else {
+                while (true) {
+                    cache_worker(cache_info.playhead, cache_info.reset, cache_info.scrubbing, cache_info.nests);
+                    if (multithreaded && cache_info.interrupt && (timeline_info.track < 0) ) {
+                        cache_info.interrupt = false;
+                    } else {
+                        break;
+                    }
+                }//while
+            }
+        }//while
 
-    while (cache_info.caching) {
-        can_cache.wait(&lock);
-        if (!cache_info.caching) {
-            break;
-        } else {
-            while (true) {
-                //                cache_clip_worker(clip, playhead, reset, scrubbing, nests); //FIXME: bring here
-                if (multithreaded && cache_info.interrupt && (timeline_info.track < 0) ) {
-                    cache_info.interrupt = false;
-                } else {
-                    break;
-                }
-            }//while
-        }
-    }//while
+        dwarning << "caching thread stopped";
 
-    close_worker();
+        close_worker();
 
-    lock.unlock();
-    open_lock.unlock();
+        lock.unlock();
+        open_lock.unlock();
+    } else {
+        derror << "Failed to open worker";
+    }
 }
 
 
@@ -1074,9 +1076,8 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
 
 
 
-double Clip::get_timecode(const long playhead) {
-    return (static_cast<double>(playhead - get_timeline_in_with_transition() + get_clip_in_with_transition())
-            / static_cast<double>(sequence->getFrameRate()) );
+long Clip::playhead_to_frame(const long playhead) {
+    return (qMax(0L, playhead - get_timeline_in_with_transition()) + get_clip_in_with_transition());
 }
 
 
@@ -1130,12 +1131,25 @@ bool Clip::retrieve_next_frame(AVFrame* frame) { //TODO: frame could be the same
     return result == 0;
 }
 
+/**
+ * @brief returns time in seconds
+ * @param playhead
+ * @return seconds
+ */
 double Clip::playhead_to_seconds(const long playhead) {
-    //TODO: see playback.cpp
+    long clip_frame = playhead_to_frame(playhead);
+    if (timeline_info.reverse) {
+        clip_frame = getMaximumLength() - clip_frame - 1;
+    }
+    double secs = (static_cast<double>(clip_frame)/sequence->getFrameRate()) * timeline_info.speed;
+    if (timeline_info.media != NULL && timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
+        secs *= timeline_info.media->get_object<Footage>()->speed;
+    }
+    return secs;
 }
 
 int64_t Clip::seconds_to_timestamp(const double seconds) {
-    //TODO: see playback.cpp
+    return qRound64(seconds * av_q2d(av_inv_q(media_handling.stream->time_base))) + qMax(0L, media_handling.stream->start_time);
 }
 
 //TODO: hmmm
@@ -1607,7 +1621,7 @@ void Clip::cache_video_worker(const long playhead) {
 void Clip::cache_worker(const long playhead, const bool reset, const bool scrubbing, QVector<ClipPtr>& nests) {
     if (reset) {
         // note: for video, playhead is in "internal clip" frames - for audio, it's the timeline playhead
-        //        reset_cache(clip, playhead); // TODO:
+        reset_cache(playhead);
         audio_playback.reset = false;
     }
 

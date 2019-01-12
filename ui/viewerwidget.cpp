@@ -268,7 +268,7 @@ void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
 		int x_movement = (event->pos().x() - drag_start_x)*multiplier;
 		int y_movement = (event->pos().y() - drag_start_y)*multiplier;
 
-		gizmos->gizmo_move(selected_gizmo, x_movement, y_movement, get_timecode(gizmos->parent_clip, gizmos->parent_clip->sequence->playhead), done);
+        gizmos->gizmo_move(selected_gizmo, x_movement, y_movement, gizmos->parent_clip->get_timecode(gizmos->parent_clip->sequence->playhead), done);
 
 		gizmo_x_mvmt += x_movement;
 		gizmo_y_mvmt += y_movement;
@@ -473,9 +473,6 @@ void ViewerWidget::process_effect(ClipPtr c, EffectPtr e, double timecode,
 	}
 }
 
-int motion_blur_prog = 0;
-int motion_blur_lim = 4;
-
 GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio) {
     SequencePtr s = viewer->seq;
 	long playhead = s->playhead;
@@ -673,7 +670,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 					}
 
 					// EFFECT CODE START
-                    double timecode = get_timecode(clipNow, playhead);
+                    double timecode = clipNow->get_timecode(playhead);
 
                     EffectPtr first_gizmo_effect;
                     EffectPtr selected_effect;
