@@ -396,8 +396,8 @@ void Timeline::add_transition() {
 int Timeline::calculate_track_height(int track, int value) {
 	int index = (track < 0) ? qAbs(track + 1) : track;
 	QVector<int>& vector = (track < 0) ? video_track_heights : audio_track_heights;
-	while (vector.size() < index+1) {
-		vector.append(default_track_height);
+    while (vector.size() < index+1) {
+        vector.append(default_track_height); //FIXME: infinite loop experienced here
 	}
 	if (value > -1) {
 		vector[index] = value;
