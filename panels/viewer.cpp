@@ -63,6 +63,9 @@ namespace {
     const int MEDIA_HEIGHT = 1080;
     const int MEDIA_AUDIO_FREQUENCY = 48000;
 
+    const char* const PANEL_NAME = "Viewer";
+    const char* const PANEL_TITLE_FORMAT = "%1: %2";
+
     const QColor PAUSE_COLOR(128,192,128); // RGB
 }
 
@@ -74,7 +77,7 @@ Viewer::Viewer(QWidget *parent) :
 	seq(nullptr),
 	created_sequence(false),
 	cue_recording_internal(false),
-	panel_name("Viewer: "),
+    panel_name(PANEL_NAME),
 	minimum_zoom(1.0)
 {
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -501,6 +504,16 @@ void Viewer::set_zoom(bool in) {
 	}
 }
 
+
+void Viewer::set_panel_name(const QString& name) {
+    panel_name = name;
+    if (seq != nullptr) {
+        setWindowTitle(QString(PANEL_TITLE_FORMAT).arg(panel_name).arg(seq->getName()));
+    } else {
+        setWindowTitle(QString(PANEL_TITLE_FORMAT).arg(panel_name).arg("(none)"));
+    }
+}
+
 void Viewer::set_zoom_value(double d) {
 	headers->update_zoom(d);
 	if (viewer_widget->waveform) {
@@ -798,13 +811,12 @@ void Viewer::set_sequence(bool main, SequencePtr s) {
 		update_end_timecode();
 
 		viewer_container->adjust();
+        set_panel_name(seq->getName());
 
-        setWindowTitle(panel_name + seq->getName());
 	} else {
 		update_playhead_timecode(0);
 		update_end_timecode();
-
-		setWindowTitle(panel_name + "(none)");
+        set_panel_name(PANEL_NAME);
 	}
 
 	update_header_zoom();

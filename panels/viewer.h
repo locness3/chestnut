@@ -64,6 +64,7 @@ public:
 	void set_in_point();
 	void set_out_point();
 	void set_zoom(bool in);
+    void set_panel_name(const QString& name);
 
 	// playback functions
 	void seek(long p);
