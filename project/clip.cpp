@@ -29,6 +29,7 @@
 #include "project/sequence.h"
 #include "panels/timeline.h"
 #include "panels/panels.h"
+#include "panels/viewer.h"
 #include "project/media.h"
 #include "io/clipboard.h"
 #include "io/avtogl.h"
@@ -1481,9 +1482,8 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
         }
     }
 
-    //FIXME: no matching function for call to ‘QMetaObject::invokeMethod(Viewer*&, const char [10], Qt::ConnectionType)’
-//    QMetaObject::invokeMethod(e_panel_footage_viewer, "play_wake", Qt::QueuedConnection);
-//    QMetaObject::invokeMethod(e_panel_sequence_viewer, "play_wake", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(e_panel_footage_viewer, "play_wake", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(e_panel_sequence_viewer, "play_wake", Qt::QueuedConnection);
 }
 
 void Clip::cache_video_worker(const long playhead) {
