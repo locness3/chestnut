@@ -81,7 +81,7 @@ void NewSequenceDialog::set_sequence_name(const QString& s) {
 
 void NewSequenceDialog::create() {
     if (existing_sequence == nullptr) {
-        SequencePtr  s(new Sequence());
+        SequencePtr s = std::make_shared<Sequence> ();
 
         s->setName(sequence_name_edit->text());
         s->setWidth(width_numeric->value());

@@ -1408,7 +1408,7 @@ void MainWindow::nest() {
 		if (!selected_clips.isEmpty()) {
 			ComboAction* ca = new ComboAction();
 
-            SequencePtr s(new Sequence());
+            SequencePtr s = std::make_shared<Sequence>();
 
 			// create "nest" sequence
             s->setName(e_panel_project->get_next_sequence_name("Nested Sequence"));

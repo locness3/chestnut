@@ -67,21 +67,21 @@ typedef std::shared_ptr<Effect> EffectPtr;
 EffectPtr create_effect(ClipPtr c, const EffectMeta* em) { //FIXME: use of this is causing a lot of leaks
 	if (!em->filename.isEmpty()) {
 		// load effect from file
-        return EffectPtr(new Effect(c, em));
+        return std::make_shared<Effect>(c, em);
 	} else if (em->internal >= 0 && em->internal < EFFECT_INTERNAL_COUNT) {
 		// must be an internal effect
 		switch (em->internal) {
-        case EFFECT_INTERNAL_TRANSFORM: return EffectPtr(new TransformEffect(c, em));
-        case EFFECT_INTERNAL_TEXT: return EffectPtr(new TextEffect(c, em));
-        case EFFECT_INTERNAL_TIMECODE: return EffectPtr(new TimecodeEffect(c, em));
-        case EFFECT_INTERNAL_SOLID: return EffectPtr(new SolidEffect(c, em));
-        case EFFECT_INTERNAL_NOISE: return EffectPtr(new AudioNoiseEffect(c, em));
-        case EFFECT_INTERNAL_VOLUME: return EffectPtr(new VolumeEffect(c, em));
-        case EFFECT_INTERNAL_PAN: return EffectPtr(new PanEffect(c, em));
-        case EFFECT_INTERNAL_TONE: return EffectPtr(new ToneEffect(c, em));
-        case EFFECT_INTERNAL_SHAKE: return EffectPtr(new ShakeEffect(c, em));
-        case EFFECT_INTERNAL_CORNERPIN: return EffectPtr(new CornerPinEffect(c, em));
-        case EFFECT_INTERNAL_FILLLEFTRIGHT: return EffectPtr(new FillLeftRightEffect(c, em));
+        case EFFECT_INTERNAL_TRANSFORM: return std::make_shared<TransformEffect>(c, em);
+        case EFFECT_INTERNAL_TEXT: return std::make_shared<TextEffect>(c, em);
+        case EFFECT_INTERNAL_TIMECODE: return std::make_shared<TimecodeEffect>(c, em);
+        case EFFECT_INTERNAL_SOLID: return std::make_shared<SolidEffect>(c, em);
+        case EFFECT_INTERNAL_NOISE: return std::make_shared<AudioNoiseEffect>(c, em);
+        case EFFECT_INTERNAL_VOLUME: return std::make_shared<VolumeEffect>(c, em);
+        case EFFECT_INTERNAL_PAN: return std::make_shared<PanEffect>(c, em);
+        case EFFECT_INTERNAL_TONE: return std::make_shared<ToneEffect>(c, em);
+        case EFFECT_INTERNAL_SHAKE: return std::make_shared<ShakeEffect>(c, em);
+        case EFFECT_INTERNAL_CORNERPIN: return std::make_shared<CornerPinEffect>(c, em);
+        case EFFECT_INTERNAL_FILLLEFTRIGHT: return std::make_shared<FillLeftRightEffect>(c, em);
 #ifdef _WIN32
 		case EFFECT_INTERNAL_VST: return new VSTHostWin(c, em);
 #endif
@@ -518,7 +518,7 @@ void Effect::copy_field_keyframes(std::shared_ptr<Effect> e) {
 }
 
 EffectRowPtr Effect::add_row(const QString& name, bool savable, bool keyframable) {
-    EffectRowPtr row(new EffectRow(this, savable, ui_layout, name, rows.size()));
+    EffectRowPtr row = std::make_shared<EffectRow>(this, savable, ui_layout, name, rows.size());
 	rows.append(row);
 	return row;
 }
@@ -614,7 +614,7 @@ void Effect::move_down() {
  * @return EffectGizmo shared_ptr
  */
 EffectGizmoPtr Effect::newEffectGizmo(const GizmoType_E type) {
-    return EffectGizmoPtr(new EffectGizmo(type));
+    return std::make_shared<EffectGizmo>(type);
 }
 
 int Effect::get_index_in_clip() {

@@ -265,7 +265,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 						case MEDIA_TYPE_SEQUENCE:
 						{
                             MediaPtr parent = nullptr;
-                            SequencePtr  s(new Sequence());
+                            SequencePtr  s = std::make_shared<Sequence>();
 
 							// load attributes about sequence
 							for (int j=0;j<stream.attributes().size();j++) {
@@ -334,7 +334,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								} else if (stream.name() == "clip" && stream.isStartElement()) {
 									int media_type = -1;
 									int media_id, stream_id;
-                                    ClipPtr c(new Clip(s));
+                                    ClipPtr c = std::make_shared<Clip>(s);
 
 									// backwards compatibility code
                                     c->timeline_info.autoscale = false;
@@ -710,7 +710,7 @@ void LoadThread::create_effect_ui(
 	if (type == TA_NO_TRANSITION) {
         if (meta == nullptr) {
 			// create void effect
-            EffectPtr ve(new VoidEffect(c, *effect_name));
+            EffectPtr ve = std::make_shared<VoidEffect>(c, *effect_name);
 			ve->set_enabled(effect_enabled);
 			ve->load(*stream);
 			c->effects.append(ve);

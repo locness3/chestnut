@@ -55,7 +55,7 @@ Sequence::Sequence(const Sequence& cpy) :
 }
 
 std::shared_ptr<Sequence> Sequence::copy() {
-    std::shared_ptr<Sequence> s(new Sequence());
+    std::shared_ptr<Sequence> s = std::make_shared<Sequence>();
     s->name = name + " (copy)";
     s->width = width;
     s->height = height;

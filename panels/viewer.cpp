@@ -392,7 +392,7 @@ void Viewer::pause() {
             e_panel_project->process_file_list(file_list);
 
 			// add it to the sequence
-            ClipPtr c(new Clip(seq));
+            ClipPtr c = std::make_shared<Clip>(seq);
             MediaPtr m = e_panel_project->last_imported_media.at(0);
             FootagePtr f = m->get_object<Footage>();
 
@@ -639,7 +639,7 @@ void Viewer::set_media(MediaPtr m) {
 		{
             FootagePtr footage = media->get_object<Footage>();
 
-            seq = SequencePtr(new Sequence());
+            SequencePtr seq = std::make_shared<Sequence>();
 			created_sequence = true;
 			seq->wrapper_sequence = true;
             seq->setName(footage->getName());
@@ -660,7 +660,7 @@ void Viewer::set_media(MediaPtr m) {
                     seq->setFrameRate(video_stream.video_frame_rate * footage->speed);
                 }
 
-                ClipPtr c(new Clip(e_sequence));
+                ClipPtr c = std::make_shared<Clip>(e_sequence);
                 c->timeline_info.media= media;
                 c->timeline_info.media_stream = video_stream.file_index;
                 c->timeline_info.in = 0;
@@ -679,7 +679,7 @@ void Viewer::set_media(MediaPtr m) {
 				const FootageStream& audio_stream = footage->audio_tracks.at(0);
                 seq->setAudioFrequency(audio_stream.audio_frequency);
 
-                ClipPtr c(new Clip(e_sequence));
+                ClipPtr c = std::make_shared<Clip>(e_sequence);
                 c->timeline_info.media= media;
                 c->timeline_info.media_stream = audio_stream.file_index;
                 c->timeline_info.in = 0;

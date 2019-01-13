@@ -228,7 +228,7 @@ QString Project::get_next_sequence_name(QString start) {
 }
 
 SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
-    SequencePtr  s = SequencePtr(new Sequence());
+    SequencePtr  s = std::make_shared<Sequence>();
 
     s->setName(e_panel_project->get_next_sequence_name());
 

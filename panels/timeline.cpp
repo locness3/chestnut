@@ -299,7 +299,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
 
 		earliest_point = qMin(earliest_point, g.in);
 
-        ClipPtr c(new Clip(s));
+        ClipPtr c = std::make_shared<Clip>(s);
         c->timeline_info.media = g.media;
         c->timeline_info.media_stream = g.media_stream;
         c->timeline_info.in = g.in;

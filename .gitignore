@@ -6,3 +6,10 @@ snap/parts/*
 snap/prime/*
 snap/snap/*
 snap/stage/*
+/compile_commands.json
+/detect.data
+/detect.data.old
+/olive.srctrlbm
+/olive.srctrldb
+/olive.srctrlprj
+/prepend.sh

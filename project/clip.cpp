@@ -99,7 +99,7 @@ Clip::Clip(const Clip& cpy)
 }
 
 ClipPtr Clip::copy(SequencePtr s) {
-    ClipPtr copyClip(new Clip(s));
+    ClipPtr copyClip = std::make_shared<Clip>(s);
 
     copyClip->timeline_info.enabled = timeline_info.enabled;
     copyClip->timeline_info.name = timeline_info.name;
