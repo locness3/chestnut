@@ -31,8 +31,13 @@ class Transition;
 class Media;
 typedef std::shared_ptr<Clip> ClipPtr;
 
+using SequencePtr = std::shared_ptr<Sequence>;
+using SequenceUPtr = std::unique_ptr<Sequence>;
+using SequenceWPtr = std::weak_ptr<Sequence>;
+
 class Sequence : public project::ProjectItem {
 public:
+
     Sequence();
     virtual ~Sequence();
     /**
@@ -78,8 +83,6 @@ private:
     // Impl as required
     const Sequence& operator=(const Sequence& rhs);
 };
-
-typedef std::shared_ptr<Sequence> SequencePtr;
 
 // static variable for the currently active sequence
 extern SequencePtr e_sequence;

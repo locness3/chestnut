@@ -50,9 +50,15 @@ struct AVFilterGraph;
 struct AVFilterContext;
 struct AVDictionary;
 
+
+using ClipPtr = std::shared_ptr<Clip>;
+using ClipUPtr = std::unique_ptr<Clip>;
+using ClipWPtr = std::weak_ptr<Clip>;
+
 class Clip : public project::SequenceItem, QThread
 {
 public:
+
     explicit Clip(SequencePtr s);
     virtual ~Clip();
     ClipPtr copy(SequencePtr s);
@@ -213,7 +219,7 @@ public:
 
 
 protected:
-    virtual void run();
+    virtual void run() override;
 
 private:
 
@@ -265,8 +271,5 @@ private:
     Clip(const Clip& cpy);
     const Clip& operator=(const Clip& rhs);
 };
-
-typedef std::shared_ptr<Clip> ClipPtr;
-typedef std::unique_ptr<Clip> ClipUPtr;
 
 #endif // CLIP_H

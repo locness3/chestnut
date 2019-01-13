@@ -39,9 +39,10 @@ class MediaThrobber;
 
 
 class Media;
-typedef std::unique_ptr<Media> MediaUPtr;
-typedef std::shared_ptr<Media> MediaPtr;
-typedef std::weak_ptr<Media> MediaWPtr;
+
+using MediaUPtr = std::unique_ptr<Media>;
+using MediaPtr = std::shared_ptr<Media>;
+using MediaWPtr = std::weak_ptr<Media>;
 
 
 class Media : public std::enable_shared_from_this<Media>
