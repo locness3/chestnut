@@ -26,6 +26,7 @@
 #include "panels/viewer.h"
 #include "io/config.h"
 #include "mainwindow.h"
+#include "debug.h"
 
 #include <QProcess>
 #include <QMenu>
@@ -165,27 +166,31 @@ void SourcesCommon::item_click(MediaPtr m, const QModelIndex& index) {
 	}
 }
 
-void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *e, const QModelIndexList& items) {
+void SourcesCommon::mouseDoubleClickEvent(QMouseEvent* /*e*/, const QModelIndexList& items) {
 	stop_rename_timer();
-    if (items.size() == 0) {
-		project_parent->import_dialog();
-    } else if (items.size() == 1) {
-        MediaPtr item = project_parent->item_to_media(items.at(0));
-        if (item != nullptr) {
-            switch (item->get_type()) {
-            case MEDIA_TYPE_FOOTAGE:
-                e_panel_footage_viewer->set_media(item); //FIXME: this is causing a crash
-                e_panel_footage_viewer->setFocus();
-                break;
-            case MEDIA_TYPE_SEQUENCE:
-                e_undo_stack.push(new ChangeSequenceAction(item->get_object<Sequence>()));
-                break;
-            default:
-                //TODO: log/something
-                break;
-            }//switch
+    if (project_parent != nullptr) {
+        if (items.size() == 0) {
+            project_parent->import_dialog();
+        } else if (items.size() == 1) {
+            MediaPtr item = project_parent->item_to_media(items.at(0));
+            if (item != nullptr) {
+                switch (item->get_type()) {
+                case MEDIA_TYPE_FOOTAGE:
+                    e_panel_footage_viewer->set_media(item);
+                    e_panel_footage_viewer->setFocus();
+                    break;
+                case MEDIA_TYPE_SEQUENCE:
+                    e_undo_stack.push(new ChangeSequenceAction(item->get_object<Sequence>()));
+                    break;
+                default:
+                    dwarning << "Unknown media type" << item->get_type();
+                    break;
+                }//switch
+            }
+        } else {
+            // TODO: ????
         }
-	}
+    }
 }
 
 void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIndex& drop_item, const QModelIndexList& items) {
@@ -205,7 +210,8 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 					&& m->get_type() == MEDIA_TYPE_FOOTAGE
 					&& !QFileInfo(paths.at(0)).isDir()
 					&& e_config.drop_on_media_to_replace
-					&& QMessageBox::question(parent, "Replace Media", "You dropped a file onto '" + m->get_name() + "'. Would you like to replace it with the dropped file?", QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
+                    && QMessageBox::question(parent, "Replace Media", "You dropped a file onto '" + m->get_name() + "'. Would you like to replace it with the dropped file?",
+                                             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
 				replace = true;
 				project_parent->replace_media(m, paths.at(0));
 			}

@@ -77,7 +77,7 @@ std::shared_ptr<Sequence> Sequence::copy() {
 	return s;
 }
 
-long Sequence::getEndFrame() {
+long Sequence::getEndFrame() const{
 	long end = 0;
 	for (int j=0;j<clips.size();j++) {
         ClipPtr c = clips.at(j);
@@ -88,7 +88,7 @@ long Sequence::getEndFrame() {
 	return end;
 }
 
-void Sequence::hard_delete_transition(ClipPtr c, int type) {
+void Sequence::hard_delete_transition(ClipPtr c, const int type) {
 	int transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
 	if (transition_index > -1) {
 		bool del = true;
@@ -162,7 +162,7 @@ int Sequence::getAudioLayout() const {
 void Sequence::setAudioLayout(const int layout) {
     audio_layout = layout;
 }
-void Sequence::getTrackLimits(int& video_limit, int& audio_limit) {
+void Sequence::getTrackLimits(int& video_limit, int& audio_limit) const {
     video_limit = 0;
     audio_limit = 0;
 	for (int j=0;j<clips.size();j++) {

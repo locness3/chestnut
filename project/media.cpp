@@ -262,7 +262,7 @@ bool Media::setData(int col, const QVariant &value) {
 	if (col == 0) {
 		QString n = value.toString();
 		if (!n.isEmpty() && get_name() != n) {
-            e_undo_stack.push(new MediaRename(MediaPtr(this), value.toString()));
+            e_undo_stack.push(new MediaRename(shared_from_this(), value.toString()));
 			return true;
 		}
 	}

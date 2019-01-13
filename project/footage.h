@@ -63,7 +63,7 @@ public:
 	Footage();
     virtual ~Footage();
     //FIXME: encapsulation
-	QString url;
+    QString url;
 	int64_t length;
 	QVector<FootageStream> video_tracks;
 	QVector<FootageStream> audio_tracks;

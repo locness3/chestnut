@@ -30,10 +30,12 @@ extern QDebug debug_out;
 #define dwarning dout << "[WARNING]" << __builtin_FILE () << __builtin_LINE () << __builtin_FUNCTION () << ":"
 #define dinfo dout << "[INFO]" << __builtin_FILE () << __builtin_LINE () << __builtin_FUNCTION () << ":"
 #define derror dout << "[ERROR]" << __builtin_FILE () << __builtin_LINE () << __builtin_FUNCTION ()  << ":"
+#define dverbose dout << "[DEBUG]" << __builtin_FILE () << __builtin_LINE () << __builtin_FUNCTION ()  << ":"
 #else
 #define dwarning dout << "[WARNING]" << ":"
 #define dinfo dout << "[INFO]" << ":"
 #define derror dout << "[ERROR]" << ":"
+#define dverbose dout << "[DEBUG]" << ":"
 #endif
 #endif
 
