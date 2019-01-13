@@ -28,6 +28,7 @@
 #include "ui/timelinetools.h"
 #include "project/selection.h"
 #include "project/sequence.h"
+#include "project/media.h"
 
 #define TRACK_DEFAULT_HEIGHT 40
 
@@ -42,7 +43,6 @@ class SourceTable;
 class ViewerWidget;
 class ComboAction;
 class Effect;
-class Media;
 class Transition;
 class TimelineHeader;
 class TimelineWidget;
@@ -74,7 +74,7 @@ struct Ghost {
     long old_clip_in = 0;
 
 	// importing variables
-    Media* media = nullptr;
+    MediaPtr media = nullptr;
     int media_stream = 0;
 
 	// other variables
@@ -118,7 +118,7 @@ public:
 	void previous_cut();
 	void next_cut();
 
-    void create_ghosts_from_media(SequencePtr seq, long entry_point, QVector<Media *> &media_list);
+    void create_ghosts_from_media(SequencePtr seq, long entry_point, QVector<MediaPtr> &media_list);
     void add_clips_from_ghosts(ComboAction *ca, SequencePtr s);
 
 	int getTimelineScreenPointFromFrame(long frame);

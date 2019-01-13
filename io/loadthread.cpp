@@ -186,7 +186,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 						switch (type) {
 						case MEDIA_TYPE_FOLDER:
 						{
-                            Media* folder = e_panel_project->new_folder(0);
+                            MediaPtr folder = e_panel_project->new_folder(0);
 							folder->temp_id2 = 0;
 							for (int j=0;j<stream.attributes().size();j++) {
 								const QXmlStreamAttribute& attr = stream.attributes().at(j);
@@ -205,8 +205,8 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 						{
 							int folder = 0;
 
-							Media* item = new Media(0);
-                            FootagePtr  m = FootagePtr(new Footage());
+                            MediaPtr item = std::make_shared<Media>(nullptr);
+                            FootagePtr m = std::make_shared<Footage>();
 
 							m->using_inout = false;
 
@@ -264,7 +264,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 							break;
 						case MEDIA_TYPE_SEQUENCE:
 						{
-                            Media* parent = nullptr;
+                            MediaPtr parent = nullptr;
                             SequencePtr  s(new Sequence());
 
 							// load attributes about sequence
@@ -502,7 +502,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								}
 							}
 
-                            Media* m = e_panel_project->new_sequence(nullptr, s, false, parent);
+                            MediaPtr m = e_panel_project->new_sequence(nullptr, s, false, parent);
 
 							loaded_sequences.append(m);
 						}
@@ -518,10 +518,10 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 	return !cancelled;
 }
 
-Media* LoadThread::find_loaded_folder_by_id(int id) {
+MediaPtr LoadThread::find_loaded_folder_by_id(int id) {
     if (id == 0) return nullptr;
 	for (int j=0;j<loaded_folders.size();j++) {
-		Media* parent_item = loaded_folders.at(j);
+        MediaPtr parent_item = loaded_folders.at(j);
 		if (parent_item->temp_id == id) {
 			return parent_item;
 		}
@@ -586,7 +586,7 @@ void LoadThread::run() {
 	if (cont) {
 		// since folders loaded correctly, organize them appropriately
 		for (int i=0;i<loaded_folders.size();i++) {
-			Media* folder = loaded_folders.at(i);
+            MediaPtr folder = loaded_folders.at(i);
 			int parent = folder->temp_id2;
 			project_model.appendChild(find_loaded_folder_by_id(parent), folder);
 		}

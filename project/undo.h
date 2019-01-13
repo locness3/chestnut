@@ -31,8 +31,8 @@
 #include "project/sequence.h"
 #include "project/effect.h"
 #include "project/clip.h"
+#include "project/media.h"
 
-class Media;
 class LabelSlider;
 class SourceTable;
 class EffectRow;
@@ -209,39 +209,39 @@ private:
 
 class NewSequenceCommand : public QUndoCommand {
 public:
-	NewSequenceCommand(Media *s, Media* iparent);
+    NewSequenceCommand(MediaPtr s, MediaPtr iparent);
 	~NewSequenceCommand();
 	void undo();
 	void redo();
 private:
-	Media* seq;
-	Media* parent;
+    MediaPtr seq;
+    MediaPtr parent;
 	bool done;
 	bool old_project_changed;
 };
 
 class AddMediaCommand : public QUndoCommand {
 public:
-	AddMediaCommand(Media* iitem, Media* iparent);
+    AddMediaCommand(MediaPtr iitem, MediaPtr iparent);
 	~AddMediaCommand();
 	void undo();
 	void redo();
 private:
-	Media* item;
-	Media* parent;
+    MediaPtr item;
+    MediaPtr parent;
 	bool done;
 	bool old_project_changed;
 };
 
 class DeleteMediaCommand : public QUndoCommand {
 public:
-	DeleteMediaCommand(Media *i);
+    DeleteMediaCommand(MediaPtr i);
 	~DeleteMediaCommand();
 	void undo();
 	void redo();
 private:
-	Media* item;
-	Media* parent;
+    MediaPtr item;
+    MediaPtr parent;
 	bool old_project_changed;
 	bool done;
 };
@@ -287,11 +287,11 @@ private:
 
 class ReplaceMediaCommand : public QUndoCommand {
 public:
-	ReplaceMediaCommand(Media*, QString);
+    ReplaceMediaCommand(MediaPtr, QString);
 	void undo();
 	void redo();
 private:
-	Media *item;
+    MediaPtr item;
 	QString old_filename;
 	QString new_filename;
 	bool old_project_changed;
@@ -300,13 +300,13 @@ private:
 
 class ReplaceClipMediaCommand : public QUndoCommand {
 public:
-	ReplaceClipMediaCommand(Media *, Media *, bool);
+    ReplaceClipMediaCommand(MediaPtr , MediaPtr , bool);
 	void undo();
 	void redo();
     QVector<ClipPtr> clips;
 private:
-	Media* old_media;
-	Media* new_media;
+    MediaPtr old_media;
+    MediaPtr new_media;
 	bool preserve_clip_ins;
 	bool old_project_changed;
 	QVector<int> old_clip_ins;
@@ -330,23 +330,23 @@ private:
 class MediaMove : public QUndoCommand {
 public:
 	MediaMove();
-	QVector<Media*> items;
-	Media* to;
+    QVector<MediaPtr> items;
+    MediaPtr to;
 	void undo();
 	void redo();
 private:
-	QVector<Media*> froms;
+    QVector<MediaPtr> froms;
 	bool old_project_changed;
 };
 
 class MediaRename : public QUndoCommand {
 public:
-	MediaRename(Media* iitem, QString to);
+    MediaRename(MediaPtr iitem, QString to);
 	void undo();
 	void redo();
 private:
 	bool old_project_changed;
-	Media* item;
+    MediaPtr item;
 	QString from;
 	QString to;
 };
@@ -491,9 +491,9 @@ private:
 };
 
 class EditSequenceCommand : public QUndoCommand {
-    //FIXME: nononononono
+
 public:
-    EditSequenceCommand(Media *i, SequencePtr s);
+    EditSequenceCommand(MediaPtr i, SequencePtr s);
 	void undo();
 	void redo();
 	void update();
@@ -505,7 +505,7 @@ public:
 	int audio_frequency;
 	int audio_layout;
 private:
-	Media* item;
+    MediaPtr item;
     SequencePtr seq;
 	bool old_project_changed;
 
@@ -573,11 +573,11 @@ public:
 
 class UpdateFootageTooltip : public QUndoCommand {
 public:
-	UpdateFootageTooltip(Media* i);
+    UpdateFootageTooltip(MediaPtr i);
 	void undo();
 	void redo();
 private:
-	Media* item;
+    MediaPtr item;
 };
 
 class MoveEffectCommand : public QUndoCommand {
@@ -658,11 +658,11 @@ private:
 
 class RefreshClips : public QUndoCommand {
 public:
-	RefreshClips(Media* m);
+    RefreshClips(MediaPtr m);
 	void undo();
 	void redo();
 private:
-	Media* media;
+    MediaPtr media;
 };
 
 #endif // UNDO_H

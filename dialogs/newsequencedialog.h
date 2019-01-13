@@ -24,16 +24,16 @@
 #include <QLineEdit>
 
 #include "project/sequence.h"
+#include "project/media.h"
 
 class Project;
-class Media;
 
 class NewSequenceDialog : public QDialog
 {
 	Q_OBJECT
 
 public:
-	explicit NewSequenceDialog(QWidget *parent = 0, Media* existing = 0);
+    explicit NewSequenceDialog(QWidget *parent = nullptr, MediaPtr existing = nullptr);
     virtual ~NewSequenceDialog();
 
 	void set_sequence_name(const QString& s);
@@ -44,7 +44,7 @@ private slots:
 
 private:
     SequencePtr existing_sequence;
-	Media* existing_item;
+    MediaPtr existing_item;
 
 	void setup_ui();
 

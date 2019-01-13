@@ -20,21 +20,22 @@
 
 #include <QDialog>
 
+#include "project/media.h"
+
 class Footage;
 class QComboBox;
 class QLineEdit;
-class Media;
 class QListWidget;
 class QDoubleSpinBox;
 
 class MediaPropertiesDialog : public QDialog {
 	Q_OBJECT
 public:
-	MediaPropertiesDialog(QWidget *parent, Media* i);
+    MediaPropertiesDialog(QWidget *parent, MediaPtr i);
 private:
 	QComboBox* interlacing_box;
 	QLineEdit* name_box;
-	Media* item;
+    MediaPtr item;
 	QListWidget* track_list;
 	QDoubleSpinBox* conform_fr;
 private slots:

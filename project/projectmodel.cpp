@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -24,7 +24,7 @@
 #include "debug.h"
 
 ProjectModel::ProjectModel(QObject *parent) : QAbstractItemModel(parent), root_item(nullptr) {
-	root_item = new Media(0);
+    root_item = std::make_shared<Media>(nullptr);
 	root_item->root = true;
 }
 
@@ -35,21 +35,17 @@ ProjectModel::~ProjectModel() {
 void ProjectModel::destroy_root() {
 	if (e_panel_sequence_viewer != nullptr) e_panel_sequence_viewer->viewer_widget->delete_function();
 	if (e_panel_footage_viewer != nullptr) e_panel_footage_viewer->viewer_widget->delete_function();
-
-	if (root_item != nullptr) {
-		delete root_item;
-	}
 }
 
 void ProjectModel::clear() {
 	beginResetModel();
 	destroy_root();
-	root_item = new Media(0);
+    root_item = std::make_shared<Media>(nullptr);
 	root_item->root = true;
 	endResetModel();
 }
 
-Media *ProjectModel::get_root() {
+MediaPtr ProjectModel::get_root() {
 	return root_item;
 }
 
@@ -57,7 +53,7 @@ QVariant ProjectModel::data(const QModelIndex &index, int role) const {
 	if (!index.isValid())
 		return QVariant();
 
-	return static_cast<Media*>(index.internalPointer())->data(index.column(), role);
+    return static_cast<Media*>(index.internalPointer())->data(index.column(), role);
 }
 
 Qt::ItemFlags ProjectModel::flags(const QModelIndex &index) const {
@@ -78,18 +74,20 @@ QModelIndex ProjectModel::index(int row, int column, const QModelIndex &parent) 
 	if (!hasIndex(row, column, parent))
 		return QModelIndex();
 
-	Media *parentItem;
+    MediaPtr parentItem;
 
-	if (!parent.isValid())
+    if (!parent.isValid()) {
 		parentItem = root_item;
-	else
-		parentItem = static_cast<Media*>(parent.internalPointer());
+     } else {
+//        parentItem = static_cast<Media*>(parent.internalPointer()); //FIXME: ptr cast issue
+    }
 
-	Media *childItem = parentItem->child(row);
-	if (childItem)
-		return createIndex(row, column, childItem);
-	else
+    MediaPtr childItem = parentItem->child(row);
+    if (childItem) {
+        return createIndex(row, column, childItem.operator ->()); //FIXME: ptr of shared_ptr?
+    } else {
 		return QModelIndex();
+    }
 }
 
 QModelIndex ProjectModel::create_index(int arow, int acolumn, void* aid) {
@@ -100,20 +98,25 @@ QModelIndex ProjectModel::parent(const QModelIndex &index) const {
 	if (!index.isValid())
 		return QModelIndex();
 
-	Media *childItem = static_cast<Media*>(index.internalPointer());
-	Media *parentItem = childItem->parentItem();
+//    MediaPtr childItem = static_cast<Media*>(index.internalPointer()); //FIXME: ptr cast issue
+    MediaPtr childItem ;
 
-	if (parentItem == root_item)
-		return QModelIndex();
-
-	return createIndex(parentItem->row(), 0, parentItem);
+    if (childItem != nullptr) {
+        MediaPtr parentItem = childItem->parentItem();
+        if (parentItem == root_item) {
+            return QModelIndex();
+        }
+        return createIndex(parentItem->row(), 0, parentItem.operator ->()); //FIXME: ptr of shared_ptr?
+    }
+    return QModelIndex();
 }
 
 bool ProjectModel::setData(const QModelIndex &index, const QVariant &value, int role) {
 	if (role != Qt::EditRole)
 		return false;
 
-	Media *item = static_cast<Media*>(index.internalPointer());
+//    MediaPtr item = static_cast<Media*>(index.internalPointer());  //FIXME: ptr cast issue
+    MediaPtr item;
 	bool result = item->setData(index.column(), value);
 
 	if (result)
@@ -123,57 +126,62 @@ bool ProjectModel::setData(const QModelIndex &index, const QVariant &value, int 
 }
 
 int ProjectModel::rowCount(const QModelIndex &parent) const {
-	Media *parentItem;
+    MediaPtr parentItem;
 	if (parent.column() > 0)
 		return 0;
 
 	if (!parent.isValid()) {
 		parentItem = root_item;
 	} else {
-		parentItem = static_cast<Media*>(parent.internalPointer());
+//        parentItem = static_cast<Media*>(parent.internalPointer());  //FIXME: ptr cast issue
 	}
 
-	return parentItem->childCount();
+    if (parentItem != nullptr) {
+        return parentItem->childCount();
+    }
+    return 0;
 }
 
 int ProjectModel::columnCount(const QModelIndex &parent) const {
 	if (parent.isValid())
-		return static_cast<Media*>(parent.internalPointer())->columnCount();
+        return static_cast<Media*>(parent.internalPointer())->columnCount();
 	else
 		return root_item->columnCount();
 }
 
-Media *ProjectModel::getItem(const QModelIndex &index) const {
+MediaPtr ProjectModel::getItem(const QModelIndex &index) const {
 	if (index.isValid()) {
-		Media *item = static_cast<Media*>(index.internalPointer());
-		if (item)
+//        MediaPtr item = static_cast<Media*>(index.internalPointer()); //FIXME: ptr cast issue
+        MediaPtr item;
+        if (item != nullptr) {
 			return item;
+        }
 	}
 	return root_item;
 }
 
-void ProjectModel::set_icon(Media* m, const QIcon &ico) {
-	QModelIndex index = createIndex(m->row(), 0, m);
+void ProjectModel::set_icon(MediaPtr m, const QIcon &ico) {
+    QModelIndex index = createIndex(m->row(), 0, m.operator ->());//FIXME: ptr of shared_ptr?
 	m->set_icon(ico);
 	emit dataChanged(index, index);
 
 }
 
-void ProjectModel::appendChild(Media *parent, Media *child) {
+void ProjectModel::appendChild(MediaPtr parent, MediaPtr child) {
 	if (parent == nullptr) parent = root_item;
-	beginInsertRows(parent == root_item ? QModelIndex() : createIndex(parent->row(), 0, parent), parent->childCount(), parent->childCount());
+    beginInsertRows(parent == root_item ? QModelIndex() : createIndex(parent->row(), 0, parent.operator ->()), parent->childCount(), parent->childCount());//FIXME: ptr of shared_ptr?
 	parent->appendChild(child);
 	endInsertRows();
 }
 
-void ProjectModel::moveChild(Media *child, Media *to) {
+void ProjectModel::moveChild(MediaPtr child, MediaPtr to) {
 	if (to == nullptr) to = root_item;
-	Media* from = child->parentItem();
+    MediaPtr from = child->parentItem();
 	beginMoveRows(
-				from == root_item ? QModelIndex() : createIndex(from->row(), 0, from),
+                from == root_item ? QModelIndex() : createIndex(from->row(), 0, from.operator ->()), //FIXME: ptr of shared_ptr?
 				child->row(),
 				child->row(),
-				to == root_item ? QModelIndex() : createIndex(to->row(), 0, to),
+                to == root_item ? QModelIndex() : createIndex(to->row(), 0, to.operator ->()),//FIXME: ptr of shared_ptr?
 				to->childCount()
 			);
 	from->removeChild(child->row());
@@ -181,19 +189,19 @@ void ProjectModel::moveChild(Media *child, Media *to) {
 	endMoveRows();
 }
 
-void ProjectModel::removeChild(Media* parent, Media* m) {
+void ProjectModel::removeChild(MediaPtr parent, MediaPtr m) {
 	if (parent == nullptr) parent = root_item;
-	beginRemoveRows(parent == root_item ? QModelIndex() : createIndex(parent->row(), 0, parent), m->row(), m->row());
+    beginRemoveRows(parent == root_item ? QModelIndex() : createIndex(parent->row(), 0, parent.operator ->()), m->row(), m->row());//FIXME: ptr of shared_ptr?
 	parent->removeChild(m->row());
 	endRemoveRows();
 }
 
-Media* ProjectModel::child(int i, Media* parent) {
+MediaPtr ProjectModel::child(int i, MediaPtr parent) {
 	if (parent == nullptr) parent = root_item;
 	return parent->child(i);
 }
 
-int ProjectModel::childCount(Media *parent) {
+int ProjectModel::childCount(MediaPtr parent) {
 	if (parent == nullptr) parent = root_item;
 	return parent->childCount();
 }

@@ -283,8 +283,8 @@ void TimelineWidget::show_stabilizer_diag() {
 }
 
 void TimelineWidget::open_sequence_properties() {
-	QList<Media*> sequence_items;
-	QList<Media*> all_top_level_items;
+    QVector<MediaPtr> sequence_items;
+    QVector<MediaPtr> all_top_level_items;
 	for (int i=0;i<project_model.childCount();i++) {
 		all_top_level_items.append(project_model.child(i));
 	}
@@ -306,7 +306,7 @@ bool same_sign(int a, int b) {
 void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
 	bool import_init = false;
 
-	QVector<Media*> media_list;
+    QVector<MediaPtr> media_list;
     e_panel_timeline->importing_files = false;
 
     if (event->source() == e_panel_project->tree_view || event->source() == e_panel_project->icon_view) {

@@ -20,19 +20,20 @@
 
 #include <QDialog>
 
+#include "project/media.h"
+
 class SourceTable;
 class QTreeView;
-class Media;
 class QCheckBox;
 
 class ReplaceClipMediaDialog : public QDialog {
 	Q_OBJECT
 public:
-	ReplaceClipMediaDialog(QWidget* parent, Media *old_media);
+    ReplaceClipMediaDialog(QWidget* parent, MediaPtr old_media);
 private slots:
 	void replace();
 private:
-	Media* media;
+    MediaPtr media;
     QTreeView* tree = nullptr;
     QCheckBox* use_same_media_in_points = nullptr;
 };

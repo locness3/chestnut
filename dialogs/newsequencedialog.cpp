@@ -40,7 +40,7 @@ extern "C" {
 	#include <libavcodec/avcodec.h>
 }
 
-NewSequenceDialog::NewSequenceDialog(QWidget *parent, Media *existing) :
+NewSequenceDialog::NewSequenceDialog(QWidget *parent, MediaPtr existing) :
 	QDialog(parent),
 	existing_item(existing)
 {

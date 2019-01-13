@@ -20,7 +20,7 @@
 
 #include <QAbstractItemModel>
 
-class Media;
+#include "project/media.h"
 
 class ProjectModel : public QAbstractItemModel
 {
@@ -31,7 +31,7 @@ public:
 
 	void destroy_root();
 	void clear();
-	Media* get_root();
+    MediaPtr get_root();
 	QVariant data(const QModelIndex &index, int role) const override;
 	Qt::ItemFlags flags(const QModelIndex &index) const override;
 	QVariant headerData(int section, Qt::Orientation orientation,
@@ -43,17 +43,17 @@ public:
 	bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
 	int rowCount(const QModelIndex &parent = QModelIndex()) const override;
 	int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-	Media *getItem(const QModelIndex &index) const;
+    MediaPtr getItem(const QModelIndex &index) const;
 
-	void appendChild(Media* parent, Media* child);
-	void moveChild(Media *child, Media *to);
-	void removeChild(Media *parent, Media* m);
-	Media *child(int i, Media* parent = nullptr);
-	int childCount(Media* parent = nullptr);
-	void set_icon(Media* m, const QIcon &ico);
+    void appendChild(MediaPtr parent, MediaPtr child);
+    void moveChild(MediaPtr child, MediaPtr to);
+    void removeChild(MediaPtr parent, MediaPtr m);
+    MediaPtr child(int i, MediaPtr parent = nullptr);
+    int childCount(MediaPtr parent = nullptr);
+    void set_icon(MediaPtr m, const QIcon &ico);
 
 private:
-	Media* root_item;
+    MediaPtr root_item;
 };
 
 #endif // PROJECTMODEL_H

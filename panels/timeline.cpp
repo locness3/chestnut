@@ -180,14 +180,14 @@ void Timeline::toggle_show_all() {
 	}
 }
 
-void Timeline::create_ghosts_from_media(SequencePtr seq, long entry_point, QVector<Media*>& media_list) {
+void Timeline::create_ghosts_from_media(SequencePtr seq, long entry_point, QVector<MediaPtr>& media_list) {
 	video_ghosts = false;
 	audio_ghosts = false;
 
 	for (int i=0;i<media_list.size();i++) {
 		bool can_import = true;
 
-		Media* medium = media_list.at(i);
+        MediaPtr medium = media_list.at(i);
         FootagePtr ftg;
         SequencePtr lcl_seq;
         project::ProjectItemPtr media;

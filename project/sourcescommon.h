@@ -21,9 +21,10 @@
 #include <QModelIndexList>
 #include <QTimer>
 
+#include "project/media.h"
+
 class Project;
 class QMouseEvent;
-class Media;
 class QAbstractItemView;
 class QDropEvent;
 
@@ -38,14 +39,14 @@ public:
     void mouseDoubleClickEvent(QMouseEvent* e, const QModelIndexList& items);
     void dropEvent(QWidget *parent, QDropEvent* e, const QModelIndex& drop_item, const QModelIndexList &items);
 
-    void item_click(Media* m, const QModelIndex &index);
+    void item_click(MediaPtr m, const QModelIndex &index);
 private slots:
     void create_seq_from_selected();
     void reveal_in_browser();
     void rename_interval();
-    void item_renamed(Media *item);
+    void item_renamed(MediaPtr item);
 private:
-    Media* editing_item;
+    MediaPtr editing_item;
     QModelIndex editing_index;
     QModelIndexList selected_items;
     Project* project_parent;

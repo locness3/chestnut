@@ -417,7 +417,7 @@ void DeleteTransitionCommand::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-NewSequenceCommand::NewSequenceCommand(Media *s, Media* iparent) :
+NewSequenceCommand::NewSequenceCommand(MediaPtr s, MediaPtr iparent) :
 	seq(s),
 	parent(iparent),
 	done(false),
@@ -427,7 +427,7 @@ NewSequenceCommand::NewSequenceCommand(Media *s, Media* iparent) :
 }
 
 NewSequenceCommand::~NewSequenceCommand() {
-	if (!done) delete seq;
+
 }
 
 void NewSequenceCommand::undo() {
@@ -444,7 +444,7 @@ void NewSequenceCommand::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-AddMediaCommand::AddMediaCommand(Media* iitem, Media *iparent) :
+AddMediaCommand::AddMediaCommand(MediaPtr iitem, MediaPtr iparent) :
 	item(iitem),
 	parent(iparent),
 	done(false),
@@ -452,9 +452,7 @@ AddMediaCommand::AddMediaCommand(Media* iitem, Media *iparent) :
 {}
 
 AddMediaCommand::~AddMediaCommand() {
-	if (!done) {
-		delete item;
-	}
+
 }
 
 void AddMediaCommand::undo() {
@@ -470,16 +468,14 @@ void AddMediaCommand::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-DeleteMediaCommand::DeleteMediaCommand(Media* i) :
+DeleteMediaCommand::DeleteMediaCommand(MediaPtr i) :
 	item(i),
 	parent(i->parentItem()),
 	old_project_changed(mainWindow->isWindowModified())
 {}
 
 DeleteMediaCommand::~DeleteMediaCommand() {
-	if (done) {
-		delete item;
-	}
+
 }
 
 void DeleteMediaCommand::undo() {
@@ -591,7 +587,7 @@ void CheckboxCommand::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-ReplaceMediaCommand::ReplaceMediaCommand(Media* i, QString s) :
+ReplaceMediaCommand::ReplaceMediaCommand(MediaPtr i, QString s) :
 	item(i),
 	new_filename(s),
 	old_project_changed(mainWindow->isWindowModified())
@@ -601,7 +597,7 @@ ReplaceMediaCommand::ReplaceMediaCommand(Media* i, QString s) :
 
 void ReplaceMediaCommand::replace(QString& filename) {
 	// close any clips currently using this media
-    QVector<Media*> all_sequences = e_panel_project->list_all_project_sequences();
+    QVector<MediaPtr> all_sequences = e_panel_project->list_all_project_sequences();
 	for (int i=0;i<all_sequences.size();i++) {
         SequencePtr s = all_sequences.at(i)->get_object<Sequence>();
 		for (int j=0;j<s->clips.size();j++) {
@@ -632,7 +628,7 @@ void ReplaceMediaCommand::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-ReplaceClipMediaCommand::ReplaceClipMediaCommand(Media *a, Media *b, bool e) :
+ReplaceClipMediaCommand::ReplaceClipMediaCommand(MediaPtr a, MediaPtr b, bool e) :
 	old_media(a),
 	new_media(b),
 	preserve_clip_ins(e),
@@ -730,14 +726,14 @@ void MediaMove::redo() {
 	if (to == nullptr) to = project_model.get_root();
 	froms.resize(items.size());
 	for (int i=0;i<items.size();i++) {
-		Media* parent = items.at(i)->parentItem();
+        MediaPtr parent = items.at(i)->parentItem();
 		froms[i] = parent;
 		project_model.moveChild(items.at(i), to);
 	}
 	mainWindow->setWindowModified(true);
 }
 
-MediaRename::MediaRename(Media* iitem, QString ito) :
+MediaRename::MediaRename(MediaPtr iitem, QString ito) :
 	item(iitem),
 	from(iitem->get_name()),
 	to(ito),
@@ -954,7 +950,7 @@ void SetSelectionsCommand::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-SetEnableCommand::SetEnableCommand(ClipPtr   c, bool enable) :
+SetEnableCommand::SetEnableCommand(ClipPtr c, bool enable) :
 	clip(c),
     old_val(c->timeline_info.enabled),
 	new_val(enable),
@@ -971,7 +967,7 @@ void SetEnableCommand::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-EditSequenceCommand::EditSequenceCommand(Media* i, SequencePtr s) :
+EditSequenceCommand::EditSequenceCommand(MediaPtr i, SequencePtr s) :
 	item(i),
 	seq(s),
 	old_project_changed(mainWindow->isWindowModified()),
@@ -1062,7 +1058,7 @@ void CloseAllClipsCommand::redo() {
 	closeActiveClips(e_sequence);
 }
 
-UpdateFootageTooltip::UpdateFootageTooltip(Media *i) :
+UpdateFootageTooltip::UpdateFootageTooltip(MediaPtr i) :
 	item(i)
 {}
 
@@ -1262,7 +1258,7 @@ void SetKeyframing::redo() {
 	row->setKeyframing(b);
 }
 
-RefreshClips::RefreshClips(Media *m) :
+RefreshClips::RefreshClips(MediaPtr m) :
 	media(m)
 {}
 
@@ -1272,7 +1268,7 @@ void RefreshClips::undo() {
 
 void RefreshClips::redo() {
 	// close any clips currently using this media
-    QVector<Media*> all_sequences = e_panel_project->list_all_project_sequences();
+    QVector<MediaPtr> all_sequences = e_panel_project->list_all_project_sequences();
 	for (int i=0;i<all_sequences.size();i++) {
         SequencePtr s = all_sequences.at(i)->get_object<Sequence>();
 		for (int j=0;j<s->clips.size();j++) {

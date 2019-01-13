@@ -73,7 +73,7 @@ void SourceIconView::dropEvent(QDropEvent* event) {
 void SourceIconView::mouseDoubleClickEvent(QMouseEvent *event) {
 	bool default_behavior = true;
 	if (selectedIndexes().size() == 1) {
-		Media* m = project_parent->item_to_media(selectedIndexes().at(0));
+        MediaPtr m = project_parent->item_to_media(selectedIndexes().at(0));
 		if (m->get_type() == MEDIA_TYPE_FOLDER) {
 			default_behavior = false;
 			setRootIndex(selectedIndexes().at(0));

@@ -35,13 +35,18 @@
 #include <QMessageBox>
 #include <QCheckBox>
 
-ReplaceClipMediaDialog::ReplaceClipMediaDialog(QWidget *parent, Media *old_media) :
+namespace{
+    const int DIALOG_WIDTH = 300;
+    const int DIALOG_HEIGHT = 400;
+}
+
+ReplaceClipMediaDialog::ReplaceClipMediaDialog(QWidget *parent, MediaPtr old_media) :
 	QDialog(parent),
 	media(old_media)
 {
 	setWindowTitle("Replace clips using \"" + old_media->get_name() + "\"");
 
-	resize(300, 400);
+    resize(DIALOG_WIDTH, DIALOG_HEIGHT);
 
 	QVBoxLayout* layout = new QVBoxLayout();
 
@@ -81,7 +86,8 @@ void ReplaceClipMediaDialog::replace() {
 	if (selected_items.size() != 1) {
 		QMessageBox::critical(this, "No media selected", "Please select a media to replace with or click 'Cancel'.", QMessageBox::Ok);
 	} else {
-		Media* new_item = static_cast<Media*>(selected_items.at(0).internalPointer());
+//        MediaPtr new_item = std::dynamic_pointer_cast<Media>(selected_items.at(0).internalPointer()); //FIXME: ptr issue
+        MediaPtr new_item;
 		if (media == new_item) {
 			QMessageBox::critical(this, "Same media selected", "You selected the same media that you're replacing. Please select a different one or click 'Cancel'.", QMessageBox::Ok);
 		} else if (new_item->get_type() == MEDIA_TYPE_FOLDER) {

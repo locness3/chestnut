@@ -60,7 +60,7 @@ void SourceTable::show_context_menu() {
 
 void SourceTable::item_click(const QModelIndex& index) {
 	if (selectionModel()->selectedRows().size() == 1 && index.column() == 0) {
-		project_parent->sources_common->item_click(project_parent->item_to_media(index), index);
+//		project_parent->sources_common->item_click(project_parent->item_to_media(index), index); //FIXME: ptr issue
 	}
 }
 

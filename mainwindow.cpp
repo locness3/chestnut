@@ -1182,10 +1182,10 @@ void MainWindow::add_default_transition() {
 }
 
 void MainWindow::new_folder() {
-    Media* m = e_panel_project->new_folder(0);
+    MediaPtr m = e_panel_project->new_folder(0);
     e_undo_stack.push(new AddMediaCommand(m, e_panel_project->get_selected_folder()));
 
-	QModelIndex index = project_model.create_index(m->row(), 0, m);
+    QModelIndex index = project_model.create_index(m->row(), 0, m.operator ->());
 	switch (e_config.project_view_type) {
 	case PROJECT_VIEW_TREE:
         e_panel_project->tree_view->edit(e_panel_project->sorter->mapFromSource(index));
@@ -1431,10 +1431,10 @@ void MainWindow::nest() {
 			}
 
 			// add sequence to project
-            Media* m = e_panel_project->new_sequence(ca, s, false, nullptr);
+            MediaPtr m = e_panel_project->new_sequence(ca, s, false, nullptr);
 
 			// add nested sequence to active sequence
-			QVector<Media*> media_list;
+            QVector<MediaPtr> media_list;
 			media_list.append(m);
             e_panel_timeline->create_ghosts_from_media(e_sequence, earliest_point, media_list);
             e_panel_timeline->add_clips_from_ghosts(ca, e_sequence);

@@ -26,10 +26,10 @@
 
 
 #include "project/sequence.h"
+#include "project/media.h"
 
 class Timeline;
 class ViewerWidget;
-class Media;
 
 class TimelineHeader;
 class ResizableScrollBar;
@@ -50,7 +50,7 @@ public:
 
 	bool is_focused();
 	void set_main_sequence();
-	void set_media(Media *m);
+    void set_media(MediaPtr m);
 	void compose();
 	void set_playpause_icon(bool play);
 	void update_playhead_timecode(long p);
@@ -87,7 +87,7 @@ public:
 
 	ViewerWidget* viewer_widget;
 
-	Media* media;
+    MediaPtr media;
     SequencePtr seq;
 
 	void resizeEvent(QResizeEvent *event);

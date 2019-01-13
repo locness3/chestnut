@@ -46,14 +46,14 @@ extern "C" {
 
 QSemaphore sem(5); // only 5 preview generators can run at one time
 
-PreviewGenerator::PreviewGenerator(Media* i, FootagePtr m, bool r) :
+PreviewGenerator::PreviewGenerator(MediaPtr item, FootagePtr ftg, const bool replacing) :
 	QThread(0),
     fmt_ctx(nullptr),
-	media(i),
-	footage(m),
+    media(item),
+    footage(ftg),
 	retrieve_duration(false),
 	contains_still_image(false),
-	replace(r),
+    replace(replacing),
 	cancelled(false)
 {
 	data_path = get_data_path() + "/previews";

@@ -30,14 +30,13 @@
 #include "project/sequence.h"
 #include "project/sequenceitem.h"
 #include "project/footage.h"
+#include "project/media.h"
 
 #define SKIP_TYPE_DISCARD 0
 #define SKIP_TYPE_SEEK 1
 
 class Transition;
 class ComboAction;
-class Media;
-
 
 struct AVFormatContext;
 struct AVStream;
@@ -143,7 +142,7 @@ public:
         int track = 0;
         QString name = "";
         QColor color = {0,0,0};
-        Media* media = nullptr;
+        MediaPtr media = nullptr;
         int media_stream = -1;
         double speed = 1.0;
         double cached_fr = 0.0;

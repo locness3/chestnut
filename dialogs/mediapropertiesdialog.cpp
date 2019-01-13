@@ -32,7 +32,7 @@
 #include "panels/project.h"
 #include "project/undo.h"
 
-MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, Media *i) :
+MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr i) :
 	QDialog(parent),
 	item(i)
 {

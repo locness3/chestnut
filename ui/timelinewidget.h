@@ -25,6 +25,7 @@
 
 #include "timelinetools.h"
 #include "project/sequence.h"
+#include "project/media.h"
 
 #define GHOST_THICKNESS 2 // thiccccc
 #define CLIP_TEXT_PADDING 3
@@ -38,7 +39,6 @@ struct FootageStream;
 class Timeline;
 class TimelineAction;
 class SetSelectionsCommand;
-class Media;
 
 bool same_sign(int a, int b);
 void draw_waveform(ClipPtr clip, const FootageStream *ms, long media_length, QPainter* p, const QRect& clip_rect, int waveform_start, int waveform_limit, double zoom);
@@ -87,7 +87,7 @@ private:
 	// used for "right click ripple"
 	long rc_ripple_min;
 	long rc_ripple_max;
-	Media* rc_reveal_media;
+    MediaPtr rc_reveal_media;
 
 	QTimer tooltip_timer;
 	int tooltip_clip;

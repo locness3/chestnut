@@ -38,10 +38,15 @@ enum MediaType_E {
 class MediaThrobber;
 
 
+class Media;
+typedef std::unique_ptr<Media> MediaUPtr;
+typedef std::shared_ptr<Media> MediaPtr;
+
+
 class Media
 {
 public:
-    explicit Media(Media* iparent);
+    explicit Media(MediaPtr iparent);
     ~Media();
 
     template<typename T>
@@ -54,7 +59,7 @@ public:
     void set_sequence(SequencePtr sqn);
     void set_folder();
     void set_icon(const QIcon &ico);
-    void set_parent(Media* p);
+    void set_parent(MediaPtr p);
     void update_tooltip(const QString& error = 0);
     MediaType_E get_type() const;
     const QString& get_name();
@@ -64,14 +69,14 @@ public:
 	int get_sampling_rate(int stream = -1);
 
     // item functions
-    void appendChild(Media *child);
+    void appendChild(MediaPtr child);
     bool setData(int col, const QVariant &value);
-    Media *child(int row);
+    MediaPtr child(const int row);
     int childCount() const;
     int columnCount() const;
     QVariant data(int column, int role);
     int row() const;
-    Media *parentItem();
+    MediaPtr parentItem();
     void removeChild(int i);
 
     MediaThrobber* throbber;
@@ -83,8 +88,8 @@ private:
     project::ProjectItemPtr object;
 
     // item functions
-    QList<Media*> children;
-    Media* parent;
+    QVector<MediaPtr> children;
+    MediaPtr parent;
     QString folder_name;
     QString tooltip;
     QIcon icon;
@@ -94,8 +99,5 @@ private:
     Media(const Media& cpy);
     const Media& operator=(const Media& rhs);
 };
-
-typedef std::unique_ptr<Media> MediaUPtr;
-typedef std::unique_ptr<Media> MediaPtr;
 
 #endif // MEDIA_H

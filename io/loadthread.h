@@ -25,8 +25,8 @@
 #include <QWaitCondition>
 
 #include "project/sequence.h"
+#include "project/media.h"
 
-class Media;
 class Footage;
 class Clip;
 class LoadDialog;
@@ -63,7 +63,7 @@ private:
     void update_current_element_count(QXmlStreamReader& stream);
 
     SequencePtr open_seq;
-    QVector<Media*> loaded_media_items;
+    QVector<MediaPtr> loaded_media_items;
     QDir proj_dir;
     QDir internal_proj_dir;
     QString internal_proj_url;
@@ -72,10 +72,10 @@ private:
 
     bool is_element(QXmlStreamReader& stream);
 
-    QVector<Media*> loaded_folders;
-    QVector<ClipPtr > loaded_clips;
-    QVector<Media*> loaded_sequences;
-    Media* find_loaded_folder_by_id(int id);
+    QVector<MediaPtr> loaded_folders;
+    QVector<ClipPtr> loaded_clips;
+    QVector<MediaPtr> loaded_sequences;
+    MediaPtr find_loaded_folder_by_id(int id);
 
     int current_element_count;
     int total_element_count;

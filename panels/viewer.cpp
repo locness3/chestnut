@@ -393,7 +393,7 @@ void Viewer::pause() {
 
 			// add it to the sequence
             ClipPtr c(new Clip(seq));
-            Media* m = e_panel_project->last_imported_media.at(0);
+            MediaPtr m = e_panel_project->last_imported_media.at(0);
             FootagePtr f = m->get_object<Footage>();
 
 			f->ready_lock.lock();
@@ -628,7 +628,7 @@ void Viewer::setup_ui() {
 	setWidget(contents);
 }
 
-void Viewer::set_media(Media* m) {
+void Viewer::set_media(MediaPtr m) {
     //FIXME: magic numbers
 	main_sequence = false;
 	media = m;

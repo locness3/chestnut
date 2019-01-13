@@ -44,7 +44,7 @@ SourcesCommon::SourcesCommon(Project* parent) :
 
 void SourcesCommon::create_seq_from_selected() {
 	if (!selected_items.isEmpty()) {
-		QVector<Media*> media_list;
+        QVector<MediaPtr> media_list;
 		for (int i=0;i<selected_items.size();i++) {
 			media_list.append(project_parent->item_to_media(selected_items.at(i)));
 		}
@@ -73,7 +73,7 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
 	mainWindow->make_new_menu(new_menu);
 
 	if (items.size() > 0) {
-		Media* m = project_parent->item_to_media(items.at(0));
+        MediaPtr m = project_parent->item_to_media(items.at(0));
 
 		if (items.size() == 1) {
 			// replace footage
@@ -156,7 +156,7 @@ void SourcesCommon::mousePressEvent(QMouseEvent *) {
 	stop_rename_timer();
 }
 
-void SourcesCommon::item_click(Media *m, const QModelIndex& index) {
+void SourcesCommon::item_click(MediaPtr m, const QModelIndex& index) {
 	if (editing_item == m) {
 		rename_timer.start();
 	} else {
@@ -170,25 +170,27 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *e, const QModelIndexList&
     if (items.size() == 0) {
 		project_parent->import_dialog();
     } else if (items.size() == 1) {
-        Media* item = project_parent->item_to_media(items.at(0));
-		switch (item->get_type()) {
-		case MEDIA_TYPE_FOOTAGE:
-            e_panel_footage_viewer->set_media(item); //FIXME: this is causing a crash
-			e_panel_footage_viewer->setFocus();
-			break;
-		case MEDIA_TYPE_SEQUENCE:
-			e_undo_stack.push(new ChangeSequenceAction(item->get_object<Sequence>()));
-			break;
-        default:
-            //TODO: log/something
-            break;
-        }//switch
+        MediaPtr item = project_parent->item_to_media(items.at(0));
+        if (item != nullptr) {
+            switch (item->get_type()) {
+            case MEDIA_TYPE_FOOTAGE:
+                e_panel_footage_viewer->set_media(item); //FIXME: this is causing a crash
+                e_panel_footage_viewer->setFocus();
+                break;
+            case MEDIA_TYPE_SEQUENCE:
+                e_undo_stack.push(new ChangeSequenceAction(item->get_object<Sequence>()));
+                break;
+            default:
+                //TODO: log/something
+                break;
+            }//switch
+        }
 	}
 }
 
 void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIndex& drop_item, const QModelIndexList& items) {
 	const QMimeData* mimeData = event->mimeData();
-	Media* m = project_parent->item_to_media(drop_item);
+    MediaPtr m = project_parent->item_to_media(drop_item);
 	if (mimeData->hasUrls()) {
 		// drag files in from outside
 		QList<QUrl> urls = mimeData->urls();
@@ -226,11 +228,11 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 		// dragging files within project
 		// if we dragged to the root OR dragged to a folder
 		if (!drop_item.isValid() || (drop_item.isValid() && m->get_type() == MEDIA_TYPE_FOLDER)) {
-			QVector<Media*> move_items;
+            QVector<MediaPtr> move_items;
 			for (int i=0;i<items.size();i++) {
 				const QModelIndex& item = items.at(i);
 				const QModelIndex& parent = item.parent();
-				Media* s = project_parent->item_to_media(item);
+                MediaPtr s = project_parent->item_to_media(item);
 				if (parent != drop_item && item != drop_item) {
 					bool ignore = false;
 					if (parent.isValid()) {
@@ -262,7 +264,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 }
 
 void SourcesCommon::reveal_in_browser() {
-	Media* media = project_parent->item_to_media(selected_items.at(0));
+    MediaPtr media = project_parent->item_to_media(selected_items.at(0));
     FootagePtr m = media->get_object<Footage>();
 
 #if defined(Q_OS_WIN)
@@ -296,7 +298,7 @@ void SourcesCommon::rename_interval() {
 	}
 }
 
-void SourcesCommon::item_renamed(Media* item) {
+void SourcesCommon::item_renamed(MediaPtr item) {
 	if (editing_item == item) {
 		MediaRename* mr = new MediaRename(item, "idk");
 		e_undo_stack.push(mr);

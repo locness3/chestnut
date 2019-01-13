@@ -56,7 +56,7 @@ QString get_channel_layout_name(int channels, uint64_t layout) {
 	}
 }
 
-Media::Media(Media* iparent) :
+Media::Media(MediaPtr iparent) :
 	parent(iparent),
 	throbber(nullptr),
 	root(false),
@@ -65,7 +65,6 @@ Media::Media(Media* iparent) :
 
 Media::~Media() {
 	if (throbber != nullptr) delete throbber;
-	qDeleteAll(children);
 }
 
 void Media::clear_object() {
@@ -95,7 +94,7 @@ void Media::set_icon(const QIcon &ico) {
 	icon = ico;
 }
 
-void Media::set_parent(Media *p) {
+void Media::set_parent(MediaPtr p) {
 	parent = p;
 }
 
@@ -228,8 +227,8 @@ int Media::get_sampling_rate(int stream) {
 	return 0;
 }
 
-void Media::appendChild(Media *child) {
-	child->set_parent(this);
+void Media::appendChild(MediaPtr child) {
+    child->set_parent(MediaPtr(this));
 	children.append(child);
 }
 
@@ -237,14 +236,14 @@ bool Media::setData(int col, const QVariant &value) {
 	if (col == 0) {
 		QString n = value.toString();
 		if (!n.isEmpty() && get_name() != n) {
-			e_undo_stack.push(new MediaRename(this, value.toString()));
+            e_undo_stack.push(new MediaRename(MediaPtr(this), value.toString()));
 			return true;
 		}
 	}
 	return false;
 }
 
-Media *Media::child(int row) {
+MediaPtr Media::child(const int row) {
 	return children.value(row);
 }
 
@@ -314,12 +313,12 @@ QVariant Media::data(int column, int role) {
 
 int Media::row() const {
 	if (parent) {
-		return parent->children.indexOf(const_cast<Media*>(this));
+//        return parent->children.indexOf(MediaPtr(this)); //FIXME:
 	}
 	return 0;
 }
 
-Media *Media::parentItem() {
+MediaPtr Media::parentItem() {
 	return parent;
 }
 
