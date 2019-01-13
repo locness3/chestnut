@@ -57,11 +57,13 @@ QString get_channel_layout_name(int channels, uint64_t layout) {
 }
 
 Media::Media(MediaPtr iparent) :
-	parent(iparent),
-	throbber(nullptr),
-	root(false),
-    type(MEDIA_TYPE_NONE)
-{}
+    throbber(nullptr),
+    root(false),
+    type(MEDIA_TYPE_NONE),
+    parent(iparent)
+{
+
+}
 
 Media::~Media() {
     if (throbber != nullptr) {

@@ -85,7 +85,7 @@ public:
     int temp_id = 0;
     int temp_id2 = 0;
 private:
-    MediaType_E type;
+    MediaType_E type = MEDIA_TYPE_NONE;
     project::ProjectItemPtr object;
 
     // item functions
