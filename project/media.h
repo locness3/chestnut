@@ -41,9 +41,10 @@ class MediaThrobber;
 class Media;
 typedef std::unique_ptr<Media> MediaUPtr;
 typedef std::shared_ptr<Media> MediaPtr;
+typedef std::weak_ptr<Media> MediaWPtr;
 
 
-class Media
+class Media : public std::enable_shared_from_this<Media>
 {
 public:
     explicit Media(MediaPtr iparent);
@@ -59,14 +60,14 @@ public:
     void set_sequence(SequencePtr sqn);
     void set_folder();
     void set_icon(const QIcon &ico);
-    void set_parent(MediaPtr p);
+    void set_parent(MediaWPtr p);
     void update_tooltip(const QString& error = 0);
     MediaType_E get_type() const;
     const QString& get_name();
     void set_name(const QString& n);
 
-	double get_frame_rate(int stream = -1);
-	int get_sampling_rate(int stream = -1);
+    double get_frame_rate(const int stream = -1);
+    int get_sampling_rate(const int stream = -1);
 
     // item functions
     void appendChild(MediaPtr child);
@@ -76,7 +77,7 @@ public:
     int columnCount() const;
     QVariant data(int column, int role);
     int row() const;
-    MediaPtr parentItem();
+    MediaWPtr parentItem();
     void removeChild(int i);
 
     MediaThrobber* throbber;
@@ -89,7 +90,7 @@ private:
 
     // item functions
     QVector<MediaPtr> children;
-    MediaPtr parent;
+    MediaWPtr parent;
     QString folder_name;
     QString tooltip;
     QIcon icon;

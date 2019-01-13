@@ -64,7 +64,9 @@ Media::Media(MediaPtr iparent) :
 {}
 
 Media::~Media() {
-	if (throbber != nullptr) delete throbber;
+    if (throbber != nullptr) {
+        delete throbber;
+    }
 }
 
 void Media::clear_object() {
@@ -94,7 +96,7 @@ void Media::set_icon(const QIcon &ico) {
 	icon = ico;
 }
 
-void Media::set_parent(MediaPtr p) {
+void Media::set_parent(MediaWPtr p) {
 	parent = p;
 }
 
@@ -195,40 +197,62 @@ const QString &Media::get_name() {
 
 void Media::set_name(const QString &name) {
 	switch (type) {
-    case MEDIA_TYPE_FOOTAGE: get_object<Footage>()->setName(name); break;
-    case MEDIA_TYPE_SEQUENCE: get_object<Sequence>()->setName(name); break;
-    case MEDIA_TYPE_FOLDER: folder_name = name; break;
-	}
+    case MEDIA_TYPE_FOOTAGE:
+        get_object<Footage>()->setName(name);
+        break;
+    case MEDIA_TYPE_SEQUENCE:
+        get_object<Sequence>()->setName(name);
+        break;
+    case MEDIA_TYPE_FOLDER:
+        folder_name = name;
+        break;
+    default:
+        dwarning << "Unknown media type" << type;
+        break;
+    }//switch
 }
 
-double Media::get_frame_rate(int stream) {
+double Media::get_frame_rate(const int stream) {
 	switch (get_type()) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
         FootagePtr f = get_object<Footage>();
-		if (stream < 0) return f->video_tracks.at(0).video_frame_rate * f->speed;
+        if (stream < 0) {
+            return f->video_tracks.at(0).video_frame_rate * f->speed;
+        }
 		return f->get_stream_from_file_index(true, stream)->video_frame_rate * f->speed;
 	}
-    case MEDIA_TYPE_SEQUENCE: return get_object<Sequence>()->getFrameRate();
-	}
+    case MEDIA_TYPE_SEQUENCE:
+        return get_object<Sequence>()->getFrameRate();
+    default:
+        dwarning << "Unknown media type" << get_type();
+        break;
+    }//switch
+
     return 0.0;
 }
 
-int Media::get_sampling_rate(int stream) {
+int Media::get_sampling_rate(const int stream) {
 	switch (get_type()) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
         FootagePtr f = get_object<Footage>();
-		if (stream < 0) return f->audio_tracks.at(0).audio_frequency * f->speed;
+        if (stream < 0) {
+            return f->audio_tracks.at(0).audio_frequency * f->speed;
+        }
         return get_object<Footage>()->get_stream_from_file_index(false, stream)->audio_frequency * f->speed;
 	}
-    case MEDIA_TYPE_SEQUENCE: return get_object<Sequence>()->getAudioFrequency();
-	}
+    case MEDIA_TYPE_SEQUENCE:
+        return get_object<Sequence>()->getAudioFrequency();
+    default:
+        dwarning << "Unknown media type" << get_type();
+        break;
+    }//switch
 	return 0;
 }
 
 void Media::appendChild(MediaPtr child) {
-    child->set_parent(MediaPtr(this));
+    child->set_parent(shared_from_this());
 	children.append(child);
 }
 
@@ -312,14 +336,15 @@ QVariant Media::data(int column, int role) {
 }
 
 int Media::row() const {
-	if (parent) {
-//        return parent->children.indexOf(MediaPtr(this)); //FIXME:
+    if (!parent.expired()) {
+        MediaPtr parPtr = parent.lock();
+//        return parPtr->children.indexOf(shared_from_this()); //FIXME:
 	}
 	return 0;
 }
 
-MediaPtr Media::parentItem() {
-	return parent;
+MediaWPtr Media::parentItem() {
+    return parent;
 }
 
 void Media::removeChild(int i) {

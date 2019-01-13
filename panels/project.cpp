@@ -466,7 +466,7 @@ void Project::delete_selected_media() {
 	bool redraw = false;
 
 	// check if media is in use
-    QVector<MediaPtr> parents;
+    QVector<MediaWPtr> parents;
     QVector<MediaPtr> sequence_items;
     QVector<MediaPtr> all_top_level_items;
 	for (int i=0;i<project_model.childCount();i++) {
@@ -502,15 +502,15 @@ void Project::delete_selected_media() {
 								redraw = true;
 							} else if (confirm.clickedButton() == skip_button) {
 								// remove media item and any folders containing it from the remove list
-                                MediaPtr parent = item;
-								while (parent != nullptr) {
+                                MediaWPtr parent = item;
+                                while (!parent.expired()) {
 									parents.append(parent);
-
+                                    MediaPtr parPtr = parent.lock();
 									// re-add item's siblings
-									for (int m=0;m<parent->childCount();m++) {
-                                        MediaPtr child = parent->child(m);
+                                    for (int m=0; m < parPtr->childCount();m++) {
+                                        MediaPtr child = parPtr->child(m);
 										bool found = false;
-										for (int n=0;n<items.size();n++) {
+                                        for (int n=0; n<items.size(); n++) {
 											if (items.at(n) == child) {
 												found = true;
 												break;
@@ -521,7 +521,7 @@ void Project::delete_selected_media() {
 										}
 									}
 
-									parent = parent->parentItem();
+                                    parent = parPtr->parentItem();
 								}
 
 								j = sequence_items.size();
@@ -553,12 +553,15 @@ void Project::delete_selected_media() {
         if (e_sequence != nullptr) e_sequence->selections.clear();
 
 		// remove media and parents
-		for (int m=0;m<parents.size();m++) {
-			for (int l=0;l<items.size();l++) {
-				if (items.at(l) == parents.at(m)) {
-					items.removeAt(l);
-					l--;
-				}
+        for (int m=0; m < parents.size(); m++) {
+            for (int l=0; l < items.size(); l++) {
+                if (!parents.at(m).expired()) {
+                    MediaPtr parPtr = parents.at(m).lock();
+                    if (items.at(l) == parPtr) {
+                        items.removeAt(l);
+                        l--;
+                    }
+                }
 			}
 		}
 

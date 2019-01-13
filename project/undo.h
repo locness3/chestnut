@@ -99,7 +99,7 @@ private:
 class DeleteClipAction : public QUndoCommand {
 public:
     DeleteClipAction(SequencePtr s, int clip);
-	~DeleteClipAction();
+    virtual ~DeleteClipAction();
 	void undo();
 	void redo();
 private:
@@ -129,7 +129,7 @@ private:
 class AddEffectCommand : public QUndoCommand {
 public:
     AddEffectCommand(ClipPtr c, EffectPtr e, const EffectMeta* m, int insert_pos = -1);
-	~AddEffectCommand();
+    virtual ~AddEffectCommand();
 	void undo();
 	void redo();
 private:
@@ -174,7 +174,7 @@ private:
 class DeleteTransitionCommand : public QUndoCommand {
 public:
     DeleteTransitionCommand(SequencePtr s, int transition_index);
-	~DeleteTransitionCommand();
+    virtual ~DeleteTransitionCommand();
 	void undo();
 	void redo();
 private:
@@ -210,7 +210,7 @@ private:
 class NewSequenceCommand : public QUndoCommand {
 public:
     NewSequenceCommand(MediaPtr s, MediaPtr iparent);
-	~NewSequenceCommand();
+    virtual ~NewSequenceCommand();
 	void undo();
 	void redo();
 private:
@@ -223,7 +223,7 @@ private:
 class AddMediaCommand : public QUndoCommand {
 public:
     AddMediaCommand(MediaPtr iitem, MediaPtr iparent);
-	~AddMediaCommand();
+    virtual ~AddMediaCommand();
 	void undo();
 	void redo();
 private:
@@ -236,7 +236,7 @@ private:
 class DeleteMediaCommand : public QUndoCommand {
 public:
     DeleteMediaCommand(MediaPtr i);
-	~DeleteMediaCommand();
+    virtual ~DeleteMediaCommand();
 	void undo();
 	void redo();
 private:
@@ -249,7 +249,7 @@ private:
 class AddClipCommand : public QUndoCommand {
 public:
     AddClipCommand(SequencePtr s, QVector<ClipPtr>& add);
-	~AddClipCommand();
+    virtual ~AddClipCommand();
 	void undo();
 	void redo();
 private:
@@ -275,7 +275,7 @@ private:
 class CheckboxCommand : public QUndoCommand {
 public:
 	CheckboxCommand(QCheckBox* b);
-	~CheckboxCommand();
+    virtual ~CheckboxCommand();
 	void undo();
 	void redo();
 private:
@@ -316,7 +316,7 @@ private:
 class EffectDeleteCommand : public QUndoCommand {
 public:
 	EffectDeleteCommand();
-	~EffectDeleteCommand();
+    virtual ~EffectDeleteCommand();
 	void undo();
 	void redo();
     QVector<ClipPtr> clips;
@@ -595,7 +595,7 @@ private:
 class RemoveClipsFromClipboard : public QUndoCommand {
 public:
 	RemoveClipsFromClipboard(int index);
-	~RemoveClipsFromClipboard();
+    virtual ~RemoveClipsFromClipboard();
 	void undo();
 	void redo();
 private:

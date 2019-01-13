@@ -726,9 +726,12 @@ void MediaMove::redo() {
 	if (to == nullptr) to = project_model.get_root();
 	froms.resize(items.size());
 	for (int i=0;i<items.size();i++) {
-        MediaPtr parent = items.at(i)->parentItem();
-		froms[i] = parent;
-		project_model.moveChild(items.at(i), to);
+        MediaWPtr parent = items.at(i)->parentItem();
+        if (!parent.expired()) {
+            MediaPtr parPtr = parent.lock();
+            froms[i] = parPtr;
+            project_model.moveChild(items.at(i), to);
+        }
 	}
 	mainWindow->setWindowModified(true);
 }
