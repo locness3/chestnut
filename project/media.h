@@ -21,6 +21,7 @@
 #include <QList>
 #include <QVariant>
 #include <QIcon>
+#include <memory>
 
 #include "project/projectitem.h"
 #include "project/sequence.h"
@@ -93,5 +94,8 @@ private:
     Media(const Media& cpy);
     const Media& operator=(const Media& rhs);
 };
+
+typedef std::unique_ptr<Media> MediaUPtr;
+typedef std::unique_ptr<Media> MediaPtr;
 
 #endif // MEDIA_H

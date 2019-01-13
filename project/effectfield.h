@@ -97,5 +97,6 @@ signals:
 	void clicked();
 };
 typedef std::shared_ptr<EffectField> EffectFieldPtr;
+typedef std::unique_ptr<EffectField> EffectFieldUPtr;
 
 #endif // EFFECTFIELD_H

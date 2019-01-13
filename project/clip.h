@@ -56,12 +56,6 @@ class Clip : public project::SequenceItem, QThread
 public:
     explicit Clip(SequencePtr s);
     virtual ~Clip();
-    /**
-     * @brief Copy constructor
-     * @param cpy
-     */
-    Clip(const Clip& cpy);
-
     ClipPtr copy(SequencePtr s);
 
     virtual project::SequenceItemType_E getType() const;
@@ -269,9 +263,11 @@ private:
 
     // Explicitly impl as required
     Clip();
+    Clip(const Clip& cpy);
     const Clip& operator=(const Clip& rhs);
 };
 
 typedef std::shared_ptr<Clip> ClipPtr;
+typedef std::unique_ptr<Clip> ClipUPtr;
 
 #endif // CLIP_H

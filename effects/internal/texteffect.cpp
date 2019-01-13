@@ -98,8 +98,8 @@ TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
     outline_enable(false);
     shadow_enable(false);
 
-    connect(shadow_bool, SIGNAL(toggled(bool)), this, SLOT(shadow_enable(bool)));
-    connect(outline_bool, SIGNAL(toggled(bool)), this, SLOT(outline_enable(bool)));
+    connect(shadow_bool.operator ->(), SIGNAL(toggled(bool)), this, SLOT(shadow_enable(bool)));
+    connect(outline_bool.operator ->(), SIGNAL(toggled(bool)), this, SLOT(outline_enable(bool)));
 
     vertPath = "common.vert";
     fragPath = "dropshadow.frag";

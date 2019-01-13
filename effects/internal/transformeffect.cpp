@@ -130,7 +130,7 @@ TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em
     rect_gizmo->x_field1 = position_x;
     rect_gizmo->y_field1 = position_y;
 
-    connect(uniform_scale_field, SIGNAL(toggled(bool)), this, SLOT(toggle_uniform_scale(bool)));
+    connect(uniform_scale_field.operator ->(), SIGNAL(toggled(bool)), this, SLOT(toggle_uniform_scale(bool)));
 
     // set defaults
     uniform_scale_field->set_bool_value(true);
@@ -140,16 +140,7 @@ TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em
 }
 
 TransformEffect::~TransformEffect() {
-    delete position_x;
-    delete position_y;
-    delete scale_x;
-    delete scale_y;
-    delete uniform_scale_field;
-    delete rotation;
-    delete anchor_x_box;
-    delete anchor_y_box;
-    delete opacity;
-    delete blend_mode_box;
+
 }
 
 void adjust_field(EffectField* field, double old_offset, double new_offset) {

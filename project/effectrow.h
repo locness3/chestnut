@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -23,8 +23,9 @@
 #include <QGridLayout>
 #include <memory>
 
+#include "project/effectfield.h"
+
 class Effect;
-class EffectField;
 class ComboAction;
 class KeyframeNavigator;
 class ClickableLabel;
@@ -32,11 +33,11 @@ class ClickableLabel;
 class EffectRow : public QObject {
 	Q_OBJECT
 public:
-	EffectRow(Effect* parent, bool save, QGridLayout* uilayout, const QString& n, int row, bool keyframable = true);
+    EffectRow(Effect* parent, const bool save, QGridLayout* uilayout, const QString& n, const int row, const bool keyframable = true);
     virtual ~EffectRow();
-    EffectField* add_field(int type, const QString &id, int colspan = 1); //FIXME: use of this is leaking memory
+    EffectFieldPtr add_field(int type, const QString &id, int colspan = 1);
 	void add_widget(QWidget *w);
-	EffectField* field(int i);
+    EffectFieldPtr field(const int index);
 	int fieldCount();
 	void set_keyframe_now(ComboAction *ca);
 	void delete_keyframe_at_time(ComboAction *ca, long time);
@@ -59,7 +60,7 @@ private:
 	QGridLayout* ui;
 	QString name;
 	int ui_row;
-	QVector<EffectField*> fields;
+    QVector<EffectFieldPtr> fields;
 
 	KeyframeNavigator* keyframe_nav;
 

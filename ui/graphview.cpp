@@ -197,7 +197,7 @@ void GraphView::draw_lines(QPainter& p, bool vert) {
 	draw_line_text(p, vert, last_line, last_line_x, width());
 }
 
-QVector<int> sort_keys_from_field(EffectField* field) {
+QVector<int> sort_keys_from_field(EffectFieldPtr field) {
 	QVector<int> sorted_keys;
 	for (int k=0;k<field->keyframes.size();k++) {
 		bool inserted = false;
@@ -232,7 +232,7 @@ void GraphView::paintEvent(QPaintEvent *) {
 			line_pen.setWidth(BEZIER_LINE_SIZE);
 
 			for (int i=row->fieldCount()-1;i>=0;i--) {
-				EffectField* field = row->field(i);
+                EffectFieldPtr field = row->field(i);
 
 				if (field->type == EFFECT_FIELD_DOUBLE && field_visibility.at(i)) {
 					// sort keyframes by time
@@ -370,7 +370,7 @@ void GraphView::mousePressEvent(QMouseEvent *event) {
 			click_add_proc = true;
 		} else {
 			for (int i=0;i<row->fieldCount();i++) {
-				EffectField* field = row->field(i);
+                EffectFieldPtr field = row->field(i);
 				if (field->type == EFFECT_FIELD_DOUBLE && field_visibility.at(i)) {
 					for (int j=0;j<field->keyframes.size();j++) {
 						const EffectKeyframe& key = field->keyframes.at(j);
@@ -473,7 +473,7 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
 			selected_keys_fields.resize(rect_select_offset);
 
 			for (int i=0;i<row->fieldCount();i++) {
-				EffectField* f = row->field(i);
+                EffectFieldPtr f = row->field(i);
 				for (int j=0;j<f->keyframes.size();j++) {
 					bool already_selected = false;
 					for (int k=0;k<selected_keys.size();k++) {
@@ -588,7 +588,7 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
 
 		if (!hovering_key) {
 			for (int i=0;i<row->fieldCount();i++) {
-				EffectField* f = row->field(i);
+                EffectFieldPtr f = row->field(i);
 				if (field_visibility.at(i)) {
 					QVector<int> sorted_keys = sort_keys_from_field(f);
 
@@ -789,7 +789,7 @@ void GraphView::set_field_visibility(int field, bool b) {
 
 void GraphView::delete_selected_keys() {
 	if (row != nullptr) {
-		QVector<EffectField*> fields;
+        QVector<EffectFieldPtr> fields;
 		for (int i=0;i<selected_keys_fields.size();i++) {
 			fields.append(row->field(selected_keys_fields.at(i)));
 		}
@@ -802,7 +802,7 @@ void GraphView::select_all() {
 		selected_keys.clear();
 		selected_keys_fields.clear();
 		for (int i=0;i<row->fieldCount();i++) {
-			EffectField* field = row->field(i);
+            EffectFieldPtr field = row->field(i);
 			for (int j=0;j<field->keyframes.size();j++) {
 				selected_keys.append(j);
 				selected_keys_fields.append(i);

@@ -66,6 +66,8 @@ Clip::Clip(SequencePtr s) :
     use_existing_frame(false),
     filter_graph(nullptr),
     fbo(nullptr),
+    timeline_info(),
+    effects(),
     media_handling()
 {
     media_handling.pkt = av_packet_alloc();
@@ -984,7 +986,7 @@ void Clip::refactor_frame_rate(ComboAction* ca, double multiplier, bool change_t
         for (int j=0; j<effectNow->row_count();j++) {
             EffectRowPtr effectRowNow = effectNow->row(j);
             for (int l=0; l<effectRowNow->fieldCount(); l++) {
-                EffectField* f = effectRowNow->field(l);
+                EffectFieldPtr f = effectRowNow->field(l);
                 for (int k=0; k<f->keyframes.size(); k++) {
                     ca->append(new SetLong(&f->keyframes[k].time, f->keyframes[k].time, f->keyframes[k].time * multiplier));
                 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -56,7 +56,7 @@ KeyframeView::KeyframeView(QWidget *parent) :
 	select_rect(false),
 	x_scroll(0),
 	y_scroll(0),
-	scroll_drag(false)
+    scroll_drag(false)
 {
 	setFocusPolicy(Qt::ClickFocus);
 	setMouseTracking(true);
@@ -90,7 +90,7 @@ void KeyframeView::menu_set_key_type(QAction* a) {
 	} else {
 		ComboAction* ca = new ComboAction();
 		for (int i=0;i<selected_fields.size();i++) {
-			EffectField* f = selected_fields.at(i);
+            EffectFieldPtr f = selected_fields.at(i);
 			ca->append(new SetInt(&f->keyframes[selected_keyframes.at(i)].type, a->data().toInt()));
 		}
 		e_undo_stack.push(ca);
@@ -116,7 +116,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 
         for (int j=0;j<e_panel_effect_controls->selected_clips.size();j++) {
             ClipPtr c = e_sequence->clips.at(e_panel_effect_controls->selected_clips.at(j));
-			for (int i=0;i<c->effects.size();i++) {
+            for (int i=0; i < c->effects.size(); i++) {
                 EffectPtr e = c->effects.at(i);
 				if (e->container->is_expanded()) {
 					for (int j=0;j<e->row_count();j++) {
@@ -130,7 +130,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
                                 + mapFrom(e_panel_effect_controls,
                                           contents->mapTo(e_panel_effect_controls, contents->pos())).y() - e->container->title_bar->height()/* - y_scroll*/;
 						for (int l=0;l<row->fieldCount();l++) {
-							EffectField* f = row->field(l);
+                            EffectFieldPtr f = row->field(l);
 							for (int k=0;k<f->keyframes.size();k++) {
 								if (!key_times.contains(f->keyframes.at(k).time)) {
 									bool keyframe_selected = keyframeIsSelected(f, k);
@@ -139,7 +139,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 									// see if any other keyframes have this time
 									int appearances = 0;
 									for (int m=0;m<row->fieldCount();m++) {
-										EffectField* compf = row->field(m);
+                                        EffectFieldPtr compf = row->field(m);
 										for (int n=0;n<compf->keyframes.size();n++) {
 											if (f->keyframes.at(k).time == compf->keyframes.at(n).time) {
 												appearances++;
@@ -195,7 +195,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 	}*/
 }
 
-bool KeyframeView::keyframeIsSelected(EffectField *field, int keyframe) {
+bool KeyframeView::keyframeIsSelected(EffectFieldPtr field, int keyframe) {
 	for (int i=0;i<selected_fields.size();i++) {
 		if (selected_fields.at(i) == field && selected_keyframes.at(i) == keyframe) {
 			return true;
@@ -252,13 +252,13 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
     drag_frame_start = getFrameFromScreenPoint(e_panel_effect_controls->zoom, mouse_x);
     long frame_max = getFrameFromScreenPoint(e_panel_effect_controls->zoom, mouse_x+KEYFRAME_SIZE);
 	for (int i=0;i<rowY.size();i++) {
-		if (mouse_y > rowY.at(i)-KEYFRAME_SIZE-KEYFRAME_SIZE && mouse_y < rowY.at(i)+KEYFRAME_SIZE+KEYFRAME_SIZE) {
+        if (mouse_y > rowY.at(i) - KEYFRAME_SIZE-KEYFRAME_SIZE && mouse_y < rowY.at(i)+KEYFRAME_SIZE+KEYFRAME_SIZE) {
             EffectRowPtr row = rows.at(i);
 
 			row->focus_row();
 
 			for (int k=0;k<row->fieldCount();k++) {
-				EffectField* f = row->field(k);
+                EffectFieldPtr f = row->field(k);
 				for (int j=0;j<f->keyframes.size();j++) {
                     long eval_keyframe_time = f->keyframes.at(j).time-row->parent_effect->parent_clip->timeline_info.clip_in
                             + (row->parent_effect->parent_clip->timeline_info.in - visible_in);
@@ -296,7 +296,7 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
 			long comp_time = rows.at(row_index)->field(field_index)->keyframes.at(keyframe_index).time;
 			for (int i=0;i<rows.at(row_index)->fieldCount();i++) {
 				if (i != field_index) {
-					EffectField* f = rows.at(row_index)->field(i);
+                    EffectFieldPtr f = rows.at(row_index)->field(i);
 					for (int j=0;j<f->keyframes.size();j++) {
 						if (f->keyframes.at(j).time == comp_time) {
 							selected_fields.append(f);
@@ -357,7 +357,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
 				if (rowY.at(i) >= min_row && rowY.at(i) <= max_row) {
                     EffectRowPtr row = rows.at(i);
 					for (int k=0;k<row->fieldCount();k++) {
-						EffectField* field = row->field(k);
+                        EffectFieldPtr field = row->field(k);
 						for (int j=0;j<field->keyframes.size();j++) {
 							long keyframe_frame = adjust_row_keyframe(row, field->keyframes.at(j).time);
 							if (!keyframeIsSelected(field, j) && keyframe_frame >= min_frame && keyframe_frame <= max_frame) {
@@ -378,7 +378,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
             e_panel_timeline->snapped = false;
             if (e_panel_timeline->snapping) {
 				for (int i=0;i<selected_keyframes.size();i++) {
-					EffectField* field = selected_fields.at(i);
+                    EffectFieldPtr field = selected_fields.at(i);
                     ClipPtr c = field->parent_row->parent_effect->parent_clip;
                     long key_time = old_key_vals.at(i) + frame_diff - c->timeline_info.clip_in + c->timeline_info.in;
 					long key_eval = key_time;
@@ -391,7 +391,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
 
 			// validate frame_diff (make sure no keyframes overlap each other)
 			for (int i=0;i<selected_fields.size();i++) {
-				EffectField* field = selected_fields.at(i);
+                EffectFieldPtr field = selected_fields.at(i);
 				long eval_key = old_key_vals.at(i);
 				for (int j=0;j<field->keyframes.size();j++) {
 					while (!keyframeIsSelected(field, j) && field->keyframes.at(j).time == eval_key + frame_diff) {
@@ -408,7 +408,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
 
 			// apply frame_diffs
 			for (int i=0;i<selected_keyframes.size();i++) {
-				EffectField* field = selected_fields.at(i);
+                EffectFieldPtr field = selected_fields.at(i);
 				field->keyframes[selected_keyframes.at(i)].time = old_key_vals.at(i) + frame_diff;
 			}
 

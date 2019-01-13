@@ -29,14 +29,14 @@ class TimecodeEffect : public Effect {
 public:
     TimecodeEffect(ClipPtr c, const EffectMeta *em);
     void redraw(double timecode);
-    EffectField * scale_val;
-    EffectField * color_val;
-    EffectField * color_bg_val;
-    EffectField * bg_alpha;
-    EffectField * offset_x_val;
-    EffectField * offset_y_val;
-    EffectField * prepend_text;
-    EffectField * tc_select;
+    EffectFieldPtr scale_val;
+    EffectFieldPtr color_val;
+    EffectFieldPtr color_bg_val;
+    EffectFieldPtr bg_alpha;
+    EffectFieldPtr offset_x_val;
+    EffectFieldPtr offset_y_val;
+    EffectFieldPtr prepend_text;
+    EffectFieldPtr tc_select;
 
 private:
     QFont font;

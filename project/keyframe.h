@@ -19,6 +19,7 @@
 #define KEYFRAME_H
 
 #include <QVariant>
+#include <memory>
 
 class EffectField;
 
@@ -37,6 +38,6 @@ public:
 	double post_handle_y;
 };
 
-void delete_keyframes(QVector<EffectField *> &selected_key_fields, QVector<int> &selected_keys);
+void delete_keyframes(QVector<std::shared_ptr<EffectField> >& selected_key_fields, QVector<int> &selected_keys);
 
 #endif // KEYFRAME_H

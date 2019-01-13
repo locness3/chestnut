@@ -30,8 +30,8 @@ EffectKeyframe::EffectKeyframe() {
 	post_handle_y = 0;
 }
 
-void delete_keyframes(QVector<EffectField *>& selected_key_fields, QVector<int> &selected_keys) {
-	QVector<EffectField*> fields;
+void delete_keyframes(QVector<EffectFieldPtr>& selected_key_fields, QVector<int> &selected_keys) {
+    QVector<EffectFieldPtr> fields;
 	QVector<int> key_indices;
 
 	for (int i=0;i<selected_keys.size();i++) {

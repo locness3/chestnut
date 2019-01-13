@@ -25,10 +25,10 @@ public:
     ToneEffect(ClipPtr c, const EffectMeta* em);
 	void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
 
-	EffectField* type_val;
-	EffectField* freq_val;
-	EffectField* amount_val;
-	EffectField* mix_val;
+    EffectFieldPtr type_val;
+    EffectFieldPtr freq_val;
+    EffectFieldPtr amount_val;
+    EffectFieldPtr mix_val;
 private:
 	int sinX;
 };

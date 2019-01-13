@@ -353,11 +353,11 @@ private:
 
 class KeyframeDelete : public QUndoCommand {
 public:
-	KeyframeDelete(EffectField* ifield, int iindex);
+    KeyframeDelete(EffectFieldPtr ifield, int iindex);
 	void undo();
 	void redo();
 private:
-	EffectField* field;
+    EffectFieldPtr field;
 	int index;
 	bool done;
 	EffectKeyframe deleted_key;
@@ -368,11 +368,11 @@ private:
 // assumes the keyframe already exists
 class KeyframeFieldSet : public QUndoCommand {
 public:
-	KeyframeFieldSet(EffectField* ifield, int ii);
+    KeyframeFieldSet(EffectFieldPtr ifield, int ii);
 	void undo();
 	void redo();
 private:
-	EffectField* field;
+    EffectFieldPtr field;
 	int index;
 	EffectKeyframe key;
 	bool done;
@@ -381,11 +381,11 @@ private:
 
 class EffectFieldUndo : public QUndoCommand {
 public:
-	EffectFieldUndo(EffectField* field);
+    EffectFieldUndo(EffectFieldPtr field);
 	void undo();
 	void redo();
 private:
-	EffectField* field;
+    EffectFieldPtr field;
 	QVariant old_val;
 	QVariant new_val;
 	bool done;

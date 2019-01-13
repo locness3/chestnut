@@ -21,8 +21,9 @@
 #include <QWidget>
 #include <QVector>
 
+#include "project/effectfield.h"
+
 class EffectRow;
-class EffectField;
 
 QColor get_curve_color(int index, int length);
 
@@ -103,7 +104,7 @@ private:
 
 	bool click_add;
 	bool click_add_proc;
-	EffectField* click_add_field;
+    EffectFieldPtr click_add_field;
 	int click_add_key;
 	int click_add_type;
 private slots:

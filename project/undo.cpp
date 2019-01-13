@@ -754,7 +754,7 @@ void MediaRename::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-KeyframeDelete::KeyframeDelete(EffectField *ifield, int iindex) :
+KeyframeDelete::KeyframeDelete(EffectFieldPtr ifield, int iindex) :
 	field(ifield),
 	index(iindex),
 	old_project_changed(mainWindow->isWindowModified())
@@ -771,7 +771,7 @@ void KeyframeDelete::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-EffectFieldUndo::EffectFieldUndo(EffectField* f) :
+EffectFieldUndo::EffectFieldUndo(EffectFieldPtr f) :
 	field(f),
 	done(true),
 	old_project_changed(mainWindow->isWindowModified())
@@ -1227,7 +1227,7 @@ void SetLong::redo() {
 	mainWindow->setWindowModified(true);
 }
 
-KeyframeFieldSet::KeyframeFieldSet(EffectField *ifield, int ii) :
+KeyframeFieldSet::KeyframeFieldSet(EffectFieldPtr ifield, int ii) :
 	field(ifield),
 	index(ii),
 	key(ifield->keyframes.at(ii)),

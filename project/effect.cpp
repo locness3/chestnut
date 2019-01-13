@@ -355,8 +355,8 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
 									if (id.isEmpty()) {
 										dout << "[ERROR] Couldn't load field from" << em->filename << "- ID cannot be empty.";
 									} else if (type > -1) {
-										EffectField* field = row->add_field(type, id);
-										connect(field, SIGNAL(changed()), this, SLOT(field_changed()));
+                                        EffectFieldPtr field = row->add_field(type, id);
+                                        connect(field.operator ->(), SIGNAL(changed()), this, SLOT(field_changed()));
 										switch (type) {
 										case EFFECT_FIELD_DOUBLE:
 											for (int i=0;i<attributes.size();i++) {
@@ -509,8 +509,8 @@ void Effect::copy_field_keyframes(std::shared_ptr<Effect> e) {
         EffectRowPtr copy_row(e->rows.at(i));
 		copy_row->setKeyframing(row->isKeyframing());
 		for (int j=0;j<row->fieldCount();j++) {
-			EffectField* field = row->field(j);
-			EffectField* copy_field = copy_row->field(j);
+            EffectFieldPtr field = row->field(j);
+            EffectFieldPtr copy_field = copy_row->field(j);
 			copy_field->keyframes = field->keyframes;
 			copy_field->set_current_data(field->get_current_data());
 		}
@@ -700,7 +700,7 @@ void Effect::load(QXmlStreamReader& stream) {
 								}
 							}
 
-							EffectField* field = row->field(field_number);
+                            EffectFieldPtr field = row->field(field_number);
 
 							// get current field value
 							for (int k=0;k<stream.attributes().size();k++) {
@@ -768,7 +768,7 @@ void Effect::save(QXmlStreamWriter& stream) {
 		if (row->savable) {
 			stream.writeStartElement("row"); // row
 			for (int j=0;j<row->fieldCount();j++) {
-				EffectField* field = row->field(j);
+                EffectFieldPtr field = row->field(j);
 				stream.writeStartElement("field"); // field
 				stream.writeAttribute("id", field->id);
 				stream.writeAttribute("value", save_data_to_string(field->type, field->get_current_data()));
@@ -904,7 +904,7 @@ void Effect::process_shader(double timecode, GLTextureCoords&) {
 	for (int i=0;i<rows.size();i++) {
         EffectRowPtr row(rows.at(i));
 		for (int j=0;j<row->fieldCount();j++) {
-			EffectField* field = row->field(j);
+            EffectFieldPtr field = row->field(j);
 			if (!field->id.isEmpty()) {
 				switch (field->type) {
 				case EFFECT_FIELD_DOUBLE:
@@ -1029,7 +1029,7 @@ void Effect::redraw(double) {
 	for (int i=0;i<rows.size();i++) {
 		EffectRow* row = rows.at(i);
 		for (int j=0;j<row->fieldCount();j++) {
-			EffectField* field = row->field(j);
+            EffectFieldPtr field = row->field(j);
 			if (!field->id.isEmpty()) {
 				switch (field->type) {
 				case EFFECT_FIELD_DOUBLE:
@@ -1074,7 +1074,7 @@ bool Effect::valueHasChanged(double timecode) {
         for (int i=0;i<row_count();i++) {
             EffectRowPtr crow(row(i));
 			for (int j=0;j<crow->fieldCount();j++) {
-				EffectField* field = crow->field(j);
+                EffectFieldPtr field = crow->field(j);
 				field->validate_keyframe_data(timecode);
 				if (cachedValues.at(index) != field->get_current_data()) {
 					changed = true;

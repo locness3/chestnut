@@ -48,7 +48,7 @@ Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
     length(DEFAULT_TRANSITION_LENGTH)
 {
     length_field = add_row("Length:", false)->add_field(EFFECT_FIELD_DOUBLE, "length");
-	connect(length_field, SIGNAL(changed()), this, SLOT(set_length_from_slider()));
+    connect(length_field.operator ->(), SIGNAL(changed()), this, SLOT(set_length_from_slider()));
     length_field->set_double_default_value(DEFAULT_TRANSITION_LENGTH);
     length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
 

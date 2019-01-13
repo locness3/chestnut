@@ -28,15 +28,15 @@ public:
 	void process_shader(double timecode, GLTextureCoords& coords);
     void gizmo_draw(double timecode, GLTextureCoords& coords);
 private:
-    EffectField* top_left_x;
-    EffectField* top_left_y;
-    EffectField* top_right_x;
-    EffectField* top_right_y;
-    EffectField* bottom_left_x;
-    EffectField* bottom_left_y;
-    EffectField* bottom_right_x;
-    EffectField* bottom_right_y;
-	EffectField* perspective;
+    EffectFieldPtr top_left_x;
+    EffectFieldPtr top_left_y;
+    EffectFieldPtr top_right_x;
+    EffectFieldPtr top_right_y;
+    EffectFieldPtr bottom_left_x;
+    EffectFieldPtr bottom_left_y;
+    EffectFieldPtr bottom_right_x;
+    EffectFieldPtr bottom_right_y;
+    EffectFieldPtr perspective;
 
     EffectGizmoPtr top_left_gizmo;
     EffectGizmoPtr top_right_gizmo;

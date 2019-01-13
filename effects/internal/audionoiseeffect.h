@@ -25,8 +25,8 @@ public:
     AudioNoiseEffect(ClipPtr c, const EffectMeta* em);
     virtual void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
 
-	EffectField* amount_val;
-	EffectField* mix_val;
+    EffectFieldPtr amount_val;
+    EffectFieldPtr mix_val;
 };
 
 #endif // AUDIONOISEEFFECT_H
