@@ -150,18 +150,6 @@ TransformEffect::~TransformEffect() {
     delete anchor_y_box;
     delete opacity;
     delete blend_mode_box;
-
-    delete top_left_gizmo;
-    delete top_center_gizmo;
-    delete top_right_gizmo;
-    delete bottom_left_gizmo;
-    delete bottom_center_gizmo;
-    delete bottom_right_gizmo;
-    delete left_center_gizmo;
-    delete right_center_gizmo;
-    delete anchor_gizmo;
-    delete rotate_gizmo;
-    delete rect_gizmo;
 }
 
 void adjust_field(EffectField* field, double old_offset, double new_offset) {

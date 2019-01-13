@@ -82,8 +82,8 @@ private:
     int drag_start_y;
     int gizmo_x_mvmt;
     int gizmo_y_mvmt;
-    EffectGizmo* selected_gizmo;
-    EffectGizmo* get_gizmo_from_mouse(int x, int y);
+    EffectGizmoPtr selected_gizmo;
+    EffectGizmoPtr get_gizmo_from_mouse(const int x_coord, const int y_coord);
     bool drawn_gizmos;
     void move_gizmos(QMouseEvent *event, bool done);
 private slots:

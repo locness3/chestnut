@@ -38,10 +38,10 @@ private:
     EffectField* bottom_right_y;
 	EffectField* perspective;
 
-    EffectGizmo* top_left_gizmo;
-    EffectGizmo* top_right_gizmo;
-    EffectGizmo* bottom_left_gizmo;
-    EffectGizmo* bottom_right_gizmo;
+    EffectGizmoPtr top_left_gizmo;
+    EffectGizmoPtr top_right_gizmo;
+    EffectGizmoPtr bottom_left_gizmo;
+    EffectGizmoPtr bottom_right_gizmo;
 };
 
 #endif // CORNERPINEFFECT_H

@@ -495,10 +495,6 @@ Effect::~Effect() {
 		close();
 	}
 
-	for (int i=0;i<gizmos.size();i++) {
-		delete gizmos.at(i);
-	}
-
     delete container;
 }
 
@@ -535,14 +531,19 @@ int Effect::row_count() {
 	return rows.size();
 }
 
-EffectGizmo *Effect::add_gizmo(GizmoType_E type) {
-	EffectGizmo* gizmo = new EffectGizmo(type);
+/**
+ * @brief Create a new EffectGizmo and add to internal list
+ * @param type  Type for new Gizmo
+ * @return the newly created EffectGizmo
+ */
+EffectGizmoPtr Effect::add_gizmo(const GizmoType_E type) {
+    EffectGizmoPtr gizmo = this->newEffectGizmo(type);
 	gizmos.append(gizmo);
 	return gizmo;
 }
 
-EffectGizmo *Effect::gizmo(int i) {
-	return gizmos.at(i);
+EffectGizmoPtr Effect::gizmo(const int index) {
+    return gizmos.at(index);
 }
 
 int Effect::gizmo_count(){
@@ -605,6 +606,15 @@ void Effect::move_down() {
 	command->to = command->from + 1;
 	e_undo_stack.push(command);
 	update_ui(true);
+}
+
+/**
+ * @brief Create a new EffectGizmo (virtual+protected to aid in testing)
+ * @param type  Type for EffectGizmo to be
+ * @return EffectGizmo shared_ptr
+ */
+EffectGizmoPtr Effect::newEffectGizmo(const GizmoType_E type) {
+    return EffectGizmoPtr(new EffectGizmo(type));
 }
 
 int Effect::get_index_in_clip() {
@@ -951,7 +961,7 @@ void Effect::process_audio(double, double, quint8*, int, int) {}
 
 void Effect::gizmo_draw(double, GLTextureCoords &) {}
 
-void Effect::gizmo_move(EffectGizmo* gizmo, int x_movement, int y_movement, double timecode, bool done) {
+void Effect::gizmo_move(EffectGizmoPtr gizmo, const int x_movement, const int y_movement, const double timecode, const bool done) {
 	for (int i=0;i<gizmos.size();i++) {
 		if (gizmos.at(i) == gizmo) {
 			ComboAction* ca = NULL;
@@ -988,7 +998,7 @@ void Effect::gizmo_world_to_screen() {
 	QMatrix4x4 projection_matrix(projection_val);
 
 	for (int i=0;i<gizmos.size();i++) {
-		EffectGizmo* g = gizmos.at(i);
+        EffectGizmoPtr g = gizmos.at(i);
 
 		for (int j=0;j<g->get_point_count();j++) {
 			QVector4D screen_pos = QVector4D(g->world_pos[j].x(), g->world_pos[j].y(), 0, 1.0) * (view_matrix * projection_matrix);
@@ -1001,7 +1011,7 @@ void Effect::gizmo_world_to_screen() {
 	}
 }
 
-bool Effect::are_gizmos_enabled() {
+bool Effect::are_gizmos_enabled() const {
 	return (gizmos.size() > 0);
 }
 

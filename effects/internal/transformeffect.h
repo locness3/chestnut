@@ -43,17 +43,17 @@ private:
     EffectField* opacity = NULL;
     EffectField* blend_mode_box = NULL;
 
-    EffectGizmo* top_left_gizmo = NULL;
-    EffectGizmo* top_center_gizmo = NULL;
-    EffectGizmo* top_right_gizmo = NULL;
-    EffectGizmo* bottom_left_gizmo = NULL;
-    EffectGizmo* bottom_center_gizmo = NULL;
-    EffectGizmo* bottom_right_gizmo = NULL;
-    EffectGizmo* left_center_gizmo = NULL;
-    EffectGizmo* right_center_gizmo = NULL;
-    EffectGizmo* anchor_gizmo = NULL;
-    EffectGizmo* rotate_gizmo = NULL;
-    EffectGizmo* rect_gizmo = NULL;
+    EffectGizmoPtr top_left_gizmo = NULL;
+    EffectGizmoPtr top_center_gizmo = NULL;
+    EffectGizmoPtr top_right_gizmo = NULL;
+    EffectGizmoPtr bottom_left_gizmo = NULL;
+    EffectGizmoPtr bottom_center_gizmo = NULL;
+    EffectGizmoPtr bottom_right_gizmo = NULL;
+    EffectGizmoPtr left_center_gizmo = NULL;
+    EffectGizmoPtr right_center_gizmo = NULL;
+    EffectGizmoPtr anchor_gizmo = NULL;
+    EffectGizmoPtr rotate_gizmo = NULL;
+    EffectGizmoPtr rect_gizmo = NULL;
 
 	bool set;
 };

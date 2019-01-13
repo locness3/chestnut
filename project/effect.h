@@ -134,9 +134,13 @@ public:
     EffectRowPtr add_row(const QString &name, bool savable = true, bool keyframable = true);
     EffectRowPtr row(int i);
 	int row_count();
-
-    EffectGizmo* add_gizmo(GizmoType_E type);
-	EffectGizmo* gizmo(int i);
+    /**
+     * @brief Create a new EffectGizmo and add to internal list
+     * @param type  Type for new Gizmo
+     * @return the newly created EffectGizmo
+     */
+    EffectGizmoPtr add_gizmo(const GizmoType_E type);
+    EffectGizmoPtr gizmo(const int index);
 	int gizmo_count();
 
 	bool is_enabled();
@@ -177,9 +181,9 @@ public:
 	virtual void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
 
 	virtual void gizmo_draw(double timecode, GLTextureCoords& coords);
-	void gizmo_move(EffectGizmo* sender, int x_movement, int y_movement, double timecode, bool done);
+    void gizmo_move(EffectGizmoPtr sender, const int x_movement, const int y_movement, const double timecode, const bool done);
 	void gizmo_world_to_screen();
-	bool are_gizmos_enabled();
+    bool are_gizmos_enabled() const;
 
     ClipPtr parent_clip;
     const EffectMeta* meta;
@@ -195,6 +199,13 @@ private slots:
 	void move_up();
 	void move_down();
 protected:
+    /**
+     * @brief Create a new EffectGizmo (virtual+protected to aid in testing)
+     * @param type  Type for EffectGizmo to be
+     * @return EffectGizmo shared_ptr
+     */
+    virtual EffectGizmoPtr newEffectGizmo(const GizmoType_E type);
+
 	// glsl effect
 	QOpenGLShaderProgram* glslProgram;
 	QString vertPath;
@@ -212,7 +223,7 @@ private:
 
 	bool isOpen;
     QVector<EffectRowPtr> rows;
-	QVector<EffectGizmo*> gizmos;
+    QVector<EffectGizmoPtr> gizmos;
 	QGridLayout* ui_layout;
 	QWidget* ui;
 	bool bound;

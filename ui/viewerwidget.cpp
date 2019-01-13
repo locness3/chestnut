@@ -229,14 +229,14 @@ void ViewerWidget::seek_from_click(int x) {
 	viewer->seek(getFrameFromScreenPoint(waveform_zoom, x+waveform_scroll));
 }
 
-EffectGizmo* ViewerWidget::get_gizmo_from_mouse(int x, int y) {
+EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(const int x_coord, const int y_coord) {
 	if (gizmos != NULL) {
         double multiplier = (double) viewer->seq->getWidth() / (double) width();
-		QPoint mouse_pos(qRound(x*multiplier), qRound(y*multiplier));
+        QPoint mouse_pos(qRound(x_coord*multiplier), qRound(y_coord*multiplier));
 		int dot_size = 2 * qRound(GIZMO_DOT_SIZE * multiplier);
 		int target_size = 2 * qRound(GIZMO_TARGET_SIZE * multiplier);
 		for (int i=0;i<gizmos->gizmo_count();i++) {
-			EffectGizmo* g = gizmos->gizmo(i);
+            EffectGizmoPtr g = gizmos->gizmo(i);
 
 			switch (g->get_type()) {
 			case GIZMO_TYPE_DOT:
@@ -328,7 +328,7 @@ void ViewerWidget::mouseMoveEvent(QMouseEvent* event) {
 			move_gizmos(event, false);
 		}
 	} else {
-		EffectGizmo* g = get_gizmo_from_mouse(event->pos().x(), event->pos().y());
+        EffectGizmoPtr g = get_gizmo_from_mouse(event->pos().x(), event->pos().y());
 		if (g != NULL) {
 			if (g->get_cursor() > -1) {
 				setCursor(static_cast<enum Qt::CursorShape>(g->get_cursor()));
@@ -934,7 +934,7 @@ void ViewerWidget::paintGL() {
                 glOrtho(0, viewer->seq->getWidth(), viewer->seq->getHeight(), 0, -1, 10);
 				float gizmo_z = 0.0f;
 				for (int j=0;j<gizmos->gizmo_count();j++) {
-					EffectGizmo* g = gizmos->gizmo(j);
+                    EffectGizmoPtr g = gizmos->gizmo(j);
 					glColor4f(g->color.redF(), g->color.greenF(), g->color.blueF(), 1.0);
 					switch (g->get_type()) {
 					case GIZMO_TYPE_DOT: // draw dot
