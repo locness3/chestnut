@@ -74,6 +74,14 @@ QString project_url = "";
 QStringList recent_projects;
 QString recent_proj_file;
 
+namespace {
+    const int       SEQUENCE_DEFAULT_WIDTH = 1920;
+    const int       SEQUENCE_DEFAULT_HEIGHT = 1080;
+    const double    SEQUENCE_DEFAULT_FRAMERATE = 29.97;
+    const int       SEQUENCE_DEFAULT_AUDIO_FREQUENCY = 48000;
+    const int       SEQUENCE_DEFAULT_LAYOUT = 3;
+}
+
 Project::Project(QWidget *parent) :
 	QDockWidget(parent)
 {
@@ -232,12 +240,11 @@ SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
 
     s->setName(e_panel_project->get_next_sequence_name());
 
-    // FIXME: hardcoded default values
-    s->setWidth(1920);
-    s->setHeight(1080);
-    s->setFrameRate(29.97);
-    s->setAudioFrequency(48000);
-    s->setAudioLayout(3);
+    s->setWidth(SEQUENCE_DEFAULT_HEIGHT);
+    s->setHeight(SEQUENCE_DEFAULT_WIDTH);
+    s->setFrameRate(SEQUENCE_DEFAULT_FRAMERATE);
+    s->setAudioFrequency(SEQUENCE_DEFAULT_AUDIO_FREQUENCY);
+    s->setAudioLayout(SEQUENCE_DEFAULT_LAYOUT);
 
 	bool got_video_values = false;
 	bool got_audio_values = false;
@@ -292,7 +299,9 @@ SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
             }
 		}
 			break;
-		}
+        default:
+            dwarning << "Unknown media type" << media->get_type();
+        }//switch
 		if (got_video_values && got_audio_values) break;
 	}
 
