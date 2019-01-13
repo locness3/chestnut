@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 
 	QApplication a(argc, argv);
 
-    MainWindow w(NULL,appName);
+    MainWindow w(nullptr,appName);
 	w.updateTitle("");
 
 	if (!load_proj.isEmpty()) {

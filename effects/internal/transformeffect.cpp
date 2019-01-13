@@ -163,7 +163,7 @@ void adjust_field(EffectField* field, double old_offset, double new_offset) {
 }
 
 void TransformEffect::refresh() {
-    if (parent_clip != NULL && parent_clip->sequence != NULL) {
+    if (parent_clip != nullptr && parent_clip->sequence != nullptr) {
         double new_default_pos_x = parent_clip->sequence->getWidth()/2;
         double new_default_pos_y = parent_clip->sequence->getHeight()/2;
 
@@ -209,10 +209,10 @@ void TransformEffect::toggle_uniform_scale(bool enabled) {
 
     top_center_gizmo->y_field1 = enabled ? scale_x : scale_y;
     bottom_center_gizmo->y_field1 = enabled ? scale_x : scale_y;
-    top_left_gizmo->y_field1 = enabled ? NULL : scale_y;
-    top_right_gizmo->y_field1 = enabled ? NULL : scale_y;
-    bottom_left_gizmo->y_field1 = enabled ? NULL : scale_y;
-    bottom_right_gizmo->y_field1 = enabled ? NULL : scale_y;
+    top_left_gizmo->y_field1 = enabled ? nullptr : scale_y;
+    top_right_gizmo->y_field1 = enabled ? nullptr : scale_y;
+    bottom_left_gizmo->y_field1 = enabled ? nullptr : scale_y;
+    bottom_right_gizmo->y_field1 = enabled ? nullptr : scale_y;
 }
 
 void TransformEffect::process_coords(double timecode, GLTextureCoords& coords, int data) {

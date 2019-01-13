@@ -30,7 +30,7 @@ extern "C" {
 
 Footage::Footage()
     : ready(false),
-      preview_gen(NULL),
+      preview_gen(nullptr),
       invalid(false),
       in(0),
       out(0),
@@ -41,13 +41,13 @@ Footage::Footage()
 
 Footage::~Footage() {
 	reset();
-    if (preview_gen != NULL) {
+    if (preview_gen != nullptr) {
         delete preview_gen;
     }
 }
 
 void Footage::reset() {
-	if (preview_gen != NULL) {
+	if (preview_gen != nullptr) {
 		preview_gen->cancel();
 		preview_gen->wait();
 	}
@@ -75,7 +75,7 @@ FootageStream* Footage::get_stream_from_file_index(bool video, int index) {
 			}
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 void FootageStream::make_square_thumb() {

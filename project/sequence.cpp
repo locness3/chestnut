@@ -66,8 +66,8 @@ std::shared_ptr<Sequence> Sequence::copy() {
 
     for (int i=0;i<clips.size();i++) {
         ClipPtr c = clips.at(i);
-        if (c == NULL) {
-            s->clips[i] = NULL;
+        if (c == nullptr) {
+            s->clips[i] = nullptr;
         } else {
             ClipPtr copy(c->copy(s));
             copy->linked = c->linked;
@@ -81,7 +81,7 @@ long Sequence::getEndFrame() {
 	long end = 0;
 	for (int j=0;j<clips.size();j++) {
         ClipPtr c = clips.at(j);
-        if (c != NULL && c->timeline_info.out > end) {
+        if (c != nullptr && c->timeline_info.out > end) {
             end = c->timeline_info.out;
 		}
 	}
@@ -94,10 +94,10 @@ void Sequence::hard_delete_transition(ClipPtr c, int type) {
 		bool del = true;
 
 		Transition* t = transitions.at(transition_index);
-		if (t->secondary_clip != NULL) {
+		if (t->secondary_clip != nullptr) {
 			for (int i=0;i<clips.size();i++) {
                 ClipPtr comp = clips.at(i);
-				if (comp != NULL
+				if (comp != nullptr
 						&& c != comp
 						&& (c->opening_transition == transition_index
 						|| c->closing_transition == transition_index)) {
@@ -107,14 +107,14 @@ void Sequence::hard_delete_transition(ClipPtr c, int type) {
 					}
 
 					del = false;
-					t->secondary_clip = NULL;
+					t->secondary_clip = nullptr;
 				}
 			}
 		}
 
 		if (del) {
 			delete transitions.at(transition_index);
-			transitions[transition_index] = NULL;
+			transitions[transition_index] = nullptr;
 		}
 
 		if (type == TA_OPENING_TRANSITION) {
@@ -167,7 +167,7 @@ void Sequence::getTrackLimits(int& video_limit, int& audio_limit) {
     audio_limit = 0;
 	for (int j=0;j<clips.size();j++) {
         ClipPtr c = clips.at(j);
-        if (c != NULL) {
+        if (c != nullptr) {
             if (c->timeline_info.track < 0 && c->timeline_info.track < video_limit) { // video clip
                 video_limit = c->timeline_info.track;
             } else if (c->timeline_info.track > audio_limit) {

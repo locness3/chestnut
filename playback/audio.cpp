@@ -44,7 +44,7 @@ QIODevice* audio_io_device;
 bool audio_device_set = false;
 bool audio_scrub = false;
 QMutex audio_write_lock;
-QAudioInput* audio_input = NULL;
+QAudioInput* audio_input = nullptr;
 QFile output_recording;
 bool recording = false;
 
@@ -53,7 +53,7 @@ int audio_ibuffer_read = 0;
 long audio_ibuffer_frame = 0;
 double audio_ibuffer_timecode = 0;
 
-AudioSenderThread* audio_thread = NULL;
+AudioSenderThread* audio_thread = nullptr;
 
 bool is_audio_device_set() {
 	return audio_device_set;
@@ -77,7 +77,7 @@ void init_audio() {
 		dout << "    " << devs.at(i).deviceName();
 	}
 	if (info.isNull() && devs.size() > 0) {
-		dout << "[WARNING] Default audio returned NULL, attempting to use first device found...";
+		dout << "[WARNING] Default audio returned nullptr, attempting to use first device found...";
 		info = devs.at(0);
 	}
 	dout << "[INFO] Using audio device" << info.deviceName();
@@ -93,8 +93,8 @@ void init_audio() {
 
 	// connect
 	audio_io_device = audio_output->start();
-	if (audio_io_device == NULL) {
-		dout << "[WARNING] Received NULL audio device. No compatible audio output was found.";
+	if (audio_io_device == nullptr) {
+		dout << "[WARNING] Received nullptr audio device. No compatible audio output was found.";
 	} else {
 		audio_device_set = true;
 
@@ -118,10 +118,10 @@ void stop_audio() {
 }
 
 void clear_audio_ibuffer() {
-	if (audio_thread != NULL) audio_thread->lock.lock();
+	if (audio_thread != nullptr) audio_thread->lock.lock();
 	memset(audio_ibuffer, 0, audio_ibuffer_size);
 	audio_ibuffer_read = 0;
-	if (audio_thread != NULL) audio_thread->lock.unlock();
+	if (audio_thread != nullptr) audio_thread->lock.unlock();
 }
 
 int current_audio_freq() {
@@ -193,7 +193,7 @@ int AudioSenderThread::send_audio_to_output(int offset, int max) {
 	if (e_panel_sequence_viewer->playing) {
 		s = e_panel_sequence_viewer->seq;
 	}
-	if (s != NULL) {
+	if (s != nullptr) {
 		if (e_panel_timeline->audio_monitor->sample_cache_offset == -1) {
 			e_panel_timeline->audio_monitor->sample_cache_offset = s->playhead;
 		}
@@ -304,7 +304,7 @@ void write_wave_trailer(QFile& f) {
 }
 
 bool start_recording() {
-	if (e_sequence == NULL) {
+	if (e_sequence == nullptr) {
 		dout << "[ERROR] No active sequence to record into";
 		return false;
 	}
@@ -355,7 +355,7 @@ void stop_recording() {
 		output_recording.close();
 
 		delete audio_input;
-		audio_input = NULL;
+		audio_input = nullptr;
 		recording = false;
 	}
 }

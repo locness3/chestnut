@@ -60,7 +60,7 @@ ActionSearch::ActionSearch(QWidget *parent) :
 }
 
 void ActionSearch::search_update(const QString &s, const QString &p, QMenu *parent) {
-	if (parent == NULL) {
+	if (parent == nullptr) {
 		list_widget->clear();
 		QList<QAction*> menus = mainWindow->menuBar()->actions();
 		for (int i=0;i<menus.size();i++) {
@@ -77,7 +77,7 @@ void ActionSearch::search_update(const QString &s, const QString &p, QMenu *pare
 		for (int i=0;i<actions.size();i++) {
 			QAction* a = actions.at(i);
 			if (!a->isSeparator()) {
-				if (a->menu() != NULL) {
+				if (a->menu() != nullptr) {
 					search_update(s, menu_text, a->menu());
 				} else {
 					QString comp = a->text().replace("&", "");

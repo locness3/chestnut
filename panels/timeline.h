@@ -62,29 +62,29 @@ void move_clip(ComboAction *ca, ClipPtr c, long iin, long iout, long iclip_in, i
 void ripple_clips(ComboAction *ca, SequencePtr  s, long point, long length, const QVector<int>& ignore = QVector<int>());
 
 struct Ghost {
-	int clip;
-	long in;
-	long out;
-	int track;
-	long clip_in;
+    int clip = 0;
+    long in = 0;
+    long out = 0;
+    int track = 0;
+    long clip_in = 0;
 
-	long old_in;
-	long old_out;
-	int old_track;
-	long old_clip_in;
+    long old_in = 0;
+    long old_out = 0;
+    int old_track = 0;
+    long old_clip_in = 0;
 
 	// importing variables
-	Media* media;
-	int media_stream;
+    Media* media = nullptr;
+    int media_stream = 0;
 
 	// other variables
-	long ghost_length;
-	long media_length;
-	bool trim_in;
-	bool trimming;
+    long ghost_length = 0;
+    long media_length = 0;
+    bool trim_in = false;
+    bool trimming = false;
 
 	// transition trimming
-	Transition* transition;
+    Transition* transition = nullptr;
 };
 
 class Timeline : public QDockWidget

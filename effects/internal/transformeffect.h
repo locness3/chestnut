@@ -32,28 +32,28 @@ public:
 public slots:
 	void toggle_uniform_scale(bool enabled);
 private:
-    EffectField* position_x = NULL;
-    EffectField* position_y = NULL;
-    EffectField* scale_x = NULL;
-    EffectField* scale_y = NULL;
-    EffectField* uniform_scale_field = NULL;
-    EffectField* rotation = NULL;
-    EffectField* anchor_x_box = NULL;
-    EffectField* anchor_y_box = NULL;
-    EffectField* opacity = NULL;
-    EffectField* blend_mode_box = NULL;
+    EffectField* position_x = nullptr;
+    EffectField* position_y = nullptr;
+    EffectField* scale_x = nullptr;
+    EffectField* scale_y = nullptr;
+    EffectField* uniform_scale_field = nullptr;
+    EffectField* rotation = nullptr;
+    EffectField* anchor_x_box = nullptr;
+    EffectField* anchor_y_box = nullptr;
+    EffectField* opacity = nullptr;
+    EffectField* blend_mode_box = nullptr;
 
-    EffectGizmoPtr top_left_gizmo = NULL;
-    EffectGizmoPtr top_center_gizmo = NULL;
-    EffectGizmoPtr top_right_gizmo = NULL;
-    EffectGizmoPtr bottom_left_gizmo = NULL;
-    EffectGizmoPtr bottom_center_gizmo = NULL;
-    EffectGizmoPtr bottom_right_gizmo = NULL;
-    EffectGizmoPtr left_center_gizmo = NULL;
-    EffectGizmoPtr right_center_gizmo = NULL;
-    EffectGizmoPtr anchor_gizmo = NULL;
-    EffectGizmoPtr rotate_gizmo = NULL;
-    EffectGizmoPtr rect_gizmo = NULL;
+    EffectGizmoPtr top_left_gizmo = nullptr;
+    EffectGizmoPtr top_center_gizmo = nullptr;
+    EffectGizmoPtr top_right_gizmo = nullptr;
+    EffectGizmoPtr bottom_left_gizmo = nullptr;
+    EffectGizmoPtr bottom_center_gizmo = nullptr;
+    EffectGizmoPtr bottom_right_gizmo = nullptr;
+    EffectGizmoPtr left_center_gizmo = nullptr;
+    EffectGizmoPtr right_center_gizmo = nullptr;
+    EffectGizmoPtr anchor_gizmo = nullptr;
+    EffectGizmoPtr rotate_gizmo = nullptr;
+    EffectGizmoPtr rect_gizmo = nullptr;
 
 	bool set;
 };

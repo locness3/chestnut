@@ -37,6 +37,7 @@ class Transition : public Effect {
 	Q_OBJECT
 public:
     Transition(ClipPtr c, ClipPtr s, const EffectMeta* em);
+    virtual ~Transition();
     int copy(ClipPtr c, ClipPtr s);
     ClipPtr secondary_clip;
     void set_length(const long value);
@@ -46,7 +47,7 @@ private slots:
 	void set_length_from_slider();
 private:
 	long length; // used only for transitions
-	EffectField* length_field;
+    EffectField* length_field;
 };
 
 #endif // TRANSITION_H

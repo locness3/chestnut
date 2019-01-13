@@ -189,7 +189,7 @@ public:
     const EffectMeta* meta;
     int id;
     QString name;
-    CollapsibleWidget* container = NULL;
+    CollapsibleWidget* container = nullptr;
 
 public slots:
 	void field_changed();

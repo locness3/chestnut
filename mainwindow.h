@@ -157,58 +157,58 @@ private:
     const QString& app_name;
 
 	// menu bar menus
-	QMenu* window_menu = NULL;
+	QMenu* window_menu = nullptr;
 
 	// file menu actions
-	QMenu* open_recent = NULL;
-	QAction* clear_open_recent_action = NULL;
+	QMenu* open_recent = nullptr;
+	QAction* clear_open_recent_action = nullptr;
 
 	// view menu actions
-	QAction* track_lines = NULL;
-	QAction* frames_action = NULL;
-	QAction* drop_frame_action = NULL;
-	QAction* nondrop_frame_action = NULL;
-	QAction* milliseconds_action = NULL;
-	QAction* no_autoscroll = NULL;
-	QAction* page_autoscroll = NULL;
-	QAction* smooth_autoscroll = NULL;
-	QAction* title_safe_off = NULL;
-	QAction* title_safe_default = NULL;
-	QAction* title_safe_43 = NULL;
-	QAction* title_safe_169 = NULL;
-	QAction* title_safe_custom = NULL;
-	QAction* full_screen = NULL;
-	QAction* show_all = NULL;
+	QAction* track_lines = nullptr;
+	QAction* frames_action = nullptr;
+	QAction* drop_frame_action = nullptr;
+	QAction* nondrop_frame_action = nullptr;
+	QAction* milliseconds_action = nullptr;
+	QAction* no_autoscroll = nullptr;
+	QAction* page_autoscroll = nullptr;
+	QAction* smooth_autoscroll = nullptr;
+	QAction* title_safe_off = nullptr;
+	QAction* title_safe_default = nullptr;
+	QAction* title_safe_43 = nullptr;
+	QAction* title_safe_169 = nullptr;
+	QAction* title_safe_custom = nullptr;
+	QAction* full_screen = nullptr;
+	QAction* show_all = nullptr;
 
 	// tool menu actions
-	QAction* pointer_tool_action = NULL;
-	QAction* edit_tool_action = NULL;
-	QAction* ripple_tool_action = NULL;
-	QAction* razor_tool_action = NULL;
-	QAction* slip_tool_action = NULL;
-	QAction* slide_tool_action = NULL;
-	QAction* hand_tool_action = NULL;
-	QAction* transition_tool_action = NULL;
-	QAction* snap_toggle = NULL;
-	QAction* selecting_also_seeks = NULL;
-	QAction* edit_tool_also_seeks = NULL;
-	QAction* edit_tool_selects_links = NULL;
-	QAction* seek_to_end_of_pastes = NULL;
-	QAction* scroll_wheel_zooms = NULL;
-	QAction* rectified_waveforms = NULL;
-	QAction* enable_drag_files_to_timeline = NULL;
-	QAction* autoscale_by_default = NULL;
-	QAction* enable_seek_to_import = NULL;
-	QAction* enable_audio_scrubbing = NULL;
-	QAction* enable_drop_on_media_to_replace = NULL;
-	QAction* enable_hover_focus = NULL;
-	QAction* set_name_and_marker = NULL;
-	QAction* loop_action = NULL;
-	QAction* pause_at_out_point_action = NULL;
+	QAction* pointer_tool_action = nullptr;
+	QAction* edit_tool_action = nullptr;
+	QAction* ripple_tool_action = nullptr;
+	QAction* razor_tool_action = nullptr;
+	QAction* slip_tool_action = nullptr;
+	QAction* slide_tool_action = nullptr;
+	QAction* hand_tool_action = nullptr;
+	QAction* transition_tool_action = nullptr;
+	QAction* snap_toggle = nullptr;
+	QAction* selecting_also_seeks = nullptr;
+	QAction* edit_tool_also_seeks = nullptr;
+	QAction* edit_tool_selects_links = nullptr;
+	QAction* seek_to_end_of_pastes = nullptr;
+	QAction* scroll_wheel_zooms = nullptr;
+	QAction* rectified_waveforms = nullptr;
+	QAction* enable_drag_files_to_timeline = nullptr;
+	QAction* autoscale_by_default = nullptr;
+	QAction* enable_seek_to_import = nullptr;
+	QAction* enable_audio_scrubbing = nullptr;
+	QAction* enable_drop_on_media_to_replace = nullptr;
+	QAction* enable_hover_focus = nullptr;
+	QAction* set_name_and_marker = nullptr;
+	QAction* loop_action = nullptr;
+	QAction* pause_at_out_point_action = nullptr;
 
 	// edit menu actions
-	QAction* undo_action = NULL;
-	QAction* redo_action = NULL;
+	QAction* undo_action = nullptr;
+	QAction* redo_action = nullptr;
 
 	bool enable_launch_with_project = false;
 };

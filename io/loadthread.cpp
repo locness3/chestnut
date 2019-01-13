@@ -61,7 +61,7 @@ const EffectMeta* get_meta_from_name(const QString& name) {
 			return &effects.at(j);
 		}
 	}
-	return NULL;
+    return nullptr;
 }
 
 void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
@@ -72,7 +72,7 @@ void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
 	for (int j=0;j<stream.attributes().size();j++) {
 		const QXmlStreamAttribute& attr = stream.attributes().at(j);
 		if (attr.name() == "id") {
-			effect_id = attr.value().toInt();
+            effect_id = attr.value().toInt(); //FIXME: never used
 		} else if (attr.name() == "enabled") {
 			effect_enabled = (attr.value() == "1");
 		} else if (attr.name() == "name") {
@@ -85,7 +85,7 @@ void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
 	// wait for effects to be loaded
     e_panel_effect_controls->effects_loaded.lock();
 
-	const EffectMeta* meta = NULL;
+    const EffectMeta* meta = nullptr;
 
 	// find effect with this name
 	if (!effect_name.isEmpty()) {
@@ -264,7 +264,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 							break;
 						case MEDIA_TYPE_SEQUENCE:
 						{
-							Media* parent = NULL;
+                            Media* parent = nullptr;
                             SequencePtr  s(new Sequence());
 
 							// load attributes about sequence
@@ -318,8 +318,8 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 									s->markers.append(m);
 								} else if (stream.name() == "transition" && stream.isStartElement()) {
 									TransitionData td;
-									td.otc = NULL;
-									td.ctc = NULL;
+                                    td.otc = nullptr;
+                                    td.ctc = nullptr;
 									for (int j=0;j<stream.attributes().size();j++) {
 										const QXmlStreamAttribute& attr = stream.attributes().at(j);
 										if (attr.name() == "id") {
@@ -339,7 +339,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 									// backwards compatibility code
                                     c->timeline_info.autoscale = false;
 
-                                    c->timeline_info.media = NULL;
+                                    c->timeline_info.media = nullptr;
 
 									for (int j=0;j<stream.attributes().size();j++) {
 										const QXmlStreamAttribute& attr = stream.attributes().at(j);
@@ -384,7 +384,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 											media_type = MEDIA_TYPE_SEQUENCE;
 
 											// since we haven't finished loading sequences, we defer linking this until later
-                                            c->timeline_info.media = NULL;
+                                            c->timeline_info.media = nullptr;
                                             c->timeline_info.media_stream = attr.value().toInt();
 											loaded_clips.append(c);
 										}
@@ -484,16 +484,16 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								const TransitionData& td = transition_data.at(i);
                                 ClipPtr  primary = td.otc;
                                 ClipPtr  secondary = td.ctc;
-								if (primary != NULL || secondary != NULL) {
-									if (primary == NULL) {
+                                if (primary != nullptr || secondary != nullptr) {
+                                    if (primary == nullptr) {
 										primary = secondary;
-										secondary = NULL;
+                                        secondary = nullptr;
 									}
 									const EffectMeta* meta = get_meta_from_name(td.name);
-									if (meta == NULL) {
+                                    if (meta == nullptr) {
 										dout << "[WARNING] Failed to link transition with name:" << td.name;
-										if (td.otc != NULL) td.otc->opening_transition = -1;
-										if (td.ctc != NULL) td.ctc->closing_transition = -1;
+                                        if (td.otc != nullptr) td.otc->opening_transition = -1;
+                                        if (td.ctc != nullptr) td.ctc->closing_transition = -1;
 									} else {
 										emit start_create_dual_transition(&td, primary, secondary, meta);
 
@@ -502,7 +502,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 								}
 							}
 
-                            Media* m = e_panel_project->new_sequence(NULL, s, false, parent);
+                            Media* m = e_panel_project->new_sequence(nullptr, s, false, parent);
 
 							loaded_sequences.append(m);
 						}
@@ -519,14 +519,14 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
 }
 
 Media* LoadThread::find_loaded_folder_by_id(int id) {
-	if (id == 0) return NULL;
+    if (id == 0) return nullptr;
 	for (int j=0;j<loaded_folders.size();j++) {
 		Media* parent_item = loaded_folders.at(j);
 		if (parent_item->temp_id == id) {
 			return parent_item;
 		}
 	}
-	return NULL;
+    return nullptr;
 }
 
 void LoadThread::run() {
@@ -554,7 +554,7 @@ void LoadThread::run() {
 	show_err = true;
 
 	// temp variables for loading (unnecessary?)
-	open_seq = NULL;
+    open_seq = nullptr;
 	loaded_folders.clear();
 	loaded_media_items.clear();
 	loaded_clips.clear();
@@ -569,10 +569,10 @@ void LoadThread::run() {
 			total_element_count++;
 		}
 	}
-	cont = !cancelled;
+    cont = !cancelled; //FIXME: assignment is never used
 
 	// find project file version
-	cont = load_worker(file, stream, LOAD_TYPE_VERSION);
+    cont = load_worker(file, stream, LOAD_TYPE_VERSION); //FIXME: assignment is never used
 
 	// find project's internal URL
 	cont = load_worker(file, stream, LOAD_TYPE_URL);
@@ -613,7 +613,7 @@ void LoadThread::run() {
 			// attach nested sequence clips to their sequences
 			for (int i=0;i<loaded_clips.size();i++) {
 				for (int j=0;j<loaded_sequences.size();j++) {
-                    if ( (loaded_clips.at(i)->timeline_info.media == NULL)
+                    if ( (loaded_clips.at(i)->timeline_info.media == nullptr)
                             && (loaded_clips.at(i)->timeline_info.media_stream == loaded_sequences.at(j)->get_object<Sequence>()->save_id) ) {
                         loaded_clips.at(i)->timeline_info.media = loaded_sequences.at(j);
 						loaded_clips.at(i)->refresh();
@@ -672,7 +672,7 @@ void LoadThread::success_func() {
 	}
 
 	mainWindow->setWindowModified(autorecovery);
-	if (open_seq != NULL) set_sequence(open_seq);
+    if (open_seq != nullptr) set_sequence(open_seq);
 	update_ui(false);
 }
 
@@ -708,7 +708,7 @@ void LoadThread::create_effect_ui(
 
 	if (cancelled) return;
 	if (type == TA_NO_TRANSITION) {
-		if (meta == NULL) {
+        if (meta == nullptr) {
 			// create void effect
             EffectPtr ve(new VoidEffect(c, *effect_name));
 			ve->set_enabled(effect_enabled);
@@ -722,7 +722,7 @@ void LoadThread::create_effect_ui(
 			c->effects.append(e);
 		}
 	} else {
-		int transition_index = create_transition(c, NULL, meta);
+        int transition_index = create_transition(c, nullptr, meta);
 		Transition* t = c->sequence->transitions.at(transition_index);
 		if (effect_length > -1) t->set_length(effect_length);
 		t->set_enabled(effect_enabled);
@@ -741,7 +741,7 @@ void LoadThread::create_effect_ui(
 void LoadThread::create_dual_transition(const TransitionData* td, ClipPtr  primary, ClipPtr  secondary, const EffectMeta* meta) {
 	int transition_index = create_transition(primary, secondary, meta);
 	primary->sequence->transitions.at(transition_index)->set_length(td->length);
-	if (td->otc != NULL) td->otc->opening_transition = transition_index;
-	if (td->ctc != NULL) td->ctc->closing_transition = transition_index;
+    if (td->otc != nullptr) td->otc->opening_transition = transition_index;
+    if (td->ctc != nullptr) td->ctc->closing_transition = transition_index;
 	waitCond.wakeAll();
 }

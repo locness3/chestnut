@@ -247,7 +247,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &appName) :
 		// detect auto-recovery file
         autorecovery_filename = data_dir + "/" + FILE_AUTORECOVERY;
 		if (QFile::exists(autorecovery_filename)) {
-			if (QMessageBox::question(NULL, "Auto-recovery", "Olive didn't close properly and an autorecovery file was detected. Would you like to open it?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+			if (QMessageBox::question(nullptr, "Auto-recovery", "Olive didn't close properly and an autorecovery file was detected. Would you like to open it?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
 				enable_launch_with_project = false;
 				open_project_worker(autorecovery_filename, true);
 			}
@@ -295,7 +295,7 @@ void kbd_shortcut_processor(QByteArray& file, QMenu* menu, bool save, bool first
 	QList<QAction*> actions = menu->actions();
 	for (int i=0;i<actions.size();i++) {
 		QAction* a = actions.at(i);
-		if (a->menu() != NULL) {
+		if (a->menu() != nullptr) {
 			kbd_shortcut_processor(file, a->menu(), save, first);
 		} else if (!a->isSeparator()) {
 			if (save) {
@@ -431,7 +431,7 @@ void MainWindow::zoom_out() {
 }
 
 void MainWindow::export_dialog() {
-    if (e_sequence == NULL) {
+    if (e_sequence == nullptr) {
 		QMessageBox::information(this, "No active sequence", "Please open the sequence you wish to export.", QMessageBox::Ok);
 	} else {
 		ExportDialog e(this);
@@ -440,7 +440,7 @@ void MainWindow::export_dialog() {
 }
 
 void MainWindow::ripple_delete() {
-    if (e_sequence != NULL) e_panel_timeline->delete_selection(e_sequence->selections, true);
+    if (e_sequence != nullptr) e_panel_timeline->delete_selection(e_sequence->selections, true);
 }
 
 void MainWindow::editMenu_About_To_Be_Shown() {
@@ -461,11 +461,11 @@ void MainWindow::redo() {
 }
 
 void MainWindow::open_speed_dialog() {
-    if (e_sequence != NULL) {
+    if (e_sequence != nullptr) {
 		SpeedDialog s(this);
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr c = e_sequence->clips.at(i);
-            if (c != NULL && e_panel_timeline->is_clip_selected(c, true)) {
+            if (c != nullptr && e_panel_timeline->is_clip_selected(c, true)) {
 				s.clips.append(c);
 			}
 		}
@@ -474,7 +474,7 @@ void MainWindow::open_speed_dialog() {
 }
 
 void MainWindow::cut() {
-    if (e_sequence != NULL) {
+    if (e_sequence != nullptr) {
 		QDockWidget* focused_panel = get_focused_panel();
         if (e_panel_timeline == focused_panel) {
             e_panel_timeline->copy(true);
@@ -485,7 +485,7 @@ void MainWindow::cut() {
 }
 
 void MainWindow::copy() {
-    if (e_sequence != NULL) {
+    if (e_sequence != nullptr) {
 		QDockWidget* focused_panel = get_focused_panel();
         if (e_panel_timeline == focused_panel) {
             e_panel_timeline->copy(false);
@@ -497,7 +497,7 @@ void MainWindow::copy() {
 
 void MainWindow::paste() {
 	QDockWidget* focused_panel = get_focused_panel();
-    if ((e_panel_timeline == focused_panel || e_panel_effect_controls == focused_panel) && e_sequence != NULL) {
+    if ((e_panel_timeline == focused_panel || e_panel_effect_controls == focused_panel) && e_sequence != nullptr) {
         e_panel_timeline->paste(false);
 	}
 }
@@ -926,7 +926,7 @@ void MainWindow::closeEvent(QCloseEvent *e) {
 	if (can_close_project()) {
         e_panel_effect_controls->clear_effects(true);
 
-		set_sequence(NULL);
+		set_sequence(nullptr);
 
         e_panel_footage_viewer->set_main_sequence();
 
@@ -1084,13 +1084,13 @@ void MainWindow::playpause() {
 }
 
 void MainWindow::prev_cut() {
-    if (e_sequence != NULL && (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused())) {
+    if (e_sequence != nullptr && (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused())) {
         e_panel_timeline->previous_cut();
 	}
 }
 
 void MainWindow::next_cut() {
-    if (e_sequence != NULL && (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused())) {
+    if (e_sequence != nullptr && (e_panel_timeline->focused() || e_panel_sequence_viewer->is_focused())) {
         e_panel_timeline->next_cut();
 	}
 }
@@ -1359,16 +1359,16 @@ void MainWindow::set_tsa_custom() {
 }
 
 void MainWindow::set_marker() {
-    if (e_sequence != NULL) e_panel_timeline->set_marker();
+    if (e_sequence != nullptr) e_panel_timeline->set_marker();
 }
 
 void MainWindow::toggle_enable_clips() {
-    if (e_sequence != NULL) {
+    if (e_sequence != nullptr) {
 		ComboAction* ca = new ComboAction();
 		bool push_undo = false;
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr  c = e_sequence->clips.at(i);
-            if (c != NULL && e_panel_timeline->is_clip_selected(c, true)) {
+            if (c != nullptr && e_panel_timeline->is_clip_selected(c, true)) {
                 ca->append(new SetEnableCommand(c, !c->timeline_info.enabled));
 				push_undo = true;
 			}
@@ -1391,14 +1391,14 @@ void MainWindow::edit_to_out_point() {
 }
 
 void MainWindow::nest() {
-    if (e_sequence != NULL) {
+    if (e_sequence != nullptr) {
 		QVector<int> selected_clips;
 		long earliest_point = LONG_MAX;
 
 		// get selected clips
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr  c = e_sequence->clips.at(i);
-            if (c != NULL && e_panel_timeline->is_clip_selected(c, true)) {
+            if (c != nullptr && e_panel_timeline->is_clip_selected(c, true)) {
 				selected_clips.append(i);
                 earliest_point = qMin(c->timeline_info.in, earliest_point);
 			}
@@ -1431,7 +1431,7 @@ void MainWindow::nest() {
 			}
 
 			// add sequence to project
-            Media* m = e_panel_project->new_sequence(ca, s, false, NULL);
+            Media* m = e_panel_project->new_sequence(ca, s, false, nullptr);
 
 			// add nested sequence to active sequence
 			QVector<Media*> media_list;
@@ -1450,7 +1450,7 @@ void MainWindow::nest() {
 }
 
 void MainWindow::paste_insert() {
-    if (e_panel_timeline->focused() && e_sequence != NULL) {
+    if (e_panel_timeline->focused() && e_sequence != nullptr) {
         e_panel_timeline->paste(true);
 	}
 }

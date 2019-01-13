@@ -149,7 +149,7 @@ public:
         int track = 0;
         QString name = "";
         QColor color = {0,0,0};
-        Media* media = NULL;
+        Media* media = nullptr;
         int media_stream = -1;
         double speed = 1.0;
         double cached_fr = 0.0;
@@ -166,13 +166,13 @@ public:
 
 	// media handling
     struct {
-        AVFormatContext* formatCtx = NULL;
-        AVStream* stream = NULL;
-        AVCodec* codec = NULL;
-        AVCodecContext* codecCtx = NULL;
-        AVPacket* pkt = NULL;
-        AVFrame* frame = NULL;
-        AVDictionary* opts = NULL;
+        AVFormatContext* formatCtx = nullptr;
+        AVStream* stream = nullptr;
+        AVCodec* codec = nullptr;
+        AVCodecContext* codecCtx = nullptr;
+        AVPacket* pkt = nullptr;
+        AVFrame* frame = nullptr;
+        AVDictionary* opts = nullptr;
         long calculated_length = -1;
     } media_handling;
 

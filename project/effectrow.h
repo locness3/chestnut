@@ -40,7 +40,7 @@ public:
 	int fieldCount();
 	void set_keyframe_now(ComboAction *ca);
 	void delete_keyframe_at_time(ComboAction *ca, long time);
-    ClickableLabel* label = NULL;
+    ClickableLabel* label = nullptr;
 	Effect* parent_effect;
 	bool savable;
 	const QString& get_name();

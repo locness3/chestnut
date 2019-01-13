@@ -48,7 +48,7 @@ QSemaphore sem(5); // only 5 preview generators can run at one time
 
 PreviewGenerator::PreviewGenerator(Media* i, FootagePtr m, bool r) :
 	QThread(0),
-	fmt_ctx(NULL),
+    fmt_ctx(nullptr),
 	media(i),
 	footage(m),
 	retrieve_duration(false),
@@ -69,7 +69,7 @@ void PreviewGenerator::parse_media() {
 	// detect video/audio streams in file
 	for (int i=0;i<(int)fmt_ctx->nb_streams;i++) {
 		// Find the decoder for the video stream
-		if (avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id) == NULL) {
+        if (avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id) == nullptr) {
             dout << "[ERROR] Unsupported codec in stream" << i << "of file" << footage->getName();
 		} else {
 			FootageStream ms;
@@ -236,13 +236,13 @@ void PreviewGenerator::generate_waveform() {
 	AVCodecContext** codec_ctx = new AVCodecContext* [fmt_ctx->nb_streams];
 	int64_t* media_lengths = new int64_t[fmt_ctx->nb_streams]{0};
 	for (unsigned int i=0;i<fmt_ctx->nb_streams;i++) {
-		codec_ctx[i] = NULL;
+        codec_ctx[i] = nullptr;
 		if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO || fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
 			AVCodec* codec = avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id);
-			if (codec != NULL) {
+            if (codec != nullptr) {
 				codec_ctx[i] = avcodec_alloc_context3(codec);
 				avcodec_parameters_to_context(codec_ctx[i], fmt_ctx->streams[i]->codecpar);
-				avcodec_open2(codec_ctx[i], codec, NULL);
+                avcodec_open2(codec_ctx[i], codec, nullptr);
 				if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && codec_ctx[i]->channel_layout == 0) {
 					codec_ctx[i]->channel_layout = av_get_default_channel_layout(fmt_ctx->streams[i]->codecpar->channels);
 				}
@@ -258,11 +258,11 @@ void PreviewGenerator::generate_waveform() {
 	// get the ball rolling
 	do {
 		av_read_frame(fmt_ctx, packet);
-	} while (codec_ctx[packet->stream_index] == NULL);
+    } while (codec_ctx[packet->stream_index] == nullptr);
 	avcodec_send_packet(codec_ctx[packet->stream_index], packet);
 
 	while (!end_of_file) {
-		while (codec_ctx[packet->stream_index] == NULL || avcodec_receive_frame(codec_ctx[packet->stream_index], temp_frame) == AVERROR(EAGAIN)) {
+        while (codec_ctx[packet->stream_index] == nullptr || avcodec_receive_frame(codec_ctx[packet->stream_index], temp_frame) == AVERROR(EAGAIN)) {
 			av_packet_unref(packet);
 			int read_ret = av_read_frame(fmt_ctx, packet);
 
@@ -273,7 +273,7 @@ void PreviewGenerator::generate_waveform() {
 				if (read_ret != AVERROR_EOF) dout << "[ERROR] Failed to read packet for preview generation" << read_ret;
 				break;
 			}
-			if (codec_ctx[packet->stream_index] != NULL) {
+            if (codec_ctx[packet->stream_index] != nullptr) {
 				int send_ret = avcodec_send_packet(codec_ctx[packet->stream_index], packet);
 				if (send_ret < 0 && send_ret != AVERROR(EAGAIN)) {
 					dout << "[ERROR] Failed to send packet for preview generation - aborting" << send_ret;
@@ -284,7 +284,7 @@ void PreviewGenerator::generate_waveform() {
 		}
 		if (!end_of_file) {
 			FootageStream* s = footage->get_stream_from_file_index(fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO, packet->stream_index);
-			if (s != NULL) {
+            if (s != nullptr) {
 				if (fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
 					if (!s->preview_done) {
                         int dstH = 120; //FIXME: magic num
@@ -299,9 +299,9 @@ void PreviewGenerator::generate_waveform() {
 								dstH,
 								static_cast<AVPixelFormat>(AV_PIX_FMT_RGBA),
 								SWS_FAST_BILINEAR,
-								NULL,
-								NULL,
-								NULL
+                                nullptr,
+                                nullptr,
+                                nullptr
 							);
 
 						int linesize[AV_NUM_DATA_POINTERS];
@@ -321,7 +321,7 @@ void PreviewGenerator::generate_waveform() {
 
 						if (!retrieve_duration) {
 							avcodec_close(codec_ctx[packet->stream_index]);
-							codec_ctx[packet->stream_index] = NULL;
+                            codec_ctx[packet->stream_index] = nullptr;
 						}
 
                         delete[] imgData;
@@ -336,7 +336,7 @@ void PreviewGenerator::generate_waveform() {
 					swr_frame->format = AV_SAMPLE_FMT_S16P;
 
 					swr_ctx = swr_alloc_set_opts(
-								NULL,
+                                nullptr,
 								temp_frame->channel_layout,
 								static_cast<AVSampleFormat>(swr_frame->format),
 								temp_frame->sample_rate,
@@ -344,7 +344,7 @@ void PreviewGenerator::generate_waveform() {
 								static_cast<AVSampleFormat>(temp_frame->format),
 								temp_frame->sample_rate,
 								0,
-								NULL
+                                nullptr
 							);
 
 					swr_init(swr_ctx);
@@ -382,7 +382,7 @@ void PreviewGenerator::generate_waveform() {
 					av_frame_free(&swr_frame);
 
 					if (cancelled) {
-						end_of_file = true;
+                        end_of_file = true; //FIXME: never used
 						break;
 					}
 				}
@@ -390,7 +390,7 @@ void PreviewGenerator::generate_waveform() {
 
 			// check if we've got all our previews
 			if (retrieve_duration) {
-				done = false;
+                done = false; //FIXME: never used
 			} else if (footage->audio_tracks.size() == 0) {
 				done = true;
 				for (int i=0;i<footage->video_tracks.size();i++) {
@@ -400,7 +400,7 @@ void PreviewGenerator::generate_waveform() {
 					}
 				}
 				if (done) {
-					end_of_file = true;
+                    end_of_file = true;//FIXME: never used
 					break;
 				}
 			}
@@ -413,7 +413,7 @@ void PreviewGenerator::generate_waveform() {
 	av_frame_free(&temp_frame);
 	av_packet_free(&packet);
 	for (unsigned int i=0;i<fmt_ctx->nb_streams;i++) {
-		if (codec_ctx[i] != NULL) {
+        if (codec_ctx[i] != nullptr) {
 			avcodec_close(codec_ctx[i]);
 		}
 	}
@@ -430,7 +430,7 @@ void PreviewGenerator::generate_waveform() {
 	}
     delete [] media_lengths;
 
-    if (codec_ctx != NULL) {
+    if (codec_ctx != nullptr) {
         avcodec_free_context(codec_ctx);
     }
 }
@@ -444,8 +444,8 @@ QString PreviewGenerator::get_waveform_path(const QString& hash, const FootageSt
 }
 
 void PreviewGenerator::run() {
-	Q_ASSERT(footage != NULL);
-	Q_ASSERT(media != NULL);
+    Q_ASSERT(footage != nullptr);
+    Q_ASSERT(media != nullptr);
 
 	QByteArray ba = footage->url.toUtf8();
 	char* filename = new char[ba.size()+1];
@@ -453,14 +453,14 @@ void PreviewGenerator::run() {
 
 	QString errorStr;
 	bool error = false;
-	int errCode = avformat_open_input(&fmt_ctx, filename, NULL, NULL);
+    int errCode = avformat_open_input(&fmt_ctx, filename, nullptr, nullptr);
 	if(errCode != 0) {
 		char err[1024];
 		av_strerror(errCode, err, 1024);
 		errorStr = "Could not open file - " + QString(err);
 		error = true;
 	} else {
-		errCode = avformat_find_stream_info(fmt_ctx, NULL);
+        errCode = avformat_find_stream_info(fmt_ctx, nullptr);
 		if (errCode < 0) {
 			char err[1024];
 			av_strerror(errCode, err, 1024);
@@ -512,7 +512,7 @@ void PreviewGenerator::run() {
 	}
 
 	delete [] filename;
-	footage->preview_gen = NULL;
+    footage->preview_gen = nullptr;
 }
 
 void PreviewGenerator::cancel() {

@@ -101,10 +101,10 @@ void SpeedDialog::run() {
         clip_percent = c->timeline_info.speed;
         if (c->timeline_info.track < 0) {
 			bool process_video = true;
-            if (c->timeline_info.media != NULL && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
+            if (c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
                 FootagePtr  m = c->timeline_info.media->get_object<Footage>();
                 FootageStream* ms = m->get_stream_from_file_index(true, c->timeline_info.media_stream);
-				if (ms != NULL && ms->infinite_length) {
+                if (ms != nullptr && ms->infinite_length) {
 					process_video = false;
 				}
 			}
@@ -314,14 +314,14 @@ void SpeedDialog::frame_rate_update() {
 void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, long& ep, long& lr) {
     e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track);
 
-    long proposed_out = c->timeline_info.out;
+    long proposed_out = c->timeline_info.out; //FIXME: this is never used
     double multiplier = (c->timeline_info.speed / speed);
     proposed_out = c->timeline_info.in + (c->getLength() * multiplier);
     ca->append(new SetSpeedAction(c, speed));
     if (!ripple && proposed_out > c->timeline_info.out) {
 		for (int i=0;i<c->sequence->clips.size();i++) {
             ClipPtr compare = c->sequence->clips.at(i);
-			if (compare != NULL
+            if (compare != nullptr
                     && compare->timeline_info.track == c->timeline_info.track
                     && compare->timeline_info.in >= c->timeline_info.out && compare->timeline_info.in < proposed_out) {
                 proposed_out = compare->timeline_info.in;

@@ -62,11 +62,11 @@ void set_sequence(SequencePtr s) {
 }
 
 void closeActiveClips(SequencePtr s) {
-	if (s != NULL) {
+	if (s != nullptr) {
 		for (int i=0;i<s->clips.size();i++) {
             ClipPtr c = s->clips.at(i);
-			if (c != NULL) {
-                if (c->timeline_info.media != NULL && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
+			if (c != nullptr) {
+                if (c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
                     closeActiveClips(c->timeline_info.media->get_object<Sequence>());
                 }
                 c->close(true);

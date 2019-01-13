@@ -84,7 +84,7 @@ public:
 	QWidget* get_ui_element();
 	void set_enabled(bool e);
 	QVector<EffectKeyframe> keyframes;
-    QWidget* ui_element = NULL;
+    QWidget* ui_element = nullptr;
 
 	void make_key_from_change(ComboAction* ca);
 private:

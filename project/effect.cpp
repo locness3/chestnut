@@ -90,7 +90,7 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em) { //FIXME: use of this 
 		dout << "[ERROR] Invalid effect data";
 		QMessageBox::critical(mainWindow, "Invalid effect", "No candidate for effect '" + em->name + "'. This effect may be corrupt. Try reinstalling it or Olive.");
 	}
-	return NULL;
+	return nullptr;
 }
 
 const EffectMeta* get_internal_meta(int internal_id, int type) {
@@ -99,7 +99,7 @@ const EffectMeta* get_internal_meta(int internal_id, int type) {
             return &effects.at(i);
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 void load_internal_effects() {
@@ -281,8 +281,8 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
 	enable_coords(false),
 	enable_superimpose(false),
 	enable_image(false),
-	glslProgram(NULL),
-	texture(NULL),
+	glslProgram(nullptr),
+	texture(nullptr),
 	isOpen(false),
 	bound(false),
 	enable_always_update(false)
@@ -299,7 +299,7 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
 
 	connect(container->title_bar, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu(const QPoint&)));
 
-	if (em != NULL) {
+	if (em != nullptr) {
 		// set up UI from effect file
 		container->setText(em->name);
 
@@ -618,7 +618,7 @@ EffectGizmoPtr Effect::newEffectGizmo(const GizmoType_E type) {
 }
 
 int Effect::get_index_in_clip() {
-	if (parent_clip != NULL) {
+	if (parent_clip != nullptr) {
 		for (int i=0;i<parent_clip->effects.size();i++) {
             if (parent_clip->effects.at(i).operator ->() == this) {
 				return i;
@@ -818,7 +818,7 @@ void Effect::open() {
 		close();
 	}
 	if (enable_shader) {
-		if (QOpenGLContext::currentContext() == NULL) {
+		if (QOpenGLContext::currentContext() == nullptr) {
 			dout << "[WARNING] No current context to create a shader program for - will retry next repaint";
 		} else {
 			glslProgram = new QOpenGLShaderProgram();
@@ -863,15 +863,15 @@ void Effect::close() {
 		dout << "[WARNING] Tried to close an effect that was already closed";
 	}
 	delete_texture();
-	if (glslProgram != NULL) {
+	if (glslProgram != nullptr) {
 		delete glslProgram;
-		glslProgram = NULL;
+		glslProgram = nullptr;
 	}
 	isOpen = false;
 }
 
 bool Effect::is_glsl_linked() {
-	return glslProgram != NULL && glslProgram->isLinked();
+	return glslProgram != nullptr && glslProgram->isLinked();
 }
 
 void Effect::startEffect() {
@@ -944,7 +944,7 @@ GLuint Effect::process_superimpose(double timecode) {
 		redraw(timecode);
 	}
 
-	if (texture != NULL) {
+	if (texture != nullptr) {
 		if (recreate_texture || texture->width() != img.width() || texture->height() != img.height()) {
 			delete_texture();
 			texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
@@ -964,21 +964,21 @@ void Effect::gizmo_draw(double, GLTextureCoords &) {}
 void Effect::gizmo_move(EffectGizmoPtr gizmo, const int x_movement, const int y_movement, const double timecode, const bool done) {
 	for (int i=0;i<gizmos.size();i++) {
 		if (gizmos.at(i) == gizmo) {
-			ComboAction* ca = NULL;
+			ComboAction* ca = nullptr;
 			if (done) ca = new ComboAction();
-			if (gizmo->x_field1 != NULL) {
+			if (gizmo->x_field1 != nullptr) {
 				gizmo->x_field1->set_double_value(gizmo->x_field1->get_double_value(timecode) + x_movement*gizmo->x_field_multi1);
 				gizmo->x_field1->make_key_from_change(ca);
 			}
-			if (gizmo->y_field1 != NULL) {
+			if (gizmo->y_field1 != nullptr) {
 				gizmo->y_field1->set_double_value(gizmo->y_field1->get_double_value(timecode) + y_movement*gizmo->y_field_multi1);
 				gizmo->y_field1->make_key_from_change(ca);
 			}
-			if (gizmo->x_field2 != NULL) {
+			if (gizmo->x_field2 != nullptr) {
 				gizmo->x_field2->set_double_value(gizmo->x_field2->get_double_value(timecode) + x_movement*gizmo->x_field_multi2);
 				gizmo->x_field2->make_key_from_change(ca);
 			}
-			if (gizmo->y_field2 != NULL) {
+			if (gizmo->y_field2 != nullptr) {
 				gizmo->y_field2->set_double_value(gizmo->y_field2->get_double_value(timecode) + y_movement*gizmo->y_field_multi2);
 				gizmo->y_field2->make_key_from_change(ca);
 			}
@@ -1088,9 +1088,9 @@ bool Effect::valueHasChanged(double timecode) {
 }
 
 void Effect::delete_texture() {
-	if (texture != NULL) {
+	if (texture != nullptr) {
 		delete texture;
-		texture = NULL;
+		texture = nullptr;
 	}
 }
 

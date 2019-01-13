@@ -37,18 +37,28 @@
 
 #include <QMessageBox>
 
+namespace{
+    const long DEFAULT_TRANSITION_LENGTH = 30;
+    const long MINIMUM_TRANSITION_LENGTH = 0;
+}
+
 Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
-	Effect(c, em), secondary_clip(s),
-    length(30)//FIXME: magic numbers
+    Effect(c, em),
+    secondary_clip(s),
+    length(DEFAULT_TRANSITION_LENGTH)
 {
-	length_field = add_row("Length:", false)->add_field(EFFECT_FIELD_DOUBLE, "length");
+    length_field = add_row("Length:", false)->add_field(EFFECT_FIELD_DOUBLE, "length");
 	connect(length_field, SIGNAL(changed()), this, SLOT(set_length_from_slider()));
-	length_field->set_double_default_value(30);
-	length_field->set_double_minimum_value(0);
+    length_field->set_double_default_value(DEFAULT_TRANSITION_LENGTH);
+    length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
 
 	LabelSlider* length_ui_ele = static_cast<LabelSlider*>(length_field->ui_element);
 	length_ui_ele->set_display_type(LABELSLIDER_FRAMENUMBER);
-    length_ui_ele->set_frame_rate(parent_clip->sequence == NULL ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->getFrameRate());
+    length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->getFrameRate());
+}
+
+Transition::~Transition() {
+    length_field = nullptr;
 }
 
 int Transition::copy(ClipPtr c, ClipPtr s) {
@@ -65,7 +75,7 @@ long Transition::get_true_length() const {
 }
 
 long Transition::get_length() const {
-	if (secondary_clip != NULL) {
+	if (secondary_clip != nullptr) {
 		return length * 2;
 	}
 	return length;
@@ -93,14 +103,14 @@ Transition* get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* em)
 		dout << "[ERROR] Invalid transition data";
 		QMessageBox::critical(mainWindow, "Invalid transition", "No candidate for transition '" + em->name + "'. This transition may be corrupt. Try reinstalling it or Olive.");
 	}
-	return NULL;
+	return nullptr;
 }
 
 int create_transition(ClipPtr c, ClipPtr s, const EffectMeta* em, long length) {
 	Transition* t = get_transition_from_meta(c, s, em);
 	if (length >= 0) t->set_length(length);
-	if (t != NULL) {
-		QVector<Transition*>& transition_list = (c->sequence == NULL) ? e_clipboard_transitions : c->sequence->transitions;
+	if (t != nullptr) {
+		QVector<Transition*>& transition_list = (c->sequence == nullptr) ? e_clipboard_transitions : c->sequence->transitions;
 		transition_list.append(t);
 		return transition_list.size() - 1;
 	}

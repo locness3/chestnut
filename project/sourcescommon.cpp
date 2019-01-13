@@ -36,7 +36,7 @@
 
 SourcesCommon::SourcesCommon(Project* parent) :
 	project_parent(parent),
-	editing_item(NULL)
+	editing_item(nullptr)
 {
 	rename_timer.setInterval(1000);
 	connect(&rename_timer, SIGNAL(timeout()), this, SLOT(rename_interval()));
@@ -56,7 +56,7 @@ void SourcesCommon::create_seq_from_selected() {
 		e_panel_timeline->create_ghosts_from_media(s, 0, media_list);
 		e_panel_timeline->add_clips_from_ghosts(ca, s);
 
-		project_parent->new_sequence(ca, s, true, NULL);
+		project_parent->new_sequence(ca, s, true, nullptr);
 		e_undo_stack.push(ca);
 	}
 }
@@ -216,7 +216,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 						parent = drop_item.parent();
 					}
 				}
-				project_parent->process_file_list(paths, false, NULL, e_panel_project->item_to_media(parent));
+				project_parent->process_file_list(paths, false, nullptr, e_panel_project->item_to_media(parent));
 			}
 		}
 		event->acceptProposedAction();
@@ -291,7 +291,7 @@ void SourcesCommon::stop_rename_timer() {
 
 void SourcesCommon::rename_interval() {
 	stop_rename_timer();
-	if (view->hasFocus() && editing_item != NULL) {
+	if (view->hasFocus() && editing_item != nullptr) {
 		view->edit(editing_index);
 	}
 }
@@ -300,6 +300,6 @@ void SourcesCommon::item_renamed(Media* item) {
 	if (editing_item == item) {
 		MediaRename* mr = new MediaRename(item, "idk");
 		e_undo_stack.push(mr);
-		editing_item = NULL;
+		editing_item = nullptr;
 	}
 }

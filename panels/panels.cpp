@@ -47,10 +47,10 @@ void update_effect_controls() {
 	int aclip = -1;
 	QVector<int> selected_clips;
 	int mode = TA_NO_TRANSITION;
-	if (e_sequence != NULL) {
+    if (e_sequence != nullptr) {
 		for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr clip = e_sequence->clips.at(i);
-			if (clip != NULL) {
+            if (clip != nullptr) {
 				for (int j=0;j<e_sequence->selections.size();j++) {
 					const Selection& s = e_sequence->selections.at(j);
 					bool add = true;
@@ -71,8 +71,7 @@ void update_effect_controls() {
 							aclip = i;
 						} else {
 							vclip = -2;
-							aclip = -2;
-							multiple = true;
+                            aclip = -2;
 							multiple = true;
 							break;
 						}
@@ -130,7 +129,7 @@ void update_ui(bool modified) {
 }
 
 QDockWidget *get_focused_panel() {
-	QDockWidget* w = NULL;
+    QDockWidget* w = nullptr;
 	if (e_config.hover_focus) {
         if (e_panel_project->underMouse()) {
             w = e_panel_project;
@@ -144,7 +143,7 @@ QDockWidget *get_focused_panel() {
             w = e_panel_timeline;
 		}
 	}
-	if (w == NULL) {
+    if (w == nullptr) {
         if (e_panel_project->is_focused()) {
             w = e_panel_project;
         } else if (e_panel_effect_controls->keyframe_focus() || e_panel_effect_controls->is_focused()) {
@@ -179,15 +178,15 @@ void alloc_panels(QWidget* parent) {
 
 void free_panels() {
     delete e_panel_sequence_viewer;
-    e_panel_sequence_viewer = NULL;
+    e_panel_sequence_viewer = nullptr;
     delete e_panel_footage_viewer;
-    e_panel_footage_viewer = NULL;
+    e_panel_footage_viewer = nullptr;
     delete e_panel_project;
-    e_panel_project = NULL;
+    e_panel_project = nullptr;
     delete e_panel_effect_controls;
-    e_panel_effect_controls = NULL;
+    e_panel_effect_controls = nullptr;
     delete e_panel_timeline;
-    e_panel_timeline = NULL;
+    e_panel_timeline = nullptr;
 }
 
 void scroll_to_frame_internal(QScrollBar* bar, long frame, double zoom, int area_width) {

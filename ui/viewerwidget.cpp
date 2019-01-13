@@ -68,10 +68,10 @@ namespace {
 
 ViewerWidget::ViewerWidget(QWidget *parent) :
 	QOpenGLWidget(parent),
-	default_fbo(NULL),
+    default_fbo(nullptr),
 	waveform(false),
 	dragging(false),
-	selected_gizmo(NULL),
+    selected_gizmo(nullptr),
     waveform_zoom(DEFAULT_WAVEFORM_ZOOM),
 	waveform_scroll(0)
 {
@@ -92,7 +92,7 @@ ViewerWidget::ViewerWidget(QWidget *parent) :
 
 void ViewerWidget::delete_function() {
 	// destroy all textures as well
-	if (viewer->seq != NULL) {
+    if (viewer->seq != nullptr) {
 		makeCurrent();
 		closeActiveClips(viewer->seq);
 		doneCurrent();
@@ -161,7 +161,7 @@ void ViewerWidget::save_frame() {
 		img.save(fn);
 
 		fbo.release();
-		default_fbo = NULL;
+        default_fbo = nullptr;
         e_rendering = false;
 	}
 }
@@ -213,7 +213,7 @@ void ViewerWidget::initializeGL() {
 void ViewerWidget::paintEvent(QPaintEvent *e) {
     if (!e_rendering) {
         QOpenGLContext* const ctxt = context();
-        if (ctxt != NULL) {
+        if (ctxt != nullptr) {
             if (ctxt->thread() == this->thread()) {
 		makeCurrent();
 		QOpenGLWidget::paintEvent(e);
@@ -230,7 +230,7 @@ void ViewerWidget::seek_from_click(int x) {
 }
 
 EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(const int x_coord, const int y_coord) {
-	if (gizmos != NULL) {
+    if (gizmos != nullptr) {
         double multiplier = (double) viewer->seq->getWidth() / (double) width();
         QPoint mouse_pos(qRound(x_coord*multiplier), qRound(y_coord*multiplier));
 		int dot_size = 2 * qRound(GIZMO_DOT_SIZE * multiplier);
@@ -264,11 +264,11 @@ EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(const int x_coord, const int y
 
 		}
 	}
-	return NULL;
+    return nullptr;
 }
 
 void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
-	if (selected_gizmo != NULL) {
+    if (selected_gizmo != nullptr) {
         double multiplier = (double) viewer->seq->getWidth() / (double) width();
 
 		int x_movement = (event->pos().x() - drag_start_x)*multiplier;
@@ -300,7 +300,7 @@ void ViewerWidget::mousePressEvent(QMouseEvent* event) {
 
 		selected_gizmo = get_gizmo_from_mouse(event->pos().x(), event->pos().y());
 
-		if (selected_gizmo != NULL) {
+        if (selected_gizmo != nullptr) {
 			selected_gizmo->set_previous_value();
 		}
 	}
@@ -317,7 +317,7 @@ void ViewerWidget::mouseMoveEvent(QMouseEvent* event) {
 			seek_from_click(event->x());
         } else if (event->buttons() & Qt::MiddleButton || e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
 			container->dragScrollMove(event->pos());
-		} else if (gizmos == NULL) {
+        } else if (gizmos == nullptr) {
 			QDrag* drag = new QDrag(this);
 			QMimeData* mimeData = new QMimeData;
 			mimeData->setText("h"); // QMimeData will fail without some kind of data
@@ -329,7 +329,7 @@ void ViewerWidget::mouseMoveEvent(QMouseEvent* event) {
 		}
 	} else {
         EffectGizmoPtr g = get_gizmo_from_mouse(event->pos().x(), event->pos().y());
-		if (g != NULL) {
+        if (g != nullptr) {
 			if (g->get_cursor() > -1) {
 				setCursor(static_cast<enum Qt::CursorShape>(g->get_cursor()));
 			}
@@ -446,7 +446,7 @@ GLuint ViewerWidget::draw_clip(QOpenGLFramebufferObject* fbo, GLuint texture, bo
 	// restore previous blendFunc
 	glBlendFuncSeparate(src_rgb, dst_rgb, src_alpha, dst_alpha);
 
-	if (default_fbo != NULL) default_fbo->bind();
+    if (default_fbo != nullptr) default_fbo->bind();
 
 	glPopMatrix();
 	return fbo->texture();
@@ -468,7 +468,7 @@ void ViewerWidget::process_effect(ClipPtr c, EffectPtr e, double timecode,
 			if (e->enable_superimpose) {
 				GLuint superimpose_texture = e->process_superimpose(timecode);
 				if (superimpose_texture == 0) {
-					dout << "[WARNING] Superimpose texture was NULL, retrying...";
+                    dout << "[WARNING] Superimpose texture was nullptr, retrying...";
                     e_texture_failed = true;
 				} else {
 					composite_texture = draw_clip(c->fbo[!fbo_switcher], superimpose_texture, false);
@@ -490,7 +490,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
             playhead = refactor_frame_number(playhead, nests.at(i)->sequence->getFrameRate(), s->getFrameRate());
 		}
 
-		if (nests.last()->fbo != NULL) {
+        if (nests.last()->fbo != nullptr) {
 			nests.last()->fbo[0]->bind();
 			glClear(GL_COLOR_BUFFER_BIT);
 			nests.last()->fbo[0]->release();
@@ -505,16 +505,16 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
         ClipPtr c = s->clips.at(i);
 
 		// if clip starts within one second and/or hasn't finished yet
-		if (c != NULL) {
+        if (c != nullptr) {
             if (!(!nests.isEmpty() && !same_sign(c->timeline_info.track, nests.last()->timeline_info.track))) {
 				bool clip_is_active = false;
 
-                if (c->timeline_info.media != NULL && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
+                if (c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
                     FootagePtr m = c->timeline_info.media->get_object<Footage>();
                     if (!m->invalid && !(c->timeline_info.track >= 0 && !is_audio_device_set())) {
 						if (m->ready) {
                             const FootageStream* ms = m->get_stream_from_file_index(c->timeline_info.track < 0, c->timeline_info.media_stream);
-                            if ( (ms != NULL) && c->isActive(playhead) ) {
+                            if ( (ms != nullptr) && c->isActive(playhead) ) {
 								// if thread is already working, we don't want to touch this,
 								// but we also don't want to hang the UI thread
                                 if (!c->is_open) {
@@ -573,7 +573,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
         ClipPtr clipNow = current_clips.at(i);
 
-        if (clipNow->timeline_info.media != NULL
+        if (clipNow->timeline_info.media != nullptr
                 && clipNow->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE
                 && !clipNow->finished_opening) {
 			dout << "[WARNING] Tried to display clip" << i << "but it's closed";
@@ -584,11 +584,11 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
                 int video_width = clipNow->getWidth();
                 int video_height = clipNow->getHeight();
 
-                if (clipNow->timeline_info.media != NULL) {
+                if (clipNow->timeline_info.media != nullptr) {
                     switch (clipNow->timeline_info.media->get_type()) {
 					case MEDIA_TYPE_FOOTAGE:
 						// set up opengl texture
-                        if (clipNow->texture == NULL) {
+                        if (clipNow->texture == nullptr) {
                             clipNow->texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
                             clipNow->texture->setSize(clipNow->media_handling.stream->codecpar->width,
                                                       clipNow->media_handling.stream->codecpar->height);
@@ -609,14 +609,14 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
                     }//switch
 				}
 
-                if (textureID == 0 && clipNow->timeline_info.media != NULL) {
+                if (textureID == 0 && clipNow->timeline_info.media != nullptr) {
 					dout << "[WARNING] Texture hasn't been created yet";
                     e_texture_failed = true;
                 } else if (playhead >= clipNow->get_timeline_in_with_transition()) {
 					glPushMatrix();
 
 					// start preparing cache
-                    if (clipNow->fbo == NULL) {
+                    if (clipNow->fbo == nullptr) {
                         clipNow->fbo = new QOpenGLFramebufferObject* [2];
                         clipNow->fbo[0] = new QOpenGLFramebufferObject(video_width, video_height);
                         clipNow->fbo[1] = new QOpenGLFramebufferObject(video_width, video_height);
@@ -636,7 +636,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
 					GLuint composite_texture;
 
-                    if (clipNow->timeline_info.media == NULL) {
+                    if (clipNow->timeline_info.media == nullptr) {
                         clipNow->fbo[fbo_switcher]->bind();
 						glClear(GL_COLOR_BUFFER_BIT);
                         clipNow->fbo[fbo_switcher]->release();
@@ -686,20 +686,20 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
                         process_effect(clipNow, e, timecode, coords, composite_texture, fbo_switcher, TA_NO_TRANSITION);
 
 						if (e->are_gizmos_enabled()) {
-							if (first_gizmo_effect == NULL) first_gizmo_effect = e;
+                            if (first_gizmo_effect == nullptr) first_gizmo_effect = e;
 							if (e->container->selected) selected_effect = e;
 						}
 					}
 
                     if (!e_rendering) {
-						if (selected_effect != NULL) {
+                        if (selected_effect != nullptr) {
 							gizmos = selected_effect;
                         } else if (e_panel_timeline->is_clip_selected(clipNow, true)) {
 							gizmos = first_gizmo_effect;
 						}
 					}
 
-                    if (clipNow->get_opening_transition() != NULL) {
+                    if (clipNow->get_opening_transition() != nullptr) {
                         int transition_progress = playhead - clipNow->get_timeline_in_with_transition();
                         if (transition_progress < clipNow->get_opening_transition()->get_length()) {
                             // FIXME:
@@ -709,7 +709,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 						}
 					}
 
-                    if (clipNow->get_closing_transition() != NULL) {
+                    if (clipNow->get_closing_transition() != nullptr) {
                         int transition_progress = playhead - (clipNow->get_timeline_out_with_transition() - clipNow->get_closing_transition()->get_length());
                         if (transition_progress >= 0 && transition_progress < clipNow->get_closing_transition()->get_length()) {
                             //FIXME:
@@ -788,7 +788,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
 					glBindTexture(GL_TEXTURE_2D, 0); // unbind texture
 
-					if (gizmos != NULL && !drawn_gizmos) {
+                    if (gizmos != nullptr && !drawn_gizmos) {
 						gizmos->gizmo_draw(timecode, coords); // set correct gizmo coords
 						gizmos->gizmo_world_to_screen();
 
@@ -797,7 +797,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
 					if (!nests.isEmpty()) {
 						nests.last()->fbo[0]->release();
-						if (default_fbo != NULL) default_fbo->bind();
+                        if (default_fbo != nullptr) default_fbo->bind();
 					}
 
 					glPopMatrix();
@@ -812,7 +812,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 				}
 			} else {
                 if (render_audio || (e_config.enable_audio_scrubbing && audio_scrub)) {
-                    if (clipNow->timeline_info.media != NULL &&
+                    if (clipNow->timeline_info.media != nullptr &&
                             clipNow->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
                         nests.append(clipNow);
 						compose_sequence(nests, render_audio);
@@ -849,7 +849,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
 	glPopMatrix();
 
-	if (!nests.isEmpty() && nests.last()->fbo != NULL) {
+    if (!nests.isEmpty() && nests.last()->fbo != nullptr) {
 		// returns nested clip's texture
 		return nests.last()->fbo[0]->texture();
 	}
@@ -860,8 +860,8 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 void ViewerWidget::paintGL() {
 	drawn_gizmos = false;
 	force_quit = false;
-	if (viewer->seq != NULL) {
-		gizmos = NULL;
+    if (viewer->seq != nullptr) {
+        gizmos = nullptr;
 
         bool render_audio = (viewer->playing || e_rendering);
 		bool loop = false;
@@ -922,7 +922,7 @@ void ViewerWidget::paintGL() {
 				drawTitleSafeArea();
 			}
 
-			if (gizmos != NULL && drawn_gizmos) {
+            if (gizmos != nullptr && drawn_gizmos) {
 				float color[4];
 				glGetFloatv(GL_CURRENT_COLOR, color);
 

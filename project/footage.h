@@ -72,7 +72,7 @@ public:
 	bool invalid;
 	double speed;
 
-    PreviewGenerator* preview_gen = NULL;
+    PreviewGenerator* preview_gen = nullptr;
 	QMutex ready_lock;
 
     bool using_inout = false;

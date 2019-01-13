@@ -58,19 +58,19 @@ QString get_channel_layout_name(int channels, uint64_t layout) {
 
 Media::Media(Media* iparent) :
 	parent(iparent),
-	throbber(NULL),
+	throbber(nullptr),
 	root(false),
     type(MEDIA_TYPE_NONE)
 {}
 
 Media::~Media() {
-	if (throbber != NULL) delete throbber;
+	if (throbber != nullptr) delete throbber;
 	qDeleteAll(children);
 }
 
 void Media::clear_object() {
     type = MEDIA_TYPE_NONE;
-    object = NULL;
+    object = nullptr;
 }
 void Media::set_footage(FootagePtr ftg) {
 	type = MEDIA_TYPE_FOOTAGE;
@@ -81,14 +81,14 @@ void Media::set_sequence(SequencePtr sqn) {
 	set_icon(QIcon(":/icons/sequence.png"));
 	type = MEDIA_TYPE_SEQUENCE;
     object = sqn;
-    if (sqn != NULL) update_tooltip();
+    if (sqn != nullptr) update_tooltip();
 }
 
 void Media::set_folder() {
 	if (folder_name.isEmpty()) folder_name = "New Folder";
 	set_icon(QIcon(":/icons/folder.png"));
 	type = MEDIA_TYPE_FOLDER;
-	object = NULL;
+	object = nullptr;
 }
 
 void Media::set_icon(const QIcon &ico) {
