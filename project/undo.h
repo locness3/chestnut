@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -49,9 +49,9 @@ extern QUndoStack e_undo_stack;
 class ComboAction : public QUndoCommand {
 public:
 	ComboAction();
-    ~ComboAction();
-    void undo();
-    void redo();
+    virtual ~ComboAction();
+    virtual void undo();
+    virtual void redo();
 	void append(QUndoCommand* u);
 	void appendPost(QUndoCommand* u);
 private:
@@ -62,9 +62,9 @@ private:
 class MoveClipAction : public QUndoCommand {
 public:
     MoveClipAction(ClipPtr c, long iin, long iout, long iclip_in, int itrack, bool irelative);
-    ~MoveClipAction();
-    void undo();
-    void redo();
+    virtual ~MoveClipAction();
+    virtual void undo();
+    virtual void redo();
 private:
     ClipPtr clip;
 
@@ -86,8 +86,8 @@ private:
 class RippleAction : public QUndoCommand {
 public:
     RippleAction(SequencePtr is, long ipoint, long ilength, const QVector<int>& iignore);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     SequencePtr s;
 	long point;
@@ -100,8 +100,8 @@ class DeleteClipAction : public QUndoCommand {
 public:
     DeleteClipAction(SequencePtr s, int clip);
     virtual ~DeleteClipAction();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     SequencePtr seq;
     ClipPtr ref;
@@ -119,8 +119,8 @@ private:
 class ChangeSequenceAction : public QUndoCommand {
 public:
     ChangeSequenceAction(SequencePtr s);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     SequencePtr old_sequence;
     SequencePtr new_sequence;
@@ -130,8 +130,8 @@ class AddEffectCommand : public QUndoCommand {
 public:
     AddEffectCommand(ClipPtr c, EffectPtr e, const EffectMeta* m, int insert_pos = -1);
     virtual ~AddEffectCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     ClipPtr clip;
 	const EffectMeta* meta;
@@ -144,8 +144,8 @@ private:
 class AddTransitionCommand : public QUndoCommand {
 public:
     AddTransitionCommand(ClipPtr c, ClipPtr s, Transition *copy, const EffectMeta* itransition, int itype, int ilength);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     ClipPtr clip;
     ClipPtr secondary;
@@ -161,8 +161,8 @@ private:
 class ModifyTransitionCommand : public QUndoCommand {
 public:
     ModifyTransitionCommand(ClipPtr c, int itype, long ilength);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     ClipPtr clip;
 	int type;
@@ -175,8 +175,8 @@ class DeleteTransitionCommand : public QUndoCommand {
 public:
     DeleteTransitionCommand(SequencePtr s, int transition_index);
     virtual ~DeleteTransitionCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     SequencePtr seq;
 	int index;
@@ -189,8 +189,8 @@ private:
 class SetTimelineInOutCommand : public QUndoCommand {
 public:
     SetTimelineInOutCommand(SequencePtr s, bool enabled, long in, long out);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     SequencePtr seq;
 
@@ -211,8 +211,8 @@ class NewSequenceCommand : public QUndoCommand {
 public:
     NewSequenceCommand(MediaPtr s, MediaPtr iparent);
     virtual ~NewSequenceCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     MediaPtr seq;
     MediaPtr parent;
@@ -224,8 +224,8 @@ class AddMediaCommand : public QUndoCommand {
 public:
     AddMediaCommand(MediaPtr iitem, MediaPtr iparent);
     virtual ~AddMediaCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     MediaPtr item;
     MediaPtr parent;
@@ -237,8 +237,8 @@ class DeleteMediaCommand : public QUndoCommand {
 public:
     DeleteMediaCommand(MediaPtr i);
     virtual ~DeleteMediaCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     MediaPtr item;
     MediaPtr parent;
@@ -250,8 +250,8 @@ class AddClipCommand : public QUndoCommand {
 public:
     AddClipCommand(SequencePtr s, QVector<ClipPtr>& add);
     virtual ~AddClipCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     SequencePtr seq;
     QVector<ClipPtr> clips;
@@ -262,8 +262,8 @@ private:
 class LinkCommand : public QUndoCommand {
 public:
 	LinkCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
     SequencePtr s;
 	QVector<int> clips;
 	bool link;
@@ -276,8 +276,8 @@ class CheckboxCommand : public QUndoCommand {
 public:
 	CheckboxCommand(QCheckBox* b);
     virtual ~CheckboxCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	QCheckBox* box;
 	bool checked;
@@ -288,8 +288,8 @@ private:
 class ReplaceMediaCommand : public QUndoCommand {
 public:
     ReplaceMediaCommand(MediaPtr, QString);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     MediaPtr item;
 	QString old_filename;
@@ -301,8 +301,8 @@ private:
 class ReplaceClipMediaCommand : public QUndoCommand {
 public:
     ReplaceClipMediaCommand(MediaPtr , MediaPtr , bool);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
     QVector<ClipPtr> clips;
 private:
     MediaPtr old_media;
@@ -317,8 +317,8 @@ class EffectDeleteCommand : public QUndoCommand {
 public:
 	EffectDeleteCommand();
     virtual ~EffectDeleteCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
     QVector<ClipPtr> clips;
 	QVector<int> fx;
 private:
@@ -332,8 +332,8 @@ public:
 	MediaMove();
     QVector<MediaPtr> items;
     MediaPtr to;
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     QVector<MediaPtr> froms;
 	bool old_project_changed;
@@ -342,8 +342,8 @@ private:
 class MediaRename : public QUndoCommand {
 public:
     MediaRename(MediaPtr iitem, QString to);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	bool old_project_changed;
     MediaPtr item;
@@ -354,8 +354,8 @@ private:
 class KeyframeDelete : public QUndoCommand {
 public:
     KeyframeDelete(EffectFieldPtr ifield, int iindex);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     EffectFieldPtr field;
 	int index;
@@ -369,8 +369,8 @@ private:
 class KeyframeFieldSet : public QUndoCommand {
 public:
     KeyframeFieldSet(EffectFieldPtr ifield, int ii);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     EffectFieldPtr field;
 	int index;
@@ -382,8 +382,8 @@ private:
 class EffectFieldUndo : public QUndoCommand {
 public:
     EffectFieldUndo(EffectFieldPtr field);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     EffectFieldPtr field;
 	QVariant old_val;
@@ -395,8 +395,8 @@ private:
 class SetAutoscaleAction : public QUndoCommand {
 public:
 	SetAutoscaleAction();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
     QVector<ClipPtr> clips;
 private:
 	bool old_project_changed;
@@ -405,8 +405,8 @@ private:
 class AddMarkerAction : public QUndoCommand {
 public:
     AddMarkerAction(SequencePtr s, long t, QString n);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     SequencePtr seq;
 	long time;
@@ -419,8 +419,8 @@ private:
 class MoveMarkerAction : public QUndoCommand {
 public:
 	MoveMarkerAction(Marker* m, long o, long n);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	Marker* marker;
 	long old_time;
@@ -431,8 +431,8 @@ private:
 class DeleteMarkerAction : public QUndoCommand {
 public:
     DeleteMarkerAction(SequencePtr s);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 	QVector<int> markers;
 private:
     SequencePtr seq;
@@ -444,8 +444,8 @@ private:
 class SetSpeedAction : public QUndoCommand {
 public:
     SetSpeedAction(ClipPtr c, double speed);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     ClipPtr clip;
 	double old_speed;
@@ -456,8 +456,8 @@ private:
 class SetBool : public QUndoCommand {
 public:
 	SetBool(bool* b, bool setting);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	bool* boolean;
 	bool old_setting;
@@ -468,8 +468,8 @@ private:
 class SetSelectionsCommand : public QUndoCommand {
 public:
     SetSelectionsCommand(SequencePtr s);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 	QVector<Selection> old_data;
 	QVector<Selection> new_data;
 private:
@@ -481,8 +481,8 @@ private:
 class SetEnableCommand : public QUndoCommand {
 public:
     SetEnableCommand(ClipPtr c, bool enable);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     ClipPtr clip;
 	bool old_val;
@@ -494,8 +494,8 @@ class EditSequenceCommand : public QUndoCommand {
 
 public:
     EditSequenceCommand(MediaPtr i, SequencePtr s);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 	void update();
 
 	QString name;
@@ -520,8 +520,8 @@ private:
 class SetInt : public QUndoCommand {
 public:
 	SetInt(int* pointer, int new_value);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	int* p;
 	int oldval;
@@ -532,8 +532,8 @@ private:
 class SetLong : public QUndoCommand {
 public:
 	SetLong(long* pointer, long old_value, long new_value);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	long* p;
 	long oldval;
@@ -544,8 +544,8 @@ private:
 class SetDouble : public QUndoCommand {
 public:
 	SetDouble(double* pointer, double old_value, double new_value);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	double* p;
 	double oldval;
@@ -556,8 +556,8 @@ private:
 class SetString : public QUndoCommand {
 public:
 	SetString(QString* pointer, QString new_value);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	QString* p;
 	QString oldval;
@@ -567,15 +567,15 @@ private:
 
 class CloseAllClipsCommand : public QUndoCommand {
 public:
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 };
 
 class UpdateFootageTooltip : public QUndoCommand {
 public:
     UpdateFootageTooltip(MediaPtr i);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     MediaPtr item;
 };
@@ -583,8 +583,8 @@ private:
 class MoveEffectCommand : public QUndoCommand {
 public:
 	MoveEffectCommand();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
     ClipPtr clip;
 	int from;
 	int to;
@@ -596,8 +596,8 @@ class RemoveClipsFromClipboard : public QUndoCommand {
 public:
 	RemoveClipsFromClipboard(int index);
     virtual ~RemoveClipsFromClipboard();
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	int pos;
     ClipPtr clip;
@@ -610,8 +610,8 @@ public:
 	RenameClipCommand();
     QVector<ClipPtr> clips;
 	QString new_name;
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	QVector<QString> old_names;
 	bool old_project_changed;
@@ -620,8 +620,8 @@ private:
 class SetPointer : public QUndoCommand {
 public:
 	SetPointer(void** pointer, void* data);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	bool old_changed;
 	void** p;
@@ -631,15 +631,15 @@ private:
 
 class ReloadEffectsCommand : public QUndoCommand {
 public:
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 };
 
 class SetQVariant : public QUndoCommand {
 public:
 	SetQVariant(QVariant* itarget, const QVariant& iold, const QVariant& inew);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	QVariant* target;
 	QVariant old_val;
@@ -649,8 +649,8 @@ private:
 class SetKeyframing : public QUndoCommand {
 public:
 	SetKeyframing(EffectRow* irow, bool ib);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
 	EffectRow* row;
 	bool b;
@@ -659,8 +659,8 @@ private:
 class RefreshClips : public QUndoCommand {
 public:
     RefreshClips(MediaPtr m);
-	void undo();
-	void redo();
+    virtual void undo();
+    virtual void redo();
 private:
     MediaPtr media;
 };
