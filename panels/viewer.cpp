@@ -81,7 +81,6 @@ Viewer::Viewer(QWidget *parent) :
 	minimum_zoom(1.0)
 {
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-
 	setup_ui();
 
 	headers->viewer = this;
@@ -644,6 +643,12 @@ void Viewer::setup_ui() {
 void Viewer::set_media(MediaPtr m) {
     //FIXME: magic numbers
 	main_sequence = false;
+    if (media != nullptr) {
+        if (media == m) {
+            // prevent assigning shared_ptr to itself
+            return;
+        }
+    }
 	media = m;
 	clean_created_seq();
 	if (media != nullptr) {
@@ -663,7 +668,7 @@ void Viewer::set_media(MediaPtr m) {
 				seq->workarea_out = footage->out;
 			}
 
-            seq->setFrameRate(30);
+            seq->setFrameRate(30); //TODO: 29.97 elsewhere...
 
 			if (footage->video_tracks.size() > 0) {
 				const FootageStream& video_stream = footage->video_tracks.at(0);
@@ -724,6 +729,10 @@ void Viewer::set_media(MediaPtr m) {
         }//switch
 	}
 	set_sequence(false, seq);
+}
+
+void Viewer::reset() {
+    //TODO:
 }
 
 void Viewer::update_playhead() {

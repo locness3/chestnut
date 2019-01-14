@@ -1185,7 +1185,8 @@ void MainWindow::new_folder() {
     MediaPtr m = e_panel_project->new_folder(0);
     e_undo_stack.push(new AddMediaCommand(m, e_panel_project->get_selected_folder()));
 
-    QModelIndex index = project_model.create_index(m->row(), 0, m.operator ->());
+//    QModelIndex index = project_model.create_index(m->row(), 0, m.operator ->()); //FIXME: shared_ptr in QModelIndex?
+    QModelIndex index;
 	switch (e_config.project_view_type) {
 	case PROJECT_VIEW_TREE:
         e_panel_project->tree_view->edit(e_panel_project->sorter->mapFromSource(index));

@@ -70,6 +70,7 @@ QVariant ProjectModel::headerData(int section, Qt::Orientation orientation, int 
 	return QVariant();
 }
 
+//TODO: work out how to use shared_ptr in QModelIndex
 QModelIndex ProjectModel::index(int row, int column, const QModelIndex &parent) const {
 	if (!hasIndex(row, column, parent))
 		return QModelIndex();
@@ -84,10 +85,17 @@ QModelIndex ProjectModel::index(int row, int column, const QModelIndex &parent) 
 
     MediaPtr childItem = parentItem->child(row);
     if (childItem) {
-        return createIndex(row, column, childItem.operator ->()); //FIXME: ptr of shared_ptr?
+        return QModelIndex();
+        return create_index(row, column, childItem);
     } else {
 		return QModelIndex();
     }
+}
+
+
+QModelIndex ProjectModel::create_index(int arow, int acolumn, const MediaPtr& m_ptr) const {
+    //TODO: i'm sure i've done this before, or did I used a key+db like store?
+    return QModelIndex();
 }
 
 QModelIndex ProjectModel::create_index(int arow, int acolumn, void* aid) {
@@ -108,7 +116,7 @@ QModelIndex ProjectModel::parent(const QModelIndex &index) const {
             if (parPtr == root_item) {
                 return QModelIndex();
             }
-            return createIndex(parPtr->row(), 0, parPtr.operator ->()); //FIXME: ptr of shared_ptr?
+            return create_index(parPtr->row(), 0, parPtr);
         }
     }
     return QModelIndex();
@@ -164,7 +172,7 @@ MediaPtr ProjectModel::getItem(const QModelIndex &index) const {
 }
 
 void ProjectModel::set_icon(MediaPtr m, const QIcon &ico) {
-    QModelIndex index = createIndex(m->row(), 0, m.operator ->());//FIXME: ptr of shared_ptr?
+    QModelIndex index = create_index(m->row(), 0, m);
 	m->set_icon(ico);
 	emit dataChanged(index, index);
 
@@ -174,9 +182,11 @@ void ProjectModel::appendChild(MediaPtr parent, MediaPtr child) {
     if (parent == nullptr) {
         parent = root_item;
     }
-    beginInsertRows(parent == root_item ? QModelIndex() : createIndex(parent->row(), 0, parent.operator ->()), parent->childCount(), parent->childCount());//FIXME: ptr of shared_ptr?
-	parent->appendChild(child);
-	endInsertRows();
+    beginInsertRows(parent == root_item ? QModelIndex() : create_index(parent->row(), 0, parent),
+                    parent->childCount(),
+                    parent->childCount());
+    parent->appendChild(child);
+    endInsertRows();
 }
 
 void ProjectModel::moveChild(MediaPtr child, MediaPtr to) {
@@ -187,10 +197,10 @@ void ProjectModel::moveChild(MediaPtr child, MediaPtr to) {
     if (!from.expired()) {
         MediaPtr parPtr = from.lock();
         beginMoveRows(
-                    parPtr == root_item ? QModelIndex() : createIndex(parPtr->row(), 0, parPtr.operator ->()), //FIXME: ptr of shared_ptr?
+                    parPtr == root_item ? QModelIndex() : create_index(parPtr->row(), 0, parPtr),
                     child->row(),
                     child->row(),
-                    to == root_item ? QModelIndex() : createIndex(to->row(), 0, to.operator ->()),//FIXME: ptr of shared_ptr?
+                    to == root_item ? QModelIndex() : create_index(to->row(), 0, to),
                     to->childCount()
                 );
         parPtr->removeChild(child->row());
@@ -200,18 +210,26 @@ void ProjectModel::moveChild(MediaPtr child, MediaPtr to) {
 }
 
 void ProjectModel::removeChild(MediaPtr parent, MediaPtr m) {
-	if (parent == nullptr) parent = root_item;
-    beginRemoveRows(parent == root_item ? QModelIndex() : createIndex(parent->row(), 0, parent.operator ->()), m->row(), m->row());//FIXME: ptr of shared_ptr?
-	parent->removeChild(m->row());
-	endRemoveRows();
+    if (parent == nullptr) {
+        parent = root_item;
+    }
+    beginRemoveRows(parent == root_item ? QModelIndex() : create_index(parent->row(), 0, parent),
+                    m->row(),
+                    m->row());
+    parent->removeChild(m->row());
+    endRemoveRows();
 }
 
 MediaPtr ProjectModel::child(int i, MediaPtr parent) {
-	if (parent == nullptr) parent = root_item;
+    if (parent == nullptr) {
+        parent = root_item;
+    }
 	return parent->child(i);
 }
 
 int ProjectModel::childCount(MediaPtr parent) {
-	if (parent == nullptr) parent = root_item;
+    if (parent == nullptr) {
+        parent = root_item;
+    }
 	return parent->childCount();
 }

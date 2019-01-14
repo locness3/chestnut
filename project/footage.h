@@ -37,6 +37,9 @@ class Clip;
 class PreviewGenerator;
 class MediaThrobber;
 
+
+using FootagePtr = std::shared_ptr<Footage>;
+
 struct FootageStream {
 	int file_index;
 	int video_width;
@@ -83,6 +86,5 @@ public:
 	FootageStream *get_stream_from_file_index(bool video, int index);
 	void reset();
 };
-typedef std::shared_ptr<Footage> FootagePtr;
 
 #endif // FOOTAGE_H

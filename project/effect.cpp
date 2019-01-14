@@ -62,9 +62,9 @@
 #include <QMenu>
 
 QVector<EffectMeta> effects;
-typedef std::shared_ptr<Effect> EffectPtr;
 
-EffectPtr create_effect(ClipPtr c, const EffectMeta* em) { //FIXME: use of this is causing a lot of leaks
+
+EffectPtr create_effect(ClipPtr c, const EffectMeta* em) {
 	if (!em->filename.isEmpty()) {
 		// load effect from file
         return std::make_shared<Effect>(c, em);
@@ -961,7 +961,7 @@ void Effect::process_audio(double, double, quint8*, int, int) {}
 
 void Effect::gizmo_draw(double, GLTextureCoords &) {}
 
-void Effect::gizmo_move(EffectGizmoPtr gizmo, const int x_movement, const int y_movement, const double timecode, const bool done) {
+void Effect::gizmo_move(EffectGizmoPtr &gizmo, const int x_movement, const int y_movement, const double timecode, const bool done) {
 	for (int i=0;i<gizmos.size();i++) {
 		if (gizmos.at(i) == gizmo) {
 			ComboAction* ca = nullptr;

@@ -51,6 +51,7 @@ public:
 	bool is_focused();
 	void set_main_sequence();
     void set_media(MediaPtr m);
+    void reset();
 	void compose();
 	void set_playpause_icon(bool play);
 	void update_playhead_timecode(long p);

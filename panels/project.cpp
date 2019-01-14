@@ -430,9 +430,21 @@ MediaPtr Project::new_folder(QString name) {
 }
 
 MediaPtr Project::item_to_media(const QModelIndex &index) {
+    if (sorter != nullptr) {
+        const QModelIndex src = sorter->mapToSource(index);
+        void* const ptr = src.internalPointer();
+        if (ptr != nullptr) {
+            //FIXME: this is bad. creating another shared_ptr to same object
+//            Media* const mPtr = static_cast<Media*>(ptr);
+//            return MediaPtr(mPtr);
+        } else {
+            dverbose << "Retrieved a null ptr";
+        }
+    }
+
     return MediaPtr();
-//    return static_cast<MediaPtr>(sorter->mapToSource(index).internalPointer()); //FIXME: ptr cast issue
-//    return static_cast<MediaPtr>(index.internalPointer());
+//    return static_cast<Media*>(sorter->mapToSource(index).internalPointer()); //FIXME: ptr cast issue
+//    return static_cast<Media>(index.internalPointer());
 }
 
 void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPtr>& list, int search_type) {
@@ -743,22 +755,22 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
 
 			if (!skip) {
                 MediaPtr item;
-                FootagePtr m;
+                FootagePtr ftg;
 
 				if (replace != nullptr) {
 					item = replace;
-                    m = replace->get_object<Footage>();
-					m->reset();
+                    ftg = replace->get_object<Footage>();
+                    ftg->reset();
 				} else {
                     item = std::make_shared<Media>(parent);
-                    m = std::make_shared<Footage>();
+                    ftg = std::make_shared<Footage>();
 				}
 
-				m->using_inout = false;
-				m->url = file;
-                m->setName(get_file_name_from_path(files.at(i)));
+                ftg->using_inout = false;
+                ftg->url = file;
+                ftg->setName(get_file_name_from_path(files.at(i)));
 
-				item->set_footage(m);
+                item->set_footage(ftg);
 
 				// generate waveform/thumbnail in another thread
 				start_preview_generator(item, replace != nullptr);

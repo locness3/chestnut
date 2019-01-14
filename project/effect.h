@@ -43,6 +43,11 @@ class CheckboxEx;
 
 typedef std::shared_ptr<Clip> ClipPtr;
 
+
+using EffectPtr = std::shared_ptr<Effect>;
+using EffectWPtr = std::weak_ptr<Effect>;
+using EffectUPtr = std::unique_ptr<Effect>;
+
 struct EffectMeta {
 	QString name;
 	QString category;
@@ -181,7 +186,7 @@ public:
 	virtual void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
 
 	virtual void gizmo_draw(double timecode, GLTextureCoords& coords);
-    void gizmo_move(EffectGizmoPtr sender, const int x_movement, const int y_movement, const double timecode, const bool done);
+    void gizmo_move(EffectGizmoPtr& sender, const int x_movement, const int y_movement, const double timecode, const bool done);
 	void gizmo_world_to_screen();
     bool are_gizmos_enabled() const;
 
@@ -237,8 +242,7 @@ private:
 	void validate_meta_path();
 };
 
-typedef std::shared_ptr<Effect> EffectPtr;
-
+//TODO: be in Effect
 class EffectInit : public QThread {
 public:
 	EffectInit();

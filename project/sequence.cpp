@@ -88,7 +88,7 @@ long Sequence::getEndFrame() const{
 	return end;
 }
 
-void Sequence::hard_delete_transition(ClipPtr c, const int type) {
+void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
 	int transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
 	if (transition_index > -1) {
 		bool del = true;

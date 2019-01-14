@@ -89,7 +89,7 @@ public:
 
 	QSortFilterProxyModel* sorter;
 
-    QVector<MediaPtr> last_imported_media;
+    QVector<MediaPtr> last_imported_media; //TODO: feel a map is required so ProjectModel can use the key in QModelIndex
 
 	QModelIndexList get_current_selected();
 
