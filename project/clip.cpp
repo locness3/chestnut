@@ -421,7 +421,7 @@ bool Clip::open_worker() {
 
     finished_opening = true;
 
-    dinfo << "Clip opened on track" << timeline_info.track;
+    qInfo() << "Clip opened on track" << timeline_info.track;
     return true;
 }
 
@@ -445,7 +445,7 @@ void Clip::close_worker() {
 
     reset();
 
-    dinfo << "Clip closed on track" << timeline_info.track;
+    qInfo() << "Clip closed on track" << timeline_info.track;
 }
 
 
@@ -530,6 +530,14 @@ void Clip::close(const bool wait) {
 
 
 /**
+ * @brief Close this clip and free up resources whilst waiting
+ */
+void Clip::close_with_wait() {
+    close(true);
+}
+
+
+/**
  * @brief Cache the clip at a certian point
  * @param playhead
  * @param reset
@@ -539,7 +547,7 @@ void Clip::close(const bool wait) {
  */
 bool Clip::cache(const long playhead, const bool do_reset, const bool scrubbing, QVector<ClipPtr>& nests) {
     if (!uses_cacher()) {
-        dwarning << "Not using caching";
+        qWarning() << "Not using caching";
         return false;
     }
 
@@ -588,7 +596,7 @@ void Clip::reset_audio() {
         SequencePtr nested_sequence = timeline_info.media->get_object<Sequence>();
         for (int i=0;i<nested_sequence->clips.size();i++) {
             ClipPtr c(nested_sequence->clips.at(i));
-            if (c != nullptr) reset_audio();
+            if (c != nullptr) c->reset_audio();
         }
     }
 }
@@ -754,7 +762,7 @@ void Clip::get_frame(const long playhead) {
                                 target_frame = nullptr;
                             }
                             reset = true;
-                            dinfo << "Resetting";
+                            qInfo() << "Resetting";
                             last_invalid_ts = target_pts;
                         } else {
                             if (queue.size() >= max_queue_size) {
@@ -767,7 +775,7 @@ void Clip::get_frame(const long playhead) {
                 }
             }
         } else {
-            dinfo << "Resetting";
+            qInfo() << "Resetting";
             reset = true;
         }
 
@@ -813,7 +821,7 @@ void Clip::get_frame(const long playhead) {
             cache(playhead, reset, false, empty);
         }
     } else {
-        dwarning << "Not finished opening";
+        qWarning() << "Not finished opening";
     }
 }
 
@@ -1004,7 +1012,7 @@ void Clip::run() {
     cache_info.interrupt = false;
 
     if (open_worker()) {
-        dinfo << "Cache thread starting";
+        qInfo() << "Cache thread starting";
         while (cache_info.caching) {
             can_cache.wait(&lock);
             if (!cache_info.caching) {
@@ -1021,14 +1029,14 @@ void Clip::run() {
             }
         }//while
 
-        dwarning << "caching thread stopped";
+        qWarning() << "caching thread stopped";
 
         close_worker();
 
         lock.unlock();
         open_lock.unlock();
     } else {
-        derror << "Failed to open worker";
+        qCritical() << "Failed to open worker";
     }
 }
 

@@ -62,7 +62,6 @@ private:
 class MoveClipAction : public QUndoCommand {
 public:
     MoveClipAction(ClipPtr c, const long iin, const long iout, const long iclip_in, const int itrack, const bool irelative);
-    virtual ~MoveClipAction();
     virtual void undo();
     virtual void redo();
 private:

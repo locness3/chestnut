@@ -36,6 +36,8 @@
 #include "panels/timeline.h"
 
 #include <QMessageBox>
+#include <QCoreApplication>
+
 
 namespace{
     const long DEFAULT_TRANSITION_LENGTH = 30;
@@ -47,7 +49,7 @@ Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
     secondary_clip(s),
     length(DEFAULT_TRANSITION_LENGTH)
 {
-    length_field = add_row("Length:", false)->add_field(EFFECT_FIELD_DOUBLE, "length");
+    length_field = add_row(tr("Length:"), false)->add_field(EFFECT_FIELD_DOUBLE, "length");
     connect(length_field.operator ->(), SIGNAL(changed()), this, SLOT(set_length_from_slider()));
     length_field->set_double_default_value(DEFAULT_TRANSITION_LENGTH);
     length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
@@ -100,17 +102,20 @@ Transition* get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* em)
 		case TRANSITION_INTERNAL_CUBE: return new CubeTransition(c, s, em);
 		}
 	} else {
-		dout << "[ERROR] Invalid transition data";
-		QMessageBox::critical(mainWindow, "Invalid transition", "No candidate for transition '" + em->name + "'. This transition may be corrupt. Try reinstalling it or Olive.");
+		qCritical() << "Invalid transition data";
+        QMessageBox::critical(mainWindow,
+                              QCoreApplication::translate("transition", "Invalid transition"),
+                              QCoreApplication::translate("transition", "No candidate for transition '%1'. This transition may be corrupt. Try reinstalling it or Olive.").arg(em->name)
+                        );
 	}
 	return nullptr;
 }
 
 int create_transition(ClipPtr c, ClipPtr s, const EffectMeta* em, long length) {
 	Transition* t = get_transition_from_meta(c, s, em);
-	if (length >= 0) t->set_length(length);
 	if (t != nullptr) {
-		QVector<Transition*>& transition_list = (c->sequence == nullptr) ? e_clipboard_transitions : c->sequence->transitions;
+		if (length >= 0) t->set_length(length);
+        QVector<Transition*>& transition_list = (c->sequence == nullptr) ? e_clipboard_transitions : c->sequence->transitions;
 		transition_list.append(t);
 		return transition_list.size() - 1;
 	}

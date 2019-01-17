@@ -19,28 +19,12 @@
 #define DEBUG_H
 
 #include <QDebug>
-#include <QDateTime>
 
-#ifndef QT_DEBUG
-#define dout debug_out << "\n"
-extern QDebug debug_out;
-#else
-#define dout qDebug() << QDateTime().currentDateTimeUtc().toString(Qt::ISODate)
-#ifdef __GNUC__
-#define dwarning dout << "[WARNING]" << __builtin_FILE () << __builtin_LINE () << __builtin_FUNCTION () << ":"
-#define dinfo dout << "[INFO]" << __builtin_FILE () << __builtin_LINE () << __builtin_FUNCTION () << ":"
-#define derror dout << "[ERROR]" << __builtin_FILE () << __builtin_LINE () << __builtin_FUNCTION ()  << ":"
-#define dverbose dout << "[DEBUG]" << __builtin_FILE () << __builtin_LINE () << __builtin_FUNCTION ()  << ":"
-#else
-#define dwarning dout << "[WARNING]" << ":"
-#define dinfo dout << "[INFO]" << ":"
-#define derror dout << "[ERROR]" << ":"
-#define dverbose dout << "[DEBUG]" << ":"
-#endif
-#endif
+void debug_message_handler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+const QString& get_debug_str();
+void open_debug_file();
+void close_debug_file();
 
-
-void setup_debug();
-void close_debug();
+#define dout qDebug()
 
 #endif // DEBUG_H

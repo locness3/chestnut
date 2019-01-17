@@ -56,7 +56,7 @@
 #include <QStatusBar>
 
 long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate) {
-	return qRound(((double)framenumber/source_frame_rate)*target_frame_rate);
+	return qRound((double(framenumber)/source_frame_rate)*target_frame_rate);
 }
 
 namespace
@@ -102,7 +102,7 @@ Timeline::Timeline(QWidget *parent) :
 
 	setup_ui();
 
-	default_track_height = (QGuiApplication::primaryScreen()->logicalDotsPerInch() / 96) * TRACK_DEFAULT_HEIGHT;
+	default_track_height = qRound((QGuiApplication::primaryScreen()->logicalDotsPerInch() / 96) * TRACK_DEFAULT_HEIGHT);
 
     headers->viewer = e_panel_sequence_viewer;
 
@@ -418,10 +418,11 @@ void Timeline::update_sequence() {
 	addButton->setEnabled(!null_sequence);
 	headers->setEnabled(!null_sequence);
 
+    QString title = tr("Timeline: ");
 	if (null_sequence) {
-		setWindowTitle("Timeline: <none>");
+        setWindowTitle(title + tr("<none>"));
 	} else {
-        setWindowTitle("Timeline: " + e_sequence->getName());
+        setWindowTitle(title + e_sequence->getName());
 		update_ui(false);
 	}
 }
@@ -495,6 +496,22 @@ void Timeline::select_all() {
 
 void Timeline::scroll_to_frame(long frame) {
 	scroll_to_frame_internal(horizontalScrollBar, frame, zoom, timeline_area->width());
+}
+
+void Timeline::select_from_playhead() {
+    e_sequence->selections.clear();
+    for (int i=0;i<e_sequence->clips.size();i++) {
+        ClipPtr c = e_sequence->clips.at(i);
+		if (c != nullptr
+                && c->timeline_info.in <= e_sequence->playhead
+                && c->timeline_info.out > e_sequence->playhead) {
+			Selection s;
+            s.in = c->timeline_info.in;
+            s.out = c->timeline_info.out;
+            s.track = c->timeline_info.track;
+            e_sequence->selections.append(s);
+		}
+	}
 }
 
 void Timeline::resizeEvent(QResizeEvent *event) {
@@ -1014,15 +1031,15 @@ void Timeline::paste(bool insert) {
 							}
 							if (found >= 0 && ask_conflict) {
 								QMessageBox box(this);
-								box.setWindowTitle("Effect already exists");
-                                box.setText("Clip '" + c->getName() + "' already contains a '" + e->meta->name + "' effect. Would you like to replace it with the pasted one or add it as a separate effect?");
+                                box.setWindowTitle(tr("Effect already exists"));
+                                box.setText(tr("Clip '%1' already contains a '%2' effect. Would you like to replace it with the pasted one or add it as a separate effect?").arg(c->getName(), e->meta->name));
 								box.setIcon(QMessageBox::Icon::Question);
 
-								box.addButton("Add", QMessageBox::YesRole);
-								QPushButton* replace_button = box.addButton("Replace", QMessageBox::NoRole);
-								QPushButton* skip_button = box.addButton("Skip", QMessageBox::RejectRole);
+                                box.addButton(tr("Add"), QMessageBox::YesRole);
+                                QPushButton* replace_button = box.addButton(tr("Replace"), QMessageBox::NoRole);
+                                QPushButton* skip_button = box.addButton(tr("Skip"), QMessageBox::RejectRole);
 
-								QCheckBox* future_box = new QCheckBox("Do this for all conflicts found");
+                                QCheckBox* future_box = new QCheckBox(tr("Do this for all conflicts found"));
 								box.setCheckBox(future_box);
 
 								box.exec();
@@ -1398,8 +1415,8 @@ void Timeline::set_marker() {
 
 	if (!add_marker) {
 		QInputDialog d(this);
-		d.setWindowTitle("Set Marker");
-		d.setLabelText("Set marker name:");
+        d.setWindowTitle(tr("Set Marker"));
+        d.setLabelText(tr("Set marker name:"));
 		d.setInputMode(QInputDialog::TextInput);
 		add_marker = (d.exec() == QDialog::Accepted);
 		marker_name = d.textValue();
@@ -1464,7 +1481,7 @@ void Timeline::deselect() {
 }
 
 long getFrameFromScreenPoint(double zoom, int x) {
-	long f = qCeil((float) x / zoom);
+	long f = qCeil(double(x) / zoom);
 	if (f < 0) {
 		return 0;
 	}
@@ -1472,7 +1489,7 @@ long getFrameFromScreenPoint(double zoom, int x) {
 }
 
 int getScreenPointFromFrame(double zoom, long frame) {
-	return (int) qFloor(frame*zoom);
+	return qFloor(double(frame)*zoom);
 }
 
 long Timeline::getTimelineFrameFromScreenPoint(int x) {
@@ -1487,29 +1504,29 @@ void Timeline::add_btn_click() {
 	QMenu add_menu(this);
 
 	QAction* titleMenuItem = new QAction(&add_menu);
-	titleMenuItem->setText("Title...");
+    titleMenuItem->setText(tr("Title..."));
 	titleMenuItem->setData(ADD_OBJ_TITLE);
 	add_menu.addAction(titleMenuItem);
 
 	QAction* solidMenuItem = new QAction(&add_menu);
-	solidMenuItem->setText("Solid Color...");
+    solidMenuItem->setText(tr("Solid Color..."));
 	solidMenuItem->setData(ADD_OBJ_SOLID);
 	add_menu.addAction(solidMenuItem);
 
 	QAction* barsMenuItem = new QAction(&add_menu);
-	barsMenuItem->setText("Bars...");
+    barsMenuItem->setText(tr("Bars..."));
 	barsMenuItem->setData(ADD_OBJ_BARS);
 	add_menu.addAction(barsMenuItem);
 
 	add_menu.addSeparator();
 
 	QAction* toneMenuItem = new QAction(&add_menu);
-	toneMenuItem->setText("Tone...");
+    toneMenuItem->setText(tr("Tone..."));
 	toneMenuItem->setData(ADD_OBJ_TONE);
 	add_menu.addAction(toneMenuItem);
 
 	QAction* noiseMenuItem = new QAction(&add_menu);
-	noiseMenuItem->setText("Noise...");
+    noiseMenuItem->setText(tr("Noise..."));
 	noiseMenuItem->setData(ADD_OBJ_NOISE);
 	add_menu.addAction(noiseMenuItem);
 
@@ -1531,11 +1548,16 @@ void Timeline::setScroll(int s) {
 
 void Timeline::record_btn_click() {
 	if (project_url.isEmpty()) {
-		QMessageBox::critical(this, "Unsaved Project", "You must save this project before you can record audio in it.", QMessageBox::Ok);
+        QMessageBox::critical(this,
+                              tr("Unsaved Project"),
+                              tr("You must save this project before you can record audio in it."),
+                              QMessageBox::Ok);
 	} else {
 		creating = true;
 		creating_object = ADD_OBJ_AUDIO;
-		mainWindow->statusBar()->showMessage("Click on the timeline where you want to start recording (drag to limit the recording to a certain timeframe)", 10000);
+        mainWindow->statusBar()->showMessage(
+                    tr("Click on the timeline where you want to start recording (drag to limit the recording to a certain timeframe)"),
+                    10000);
 	}
 }
 
@@ -1614,7 +1636,7 @@ void Timeline::setup_ui() {
 	arrow_icon.addFile(QStringLiteral(":/icons/arrow-disabled.png"), QSize(), QIcon::Disabled, QIcon::Off);
 	toolArrowButton->setIcon(arrow_icon);
 	toolArrowButton->setCheckable(true);
-	toolArrowButton->setToolTip("Pointer Tool (V)");
+    toolArrowButton->setToolTip(tr("Pointer Tool") + " (V)");
 	toolArrowButton->setProperty("tool", TIMELINE_TOOL_POINTER);
 	connect(toolArrowButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
 	tool_buttons_layout->addWidget(toolArrowButton);
@@ -1625,7 +1647,7 @@ void Timeline::setup_ui() {
 	icon1.addFile(QStringLiteral(":/icons/beam-disabled.png"), QSize(), QIcon::Disabled, QIcon::Off);
 	toolEditButton->setIcon(icon1);
 	toolEditButton->setCheckable(true);
-	toolEditButton->setToolTip("Edit Tool (X)");
+    toolEditButton->setToolTip(tr("Edit Tool") + " (X)");
 	toolEditButton->setProperty("tool", TIMELINE_TOOL_EDIT);
 	connect(toolEditButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
 	tool_buttons_layout->addWidget(toolEditButton);
@@ -1636,7 +1658,7 @@ void Timeline::setup_ui() {
 	icon2.addFile(QStringLiteral(":/icons/ripple-disabled.png"), QSize(), QIcon::Disabled, QIcon::Off);
 	toolRippleButton->setIcon(icon2);
 	toolRippleButton->setCheckable(true);
-	toolRippleButton->setToolTip("Ripple Tool (B)");
+    toolRippleButton->setToolTip(tr("Ripple Tool") + " (B)");
 	toolRippleButton->setProperty("tool", TIMELINE_TOOL_RIPPLE);
 	connect(toolRippleButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
 	tool_buttons_layout->addWidget(toolRippleButton);
@@ -1647,7 +1669,7 @@ void Timeline::setup_ui() {
 	icon4.addFile(QStringLiteral(":/icons/razor-disabled.png"), QSize(), QIcon::Disabled, QIcon::Off);
 	toolRazorButton->setIcon(icon4);
 	toolRazorButton->setCheckable(true);
-	toolRazorButton->setToolTip("Razor Tool (C)");
+    toolRazorButton->setToolTip(tr("Razor Tool") + " (C)");
 	toolRazorButton->setProperty("tool", TIMELINE_TOOL_RAZOR);
 	connect(toolRazorButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
 	tool_buttons_layout->addWidget(toolRazorButton);
@@ -1658,7 +1680,7 @@ void Timeline::setup_ui() {
 	icon5.addFile(QStringLiteral(":/icons/slip-disabled.png"), QSize(), QIcon::Disabled, QIcon::On);
 	toolSlipButton->setIcon(icon5);
 	toolSlipButton->setCheckable(true);
-	toolSlipButton->setToolTip("Slip Tool (Y)");
+    toolSlipButton->setToolTip(tr("Slip Tool") + " (Y)");
 	toolSlipButton->setProperty("tool", TIMELINE_TOOL_SLIP);
 	connect(toolSlipButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
 	tool_buttons_layout->addWidget(toolSlipButton);
@@ -1669,7 +1691,7 @@ void Timeline::setup_ui() {
 	icon6.addFile(QStringLiteral(":/icons/slide-disabled.png"), QSize(), QIcon::Disabled, QIcon::On);
 	toolSlideButton->setIcon(icon6);
 	toolSlideButton->setCheckable(true);
-	toolSlideButton->setToolTip("Slide Tool (U)");
+    toolSlideButton->setToolTip(tr("Slide Tool") + " (U)");
 	toolSlideButton->setProperty("tool", TIMELINE_TOOL_SLIDE);
 	connect(toolSlideButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
 	tool_buttons_layout->addWidget(toolSlideButton);
@@ -1680,7 +1702,7 @@ void Timeline::setup_ui() {
 	icon7.addFile(QStringLiteral(":/icons/hand-disabled.png"), QSize(), QIcon::Disabled, QIcon::On);
 	toolHandButton->setIcon(icon7);
 	toolHandButton->setCheckable(true);
-	toolHandButton->setToolTip("Hand Tool (H)");
+    toolHandButton->setToolTip(tr("Hand Tool") + " (H)");
 	toolHandButton->setProperty("tool", TIMELINE_TOOL_HAND);
 	connect(toolHandButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
 	tool_buttons_layout->addWidget(toolHandButton);
@@ -1691,7 +1713,7 @@ void Timeline::setup_ui() {
 	icon8.addFile(QStringLiteral(":/icons/transition-tool-disabled.png"), QSize(), QIcon::Disabled, QIcon::On);
 	toolTransitionButton->setIcon(icon8);
 	toolTransitionButton->setCheckable(true);
-	toolTransitionButton->setToolTip("Transition Tool (T)");
+    toolTransitionButton->setToolTip(tr("Transition Tool") + " (T)");
 	connect(toolTransitionButton, SIGNAL(clicked(bool)), this, SLOT(transition_tool_click()));
 	tool_buttons_layout->addWidget(toolTransitionButton);
 
@@ -1702,7 +1724,7 @@ void Timeline::setup_ui() {
 	snappingButton->setIcon(icon9);
 	snappingButton->setCheckable(true);
 	snappingButton->setChecked(true);
-	snappingButton->setToolTip("Snapping (S)");
+    snappingButton->setToolTip(tr("Snapping") + " (S)");
 	connect(snappingButton, SIGNAL(toggled(bool)), this, SLOT(snapping_clicked(bool)));
 	tool_buttons_layout->addWidget(snappingButton);
 
@@ -1711,7 +1733,7 @@ void Timeline::setup_ui() {
 	icon10.addFile(QStringLiteral(":/icons/zoomin.png"), QSize(), QIcon::Normal, QIcon::On);
 	icon10.addFile(QStringLiteral(":/icons/zoomin-disabled.png"), QSize(), QIcon::Disabled, QIcon::On);
 	zoomInButton->setIcon(icon10);
-	zoomInButton->setToolTip("Zoom In (=)");
+    zoomInButton->setToolTip(tr("Zoom In") + " (=)");
 	connect(zoomInButton, SIGNAL(clicked(bool)), this, SLOT(zoom_in()));
 	tool_buttons_layout->addWidget(zoomInButton);
 
@@ -1720,7 +1742,7 @@ void Timeline::setup_ui() {
 	icon11.addFile(QStringLiteral(":/icons/zoomout.png"), QSize(), QIcon::Normal, QIcon::On);
 	icon11.addFile(QStringLiteral(":/icons/zoomout-disabled.png"), QSize(), QIcon::Disabled, QIcon::On);
 	zoomOutButton->setIcon(icon11);
-	zoomOutButton->setToolTip("Zoom Out (-)");
+    zoomOutButton->setToolTip(tr("Zoom Out") + " (-)");
 	connect(zoomOutButton, SIGNAL(clicked(bool)), this, SLOT(zoom_out()));
 	tool_buttons_layout->addWidget(zoomOutButton);
 
@@ -1729,7 +1751,7 @@ void Timeline::setup_ui() {
 	icon12.addFile(QStringLiteral(":/icons/record.png"), QSize(), QIcon::Normal, QIcon::On);
 	icon12.addFile(QStringLiteral(":/icons/record-disabled.png"), QSize(), QIcon::Disabled, QIcon::On);
 	recordButton->setIcon(icon12);
-	recordButton->setToolTip("Record audio");
+    recordButton->setToolTip(tr("Record audio"));
 	connect(recordButton, SIGNAL(clicked(bool)), this, SLOT(record_btn_click()));
 
 	tool_buttons_layout->addWidget(recordButton);
@@ -1739,7 +1761,7 @@ void Timeline::setup_ui() {
 	icon13.addFile(QStringLiteral(":/icons/add-button.png"), QSize(), QIcon::Normal, QIcon::On);
 	icon13.addFile(QStringLiteral(":/icons/add-button-disabled.png"), QSize(), QIcon::Disabled, QIcon::On);
 	addButton->setIcon(icon13);
-	addButton->setToolTip("Add title, solid, bars, etc.");
+    addButton->setToolTip(tr("Add title, solid, bars, etc."));
 	connect(addButton, SIGNAL(clicked()), this, SLOT(add_btn_click()));
 	tool_buttons_layout->addWidget(addButton);
 
@@ -1830,13 +1852,13 @@ void move_clip(ComboAction* ca, ClipPtr c, long iin, long iout, long iclip_in, i
 	if (verify_transitions) {
         if (c->get_opening_transition() != nullptr && c->get_opening_transition()->secondary_clip != nullptr && c->get_opening_transition()->secondary_clip->timeline_info.out != iin) {
 			// separate transition
-            ca->append(new SetPointer((void**) &c->get_opening_transition()->secondary_clip, nullptr));
+			ca->append(new SetPointer(reinterpret_cast<void**>(&c->get_opening_transition()->secondary_clip), nullptr));
             ca->append(new AddTransitionCommand(c->get_opening_transition()->secondary_clip, nullptr, c->get_opening_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
 		}
 
         if (c->get_closing_transition() != nullptr && c->get_closing_transition()->secondary_clip != nullptr && c->get_closing_transition()->parent_clip->timeline_info.in != iout) {
 			// separate transition
-            ca->append(new SetPointer((void**) &c->get_closing_transition()->secondary_clip, nullptr));
+			ca->append(new SetPointer(reinterpret_cast<void**>(&c->get_closing_transition()->secondary_clip), nullptr));
             ca->append(new AddTransitionCommand(c, nullptr, c->get_closing_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
 		}
 	}

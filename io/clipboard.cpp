@@ -19,6 +19,7 @@
 
 #include "project/clip.h"
 #include "project/effect.h"
+#include "project/transition.h"
 
 int e_clipboard_type = CLIPBOARD_TYPE_CLIP;
 QVector<project::SequenceItemPtr> e_clipboard;

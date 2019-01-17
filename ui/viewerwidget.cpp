@@ -109,14 +109,14 @@ void ViewerWidget::set_waveform_scroll(int s) {
 void ViewerWidget::show_context_menu() {
 	QMenu menu(this);
 
-	QAction* save_frame_as_image = menu.addAction("Save Frame as Image...");
+	QAction* save_frame_as_image = menu.addAction(tr("Save Frame as Image..."));
 	connect(save_frame_as_image, SIGNAL(triggered(bool)), this, SLOT(save_frame()));
 
-	QAction* show_fullscreen_action = menu.addAction("Show Fullscreen");
+	QAction* show_fullscreen_action = menu.addAction(tr("Show Fullscreen"));
 	connect(show_fullscreen_action, SIGNAL(triggered()), this, SLOT(show_fullscreen()));
 
-	QMenu zoom_menu("Zoom");
-	QAction* fit_zoom = zoom_menu.addAction("Fit");
+	QMenu zoom_menu(tr("Zoom"));
+	QAction* fit_zoom = zoom_menu.addAction(tr("Fit"));
 	connect(fit_zoom, SIGNAL(triggered(bool)), this, SLOT(set_fit_zoom()));
 	zoom_menu.addAction("10%")->setData(0.1);
 	zoom_menu.addAction("25%")->setData(0.25);
@@ -126,10 +126,14 @@ void ViewerWidget::show_context_menu() {
 	zoom_menu.addAction("150%")->setData(1.5);
 	zoom_menu.addAction("200%")->setData(2.0);
 	zoom_menu.addAction("400%")->setData(4.0);
-	QAction* custom_zoom = zoom_menu.addAction("Custom");
+	QAction* custom_zoom = zoom_menu.addAction(tr("Custom"));
 	connect(custom_zoom, SIGNAL(triggered(bool)), this, SLOT(set_custom_zoom()));
 	connect(&zoom_menu, SIGNAL(triggered(QAction*)), this, SLOT(set_menu_zoom(QAction*)));
 	menu.addMenu(&zoom_menu);
+
+	if (!viewer->is_main_sequence()) {
+		menu.addAction(tr("Close Media"), viewer, SLOT(close_media()));
+	}
 
 	menu.exec(QCursor::pos());
 }
@@ -138,7 +142,7 @@ void ViewerWidget::save_frame() {
 	QFileDialog fd(this);
 	fd.setAcceptMode(QFileDialog::AcceptSave);
 	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setWindowTitle("Save Frame");
+	fd.setWindowTitle(tr("Save Frame"));
 	fd.setNameFilter("Portable Network Graphic (*.png);;JPEG (*.jpg);;Windows Bitmap (*.bmp);;Portable Pixmap (*.ppm);;X11 Bitmap (*.xbm);;X11 Pixmap (*.xpm)");
 
 	if (fd.exec()) {
@@ -177,7 +181,10 @@ void ViewerWidget::set_fit_zoom() {
 
 void ViewerWidget::set_custom_zoom() {
 	bool ok;
-	double d = QInputDialog::getDouble(this, "Viewer Zoom", "Set Custom Zoom Value:", container->zoom*100, 0, 2147483647, 2, &ok);
+	double d = QInputDialog::getDouble(this,
+									   tr("Viewer Zoom"),
+									   tr("Set Custom Zoom Value:"),
+									   container->zoom*100, 0, 2147483647, 2, &ok);
 	if (ok) {
 		container->fit = false;
 		container->zoom = d*0.01;
@@ -231,7 +238,7 @@ void ViewerWidget::seek_from_click(int x) {
 
 EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(const int x_coord, const int y_coord) {
     if (gizmos != nullptr) {
-        double multiplier = (double) viewer->seq->getWidth() / (double) width();
+        double multiplier = double(viewer->seq->getWidth()) / double(width());
         QPoint mouse_pos(qRound(x_coord*multiplier), qRound(y_coord*multiplier));
 		int dot_size = 2 * qRound(GIZMO_DOT_SIZE * multiplier);
 		int target_size = 2 * qRound(GIZMO_TARGET_SIZE * multiplier);
@@ -269,7 +276,7 @@ EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(const int x_coord, const int y
 
 void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
     if (selected_gizmo != nullptr) {
-        double multiplier = (double) viewer->seq->getWidth() / (double) width();
+        double multiplier = double(viewer->seq->getWidth()) / double(width());
 
 		int x_movement = (event->pos().x() - drag_start_x)*multiplier;
 		int y_movement = (event->pos().y() - drag_start_y)*multiplier;
@@ -458,7 +465,7 @@ void ViewerWidget::process_effect(ClipPtr c, EffectPtr e, double timecode,
 		if (e->enable_coords) {
 			e->process_coords(timecode, coords, data);
 		}
-		if (e->enable_shader || e->enable_superimpose) {
+		if ((e->enable_shader && shaders_are_enabled)|| e->enable_superimpose) {
 			e->startEffect();
 			if (e->enable_shader && e->is_glsl_linked()) {
 				e->process_shader(timecode, coords);
@@ -478,6 +485,9 @@ void ViewerWidget::process_effect(ClipPtr c, EffectPtr e, double timecode,
 		}
 	}
 }
+
+int motion_blur_prog = 0;
+int motion_blur_lim = 4;
 
 GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio) {
     SequencePtr s = viewer->seq;
@@ -528,7 +538,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
                                 c->close(false);
 							}
 						} else {
-							//dout << "[WARNING] Media '" + m->name + "' was not ready, retrying...";
+							//qWarning() << "Media '" + m->name + "' was not ready, retrying...";
                             e_texture_failed = true;
 						}
 					}
@@ -576,7 +586,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
         if (clipNow->timeline_info.media != nullptr
                 && clipNow->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE
                 && !clipNow->finished_opening) {
-			dout << "[WARNING] Tried to display clip" << i << "but it's closed";
+			qWarning() << "Tried to display clip" << i << "but it's closed";
             e_texture_failed = true;
 		} else {
             if (clipNow->timeline_info.track < 0) {
@@ -610,7 +620,7 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 				}
 
                 if (textureID == 0 && clipNow->timeline_info.media != nullptr) {
-					dout << "[WARNING] Texture hasn't been created yet";
+					qWarning() << "Texture hasn't been created yet";
                     e_texture_failed = true;
                 } else if (playhead >= clipNow->get_timeline_in_with_transition()) {
 					glPushMatrix();
@@ -669,8 +679,8 @@ GLuint ViewerWidget::compose_sequence(QVector<ClipPtr>& nests, bool render_audio
 
 					// set up autoscale
                     if (clipNow->timeline_info.autoscale && (video_width != s->getWidth() && video_height != s->getHeight())) {
-                        float width_multiplier = (float) s->getWidth() / (float) video_width;
-                        float height_multiplier = (float) s->getHeight() / (float) video_height;
+                        float width_multiplier = float(s->getWidth()) / float(video_width);
+                        float height_multiplier = float(s->getHeight()) / float(video_height);
 						float scale_multiplier = qMin(width_multiplier, height_multiplier);
 						glScalef(scale_multiplier, scale_multiplier, 1);
 					}
@@ -911,9 +921,9 @@ void ViewerWidget::paintGL() {
 			if (force_quit) break;
             if (e_texture_failed) {
                 if (e_rendering) {
-					dout << "[INFO] Texture failed - looping";
+					qInfo() << "Texture failed - looping";;
 					loop = true;
-				} else {
+				} else if (!viewer->playing) {
 					retry_timer.start();
 				}
 			}

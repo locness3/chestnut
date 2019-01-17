@@ -27,7 +27,7 @@ class ProjectModel : public QAbstractItemModel
 	Q_OBJECT
 public:
 	ProjectModel(QObject* parent = 0);
-    virtual ~ProjectModel();
+	~ProjectModel() override;
 
 	void destroy_root();
 	void clear();
@@ -36,7 +36,8 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     QVariant headerData(int section, Qt::Orientation orientation,
 						int role = Qt::DisplayRole) const override;
-    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex index(int row, int column, 
+					  const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex create_index(int arow, int acolumn, const MediaPtr& m_ptr) const;
 	QModelIndex create_index(int arow, int acolumn, void *aid);
 	QModelIndex parent(const QModelIndex &index) const override;

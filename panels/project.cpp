@@ -201,7 +201,7 @@ Project::Project(QWidget *parent) :
 	connect(icon_view, SIGNAL(changed_root()), this, SLOT(set_up_dir_enabled()));
 
 	//retranslateUi(Project);
-	setWindowTitle(QApplication::translate("Project", "Project", nullptr));
+	setWindowTitle(tr("Project"));
 
 	update_view_type();
 }
@@ -212,7 +212,7 @@ Project::~Project() {
 }
 
 QString Project::get_next_sequence_name(QString start) {
-	if (start.isEmpty()) start = "Sequence";
+	if (start.isEmpty()) start = tr("Sequence");
 
 	int n = 1;
 	bool found = true;
@@ -260,7 +260,7 @@ SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
                         const FootageStream& ms = mediaFootage->video_tracks.at(j);
                         s->setWidth(ms.video_width);
                         s->setHeight(ms.video_height);
-						if (ms.video_frame_rate != 0) {
+						if (!qFuzzyCompare(ms.video_frame_rate, 0.0)) {
                             s->setFrameRate(ms.video_frame_rate * mediaFootage->speed);
 
                             if (ms.video_interlacing != VIDEO_PROGRESSIVE) {
@@ -273,13 +273,10 @@ SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
 						}
 					}
 				}
-				if (!got_audio_values) {
-                    for (int j=0;j<mediaFootage->audio_tracks.size();j++) {
-                        const FootageStream& ms = mediaFootage->audio_tracks.at(j);
-                        s->setAudioFrequency(ms.audio_frequency);
-						got_audio_values = true;
-						break;
-					}
+                if (!got_audio_values && mediaFootage->audio_tracks.size() > 0) {
+					const FootageStream& ms = mediaFootage->audio_tracks.at(0);
+					s->setAudioFrequency(ms.audio_frequency);
+					got_audio_values = true;
 				}
 			}
 		}
@@ -300,7 +297,7 @@ SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
 		}
 			break;
         default:
-            dwarning << "Unknown media type" << media->get_type();
+            qWarning() << "Unknown media type" << media->get_type();
         }//switch
 		if (got_video_values && got_audio_values) break;
 	}
@@ -313,7 +310,6 @@ void Project::duplicate_selected() {
 	bool duped = false;
 	ComboAction* ca = new ComboAction();
 	for (int j=0;j<items.size();j++) {
-		dout << "duplicate called";
         MediaPtr i = item_to_media(items.at(j));
 		if (i->get_type() == MEDIA_TYPE_SEQUENCE) {
             new_sequence(ca, SequencePtr(i->get_object<Sequence>()->copy()), false, item_to_media(items.at(j).parent()));
@@ -332,14 +328,18 @@ void Project::replace_selected_file() {
 	if (selected_items.size() == 1) {
         MediaPtr item = item_to_media(selected_items.at(0));
 		if (item->get_type() == MEDIA_TYPE_FOOTAGE) {
-			replace_media(item, 0);
+			replace_media(item, nullptr);
 		}
 	}
 }
 
 void Project::replace_media(MediaPtr item, QString filename) {
 	if (filename.isEmpty()) {
-		filename = QFileDialog::getOpenFileName(this, "Replace '" + item->get_name() + "'", "", "All Files (*)");
+		filename = QFileDialog::getOpenFileName(
+					this,
+					tr("Replace '%1'").arg(item->get_name()),
+					"",
+					tr("All Files") + " (*)");
 	}
 	if (!filename.isEmpty()) {
 		ReplaceMediaCommand* rmc = new ReplaceMediaCommand(item, filename);
@@ -349,13 +349,19 @@ void Project::replace_media(MediaPtr item, QString filename) {
 
 void Project::replace_clip_media() {
 	if (e_sequence == nullptr) {
-		QMessageBox::critical(this, "No active sequence", "No sequence is active, please open the sequence you want to replace clips from.", QMessageBox::Ok);
+		QMessageBox::critical(this,
+							  tr("No active sequence"),
+							  tr("No sequence is active, please open the sequence you want to replace clips from."),
+							  QMessageBox::Ok);
 	} else {
 		QModelIndexList selected_items = get_current_selected();
 		if (selected_items.size() == 1) {
-            MediaPtr item = item_to_media(selected_items.at(0));
-            if (item->get_type() == MEDIA_TYPE_SEQUENCE && e_sequence == item->get_object<Sequence>()) {
-				QMessageBox::critical(this, "Active sequence selected", "You cannot insert a sequence into itself, so no clips of this media would be in this sequence.", QMessageBox::Ok);
+			MediaPtr item = item_to_media(selected_items.at(0));
+			if (item->get_type() == MEDIA_TYPE_SEQUENCE && e_sequence == item->get_object<Sequence>()) {
+				QMessageBox::critical(this,
+									  tr("Active sequence selected"),
+									  tr("You cannot insert a sequence into itself, so no clips of this media would be in this sequence."),
+									  QMessageBox::Ok);
 			} else {
 				ReplaceClipMediaDialog dialog(this, item);
 				dialog.exec();
@@ -384,7 +390,11 @@ void Project::open_properties() {
 		default:
 		{
 			// fall back to renaming
-			QString new_name = QInputDialog::getText(this, "Rename '" + item->get_name() + "'", "Enter new name:", QLineEdit::Normal, item->get_name());
+			QString new_name = QInputDialog::getText(this,
+													 tr("Rename '%1'").arg(item->get_name()),
+													 tr("Enter new name:"),
+													 QLineEdit::Normal,
+													 item->get_name());
 			if (!new_name.isEmpty()) {
 				MediaRename* mr = new MediaRename(item, new_name);
 				e_undo_stack.push(mr);
@@ -403,7 +413,11 @@ MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaP
 		ca->append(new NewSequenceCommand(item, parent));
 		if (open) ca->append(new ChangeSequenceAction(s));
 	} else {
-		project_model.appendChild(nullptr, item);
+		if (parent == project_model.get_root()) {
+			project_model.appendChild(parent, item);
+		} else {
+			parent->appendChild(item);
+		}
 		if (open) set_sequence(s);
 	}
 	return item;
@@ -426,6 +440,7 @@ bool Project::is_focused() {
 MediaPtr Project::new_folder(QString name) {
     MediaPtr item = std::make_shared<Media>(nullptr);
 	item->set_folder();
+	item->set_name(name);
 	return item;
 }
 
@@ -438,7 +453,7 @@ MediaPtr Project::item_to_media(const QModelIndex &index) {
 //            Media* const mPtr = static_cast<Media*>(ptr);
 //            return MediaPtr(mPtr);
         } else {
-            dverbose << "Retrieved a null ptr";
+//            dverbose << "Retrieved a null ptr";
         }
     }
 
@@ -509,9 +524,8 @@ void Project::delete_selected_media() {
 						if (!confirm_delete) {
 							// we found a reference, so we know we'll need to ask if the user wants to delete it
 							QMessageBox confirm(this);
-							confirm.setWindowTitle("Delete media in use?");
-                            confirm.setText("The media '" + media->getName() + "' is currently used in '" + seq->getName()
-                                            + "'. Deleting it will remove all instances in the sequence. Are you sure you want to do this?");
+							confirm.setWindowTitle(tr("Delete media in use?"));
+							confirm.setText(tr("The media '%1' is currently used in '%2'. Deleting it will remove all instances in the sequence. Are you sure you want to do this?").arg(media->getName(),  seq->getName()));
 							QAbstractButton* yes_button = confirm.addButton(QMessageBox::Yes);
 							QAbstractButton* skip_button = nullptr;
 							if (items.size() > 1) skip_button = confirm.addButton("Skip", QMessageBox::NoRole);
@@ -650,7 +664,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
 	if (!recursive) last_imported_media.clear();
 
 	bool create_undo_action = (!recursive && replace == nullptr);
-	ComboAction* ca;
+	ComboAction* ca = nullptr;
 	if (create_undo_action) ca = new ComboAction();
 
 	for (int i=0;i<files.size();i++) {
@@ -743,7 +757,11 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
 					}
 					if (!found) {
 						image_sequence_urls.append(new_filename);
-						if (QMessageBox::question(this, "Image sequence detected", "The file '" + file + "' appears to be part of an image sequence. Would you like to import it as such?", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
+						if (QMessageBox::question(this,
+												  tr("Image sequence detected"),
+												  tr("The file '%1' appears to be part of an image sequence. Would you like to import it as such?").arg(file),
+												  QMessageBox::Yes | QMessageBox::No,
+												  QMessageBox::Yes) == QMessageBox::Yes) {
 							file = new_filename;
 							image_sequence_importassequence.append(true);
 						} else {
@@ -772,16 +790,14 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
 
                 item->set_footage(ftg);
 
-				// generate waveform/thumbnail in another thread
-				start_preview_generator(item, replace != nullptr);
-
 				last_imported_media.append(item);
 
 				if (replace == nullptr) {
 					if (create_undo_action) {
 						ca->append(new AddMediaCommand(item, parent));
 					} else {
-						project_model.appendChild(parent, item);
+						parent->appendChild(item);
+//						project_model.appendChild(parent, item);
 					}
 				}
 
@@ -792,6 +808,11 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
 	if (create_undo_action) {
 		if (imported) {
 			e_undo_stack.push(ca);
+
+			for (int i=0;i<last_imported_media.size();i++) {
+				// generate waveform/thumbnail in another thread
+				start_preview_generator(last_imported_media.at(i), replace != nullptr);
+			}
 		} else {
 			delete ca;
 		}
@@ -843,7 +864,7 @@ bool Project::reveal_media(MediaPtr media, QModelIndex parent) {
 }
 
 void Project::import_dialog() {
-	QFileDialog fd(this, "Import media...", "", "All Files (*)");
+	QFileDialog fd(this, tr("Import media..."), "", tr("All Files") + " (*)");
 	fd.setFileMode(QFileDialog::ExistingFiles);
 
 	if (fd.exec()) {
@@ -854,7 +875,10 @@ void Project::import_dialog() {
 
 void Project::delete_clips_using_selected_media() {
 	if (e_sequence == nullptr) {
-		QMessageBox::critical(this, "No active sequence", "No sequence is active, please open the sequence you want to delete clips from.", QMessageBox::Ok);
+		QMessageBox::critical(this,
+							  tr("No active sequence"),
+							  tr("No sequence is active, please open the sequence you want to delete clips from."),
+							  QMessageBox::Ok);
 	} else {
 		ComboAction* ca = new ComboAction();
 		bool deleted = false;
@@ -918,7 +942,6 @@ void Project::load_project(bool autorecovery) {
 }
 
 void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only, const QModelIndex& parent) {
-	bool root = (!parent.parent().isValid());
 	for (int i=0;i<project_model.rowCount(parent);i++) {
 		const QModelIndex& item = project_model.index(i, 0, parent);
         MediaPtr m = project_model.getItem(item);
@@ -942,7 +965,13 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 				}
 				// save_folder(stream, item, type, set_ids_only);
 			} else {
-				int folder = root ? 0 : project_model.getItem(parent)->temp_id;
+                int folder;
+                if (!m->parentItem().expired()) {
+                    MediaPtr parPtr = m->parentItem().lock();
+                    folder = parPtr->temp_id;
+                } else {
+                    folder = 0;
+                }
 				if (type == MEDIA_TYPE_FOOTAGE) {
                     FootagePtr f = m->get_object<Footage>();
 					f->save_id = media_id;
@@ -995,8 +1024,8 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
 						if (s == e_sequence) {
 							stream.writeAttribute("open", "1");
 						}
-                        stream.writeAttribute("workarea", QString::number(s->using_workarea));
-                        stream.writeAttribute("workareaEnabled", QString::number(s->enable_workarea));
+						stream.writeAttribute("workarea", QString::number(s->using_workarea));
+						stream.writeAttribute("workareaEnabled", QString::number(s->enable_workarea));
 						stream.writeAttribute("workareaIn", QString::number(s->workarea_in));
 						stream.writeAttribute("workareaOut", QString::number(s->workarea_out));
 
@@ -1089,7 +1118,7 @@ void Project::save_project(bool autorecovery) {
 
 	QFile file(autorecovery ? autorecovery_filename : project_url);
 	if (!file.open(QIODevice::WriteOnly/* | QIODevice::Text*/)) {
-		dout << "[ERROR] Could not open file";
+		qCritical() << "Could not open file";
 		return;
 	}
 
@@ -1169,7 +1198,7 @@ void Project::save_recent_projects() {
 		}
 		f.close();
 	} else {
-		dout << "[WARNING] Could not save recent projects";
+		qWarning() << "Could not save recent projects";
 	}
 }
 

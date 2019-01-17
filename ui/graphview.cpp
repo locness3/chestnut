@@ -75,14 +75,14 @@ GraphView::GraphView(QWidget* parent) :
 void GraphView::show_context_menu(const QPoint& pos) {
 	QMenu menu(this);
 
-	QAction* zoom_to_selection = menu.addAction("Zoom to Selection");
+	QAction* zoom_to_selection = menu.addAction(tr("Zoom to Selection"));
 	if (selected_keys.size() == 0 || row == nullptr) {
 		zoom_to_selection->setEnabled(false);
 	} else {
 		connect(zoom_to_selection, SIGNAL(triggered(bool)), this, SLOT(set_view_to_selection()));
 	}
 
-	QAction* zoom_to_all = menu.addAction("Zoom to Show All");
+	QAction* zoom_to_all = menu.addAction(tr("Zoom to Show All"));
 	if (row == nullptr) {
 		zoom_to_all->setEnabled(false);
 	} else {
@@ -91,7 +91,7 @@ void GraphView::show_context_menu(const QPoint& pos) {
 
 	menu.addSeparator();
 
-	QAction* reset_action = menu.addAction("Reset View");
+	QAction* reset_action = menu.addAction(tr("Reset View"));
 	if (row == nullptr) {
 		reset_action->setEnabled(false);
 	} else {
@@ -238,7 +238,8 @@ void GraphView::paintEvent(QPaintEvent *) {
 					// sort keyframes by time
 					QVector<int> sorted_keys = sort_keys_from_field(field);
 
-					int last_key_x, last_key_y;
+					int last_key_x = 0;
+					int last_key_y = 0;
 
 					// draw lines
 					for (int j=0;j<sorted_keys.size();j++) {
@@ -682,7 +683,7 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
 	}
 }
 
-void GraphView::mouseReleaseEvent(QMouseEvent *e) {
+void GraphView::mouseReleaseEvent(QMouseEvent *) {
 	if (click_add_proc) {
 		e_undo_stack.push(new KeyframeFieldSet(click_add_field, click_add_key));
 	} else if (moved_keys && selected_keys.size() > 0) {

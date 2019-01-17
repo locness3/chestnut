@@ -33,15 +33,15 @@
 ShakeEffect::ShakeEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
 	enable_coords = true;
 
-    EffectRowPtr intensity_row = add_row("Intensity");
+    EffectRowPtr intensity_row = add_row(tr("Intensity"));
 	intensity_val = intensity_row->add_field(EFFECT_FIELD_DOUBLE, "intensity");
 	intensity_val->set_double_minimum_value(0);
 
-    EffectRowPtr rotation_row = add_row("Rotation");
+    EffectRowPtr rotation_row = add_row(tr("Rotation"));
 	rotation_val = rotation_row->add_field(EFFECT_FIELD_DOUBLE, "rotation");
 	rotation_val->set_double_minimum_value(0);
 
-    EffectRowPtr frequency_row = add_row("Frequency");
+    EffectRowPtr frequency_row = add_row(tr("Frequency"));
 	frequency_val = frequency_row->add_field(EFFECT_FIELD_DOUBLE, "frequency");
 	frequency_val->set_double_minimum_value(0);
 
@@ -57,7 +57,7 @@ ShakeEffect::ShakeEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
 	}
 }
 
-void ShakeEffect::process_coords(double timecode, GLTextureCoords& coords, int data) {
+void ShakeEffect::process_coords(double timecode, GLTextureCoords& coords, int) {
 	int lim = RANDOM_VAL_SIZE/6;
 
 	double multiplier = intensity_val->get_double_value(timecode)/lim;

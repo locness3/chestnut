@@ -37,7 +37,13 @@
 #include "project/sequenceitem.h"
 
 class CollapsibleWidget;
-class Clip;
+class QLabel;
+class QWidget;
+class QGridLayout;
+class QPushButton;
+class QMouseEvent;
+
+struct Clip;
 class Effect;
 class CheckboxEx;
 
@@ -58,6 +64,7 @@ struct EffectMeta {
 	int subtype;
 };
 
+extern bool shaders_are_enabled;
 extern QVector<EffectMeta> effects;
 
 double log_volume(double linear);
@@ -159,7 +166,6 @@ public:
     virtual void load(QXmlStreamReader& stream);
 	virtual void custom_load(QXmlStreamReader& stream);
 	virtual void save(QXmlStreamWriter& stream);
-
 
 	// glsl handling
 	bool is_open();

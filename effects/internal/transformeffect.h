@@ -24,7 +24,6 @@ class TransformEffect : public Effect {
 	Q_OBJECT
 public:
     TransformEffect(ClipPtr c, const EffectMeta* em);
-    virtual ~TransformEffect();
 	void refresh();
 	void process_coords(double timecode, GLTextureCoords& coords, int data);
 

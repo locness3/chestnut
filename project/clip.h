@@ -92,6 +92,10 @@ public:
      */
     void close(const bool wait);
     /**
+     * @brief Close this clip and free up resources whilst waiting
+     */
+    void close_with_wait();
+    /**
      * @brief Cache the clip at a certain point
      * @param playhead
      * @param reset

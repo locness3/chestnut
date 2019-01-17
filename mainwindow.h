@@ -28,7 +28,7 @@ class Timeline;
 class MainWindow : public QMainWindow {
 	Q_OBJECT
 public:
-    MainWindow(QWidget *parent, const QString& appName);
+    MainWindow(QWidget *parent, const QString& an);
 	void updateTitle(const QString &url);
 	virtual ~MainWindow();
 
@@ -39,6 +39,8 @@ public:
 
 	void load_shortcuts(const QString &fn, bool first = false);
 	void save_shortcuts(const QString &fn);
+
+    void load_css_from_file(const QString& fn);
 
 public slots:
 	void undo();
@@ -53,13 +55,14 @@ public slots:
 	void toggle_full_screen();
 
 protected:
-    virtual void closeEvent(QCloseEvent *e);
+    virtual void closeEvent(QCloseEvent *);
 	virtual void paintEvent(QPaintEvent *event);
 
 private slots:
 	void clear_undo_stack();
 
 	void show_about();
+	void show_debug_log();
 	void delete_slot();
 	void select_all();
 
@@ -113,12 +116,12 @@ private slots:
 	void set_in_point();
 	void set_out_point();
 
-    void clear_in();
-    void clear_out();
+	void clear_in();
+	void clear_out();
 	void clear_inout();
 	void delete_inout();
 	void ripple_delete_inout();
-    void enable_inout();
+	void enable_inout();
 
 	// title safe area functions
 	void set_tsa_disable();
@@ -205,6 +208,7 @@ private:
 	QAction* set_name_and_marker = nullptr;
 	QAction* loop_action = nullptr;
 	QAction* pause_at_out_point_action = nullptr;
+	QAction* seek_also_selects;
 
 	// edit menu actions
 	QAction* undo_action = nullptr;

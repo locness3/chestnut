@@ -98,12 +98,6 @@ EffectField::EffectField(EffectRow *parent, int t, const QString &i) :
 	}
 }
 
-
-EffectField::~EffectField() {
-//    delete ui_element;
-//    delete parent_row;
-}
-
 QVariant EffectField::get_previous_data() {
 	switch (type) {
 	case EFFECT_FIELD_DOUBLE: return static_cast<LabelSlider*>(ui_element)->getPreviousValue();

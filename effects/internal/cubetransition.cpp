@@ -23,8 +23,8 @@ CubeTransition::CubeTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Tra
     enable_coords = true;
 }
 
-void CubeTransition::process_coords(double progress, GLTextureCoords& coords, int data) {
+void CubeTransition::process_coords(double, GLTextureCoords& coords, int) {
 
-    coords.vertexTopLeftZ = 1;
-    coords.vertexBottomLeftZ = 1;
+	coords.vertexTopLeftZ = 1;
+	coords.vertexBottomLeftZ = 1;
 }

@@ -91,11 +91,6 @@ MoveClipAction::MoveClipAction(ClipPtr c, const long iin, const long iout, const
       old_project_changed(mainWindow->isWindowModified())
 {}
 
-
-MoveClipAction::~MoveClipAction() {
-
-}
-
 void MoveClipAction::undo() {
     if (relative) {
         clip->timeline_info.in -= new_in;
@@ -168,46 +163,46 @@ void DeleteClipAction::undo() {
 }
 
 void DeleteClipAction::redo() {
-    // remove ref to clip
-    ref = seq->clips.at(index);
+	// remove ref to clip
+	ref = seq->clips.at(index);
     ref->close(true);
     
-    seq->clips[index] = nullptr;
+	seq->clips[index] = nullptr;
 
-    // save shared transitions
-    if (ref->opening_transition > -1 && ref->get_opening_transition()->secondary_clip != nullptr) {
-        opening_transition = ref->opening_transition;
-        ref->get_opening_transition()->parent_clip = ref->get_opening_transition()->secondary_clip;
-        ref->get_opening_transition()->secondary_clip = nullptr;
-        ref->opening_transition = -1;
-    }
-    if (ref->closing_transition > -1 && ref->get_closing_transition()->secondary_clip != nullptr) {
-        closing_transition = ref->closing_transition;
-        ref->get_closing_transition()->secondary_clip = nullptr;
-        ref->closing_transition = -1;
-    }
+	// save shared transitions
+	if (ref->opening_transition > -1 && ref->get_opening_transition()->secondary_clip != nullptr) {
+		opening_transition = ref->opening_transition;
+		ref->get_opening_transition()->parent_clip = ref->get_opening_transition()->secondary_clip;
+		ref->get_opening_transition()->secondary_clip = nullptr;
+		ref->opening_transition = -1;
+	}
+	if (ref->closing_transition > -1 && ref->get_closing_transition()->secondary_clip != nullptr) {
+		closing_transition = ref->closing_transition;
+		ref->get_closing_transition()->secondary_clip = nullptr;
+		ref->closing_transition = -1;
+	}
 
-    // delete link to this clip
-    linkClipIndex.clear();
-    linkLinkIndex.clear();
-    for (int i=0;i<seq->clips.size();i++) {
+	// delete link to this clip
+	linkClipIndex.clear();
+	linkLinkIndex.clear();
+	for (int i=0;i<seq->clips.size();i++) {
         ClipPtr   c = seq->clips.at(i);
-        if (c != nullptr) {
-            for (int j=0;j<c->linked.size();j++) {
-                if (c->linked.at(j) == index) {
-                    linkClipIndex.append(i);
-                    linkLinkIndex.append(j);
-                    c->linked.removeAt(j);
-                }
-            }
-        }
-    }
+		if (c != nullptr) {
+			for (int j=0;j<c->linked.size();j++) {
+				if (c->linked.at(j) == index) {
+					linkClipIndex.append(i);
+					linkLinkIndex.append(j);
+					c->linked.removeAt(j);
+				}
+			}
+		}
+	}
 
-    mainWindow->setWindowModified(true);
+	mainWindow->setWindowModified(true);
 }
 
 ChangeSequenceAction::ChangeSequenceAction(SequencePtr s) :
-    new_sequence(s)
+	new_sequence(s)
 {}
 
 void ChangeSequenceAction::undo() {
@@ -276,7 +271,7 @@ AddEffectCommand::AddEffectCommand(ClipPtr   c, EffectPtr e, const EffectMeta *m
 {}
 
 AddEffectCommand::~AddEffectCommand() {
-    //	if (!done && ref != nullptr) delete ref;
+
 }
 
 void AddEffectCommand::undo() {
@@ -329,35 +324,35 @@ void AddTransitionCommand::undo() {
 }
 
 void AddTransitionCommand::redo() {
-    if (type == TA_OPENING_TRANSITION) {
-        old_ptransition = clip->opening_transition;
-        clip->opening_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
-        if (secondary != nullptr) {
-            old_stransition = secondary->closing_transition;
-            secondary->closing_transition = clip->opening_transition;
-        }
-        if (length > 0) {
-            clip->get_opening_transition()->set_length(length);
-        }
-    } else {
-        old_ptransition = clip->closing_transition;
-        clip->closing_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
-        if (secondary != nullptr) {
-            old_stransition = secondary->opening_transition;
-            secondary->opening_transition = clip->closing_transition;
-        }
-        if (length > 0) {
-            clip->get_closing_transition()->set_length(length);
-        }
-    }
-    mainWindow->setWindowModified(true);
+	if (type == TA_OPENING_TRANSITION) {
+		old_ptransition = clip->opening_transition;
+		clip->opening_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
+		if (secondary != nullptr) {
+			old_stransition = secondary->closing_transition;
+			secondary->closing_transition = clip->opening_transition;
+		}
+		if (length > 0) {
+			clip->get_opening_transition()->set_length(length);
+		}
+	} else {
+		old_ptransition = clip->closing_transition;
+		clip->closing_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
+		if (secondary != nullptr) {
+			old_stransition = secondary->opening_transition;
+			secondary->opening_transition = clip->closing_transition;
+		}
+		if (length > 0) {
+			clip->get_closing_transition()->set_length(length);
+		}
+	}
+	mainWindow->setWindowModified(true);
 }
 
-ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr   c, const int itype, const long ilength) :
-    clip(c),
-    type(itype),
-    new_length(ilength),
-    old_project_changed(mainWindow->isWindowModified())
+ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const int itype, const long ilength) :
+	clip(c),
+	type(itype),
+	new_length(ilength),
+	old_project_changed(mainWindow->isWindowModified())
 {}
 
 void ModifyTransitionCommand::undo() {
@@ -367,23 +362,23 @@ void ModifyTransitionCommand::undo() {
 }
 
 void ModifyTransitionCommand::redo() {
-    Transition* t = (type == TA_OPENING_TRANSITION) ? clip->get_opening_transition() : clip->get_closing_transition();
-    old_length = t->get_true_length();
-    t->set_length(new_length);
-    mainWindow->setWindowModified(true);
+	Transition* t = (type == TA_OPENING_TRANSITION) ? clip->get_opening_transition() : clip->get_closing_transition();
+	old_length = t->get_true_length();
+	t->set_length(new_length);
+	mainWindow->setWindowModified(true);
 }
 
 DeleteTransitionCommand::DeleteTransitionCommand(SequencePtr s, const int transition_index) :
-    seq(s),
-    index(transition_index),
-    transition(nullptr),
-    otc(nullptr),
-    ctc(nullptr),
-    old_project_changed(mainWindow->isWindowModified())
+	seq(s),
+	index(transition_index),
+	transition(nullptr),
+	otc(nullptr),
+	ctc(nullptr),
+	old_project_changed(mainWindow->isWindowModified())
 {}
 
 DeleteTransitionCommand::~DeleteTransitionCommand() {
-    if (transition != nullptr) delete transition;
+	if (transition != nullptr) delete transition;
 }
 
 void DeleteTransitionCommand::undo() {

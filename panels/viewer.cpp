@@ -77,10 +77,11 @@ Viewer::Viewer(QWidget *parent) :
 	seq(nullptr),
 	created_sequence(false),
 	cue_recording_internal(false),
-    panel_name(PANEL_NAME),
+    panel_name(tr(PANEL_NAME)),
 	minimum_zoom(1.0)
 {
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
 	setup_ui();
 
 	headers->viewer = this;
@@ -120,6 +121,10 @@ bool Viewer::is_focused() {
 			|| btnPlay->hasFocus()
 			|| btnFastForward->hasFocus()
 			|| btnSkipToEnd->hasFocus();
+}
+
+bool Viewer::is_main_sequence() {
+	return main_sequence;
 }
 
 void Viewer::set_main_sequence() {
@@ -270,11 +275,16 @@ bool frame_rate_is_droppable(float rate) {
 void Viewer::seek(long p) {
 	pause();
 	seq->playhead = p;
+	bool update_fx = false;
 	if (main_sequence) {
         e_panel_timeline->scroll_to_frame(p);
-        e_panel_effect_controls->scroll_to_frame(p);
+		e_panel_effect_controls->scroll_to_frame(p);
+        if (e_config.seek_also_selects) {
+			e_panel_timeline->select_from_playhead();
+			update_fx = true;
+		}
 	}
-	update_parents();
+	update_parents(update_fx);
 	reset_all_audio();
 	audio_scrub = true;
 }
@@ -287,9 +297,13 @@ void Viewer::go_to_end() {
 	if (seq != nullptr) seek(seq->getEndFrame());
 }
 
+void Viewer::close_media() {
+    set_media(nullptr);
+}
+
 void Viewer::go_to_in() {
 	if (seq != nullptr) {
-        if (seq->using_workarea && seq->enable_workarea) {
+		if (seq->using_workarea && seq->enable_workarea) {
 			seek(seq->workarea_in);
 		} else {
 			go_to_start();
@@ -307,7 +321,7 @@ void Viewer::next_frame() {
 
 void Viewer::go_to_out() {
 	if (seq != nullptr) {
-        if (seq->using_workarea && seq->enable_workarea) {
+		if (seq->using_workarea && seq->enable_workarea) {
 			seek(seq->workarea_out);
 		} else {
 			go_to_end();
@@ -355,7 +369,7 @@ void Viewer::play() {
 
 		reset_all_audio();
 		if (is_recording_cued() && !start_recording()) {
-			dout << "[ERROR] Failed to record audio";
+			qCritical() << "Failed to record audio";
 			return;
 		}
 		playhead_start = seq->playhead;
@@ -423,7 +437,8 @@ void Viewer::update_playhead_timecode(long p) {
 }
 
 void Viewer::update_end_timecode() {
-    endTimecode->setText((seq == nullptr) ? frame_to_timecode(0, e_config.timecode_view, 30) : frame_to_timecode(seq->getEndFrame(), e_config.timecode_view, seq->getFrameRate()));
+    endTimecode->setText((seq == nullptr) ? frame_to_timecode(0, e_config.timecode_view, 30)
+                                          : frame_to_timecode(seq->getEndFrame(), e_config.timecode_view, seq->getFrameRate()));
 }
 
 void Viewer::update_header_zoom() {
@@ -440,15 +455,15 @@ void Viewer::update_header_zoom() {
 	}
 }
 
-void Viewer::update_parents() {
+void Viewer::update_parents(bool reload_fx) {
 	if (main_sequence) {
-		update_ui(false);
+		update_ui(reload_fx);
 	} else {
 		update_viewer();
 	}
 }
 
-void Viewer::resizeEvent(QResizeEvent *event) {
+void Viewer::resizeEvent(QResizeEvent *) {
 	if (seq != nullptr) {
 		set_sb_max();
 	}
@@ -462,31 +477,31 @@ void Viewer::update_viewer() {
 }
 
 void Viewer::clear_in() {
-    if (seq->using_workarea) {
-        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, 0, seq->workarea_out));
-        update_parents();
-    }
+	if (seq->using_workarea) {
+		e_undo_stack.push(new SetTimelineInOutCommand(seq, true, 0, seq->workarea_out));
+		update_parents();
+	}
 }
 
 void Viewer::clear_out() {
-    if (seq->using_workarea) {
-        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, seq->workarea_in, seq->getEndFrame()));
-        update_parents();
-    }
+	if (seq->using_workarea) {
+		e_undo_stack.push(new SetTimelineInOutCommand(seq, true, seq->workarea_in, seq->getEndFrame()));
+		update_parents();
+	}
 }
 
 void Viewer::clear_inout_point() {
 	if (seq->using_workarea) {
 		e_undo_stack.push(new SetTimelineInOutCommand(seq, false, 0, 0));
 		update_parents();
-    }
+	}
 }
 
 void Viewer::toggle_enable_inout() {
-    if (seq != nullptr && seq->using_workarea) {
-        e_undo_stack.push(new SetBool(&seq->enable_workarea, !seq->enable_workarea));
-        update_parents();
-    }
+	if (seq != nullptr && seq->using_workarea) {
+		e_undo_stack.push(new SetBool(&seq->enable_workarea, !seq->enable_workarea));
+		update_parents();
+	}
 }
 
 void Viewer::set_in_point() {
@@ -531,13 +546,13 @@ void Viewer::set_sb_max() {
 }
 
 long Viewer::get_seq_in() {
-    return (seq->using_workarea && seq->enable_workarea)
+	return (seq->using_workarea && seq->enable_workarea)
 			? seq->workarea_in
 			: 0;
 }
 
 long Viewer::get_seq_out() {
-    return (seq->using_workarea && seq->enable_workarea && previous_playhead < seq->workarea_out)
+	return (seq->using_workarea && seq->enable_workarea && previous_playhead < seq->workarea_out)
 			? seq->workarea_out
 			: seq->getEndFrame();
 }
@@ -743,7 +758,8 @@ void Viewer::timer_update() {
 	previous_playhead = seq->playhead;
 
     seq->playhead = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * seq->getFrameRate()));
-	update_parents();
+	if (e_config.seek_also_selects) e_panel_timeline->select_from_playhead();
+	update_parents(e_config.seek_also_selects);
 
 	long end_frame = get_seq_out();
 	if (!recording

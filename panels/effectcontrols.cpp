@@ -51,7 +51,7 @@ EffectControls::EffectControls(QWidget *parent) :
 	QDockWidget(parent),
 	multiple(false),
 	zoom(1),
-	panel_name("Effects: "),
+    panel_name(tr("Effects: ")),
 	mode(TA_NO_TRANSITION)
 {
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -277,9 +277,9 @@ void EffectControls::open_effect(QVBoxLayout* layout, EffectPtr e) {
 void EffectControls::setup_ui() {
 	QWidget* contents = new QWidget();
 
-	QHBoxLayout* layout = new QHBoxLayout(contents);
-	layout->setSpacing(0);
-	layout->setMargin(0);
+	QHBoxLayout* hlayout = new QHBoxLayout(contents);
+	hlayout->setSpacing(0);
+	hlayout->setMargin(0);
 
 	QSplitter* splitter = new QSplitter(contents);
 	splitter->setOrientation(Qt::Horizontal);
@@ -320,7 +320,7 @@ void EffectControls::setup_ui() {
 
 	QPushButton* btnAddVideoEffect = new QPushButton(veHeader);
 	btnAddVideoEffect->setIcon(QIcon(":/icons/add-effect.png"));
-	btnAddVideoEffect->setToolTip("Add Video Effect");
+    btnAddVideoEffect->setToolTip(tr("Add Video Effect"));
 	veHeaderLayout->addWidget(btnAddVideoEffect);
 	connect(btnAddVideoEffect, SIGNAL(clicked(bool)), this, SLOT(video_effect_click()));
 
@@ -331,14 +331,14 @@ void EffectControls::setup_ui() {
 	font.setPointSize(9);
 	lblVideoEffects->setFont(font);
 	lblVideoEffects->setAlignment(Qt::AlignCenter);
-	lblVideoEffects->setText("VIDEO EFFECTS");
+    lblVideoEffects->setText(tr("VIDEO EFFECTS"));
 	veHeaderLayout->addWidget(lblVideoEffects);
 
 	veHeaderLayout->addStretch();
 
 	QPushButton* btnAddVideoTransition = new QPushButton(veHeader);
 	btnAddVideoTransition->setIcon(QIcon(":/icons/add-transition.png"));
-	btnAddVideoTransition->setToolTip("Add Video Transition");
+    btnAddVideoTransition->setToolTip(tr("Add Video Transition"));
 	connect(btnAddVideoTransition, SIGNAL(clicked(bool)), this, SLOT(video_transition_click()));
 
 	veHeaderLayout->addWidget(btnAddVideoTransition);
@@ -368,7 +368,7 @@ void EffectControls::setup_ui() {
 
 	QPushButton* btnAddAudioEffect = new QPushButton(aeHeader);
 	btnAddAudioEffect->setIcon(QIcon(":/icons/add-effect.png"));
-	btnAddAudioEffect->setToolTip("Add Audio Effect");
+    btnAddAudioEffect->setToolTip(tr("Add Audio Effect"));
 	connect(btnAddAudioEffect, SIGNAL(clicked(bool)), this, SLOT(audio_effect_click()));
 	aeHeaderLayout->addWidget(btnAddAudioEffect);
 
@@ -377,14 +377,14 @@ void EffectControls::setup_ui() {
 	QLabel* lblAudioEffects = new QLabel(aeHeader);
 	lblAudioEffects->setFont(font);
 	lblAudioEffects->setAlignment(Qt::AlignCenter);
-	lblAudioEffects->setText("AUDIO EFFECTS");
+    lblAudioEffects->setText(tr("AUDIO EFFECTS"));
 	aeHeaderLayout->addWidget(lblAudioEffects);
 
 	aeHeaderLayout->addStretch();
 
 	QPushButton* btnAddAudioTransition = new QPushButton(aeHeader);
 	btnAddAudioTransition->setIcon(QIcon(":/icons/add-transition.png"));
-	btnAddAudioTransition->setToolTip("Add Audio Transition");
+    btnAddAudioTransition->setToolTip(tr("Add Audio Transition"));
 	connect(btnAddAudioTransition, SIGNAL(clicked(bool)), this, SLOT(audio_transition_click()));
 	aeHeaderLayout->addWidget(btnAddAudioTransition);
 
@@ -401,7 +401,7 @@ void EffectControls::setup_ui() {
 
 	lblMultipleClipsSelected = new QLabel(effects_area);
 	lblMultipleClipsSelected->setAlignment(Qt::AlignCenter);
-	lblMultipleClipsSelected->setText("(Multiple clips selected)");
+    lblMultipleClipsSelected->setText(tr("(Multiple clips selected)"));
 	effects_area_layout->addWidget(lblMultipleClipsSelected);
 
 	effects_area_layout->addStretch();
@@ -448,7 +448,7 @@ void EffectControls::setup_ui() {
 
 	splitter->addWidget(keyframeArea);
 
-	layout->addWidget(splitter);
+    hlayout->addWidget(splitter);
 
 	setWidget(contents);
 }
@@ -557,14 +557,18 @@ bool EffectControls::is_focused() {
 				}
 			}
 		} else {
-			dout << "[WARNING] Tried to check focus of a nullptr clip";
+			qWarning() << "Tried to check focus of a nullptr clip";
 		}
 	}
 	return false;
 }
 
-EffectsArea::EffectsArea(QWidget* parent) : QWidget(parent) {}
+EffectsArea::EffectsArea(QWidget* parent) :
+	QWidget(parent)
+{}
 
 void EffectsArea::resizeEvent(QResizeEvent*) {
-	parent_widget->setMinimumWidth(sizeHint().width());
+//    parent_widget->setMinimumWidth(sizeHint().width());
+//    parent_widget->resize(sizeHint().width(), parent_widget->height());
+//    parent_widget->updateGeometry();
 }

@@ -26,6 +26,7 @@
 #include "projectmodel.h"
 
 #include <QPainter>
+#include <QCoreApplication>
 
 #include "debug.h"
 
@@ -36,18 +37,18 @@ extern "C" {
 
 QString get_interlacing_name(int interlacing) {
 	switch (interlacing) {
-	case VIDEO_PROGRESSIVE: return "None (Progressive)";
-	case VIDEO_TOP_FIELD_FIRST: return "Top Field First";
-	case VIDEO_BOTTOM_FIELD_FIRST: return "Bottom Field First";
-	default: return "Invalid";
+	case VIDEO_PROGRESSIVE: return QCoreApplication::translate("InterlacingName", "None (Progressive)");
+	case VIDEO_TOP_FIELD_FIRST: return QCoreApplication::translate("InterlacingName", "Top Field First");
+	case VIDEO_BOTTOM_FIELD_FIRST: return QCoreApplication::translate("InterlacingName", "Bottom Field First");
+	default: return QCoreApplication::translate("InterlacingName", "Invalid");
 	}
 }
 
 QString get_channel_layout_name(int channels, uint64_t layout) {
 	switch (channels) {
-	case 0: return "Invalid"; break;
-	case 1: return "Mono"; break;
-	case 2: return "Stereo"; break;
+	case 0: return QCoreApplication::translate("ChannelLayoutName", "Invalid");
+	case 1: return QCoreApplication::translate("ChannelLayoutName", "Mono");
+	case 2: return QCoreApplication::translate("ChannelLayoutName", "Stereo");
 	default: {
 		char buf[50];
 		av_get_channel_layout_string(buf, sizeof(buf), channels, layout);
@@ -88,7 +89,7 @@ void Media::set_sequence(SequencePtr sqn) {
 }
 
 void Media::set_folder() {
-	if (folder_name.isEmpty()) folder_name = "New Folder";
+	if (folder_name.isEmpty()) folder_name = QCoreApplication::translate("Media", "New Folder");
 	set_icon(QIcon(":/icons/folder.png"));
 	type = MEDIA_TYPE_FOLDER;
 	object = nullptr;
@@ -107,11 +108,11 @@ void Media::update_tooltip(const QString& error) {
 	case MEDIA_TYPE_FOOTAGE:
 	{
         FootagePtr f = get_object<Footage>();
-        tooltip = "Name: " + f->getName() + "\nFilename: " + f->url + "\n";
+        tooltip = QCoreApplication::translate("Media", "Name:") + " " + f->getName() + "\n" + QCoreApplication::translate("Media", "Filename:") + " " + f->url + "\n";
 
 		if (error.isEmpty()) {
 			if (f->video_tracks.size() > 0) {
-				tooltip += "Video Dimensions: ";
+				tooltip += QCoreApplication::translate("Media", "Video Dimensions:") + " ";
 				for (int i=0;i<f->video_tracks.size();i++) {
 					if (i > 0) {
 						tooltip += ", ";
@@ -121,7 +122,7 @@ void Media::update_tooltip(const QString& error) {
 				tooltip += "\n";
 
 				if (!f->video_tracks.at(0).infinite_length) {
-					tooltip += "Frame Rate: ";
+					tooltip += QCoreApplication::translate("Media", "Frame Rate:") + " ";
 					for (int i=0;i<f->video_tracks.size();i++) {
 						if (i > 0) {
 							tooltip += ", ";
@@ -129,14 +130,16 @@ void Media::update_tooltip(const QString& error) {
 						if (f->video_tracks.at(i).video_interlacing == VIDEO_PROGRESSIVE) {
 							tooltip += QString::number(f->video_tracks.at(i).video_frame_rate * f->speed);
 						} else {
-                            tooltip += QString::number(f->video_tracks.at(i).video_frame_rate * f->speed * 2);
-							tooltip += " fields (" + QString::number(f->video_tracks.at(i).video_frame_rate * f->speed) + " frames)";
+							tooltip += QCoreApplication::translate("Media", "%1 fields (%2 frames)").arg(
+										QString::number(f->video_tracks.at(i).video_frame_rate * f->speed * 2),
+										QString::number(f->video_tracks.at(i).video_frame_rate * f->speed)
+									);
 						}
 					}
 					tooltip += "\n";
 				}
 
-				tooltip += "Interlacing: ";
+				tooltip += QCoreApplication::translate("Media", "Interlacing:") + " ";
 				for (int i=0;i<f->video_tracks.size();i++) {
 					if (i > 0) {
 						tooltip += ", ";
@@ -148,7 +151,7 @@ void Media::update_tooltip(const QString& error) {
 			if (f->audio_tracks.size() > 0) {
 				tooltip += "\n";
 
-				tooltip += "Audio Frequency: ";
+				tooltip += QCoreApplication::translate("Media", "Audio Frequency:") + " ";
 				for (int i=0;i<f->audio_tracks.size();i++) {
 					if (i > 0) {
 						tooltip += ", ";
@@ -157,7 +160,7 @@ void Media::update_tooltip(const QString& error) {
 				}
 				tooltip += "\n";
 
-				tooltip += "Audio Channels: ";
+				tooltip += QCoreApplication::translate("Media", "Audio Channels:") + " ";
 				for (int i=0;i<f->audio_tracks.size();i++) {
 					if (i > 0) {
 						tooltip += ", ";
@@ -173,12 +176,20 @@ void Media::update_tooltip(const QString& error) {
 		break;
 	case MEDIA_TYPE_SEQUENCE:
 	{
-        SequencePtr s = get_object<Sequence>();
-        tooltip = "Name: " + s->getName()
-                       + "\nVideo Dimensions: " + QString::number(s->getWidth()) + "x" + QString::number(s->getHeight())
-                       + "\nFrame Rate: " + QString::number(s->getFrameRate())
-                       + "\nAudio Frequency: " + QString::number(s->getAudioFrequency())
-                       + "\nAudio Layout: " + get_channel_layout_name(av_get_channel_layout_nb_channels(s->getAudioLayout()), s->getAudioLayout());
+		SequencePtr s = get_object<Sequence>();
+
+		tooltip = QCoreApplication::translate("Media", "Name: %1"
+					 "\nVideo Dimensions: %2x%3"
+					 "\nFrame Rate: %4"
+					 "\nAudio Frequency: %5"
+					 "\nAudio Layout: %6").arg(
+					s->getName(),
+					QString::number(s->getWidth()),
+					QString::number(s->getHeight()),
+					QString::number(s->getFrameRate()),
+					QString::number(s->getAudioFrequency()),
+					get_channel_layout_name(av_get_channel_layout_nb_channels(s->getAudioLayout()), s->getAudioLayout())
+					);
 	}
 		break;
 	}
@@ -209,7 +220,7 @@ void Media::set_name(const QString &name) {
         folder_name = name;
         break;
     default:
-        dwarning << "Unknown media type" << type;
+        qWarning() << "Unknown media type" << type;
         break;
     }//switch
 }
@@ -227,7 +238,7 @@ double Media::get_frame_rate(const int stream) {
     case MEDIA_TYPE_SEQUENCE:
         return get_object<Sequence>()->getFrameRate();
     default:
-        dwarning << "Unknown media type" << get_type();
+        qWarning() << "Unknown media type" << get_type();
         break;
     }//switch
 
@@ -247,7 +258,7 @@ int Media::get_sampling_rate(const int stream) {
     case MEDIA_TYPE_SEQUENCE:
         return get_object<Sequence>()->getAudioFrequency();
     default:
-        dwarning << "Unknown media type" << get_type();
+        qWarning() << "Unknown media type" << get_type();
         break;
     }//switch
 	return 0;
@@ -298,9 +309,9 @@ QVariant Media::data(int column, int role) {
 		break;
 	case Qt::DisplayRole:
 		switch (column) {
-		case 0: return (root) ? "Name" : get_name();
+		case 0: return (root) ? QCoreApplication::translate("Media", "Name") : get_name();
 		case 1:
-			if (root) return "Duration";
+			if (root) return QCoreApplication::translate("Media", "Duration");
 			if (get_type() == MEDIA_TYPE_SEQUENCE) {
                 SequencePtr s = get_object<Sequence>();
                 return frame_to_timecode(s->getEndFrame(), e_config.timecode_view, s->getFrameRate());
@@ -317,7 +328,7 @@ QVariant Media::data(int column, int role) {
 			}
 			break;
 		case 2:
-			if (root) return "Rate";
+			if (root) return QCoreApplication::translate("Media", "Rate");
 			if (get_type() == MEDIA_TYPE_SEQUENCE) return QString::number(get_frame_rate()) + " FPS";
 			if (get_type() == MEDIA_TYPE_FOOTAGE) {
                 FootagePtr f = get_object<Footage>();

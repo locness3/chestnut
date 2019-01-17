@@ -17,6 +17,8 @@
  */
 #include "sequence.h"
 
+#include <QCoreApplication>
+
 #include "clip.h"
 #include "transition.h"
 
@@ -56,7 +58,7 @@ Sequence::Sequence(const Sequence& cpy) :
 
 std::shared_ptr<Sequence> Sequence::copy() {
     std::shared_ptr<Sequence> s = std::make_shared<Sequence>();
-    s->name = name + " (copy)";
+	s->name = QCoreApplication::translate("Sequence", "%1 (copy)").arg(name);
     s->width = width;
     s->height = height;
     s->frame_rate = frame_rate;

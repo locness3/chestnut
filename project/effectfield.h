@@ -40,7 +40,6 @@ class EffectField : public QObject {
 	Q_OBJECT
 public:
 	EffectField(EffectRow* parent, int t, const QString& i);
-    virtual ~EffectField();
 	EffectRow* parent_row;
 	int type;
 	QString id;
@@ -87,10 +86,10 @@ public:
     QWidget* ui_element = nullptr;
 
 	void make_key_from_change(ComboAction* ca);
+public slots:
+    void ui_element_change();
 private:
-	bool hasKeyframes();
-private slots:
-	void ui_element_change();
+    bool hasKeyframes();
 signals:
 	void changed();
 	void toggled(bool);

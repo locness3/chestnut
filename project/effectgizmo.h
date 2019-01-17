@@ -18,8 +18,8 @@
 #ifndef EFFECTGIZMO_H
 #define EFFECTGIZMO_H
 
-#define GIZMO_DOT_SIZE 2.5F
-#define GIZMO_TARGET_SIZE 5.0F
+#define GIZMO_DOT_SIZE 2.5
+#define GIZMO_TARGET_SIZE 5.0
 
 #include <QString>
 #include <QRect>

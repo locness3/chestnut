@@ -11,11 +11,11 @@ VoidEffect::VoidEffect(ClipPtr c, const QString& n) : Effect(c, nullptr) {
 	name = n;
 	QString display_name;
 	if (n.isEmpty()) {
-		display_name = "(unknown)";
+        display_name = tr("(unknown)");
 	} else {
 		display_name = n;
 	}
-    EffectRowPtr row = add_row("Missing Effect", false, false);
+    EffectRowPtr row = add_row(tr("Missing Effect"), false, false);
 	row->add_widget(new QLabel(display_name));
 	container->setText(display_name);
 }

@@ -34,6 +34,7 @@ class ResizableScrollBar;
 class QLabel;
 class KeyframeView;
 class QScrollBar;
+class QHBoxLayout;
 
 class EffectsArea : public QWidget {
 public:
@@ -71,6 +72,8 @@ public:
 	QScrollBar* verticalScrollBar;
 
     QMutex effects_loaded;
+
+
 public slots:
 	void update_keyframes();
 private slots:
@@ -88,7 +91,7 @@ private:
 	void show_effect_menu(int type, int subtype);
 	void load_effects();
 	void load_keyframes();
-    void open_effect(QVBoxLayout* layout, EffectPtr e);
+    void open_effect(QVBoxLayout* hlayout, EffectPtr e);
 
 	void setup_ui();
 

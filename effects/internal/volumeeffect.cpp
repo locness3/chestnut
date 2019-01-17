@@ -26,7 +26,7 @@
 #include "ui/collapsiblewidget.h"
 
 VolumeEffect::VolumeEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
-    EffectRowPtr volume_row = add_row("Volume");
+    EffectRowPtr volume_row = add_row(tr("Volume"));
 	volume_val = volume_row->add_field(EFFECT_FIELD_DOUBLE, "volume");
 	volume_val->set_double_minimum_value(0);
 

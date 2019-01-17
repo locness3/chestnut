@@ -262,8 +262,8 @@ void TimelineWidget::rename_clip() {
 	}
 	if (selected_clips.size() > 0) {
 		QString s = QInputDialog::getText(this,
-                                          (selected_clips.size() == 1) ? "Rename '" + selected_clips.at(0)->getName() + "'" : "Rename multiple clips",
-										  "Enter a new name for this clip:",
+										  (selected_clips.size() == 1) ? tr("Rename '%1'").arg(selected_clips.at(0)->getName()) : tr("Rename multiple clips"),
+										  tr("Enter a new name for this clip:"),
 										  QLineEdit::Normal,
                                           selected_clips.at(0)->getName()
 									);
@@ -296,7 +296,7 @@ void TimelineWidget::open_sequence_properties() {
 			return;
 		}
 	}
-	QMessageBox::critical(this, "Error", "Couldn't locate media wrapper for sequence.");
+	QMessageBox::critical(this, tr("Error"), tr("Couldn't locate media wrapper for sequence."));
 }
 
 bool same_sign(int a, int b) {
@@ -424,9 +424,6 @@ void TimelineWidget::dragLeaveEvent(QDragLeaveEvent* event) {
         e_panel_timeline->ghosts.clear();
         e_panel_timeline->importing = false;
 		update_ui(false);
-	}
-    if (self_created_sequence != nullptr) {
-        self_created_sequence = nullptr;
 	}
 }
 
@@ -846,27 +843,27 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
 
                         switch (e_panel_timeline->creating_object) {
 						case ADD_OBJ_TITLE:
-                            c->setName("Title");
+                            c->setName(tr("Title"));
 							c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TEXT, EFFECT_TYPE_EFFECT)));
 							break;
 						case ADD_OBJ_SOLID:
-                            c->setName("Solid Color");
+                            c->setName(tr("Solid Color"));
 							c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_SOLID, EFFECT_TYPE_EFFECT)));
 							break;
 						case ADD_OBJ_BARS:
 						{
-                            c->setName("Bars");
+                            c->setName(tr("Bars"));
                             EffectPtr e = create_effect(c, get_internal_meta(EFFECT_INTERNAL_SOLID, EFFECT_TYPE_EFFECT));
 							e->row(0)->field(0)->set_combo_index(1);
 							c->effects.append(e);
 						}
 							break;
 						case ADD_OBJ_TONE:
-                            c->setName("Tone");
+                            c->setName(tr("Tone"));
 							c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TONE, EFFECT_TYPE_EFFECT)));
 							break;
 						case ADD_OBJ_NOISE:
-                            c->setName("Noise");
+                            c->setName(tr("Noise"));
 							c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_NOISE, EFFECT_TYPE_EFFECT)));
 							break;
 						}
@@ -1594,7 +1591,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
 			}
 
             if (g != nullptr) {
-				tip += " Duration: ";
+				tip += " " + tr("Duration:") + " ";
 				long len = (g->old_out-g->old_in);
                 if (e_panel_timeline->trim_in_point) {
 					len -= frame_diff;
@@ -2172,7 +2169,7 @@ void TimelineWidget::leaveEvent(QEvent*) {
 
 int color_brightness(const QColor& color) {
     //FIXME: magic numbers
-    return (0.2126*color.red() + 0.7152*color.green() + 0.0722*color.blue());
+    return qRound(0.2126*color.red() + 0.7152*color.green() + 0.0722*color.blue());
 }
 
 void draw_waveform(ClipPtr clip, const FootageStream* ms, long media_length, QPainter *p, const QRect& clip_rect, int waveform_start, int waveform_limit, double zoom) {

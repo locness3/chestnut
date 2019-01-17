@@ -70,7 +70,7 @@ void PreviewGenerator::parse_media() {
 	for (int i=0;i<(int)fmt_ctx->nb_streams;i++) {
 		// Find the decoder for the video stream
         if (avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id) == nullptr) {
-            dout << "[ERROR] Unsupported codec in stream" << i << "of file" << footage->getName();
+            qCritical() << "Unsupported codec in stream" << i << "of file" << footage->getName();
 		} else {
 			FootageStream ms;
 			ms.preview_done = false;
@@ -270,13 +270,13 @@ void PreviewGenerator::generate_waveform() {
 
 			if (read_ret < 0) {
 				end_of_file = true;
-				if (read_ret != AVERROR_EOF) dout << "[ERROR] Failed to read packet for preview generation" << read_ret;
+				if (read_ret != AVERROR_EOF) qCritical() << "Failed to read packet for preview generation" << read_ret;
 				break;
 			}
             if (codec_ctx[packet->stream_index] != nullptr) {
 				int send_ret = avcodec_send_packet(codec_ctx[packet->stream_index], packet);
 				if (send_ret < 0 && send_ret != AVERROR(EAGAIN)) {
-					dout << "[ERROR] Failed to send packet for preview generation - aborting" << send_ret;
+					qCritical() << "Failed to send packet for preview generation - aborting" << send_ret;
 					end_of_file = true;
 					break;
 				}
@@ -457,14 +457,14 @@ void PreviewGenerator::run() {
 	if(errCode != 0) {
 		char err[1024];
 		av_strerror(errCode, err, 1024);
-		errorStr = "Could not open file - " + QString(err);
+        errorStr = tr("Could not open file - %1").arg(err);
 		error = true;
 	} else {
         errCode = avformat_find_stream_info(fmt_ctx, nullptr);
 		if (errCode < 0) {
 			char err[1024];
 			av_strerror(errCode, err, 1024);
-			errorStr = "Could not find stream information - " + QString(err);
+            errorStr = tr("Could not find stream information - %1").arg(err);
 			error = true;
 		} else {
 			av_dump_format(fmt_ctx, 0, filename, 0);
