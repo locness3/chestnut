@@ -19,6 +19,9 @@
 #define TRANSITION_H
 
 #include "effect.h"
+#include "project/clip.h"
+
+#include <memory>
 
 #define TA_NO_TRANSITION 0
 #define TA_OPENING_TRANSITION 1
@@ -33,13 +36,14 @@
 
 int create_transition(ClipPtr c, ClipPtr s, const EffectMeta* em, long length = -1);
 
+
+
 class Transition : public Effect {
 	Q_OBJECT
 public:
     Transition(ClipPtr c, ClipPtr s, const EffectMeta* em);
-    virtual ~Transition();
     int copy(ClipPtr c, ClipPtr s);
-    ClipPtr secondary_clip;
+    ClipWPtr secondary_clip;
     void set_length(const long value);
     long get_true_length() const;
     long get_length() const;
@@ -49,5 +53,8 @@ private:
 	long length; // used only for transitions
     EffectFieldPtr length_field;
 };
+
+
+using TransitionPtr = std::shared_ptr<Transition>;
 
 #endif // TRANSITION_H

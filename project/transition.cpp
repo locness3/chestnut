@@ -59,10 +59,6 @@ Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
     length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->getFrameRate());
 }
 
-Transition::~Transition() {
-    length_field = nullptr;
-}
-
 int Transition::copy(ClipPtr c, ClipPtr s) {
 	return create_transition(c, s, meta, length);
 }
@@ -77,7 +73,7 @@ long Transition::get_true_length() const {
 }
 
 long Transition::get_length() const {
-	if (secondary_clip != nullptr) {
+    if (!secondary_clip.expired()) {
 		return length * 2;
 	}
 	return length;

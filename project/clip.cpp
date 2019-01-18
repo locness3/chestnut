@@ -122,10 +122,10 @@ ClipPtr Clip::copy(SequencePtr s) {
 
     copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->getFrameRate();
 
-    if (get_opening_transition() != nullptr && get_opening_transition()->secondary_clip == nullptr) {
+    if (get_opening_transition() != nullptr && !get_opening_transition()->secondary_clip.expired()) {
         copyClip->opening_transition = get_opening_transition()->copy(copyClip, nullptr);
     }
-    if (get_closing_transition() != nullptr && get_closing_transition()->secondary_clip == nullptr) {
+    if (get_closing_transition() != nullptr && !get_closing_transition()->secondary_clip.expired()) {
         copyClip->closing_transition = get_closing_transition()->copy(copyClip, nullptr);
     }
     copyClip->recalculateMaxLength();
@@ -850,7 +850,7 @@ bool Clip::is_selected(const bool containing)
 }
 
 long Clip::get_clip_in_with_transition() {
-    if (get_opening_transition() != nullptr && get_opening_transition()->secondary_clip != nullptr) {
+    if (get_opening_transition() != nullptr && !get_opening_transition()->secondary_clip.expired()) {
         // we must be the secondary clip, so return (timeline in - length)
         return timeline_info.clip_in - get_opening_transition()->get_true_length();
     }
@@ -858,7 +858,7 @@ long Clip::get_clip_in_with_transition() {
 }
 
 long Clip::get_timeline_in_with_transition() {
-    if (get_opening_transition() != nullptr && get_opening_transition()->secondary_clip != nullptr) {
+    if (get_opening_transition() != nullptr && !get_opening_transition()->secondary_clip.expired()) {
         // we must be the secondary clip, so return (timeline in - length)
         return timeline_info.in - get_opening_transition()->get_true_length();
     }
@@ -866,7 +866,7 @@ long Clip::get_timeline_in_with_transition() {
 }
 
 long Clip::get_timeline_out_with_transition() {
-    if (get_closing_transition() != nullptr && get_closing_transition()->secondary_clip != nullptr) {
+    if (get_closing_transition() != nullptr && !get_closing_transition()->secondary_clip.expired()) {
         // we must be the primary clip, so return (timeline out + length2)
         return timeline_info.out + get_closing_transition()->get_true_length();
     } else {
@@ -1766,15 +1766,16 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
 
     if (verify_transitions) {
         if ( (get_opening_transition() != nullptr) &&
-             (get_opening_transition()->secondary_clip != nullptr) &&
-             (get_opening_transition()->secondary_clip->timeline_info.out != iin) ) {
+             (!get_opening_transition()->secondary_clip.expired()) &&
+             (get_opening_transition()->secondary_clip.lock()->timeline_info.out != iin) ) {
             // separate transition
             //            ca.append(new SetPointer((void**) &get_opening_transition()->secondary_clip, nullptr));
-            ca.append(new AddTransitionCommand(get_opening_transition()->secondary_clip, nullptr, get_opening_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
+            ca.append(new AddTransitionCommand(get_opening_transition()->secondary_clip.lock(), nullptr,
+                                               get_opening_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
         }
 
         if ( (get_closing_transition() != nullptr) &&
-             (get_closing_transition()->secondary_clip != nullptr) &&
+             (!get_closing_transition()->secondary_clip.expired()) &&
              (get_closing_transition()->parent_clip->timeline_info.in != iout) ) {
             // separate transition
             //            ca.append(new SetPointer((void**) &get_closing_transition()->secondary_clip, nullptr));

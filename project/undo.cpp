@@ -170,15 +170,15 @@ void DeleteClipAction::redo() {
 	seq->clips[index] = nullptr;
 
 	// save shared transitions
-	if (ref->opening_transition > -1 && ref->get_opening_transition()->secondary_clip != nullptr) {
+    if (ref->opening_transition > -1 && !ref->get_opening_transition()->secondary_clip.expired()) {
 		opening_transition = ref->opening_transition;
-		ref->get_opening_transition()->parent_clip = ref->get_opening_transition()->secondary_clip;
-		ref->get_opening_transition()->secondary_clip = nullptr;
+        ref->get_opening_transition()->parent_clip = ref->get_opening_transition()->secondary_clip.lock();
+        ref->get_opening_transition()->secondary_clip.reset();
 		ref->opening_transition = -1;
 	}
-	if (ref->closing_transition > -1 && ref->get_closing_transition()->secondary_clip != nullptr) {
+    if (ref->closing_transition > -1 && !ref->get_closing_transition()->secondary_clip.expired()) {
 		closing_transition = ref->closing_transition;
-		ref->get_closing_transition()->secondary_clip = nullptr;
+        ref->get_closing_transition()->secondary_clip.reset();
 		ref->closing_transition = -1;
 	}
 

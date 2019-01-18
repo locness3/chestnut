@@ -196,7 +196,7 @@ public:
 	void gizmo_world_to_screen();
     bool are_gizmos_enabled() const;
 
-    ClipPtr parent_clip;
+    ClipPtr parent_clip; //TODO: make weak
     const EffectMeta* meta;
     int id;
     QString name;
