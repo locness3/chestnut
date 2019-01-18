@@ -831,6 +831,24 @@ double Clip::get_timecode(const long playhead) {
             / static_cast<double>(sequence->getFrameRate()) );
 }
 
+/**
+ * @brief Identify if this clip is selected in the project's current sequence
+ * @param containing
+ * @return true==is selected
+ */
+bool Clip::is_selected(const bool containing)
+{
+    for (int i=0; i < sequence->selections.size(); i++) {
+        const Selection& s = sequence->selections.at(i);
+        //FIXME: christ almighty
+        if (timeline_info.track == s.track && ((timeline_info.in >= s.in && timeline_info.out <= s.out && containing) ||
+                (!containing && !(timeline_info.in < s.in && timeline_info.out < s.in) && !(timeline_info.in > s.in && timeline_info.out > s.in)))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 long Clip::get_clip_in_with_transition() {
     if (get_opening_transition() != nullptr && get_opening_transition()->secondary_clip != nullptr) {
         // we must be the secondary clip, so return (timeline in - length)

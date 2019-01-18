@@ -498,7 +498,7 @@ void MainWindow::open_speed_dialog() {
 		SpeedDialog s(this);
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr c = e_sequence->clips.at(i);
-            if (c != nullptr && is_clip_selected(c, true)) {
+            if (c != nullptr && c->is_selected(true)) {
 				s.clips.append(c);
 			}
 		}
@@ -1458,7 +1458,7 @@ void MainWindow::toggle_enable_clips() {
 		bool push_undo = false;
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr  c = e_sequence->clips.at(i);
-            if (c != nullptr && is_clip_selected(c, true)) {
+            if (c != nullptr && c->is_selected(true)) {
                 ca->append(new SetEnableCommand(c, !c->timeline_info.enabled));
 				push_undo = true;
 			}
@@ -1490,7 +1490,7 @@ void MainWindow::nest() {
 		// get selected clips
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr  c = e_sequence->clips.at(i);
-            if (c != nullptr && is_clip_selected(c, true)) {
+            if (c != nullptr && c->is_selected(true)) {
 				selected_clips.append(i);
                 earliest_point = qMin(c->timeline_info.in, earliest_point);
 			}

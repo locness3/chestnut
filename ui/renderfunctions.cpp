@@ -335,7 +335,7 @@ GLuint compose_sequence(Viewer* viewer,
 					if (selected_effect != nullptr) {
                         gizmos = selected_effect;
 //						(*gizmos) = selected_effect;
-					} else if (is_clip_selected(c, true)) {
+                    } else if (c->is_selected(true)) {
                         gizmos = first_gizmo_effect;
 //						(*gizmos) = first_gizmo_effect;
 					}

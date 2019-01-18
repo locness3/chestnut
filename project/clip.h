@@ -139,6 +139,12 @@ public:
      * @return
      */
     double get_timecode(const long playhead);
+    /**
+     * @brief Identify if this clip is selected in the project's current sequence
+     * @param containing
+     * @return true==is selected
+     */
+    bool is_selected(const bool containing);
 
     //FIXME: all the class members
     SequencePtr sequence;
