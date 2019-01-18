@@ -302,7 +302,7 @@ void EffectField::make_key_from_change(ComboAction* ca) {
 		parent_row->set_keyframe_now(ca);
     } else if (ca != nullptr) {
 		// set undo
-        ca->append(new EffectFieldUndo(EffectFieldPtr(this)));//FIXME: "this"
+        ca->append(new EffectFieldUndo(EffectFieldPtr(shared_from_this())));
 	}
 }
 

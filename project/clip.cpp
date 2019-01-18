@@ -1761,8 +1761,7 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
                 const long iclip_in, const int itrack, const bool verify_transitions,
                 const bool relative)
 {
-    //TODO: check the ClipPtr(this) does what intended
-    ca.append(new MoveClipAction(ClipPtr(this), iin, iout, iclip_in, itrack, relative));
+    ca.append(new MoveClipAction(ClipPtr(shared_from_this()), iin, iout, iclip_in, itrack, relative));
 
     if (verify_transitions) {
         if ( (get_opening_transition() != nullptr) &&
@@ -1779,7 +1778,7 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
              (get_closing_transition()->parent_clip->timeline_info.in != iout) ) {
             // separate transition
             //            ca.append(new SetPointer((void**) &get_closing_transition()->secondary_clip, nullptr));
-            ca.append(new AddTransitionCommand(ClipPtr(this), nullptr, get_closing_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
+            ca.append(new AddTransitionCommand(ClipPtr(shared_from_this()), nullptr, get_closing_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
         }
     }
 }

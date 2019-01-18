@@ -36,7 +36,7 @@
 class EffectRow;
 class ComboAction;
 
-class EffectField : public QObject {
+class EffectField : public QObject, std::enable_shared_from_this<EffectField> {
 	Q_OBJECT
 public:
 	EffectField(EffectRow* parent, int t, const QString& i);
