@@ -37,6 +37,7 @@ class Clip;
 class Timeline;
 class Viewer;
 class SourceTable;
+class ProjectFilter;
 class ComboAction;
 class SourceIconView;
 class QPushButton;
@@ -87,7 +88,7 @@ public:
 	SourceIconView* icon_view;
 	SourcesCommon* sources_common;
 
-	QSortFilterProxyModel* sorter;
+	ProjectFilter* sorter;
 
     QVector<MediaPtr> last_imported_media; //TODO: feel a map is required so ProjectModel can use the key in QModelIndex
 

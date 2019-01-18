@@ -80,6 +80,7 @@ struct Config {
     bool pause_at_out_point;
     bool seek_also_selects;
     QString css_path;
+	int effect_textbox_lines;
 
 	void load(QString path);
 	void save(QString path);

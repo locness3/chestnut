@@ -49,6 +49,7 @@ EffectRow::EffectRow(Effect* parent, const bool save, QGridLayout* uilayout,
 
 	column_count = 1;
 
+	keyframe_nav = nullptr;
     if (parent_effect->meta != nullptr
             && parent_effect->meta->type != EFFECT_TYPE_TRANSITION
             && keyframable) {
@@ -75,7 +76,9 @@ bool EffectRow::isKeyframing() {
 void EffectRow::setKeyframing(bool b) {
 	if (parent_effect->meta->type != EFFECT_TYPE_TRANSITION) {
 		keyframing = b;
+		if (keyframe_nav != nullptr) {
 		keyframe_nav->enable_keyframes(b);
+		}
 	}
 }
 

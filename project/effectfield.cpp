@@ -25,6 +25,8 @@
 #include "ui/fontcombobox.h"
 #include "ui/embeddedfilechooser.h"
 
+#include "io/config.h"
+
 #include "effectrow.h"
 #include "effect.h"
 
@@ -61,6 +63,7 @@ EffectField::EffectField(EffectRow *parent, int t, const QString &i) :
 	case EFFECT_FIELD_STRING:
 	{
 		TextEditEx* edit = new TextEditEx();
+        edit->setFixedHeight(edit->fontMetrics().lineSpacing()* e_config.effect_textbox_lines);
 		edit->setUndoRedoEnabled(true);
 		ui_element = edit;
 		connect(edit, SIGNAL(textChanged()), this, SLOT(ui_element_change()));
@@ -299,7 +302,7 @@ void EffectField::make_key_from_change(ComboAction* ca) {
 		parent_row->set_keyframe_now(ca);
     } else if (ca != nullptr) {
 		// set undo
-        ca->append(new EffectFieldUndo(EffectFieldPtr(this)));
+        ca->append(new EffectFieldUndo(EffectFieldPtr(this)));//FIXME: "this"
 	}
 }
 

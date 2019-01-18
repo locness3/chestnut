@@ -667,7 +667,7 @@ Transition* Clip::get_closing_transition() {
  * @brief get_frame
  * @param playhead
  */
-void Clip::get_frame(const long playhead) {
+void Clip::get_frame(const long playhead, bool& texture_failed) {
     if (finished_opening) {
         const FootageStream* ms = timeline_info.media->get_object<Footage>()->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream);
 
@@ -781,7 +781,7 @@ void Clip::get_frame(const long playhead) {
 
         if (target_frame == nullptr || reset) {
             // reset cache
-            e_texture_failed = true;
+            texture_failed = true;
             dout << "[INFO] Frame queue couldn't keep up - either the user seeked or the system is overloaded (queue size:" << queue.size() <<  ") " << reset;
         }
 

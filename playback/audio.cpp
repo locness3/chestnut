@@ -46,6 +46,7 @@ bool audio_scrub = false;
 QMutex audio_write_lock;
 QAudioInput* audio_input = nullptr;
 QFile output_recording;
+bool audio_rendering = false;
 bool recording = false;
 
 qint8 audio_ibuffer[audio_ibuffer_size];
@@ -119,13 +120,15 @@ void stop_audio() {
 
 void clear_audio_ibuffer() {
 	if (audio_thread != nullptr) audio_thread->lock.lock();
+	audio_write_lock.lock();
 	memset(audio_ibuffer, 0, audio_ibuffer_size);
 	audio_ibuffer_read = 0;
+	audio_write_lock.unlock();
 	if (audio_thread != nullptr) audio_thread->lock.unlock();
 }
 
 int current_audio_freq() {
-    return e_rendering ? e_sequence->getAudioFrequency() : audio_output->format().sampleRate();
+	return audio_rendering ? e_sequence->getAudioFrequency() : audio_output->format().sampleRate();
 }
 
 int get_buffer_offset_from_frame(double framerate, long frame) {
@@ -305,7 +308,7 @@ void write_wave_trailer(QFile& f) {
 
 bool start_recording() {
 	if (e_sequence == nullptr) {
-		dout << "No active sequence to record into";
+		qCritical() << "No active sequence to record into";
 		return false;
 	}
 

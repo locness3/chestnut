@@ -132,7 +132,7 @@ public:
      * @brief get_frame
      * @param playhead
      */
-    void get_frame(const long playhead);
+    void get_frame(const long playhead, bool& texture_failed);
     /**
      * @brief get_timecode
      * @param playhead

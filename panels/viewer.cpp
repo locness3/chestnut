@@ -76,9 +76,8 @@ Viewer::Viewer(QWidget *parent) :
 	media(nullptr),
 	seq(nullptr),
 	created_sequence(false),
-	cue_recording_internal(false),
-    panel_name(tr(PANEL_NAME)),
-	minimum_zoom(1.0)
+	minimum_zoom(1.0),
+	cue_recording_internal(false)
 {
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -139,8 +138,10 @@ void Viewer::reset_all_audio() {
         audio_ibuffer_timecode = (double) audio_ibuffer_frame / seq->getFrameRate();
 
 		for (int i=0;i<seq->clips.size();i++) {
-            ClipPtr c = seq->clips.at(i);
-			if (c != nullptr) c->reset_audio();
+			ClipPtr c = seq->clips.at(i);
+			if (c != nullptr) {
+				c->reset_audio();
+			}
 		}
 	}
 	clear_audio_ibuffer();
@@ -284,9 +285,9 @@ void Viewer::seek(long p) {
 			update_fx = true;
 		}
 	}
-	update_parents(update_fx);
 	reset_all_audio();
 	audio_scrub = true;
+	update_parents(update_fx);
 }
 
 void Viewer::go_to_start() {
@@ -471,7 +472,7 @@ void Viewer::resizeEvent(QResizeEvent *) {
 
 void Viewer::update_viewer() {
 	update_header_zoom();
-	viewer_widget->update();
+	viewer_widget->frame_update();
 	if (seq != nullptr) update_playhead_timecode(seq->playhead);
 	update_end_timecode();
 }
@@ -518,14 +519,19 @@ void Viewer::set_zoom(bool in) {
 	}
 }
 
+void Viewer::set_panel_name(const QString &n) {
+	panel_name = n;
+	update_window_title();
+}
 
-void Viewer::set_panel_name(const QString& name) {
-    panel_name = name;
-    if (seq != nullptr) {
-        setWindowTitle(QString(PANEL_TITLE_FORMAT).arg(panel_name).arg(seq->getName()));
-    } else {
-        setWindowTitle(QString(PANEL_TITLE_FORMAT).arg(panel_name).arg("(none)"));
-    }
+void Viewer::update_window_title() {
+	QString name;
+	if (seq == nullptr) {
+		name = tr("(none)");
+	} else {
+        name = seq->getName();
+	}
+	setWindowTitle(QString("%1: %2").arg(panel_name, name));
 }
 
 void Viewer::set_zoom_value(double d) {
@@ -726,7 +732,7 @@ void Viewer::set_media(MediaPtr m) {
 					viewer_widget->waveform = true;
 					viewer_widget->waveform_clip = c;
 					viewer_widget->waveform_ms = &audio_stream;
-					viewer_widget->update();
+					viewer_widget->frame_update();
 				}
 			} else {
                 seq->setAudioFrequency(MEDIA_AUDIO_FREQUENCY);
@@ -836,17 +842,15 @@ void Viewer::set_sequence(bool main, SequencePtr s) {
 		update_end_timecode();
 
 		viewer_container->adjust();
-        set_panel_name(seq->getName());
-
 	} else {
 		update_playhead_timecode(0);
 		update_end_timecode();
-        set_panel_name(PANEL_NAME);
 	}
+	update_window_title();
 
 	update_header_zoom();
 
-	viewer_widget->update();
+	viewer_widget->frame_update();
 
 	update();
 }

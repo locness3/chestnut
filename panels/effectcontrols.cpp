@@ -111,7 +111,7 @@ void EffectControls::menu_select(QAction* q) {
 		update_ui(true);
 	} else {
 		reload_clips();
-		e_panel_sequence_viewer->viewer_widget->update();
+		e_panel_sequence_viewer->viewer_widget->frame_update();
 	}
 }
 

@@ -34,22 +34,27 @@
 class Viewer;
 class Clip;
 struct FootageStream;
+class QOpenGLFramebufferObject;
 class EffectGizmo;
 class ViewerContainer;
 struct GLTextureCoords;
+class RenderThread;
+class ViewerWindow;
 
 class ViewerWidget : public QOpenGLWidget, QOpenGLFunctions
 {
 	Q_OBJECT
 public:
     explicit ViewerWidget(QWidget *parent = 0);
+	~ViewerWidget();
+
+	void delete_function();
+	void close_window();
 
     void paintGL();
     void initializeGL();
 	Viewer* viewer;
     ViewerContainer* container;
-
-    QOpenGLFramebufferObject* default_fbo;
 
 	bool waveform;
     ClipPtr waveform_clip;
@@ -57,41 +62,37 @@ public:
     double waveform_zoom;
     int waveform_scroll;
 
-    bool force_quit = false;
+	void frame_update();
+	RenderThread* get_renderer();
 public slots:
-    void delete_function();
     void set_waveform_scroll(int s);
 protected:
-    virtual void paintEvent(QPaintEvent *e);
-//    void resizeGL(int w, int h);
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
     virtual void mouseReleaseEvent(QMouseEvent *event);
 private:
-	QTimer retry_timer;
-    void drawTitleSafeArea();
+	void draw_waveform_func();
+	void draw_title_safe_area();
+	void draw_gizmos();
+    EffectGizmoPtr get_gizmo_from_mouse(int x, int y);
+	void move_gizmos(QMouseEvent *event, bool done);
 	bool dragging;
 	void seek_from_click(int x);
-    GLuint compose_sequence(QVector<ClipPtr > &nests, bool render_audio);
-    GLuint draw_clip(QOpenGLFramebufferObject *clip, GLuint texture, bool clear);
-    void process_effect(ClipPtr c, EffectPtr e, double timecode,
-                        GLTextureCoords& coords, GLuint& composite_texture,
-                        bool& fbo_switcher, int data);
     EffectPtr gizmos;
     int drag_start_x;
     int drag_start_y;
     int gizmo_x_mvmt;
     int gizmo_y_mvmt;
-    EffectGizmoPtr selected_gizmo;
-    EffectGizmoPtr get_gizmo_from_mouse(const int x_coord, const int y_coord);
-    bool drawn_gizmos;
-    void move_gizmos(QMouseEvent *event, bool done);
+	EffectGizmoPtr selected_gizmo;
+	RenderThread* renderer;
+	ViewerWindow* window;
 private slots:
+	void context_destroy();
 	void retry();
 	void show_context_menu();
 	void save_frame();
-    void show_fullscreen();
-
+	void queue_repaint();
+	void fullscreen_menu_action(QAction* action);
     void set_fit_zoom();
     void set_custom_zoom();
     void set_menu_zoom(QAction *action);

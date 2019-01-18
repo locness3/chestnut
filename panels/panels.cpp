@@ -29,6 +29,7 @@
 #include "debug.h"
 
 #include <QScrollBar>
+#include <QCoreApplication>
 
 Project* e_panel_project = 0;
 EffectControls* e_panel_effect_controls = 0;
@@ -141,6 +142,8 @@ QDockWidget *get_focused_panel() {
             w = e_panel_footage_viewer;
         } else if (e_panel_timeline->underMouse()) {
             w = e_panel_timeline;
+		} else if (e_panel_graph_editor->view_is_under_mouse()) {
+			w = e_panel_graph_editor;
 		}
 	}
     if (w == nullptr) {
@@ -154,6 +157,8 @@ QDockWidget *get_focused_panel() {
             w = e_panel_footage_viewer;
         } else if (e_panel_timeline->focused()) {
             w = e_panel_timeline;
+        } else if (e_panel_graph_editor->view_is_focused()) {
+            w = e_panel_graph_editor;
 		}
 	}
 	return w;
@@ -163,8 +168,10 @@ void alloc_panels(QWidget* parent) {
 	// TODO maybe replace these with non-pointers later on?
     e_panel_sequence_viewer = new Viewer(parent);
     e_panel_sequence_viewer->setObjectName("seq_viewer");
+	e_panel_sequence_viewer->set_panel_name(QCoreApplication::translate("Viewer", "Sequence Viewer"));
     e_panel_footage_viewer = new Viewer(parent);
     e_panel_footage_viewer->setObjectName("footage_viewer");
+    e_panel_footage_viewer->set_panel_name(QCoreApplication::translate("Viewer", "Media Viewer"));
     e_panel_project = new Project(parent);
     e_panel_project->setObjectName("proj_root");
     e_panel_effect_controls = new EffectControls(parent);

@@ -45,6 +45,7 @@ ViewerContainer::ViewerContainer(QWidget *parent) :
 }
 
 ViewerContainer::~ViewerContainer() {
+	delete child;
     delete area;
 }
 
@@ -78,7 +79,7 @@ void ViewerContainer::adjust() {
             int widget_y = 0;
             int widget_width = width();
             int widget_height = height();
-            float widget_ar = (float) widget_width /(float) widget_height;
+			double widget_ar = double(widget_width) / double(widget_height);
 
             bool widget_is_wider_than_sequence = widget_ar > aspect_ratio;
 

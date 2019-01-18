@@ -523,6 +523,8 @@ void ExportDialog::export_action() {
 
 		closeActiveClips(e_sequence);
 
+		mainWindow->set_rendering_state(true);
+
 		mainWindow->autorecover_interval();
 
 		e_rendering = true;
@@ -573,9 +575,9 @@ void ExportDialog::update_progress_bar(int value, qint64 remaining_ms) {
 }
 
 void ExportDialog::cancel_render() {
-	e_panel_sequence_viewer->viewer_widget->force_quit = true;
 	et->continueEncode = false;
 	cancelled = true;
+	et->wake();
 }
 
 void ExportDialog::vcodec_changed(int index) {

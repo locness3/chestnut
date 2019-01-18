@@ -24,12 +24,17 @@
 #include "debug.h"
 
 ProjectModel::ProjectModel(QObject *parent) : QAbstractItemModel(parent), root_item(nullptr) {
-    root_item = std::make_shared<Media>(nullptr);
-	root_item->root = true;
+	make_root();
 }
 
 ProjectModel::~ProjectModel() {
 	destroy_root();
+}
+
+void ProjectModel::make_root() {
+    root_item = std::make_shared<Media>(nullptr);
+	root_item->temp_id = 0;
+	root_item->root = true;
 }
 
 void ProjectModel::destroy_root() {
@@ -40,8 +45,7 @@ void ProjectModel::destroy_root() {
 void ProjectModel::clear() {
 	beginResetModel();
 	destroy_root();
-    root_item = std::make_shared<Media>(nullptr);
-	root_item->root = true;
+	make_root();
 	endResetModel();
 }
 
@@ -120,6 +124,13 @@ QModelIndex ProjectModel::parent(const QModelIndex &index) const {
         }
     }
     return QModelIndex();
+/*	Media *childItem = static_cast<Media*>(index.internalPointer());
+	Media *parentItem = childItem->parentItem();
+
+	if (parentItem == root_item)
+		return QModelIndex();
+
+	return createIndex(parentItem->row(), 0, parentItem);*/
 }
 
 bool ProjectModel::setData(const QModelIndex &index, const QVariant &value, int role) {

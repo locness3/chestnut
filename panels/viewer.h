@@ -113,6 +113,7 @@ private slots:
 	void resize_move(double d);
 
 private:
+	void update_window_title();
 	void clean_created_seq();
     void set_sequence(bool main, SequencePtr s);
 	void set_zoom_value(double d);

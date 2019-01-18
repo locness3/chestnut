@@ -103,11 +103,16 @@ void PreviewGenerator::parse_media() {
 					}
 				} else {
 					ms.infinite_length = false;
-					if (fmt_ctx->streams[i]->r_frame_rate.den == 0) {
+
+					// using ffmpeg's built-in heuristic
+					ms.video_frame_rate = av_q2d(av_guess_frame_rate(fmt_ctx, fmt_ctx->streams[i], nullptr));
+
+					// old heuristic
+					/*if (fmt_ctx->streams[i]->r_frame_rate.den == 0) {
 						ms.video_frame_rate = av_q2d(fmt_ctx->streams[i]->avg_frame_rate);
 					} else {
 						ms.video_frame_rate = av_q2d(fmt_ctx->streams[i]->r_frame_rate);
-					}
+					}*/
 				}
 
 				ms.video_width = fmt_ctx->streams[i]->codecpar->width;

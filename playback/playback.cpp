@@ -52,6 +52,11 @@ extern "C" {
 bool e_texture_failed = false;
 bool e_rendering = false;
 
+long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate) {
+    return qRound((double(framenumber)/source_frame_rate)*target_frame_rate);
+}
+
+
 
 void set_sequence(SequencePtr s) {
     e_panel_effect_controls->clear_effects(true);

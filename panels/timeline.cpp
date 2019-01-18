@@ -55,16 +55,23 @@
 #include <QSplitter>
 #include <QStatusBar>
 
-long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate) {
-	return qRound((double(framenumber)/source_frame_rate)*target_frame_rate);
-}
-
 namespace
 {
     const QColor AUDIO_ONLY_COLOR(128, 192, 128);
     const QColor VIDEO_ONLY_COLOR(192, 160, 128);
     const QColor AUDIO_VIDEO_COLOR(128, 128, 192);
     const QColor SEQUENCE_COLOR(192, 128, 128);
+}
+
+bool is_clip_selected(ClipPtr& clip, bool containing) {
+    for (int i=0;i<clip->sequence->selections.size();i++) {
+        const Selection& s = clip->sequence->selections.at(i);
+        if (clip->timeline_info.track == s.track && ((clip->timeline_info.in >= s.in && clip->timeline_info.out <= s.out && containing) ||
+                (!containing && !(clip->timeline_info.in < s.in && clip->timeline_info.out < s.in) && !(clip->timeline_info.in > s.in && clip->timeline_info.out > s.in)))) {
+            return true;
+        }
+    }
+    return false;
 }
 
 Timeline::Timeline(QWidget *parent) :
@@ -174,7 +181,7 @@ void Timeline::toggle_show_all() {
 	showing_all = !showing_all;
 	if (showing_all) {
 		old_zoom = zoom;
-		set_zoom_value((double) (timeline_area->width() - 200) / (double) e_sequence->getEndFrame());
+		set_zoom_value(double(timeline_area->width() - 200) / double(e_sequence->getEndFrame()));
 	} else {
 		set_zoom_value(old_zoom);
 	}
@@ -198,7 +205,6 @@ void Timeline::create_ghosts_from_media(SequencePtr seq, long entry_point, QVect
 		switch (medium->get_type()) {
 		case MEDIA_TYPE_FOOTAGE:
             ftg = medium->get_object<Footage>();
-            media = ftg;
             can_import = ftg->ready;
             if (ftg->using_inout) {
 				double source_fr = 30;
@@ -213,7 +219,6 @@ void Timeline::create_ghosts_from_media(SequencePtr seq, long entry_point, QVect
             if (lcl_seq != nullptr) {
                 sequence_length = refactor_frame_number(sequence_length, lcl_seq->getFrameRate(), seq->getFrameRate());
             }
-            media = lcl_seq;
             can_import = (lcl_seq != lcl_seq && sequence_length != 0);
             if (lcl_seq->using_workarea) {
                 default_clip_in = refactor_frame_number(lcl_seq->workarea_in, lcl_seq->getFrameRate(), seq->getFrameRate());
@@ -644,16 +649,7 @@ void Timeline::zoom_out() {
 	set_zoom(false);
 }
 
-bool Timeline::is_clip_selected(ClipPtr clip, bool containing) {
-	for (int i=0;i<clip->sequence->selections.size();i++) {
-		const Selection& s = clip->sequence->selections.at(i);
-        if (clip->timeline_info.track == s.track && ((clip->timeline_info.in >= s.in && clip->timeline_info.out <= s.out && containing) ||
-                (!containing && !(clip->timeline_info.in < s.in && clip->timeline_info.out < s.in) && !(clip->timeline_info.in > s.in && clip->timeline_info.out > s.in)))) {
-			return true;
-		}
-	}
-	return false;
-}
+
 
 void Timeline::snapping_clicked(bool checked) {
 	snapping = checked;

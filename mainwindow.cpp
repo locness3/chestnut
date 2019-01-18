@@ -25,6 +25,7 @@
 #include "project/clip.h"
 #include "project/undo.h"
 #include "project/media.h"
+#include "project/projectfilter.h"
 
 #include "ui/sourcetable.h"
 #include "ui/viewerwidget.h"
@@ -61,7 +62,6 @@
 #include <QMovie>
 #include <QInputDialog>
 #include <QRegExp>
-#include <QSortFilterProxyModel>
 #include <QStatusBar>
 #include <QMenu>
 #include <QMenuBar>
@@ -92,7 +92,6 @@ namespace
 
     QTimer autorecovery_timer;
     QString config_fn;
-    QString appName;
     bool demoNoticeShown = false;
 }
 
@@ -245,7 +244,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &an) :
 	alloc_panels(this);
 
 	QStatusBar* statusBar = new QStatusBar(this);
-	statusBar->showMessage("Welcome to " + appName);
+    statusBar->showMessage("Welcome to " + app_name);
 	setStatusBar(statusBar);
 
 	setup_menus();
@@ -389,6 +388,15 @@ void MainWindow::load_css_from_file(const QString &fn) {
 	}
 }
 
+void MainWindow::set_rendering_state(bool rendering) {
+	audio_rendering = rendering;
+	if (rendering) {
+		autorecovery_timer.stop();
+	} else {
+		autorecovery_timer.start();
+	}
+}
+
 void MainWindow::show_about() {
 	AboutDialog a(this);
 	a.exec();
@@ -490,7 +498,7 @@ void MainWindow::open_speed_dialog() {
 		SpeedDialog s(this);
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr c = e_sequence->clips.at(i);
-            if (c != nullptr && e_panel_timeline->is_clip_selected(c, true)) {
+            if (c != nullptr && is_clip_selected(c, true)) {
 				s.clips.append(c);
 			}
 		}
@@ -759,6 +767,7 @@ void MainWindow::setup_menus() {
 	// INITIALIZE PLAYBACK MENU
 
 	QMenu* playback_menu = menuBar->addMenu(tr("&Playback"));
+	connect(playback_menu, SIGNAL(aboutToShow()), this, SLOT(playbackMenu_About_To_Be_Shown()));
 
 	playback_menu->addAction(tr("Go to Start"), this, SLOT(go_to_start()), QKeySequence("Home"))->setProperty("id", "gotostart");
 	playback_menu->addAction(tr("Previous Frame"), this, SLOT(prev_frame()), QKeySequence("Left"))->setProperty("id", "prevframe");
@@ -771,6 +780,11 @@ void MainWindow::setup_menus() {
 	playback_menu->addSeparator();
 	playback_menu->addAction(tr("Go to In Point"), this, SLOT(go_to_in()), QKeySequence("Shift+I"))->setProperty("id", "gotoin");
 	playback_menu->addAction(tr("Go to Out Point"), this, SLOT(go_to_out()), QKeySequence("Shift+O"))->setProperty("id", "gotoout");
+
+	loop_action = playback_menu->addAction(tr("Loop"), this, SLOT(toggle_bool_action()));
+	loop_action->setProperty("id", "loop");
+	loop_action->setCheckable(true);
+    loop_action->setData(reinterpret_cast<quintptr>(&e_config.loop));
 
 	// INITIALIZE WINDOW MENU
 
@@ -928,12 +942,7 @@ void MainWindow::setup_menus() {
 	set_name_and_marker = tools_menu->addAction(tr("Ask For Name When Setting Marker"), this, SLOT(toggle_bool_action()));
 	set_name_and_marker->setProperty("id", "asknamemarkerset");
 	set_name_and_marker->setCheckable(true);
-	set_name_and_marker->setData(reinterpret_cast<quintptr>(&e_config.set_name_with_marker));
-
-	loop_action = tools_menu->addAction(tr("Loop"), this, SLOT(toggle_bool_action()));
-	loop_action->setProperty("id", "loop");
-	loop_action->setCheckable(true);
-	loop_action->setData(reinterpret_cast<quintptr>(&e_config.loop));
+    set_name_and_marker->setData(reinterpret_cast<quintptr>(&e_config.set_name_with_marker));
 
 	pause_at_out_point_action = tools_menu->addAction(tr("Pause At Out Point"), this, SLOT(toggle_bool_action()));
 	pause_at_out_point_action->setProperty("id", "pauseoutpoint");
@@ -1001,7 +1010,7 @@ void MainWindow::set_button_action_checked(QAction *a) {
 
 void MainWindow::updateTitle(const QString& url) {
 	project_url = url;
-	setWindowTitle(appName + " - " + ((project_url.isEmpty()) ? tr("<untitled>") : project_url) + "[*]");
+    setWindowTitle(app_name + " - " + ((project_url.isEmpty()) ? tr("<untitled>") : project_url) + "[*]");
 }
 
 void MainWindow::closeEvent(QCloseEvent *e) {
@@ -1009,6 +1018,9 @@ void MainWindow::closeEvent(QCloseEvent *e) {
         e_panel_effect_controls->clear_effects(true);
 
 		set_sequence(nullptr);
+
+		e_panel_footage_viewer->viewer_widget->close_window();
+		e_panel_sequence_viewer->viewer_widget->close_window();
 
         e_panel_footage_viewer->set_main_sequence();
 
@@ -1190,6 +1202,10 @@ void MainWindow::windowMenu_About_To_Be_Shown() {
 	}
 }
 
+void MainWindow::playbackMenu_About_To_Be_Shown() {
+	set_bool_action_checked(loop_action);
+}
+
 void MainWindow::viewMenu_About_To_Be_Shown() {
 	set_bool_action_checked(track_lines);
 
@@ -1233,7 +1249,6 @@ void MainWindow::toolMenu_About_To_Be_Shown() {
 	set_bool_action_checked(enable_drop_on_media_to_replace);
 	set_bool_action_checked(enable_hover_focus);
 	set_bool_action_checked(set_name_and_marker);
-	set_bool_action_checked(loop_action);
 	set_bool_action_checked(pause_at_out_point_action);
 	set_bool_action_checked(seek_also_selects);
 
@@ -1253,7 +1268,7 @@ void MainWindow::add_default_transition() {
 }
 
 void MainWindow::new_folder() {
-    MediaPtr m = e_panel_project->new_folder(0);
+    MediaPtr m = e_panel_project->new_folder(nullptr);
     e_undo_stack.push(new AddMediaCommand(m, e_panel_project->get_selected_folder()));
 
 //    QModelIndex index = project_model.create_index(m->row(), 0, m.operator ->()); //FIXME: shared_ptr in QModelIndex?
@@ -1443,7 +1458,7 @@ void MainWindow::toggle_enable_clips() {
 		bool push_undo = false;
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr  c = e_sequence->clips.at(i);
-            if (c != nullptr && e_panel_timeline->is_clip_selected(c, true)) {
+            if (c != nullptr && is_clip_selected(c, true)) {
                 ca->append(new SetEnableCommand(c, !c->timeline_info.enabled));
 				push_undo = true;
 			}
@@ -1475,7 +1490,7 @@ void MainWindow::nest() {
 		// get selected clips
         for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr  c = e_sequence->clips.at(i);
-            if (c != nullptr && e_panel_timeline->is_clip_selected(c, true)) {
+            if (c != nullptr && is_clip_selected(c, true)) {
 				selected_clips.append(i);
                 earliest_point = qMin(c->timeline_info.in, earliest_point);
 			}

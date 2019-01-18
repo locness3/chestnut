@@ -63,7 +63,8 @@ Config::Config()
       upcoming_queue_type(FRAME_QUEUE_TYPE_SECONDS),
       loop(true),
       pause_at_out_point(true),
-      seek_also_selects(false)
+      seek_also_selects(false),
+	  effect_textbox_lines(3)
 {}
 
 void Config::load(QString path) {
@@ -182,6 +183,9 @@ void Config::load(QString path) {
                 } else if (stream.name() == "CSSPath") {
                     stream.readNext();
                     css_path = stream.text().toString();
+				} else if (stream.name() == "EffectTextboxLines") {
+					stream.readNext();
+					effect_textbox_lines = stream.text().toInt();
                 }
 			}
 		}
@@ -242,6 +246,7 @@ void Config::save(QString path) {
     stream.writeTextElement("PauseAtOutPoint", QString::number(pause_at_out_point));
     stream.writeTextElement("SeekAlsoSelects", QString::number(seek_also_selects));
     stream.writeTextElement("CSSPath", css_path);
+	stream.writeTextElement("EffectTextboxLines", QString::number(effect_textbox_lines));
 
 	stream.writeEndElement(); // configuration
 	stream.writeEndDocument(); // doc

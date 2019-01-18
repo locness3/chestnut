@@ -119,7 +119,7 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
         QVector<ClipPtr> selected_clips;
 		for (int i=0;i<e_sequence->clips.size();i++) {
             ClipPtr c = e_sequence->clips.at(i);
-            if (c != nullptr && e_panel_timeline->is_clip_selected(c, true)) {
+            if (c != nullptr && is_clip_selected(c, true)) {
 				selected_clips.append(c);
 			}
 		}
@@ -225,7 +225,7 @@ void TimelineWidget::toggle_autoscale() {
 	SetAutoscaleAction* action = new SetAutoscaleAction();
 	for (int i=0;i<e_sequence->clips.size();i++) {
         ClipPtr c = e_sequence->clips.at(i);
-        if (c != nullptr && e_panel_timeline->is_clip_selected(c, true)) {
+        if (c != nullptr && is_clip_selected(c, true)) {
 			action->clips.append(c);
 		}
 	}
@@ -242,10 +242,12 @@ void TimelineWidget::tooltip_timer_timeout() {
             ClipPtr c = e_sequence->clips.at(tooltip_clip);
             if (c != nullptr) {
 				QToolTip::showText(QCursor::pos(),
-                            c->timeline_info.name
-                                   + "\nStart: " + frame_to_timecode(c->timeline_info.in, e_config.timecode_view, e_sequence->getFrameRate())
-                                   + "\nEnd: " + frame_to_timecode(c->timeline_info.out, e_config.timecode_view, e_sequence->getFrameRate())
-                                   + "\nDuration: " + frame_to_timecode(c->getLength(), e_config.timecode_view, e_sequence->getFrameRate()));
+							tr("%1\nStart: %2\nEnd: %3\nDuration: %4").arg(
+                                       c->getName(),
+                                       frame_to_timecode(c->timeline_info.in, e_config.timecode_view, e_sequence->getFrameRate()),
+                                       frame_to_timecode(c->timeline_info.out, e_config.timecode_view, e_sequence->getFrameRate()),
+                                       frame_to_timecode(c->getLength(), e_config.timecode_view, e_sequence->getFrameRate())
+									));
 			}
 		}
 	}
@@ -256,7 +258,7 @@ void TimelineWidget::rename_clip() {
     QVector<ClipPtr> selected_clips;
 	for (int i=0;i<e_sequence->clips.size();i++) {
         ClipPtr c = e_sequence->clips.at(i);
-        if (c != nullptr && e_panel_timeline->is_clip_selected(c, true)) {
+        if (c != nullptr && is_clip_selected(c, true)) {
 			selected_clips.append(c);
 		}
 	}
@@ -645,7 +647,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
 					if (clip_index >= 0) {
                         ClipPtr clip = e_sequence->clips.at(clip_index);
                         if (clip != nullptr) {
-                            if (e_panel_timeline->is_clip_selected(clip, true)) {
+                            if (is_clip_selected(clip, true)) {
 								if (shift) {
                                     e_panel_timeline->deselect_area(clip->timeline_info.in, clip->timeline_info.out, clip->timeline_info.track);
 
@@ -711,7 +713,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
                                 if (!alt && e_panel_timeline->transition_select == TA_NO_TRANSITION) {
 									for (int i=0;i<clip->linked.size();i++) {
                                         ClipPtr link = e_sequence->clips.at(clip->linked.at(i));
-                                        if (!e_panel_timeline->is_clip_selected(link, true)) {
+                                        if (!is_clip_selected(link, true)) {
 											Selection ss;
                                             ss.in = link->timeline_info.in;
                                             ss.out = link->timeline_info.out;
@@ -1710,7 +1712,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
 						Ghost g;
                         g.transition = nullptr;
 
-                        bool add = e_panel_timeline->is_clip_selected(c, true);
+                        bool add = is_clip_selected(c, true);
 
 						// if a whole clip is not selected, maybe just a transition is
                         if (e_panel_timeline->tool == TIMELINE_TOOL_POINTER && (c->get_opening_transition() != nullptr || c->get_closing_transition() != nullptr)) {
@@ -1852,7 +1854,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
 
 					for (int i=0;i<e_sequence->clips.size();i++) {
                         ClipPtr c = e_sequence->clips.at(i);
-                        if (c != nullptr && !e_panel_timeline->is_clip_selected(c, true)) {
+                        if (c != nullptr && !is_clip_selected(c, true)) {
                             bool clip_is_post = (c->timeline_info.in >= axis);
 
 							// see if this a clip on this track is already in the list, and if it's closer
@@ -2197,7 +2199,7 @@ void draw_waveform(ClipPtr clip, const FootageStream* ms, long media_length, QPa
 					p->drawLine(clip_rect.left()+i, mid+min, clip_rect.left()+i, mid+max);
 				}
 			}/* else {
-				dout << "[WARNING] Tried to reach" << offset + 1 << ", limit:" << ms->audio_preview.size();
+				qWarning() << "Tried to reach" << offset + 1 << ", limit:" << ms->audio_preview.size();
 			}*/
 		}
 	}

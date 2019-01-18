@@ -559,7 +559,7 @@ int Effect::gizmo_count(){
 void Effect::refresh() {}
 
 void Effect::field_changed() {
-	e_panel_sequence_viewer->viewer_widget->update();
+	e_panel_sequence_viewer->viewer_widget->frame_update();
 	e_panel_graph_editor->update_panel();
 }
 
@@ -575,7 +575,7 @@ void Effect::show_context_menu(const QPoint& pos) {
 		}
 
 		if (index < parent_clip->effects.size() - 1) {
-			QAction* move_down = menu.addAction("Move &Down");
+			QAction* move_down = menu.addAction(tr("Move &Down"));
 			connect(move_down, SIGNAL(triggered(bool)), this, SLOT(move_down()));
 		}
 
@@ -907,7 +907,7 @@ EffectPtr Effect::copy(ClipPtr c) {
 
 void Effect::process_shader(double timecode, GLTextureCoords&) {
 	glslProgram->setUniformValue("resolution", parent_clip->getWidth(), parent_clip->getHeight());
-	glslProgram->setUniformValue("time", (GLfloat) timecode);
+	glslProgram->setUniformValue("time", GLfloat(timecode));
 
 	for (int i=0;i<rows.size();i++) {
         EffectRowPtr row(rows.at(i));

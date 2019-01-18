@@ -125,7 +125,11 @@ SOURCES += \
     dialogs/texteditdialog.cpp \
     dialogs/debugdialog.cpp \
     project/projectitem.cpp \
-    project/sequenceitem.cpp
+    project/sequenceitem.cpp \
+    ui/renderthread.cpp \
+    ui/renderfunctions.cpp \
+    ui/viewerwindow.cpp \
+    project/projectfilter.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -219,7 +223,11 @@ HEADERS += \
     project/projectitem.h \
     project/sequenceitem.h \
     dialogs/texteditdialog.h \
-    dialogs/debugdialog.h
+    dialogs/debugdialog.h \
+    ui/renderthread.h \
+    ui/renderfunctions.h \
+    ui/viewerwindow.h \
+    project/projectfilter.h
 
 FORMS +=
 

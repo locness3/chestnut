@@ -42,6 +42,8 @@ public:
 
     void load_css_from_file(const QString& fn);
 
+	void set_rendering_state(bool rendering);
+
 public slots:
 	void undo();
 	void redo();
@@ -99,6 +101,7 @@ private slots:
 	void fileMenu_About_To_Hide();
 	void editMenu_About_To_Be_Shown();
 	void windowMenu_About_To_Be_Shown();
+	void playbackMenu_About_To_Be_Shown();
 	void viewMenu_About_To_Be_Shown();
 	void toolMenu_About_To_Be_Shown();
 
