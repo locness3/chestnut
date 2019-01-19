@@ -59,6 +59,7 @@
 #include <QSizePolicy>
 #include <QVBoxLayout>
 #include <QMenu>
+#include <memory>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -73,13 +74,18 @@ QString project_url = "";
 QStringList recent_projects;
 QString recent_proj_file;
 
-namespace {
+namespace
+{
     const int       MAXIMUM_RECENT_PROJECTS             = 10;
     const int       SEQUENCE_DEFAULT_WIDTH              = 1920;
     const int       SEQUENCE_DEFAULT_HEIGHT             = 1080;
     const double    SEQUENCE_DEFAULT_FRAMERATE          = 29.97;
     const int       SEQUENCE_DEFAULT_AUDIO_FREQUENCY    = 48000;
     const int       SEQUENCE_DEFAULT_LAYOUT             = 3;
+
+    const int       THROBBER_INTERVAL                   = 20; //ms
+    const int       THROBBER_LIMIT                      = 20;
+    const int       THROBBER_SIZE                       = 50;
 }
 
 Project::Project(QWidget *parent) :
@@ -424,7 +430,12 @@ MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaP
 }
 
 QString Project::get_file_name_from_path(const QString& path) {
-    return path.mid(path.lastIndexOf('/')+1);
+    return QFileInfo(path).fileName();
+}
+
+
+QString Project::get_file_ext_from_path(const QString &path) {
+    return QFileInfo(path).suffix();
 }
 
 /*MediaPtr Project::new_item() {
@@ -661,24 +672,28 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
     QVector<bool> image_sequence_importassequence;
     QStringList image_sequence_formats = e_config.img_seq_formats.split("|");
 
-    if (!recursive) last_imported_media.clear();
+    if (!recursive) {
+        last_imported_media.clear();
+    }
 
     bool create_undo_action = (!recursive && replace == nullptr);
     ComboAction* ca = nullptr;
-    if (create_undo_action) ca = new ComboAction();
+    if (create_undo_action) {
+        ca = new ComboAction();
+    }
 
-    for (int i=0;i<files.size();i++) {
-        if (QFileInfo(files.at(i)).isDir()) {
-            QString folder_name = get_file_name_from_path(files.at(i));
+    for (QString fileName: files) {
+        if (QFileInfo(fileName).isDir()) {
+            QString folder_name = get_file_name_from_path(fileName);
             MediaPtr folder = new_folder(folder_name);
 
-            QDir directory(files.at(i));
+            QDir directory(fileName);
             directory.setFilter(QDir::NoDotAndDotDot | QDir::AllEntries);
 
             QFileInfoList subdir_files = directory.entryInfoList();
             QStringList subdir_filenames;
 
-            for (int j=0;j<subdir_files.size();j++) {
+            for (int j=0; j<subdir_files.size(); j++) {
                 subdir_filenames.append(subdir_files.at(j).filePath());
             }
 
@@ -691,50 +706,48 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
             }
 
             imported = true;
-        } else if (!files.at(i).isEmpty()) {
-            QString file(files.at(i));
+        } else if (!fileName.isEmpty()) {
             bool skip = false;
-
             /* Heuristic to determine whether file is part of an image sequence */
-
             // check file extension (assume it's not a
-
-            int lastcharindex = file.lastIndexOf(".");
+            int lastcharindex = fileName.lastIndexOf(".");
             bool found = true;
-            if (lastcharindex != -1 && lastcharindex > file.lastIndexOf('/')) {
-                // image_sequence_formats
-                const QString ext(file.mid(lastcharindex+1));
+            if ( (lastcharindex != -1) && (lastcharindex > fileName.lastIndexOf('/')) ) {
+                // img sequence check
+                const QString ext(get_file_ext_from_path(fileName));
                 found = image_sequence_formats.contains(ext);
             } else {
-                lastcharindex = file.length();
+                lastcharindex = fileName.length();
             }
 
-            if (lastcharindex == 0) lastcharindex++;
+            if (lastcharindex == 0) {
+                lastcharindex++;
+            }
 
-            if (found && file[lastcharindex-1].isDigit()) {
+            if (found && fileName[lastcharindex-1].isDigit()) {
                 bool is_img_sequence = false;
 
                 // how many digits are in the filename?
                 int digit_count = 0;
                 int digit_test = lastcharindex-1;
-                while (file[digit_test].isDigit()) {
+                while (fileName[digit_test].isDigit()) {
                     digit_count++;
                     digit_test--;
                 }
 
                 // retrieve number from filename
                 digit_test++;
-                int file_number = file.mid(digit_test, digit_count).toInt();
+                int file_number = fileName.mid(digit_test, digit_count).toInt();
 
                 // Check if there are files with the same filename but just different numbers
-                if (QFileInfo::exists(QString(file.left(digit_test) + QString("%1").arg(file_number-1, digit_count, 10, QChar('0')) + file.mid(lastcharindex)))
-                        || QFileInfo::exists(QString(file.left(digit_test) + QString("%1").arg(file_number+1, digit_count, 10, QChar('0')) + file.mid(lastcharindex)))) {
+                if (QFileInfo::exists(QString(fileName.left(digit_test) + QString("%1").arg(file_number-1, digit_count, 10, QChar('0')) + fileName.mid(lastcharindex)))
+                        || QFileInfo::exists(QString(fileName.left(digit_test) + QString("%1").arg(file_number+1, digit_count, 10, QChar('0')) + fileName.mid(lastcharindex)))) {
                     is_img_sequence = true;
                 }
 
                 if (is_img_sequence) {
                     // get the URL that we would pass to FFmpeg to force it to read the image as a sequence
-                    QString new_filename = file.left(digit_test) + "%" + QString("%1").arg(digit_count, 2, 10, QChar('0')) + "d" + file.mid(lastcharindex);
+                    QString new_filename = fileName.left(digit_test) + "%" + QString("%1").arg(digit_count, 2, 10, QChar('0')) + "d" + fileName.mid(lastcharindex);
 
                     // add image sequence url to a vector in case the user imported several files that
                     // we're interpreting as a possible sequence
@@ -753,10 +766,10 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
                         image_sequence_urls.append(new_filename);
                         if (QMessageBox::question(this,
                                                   tr("Image sequence detected"),
-                                                  tr("The file '%1' appears to be part of an image sequence. Would you like to import it as such?").arg(file),
+                                                  tr("The file '%1' appears to be part of an image sequence. Would you like to import it as such?").arg(fileName),
                                                   QMessageBox::Yes | QMessageBox::No,
                                                   QMessageBox::Yes) == QMessageBox::Yes) {
-                            file = new_filename;
+                            fileName = new_filename;
                             image_sequence_importassequence.append(true);
                         } else {
                             image_sequence_importassequence.append(false);
@@ -779,8 +792,8 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
                 }
 
                 ftg->using_inout = false;
-                ftg->url = file;
-                ftg->setName(get_file_name_from_path(files.at(i)));
+                ftg->url = fileName;
+                ftg->setName(get_file_name_from_path(fileName));
 
                 item->set_footage(ftg);
 
@@ -791,7 +804,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
                         ca->append(new AddMediaCommand(item, parent));
                     } else {
                         parent->appendChild(item);
-                        //						project_model.appendChild(parent, item);
+//                        project_model.appendChild(parent, item);
                     }
                 }
 
@@ -1238,6 +1251,32 @@ void Project::add_recent_project(QString url) {
     save_recent_projects();
 }
 
+/**
+ * @brief           Get a Media item that was imported
+ * @param index     Location in store
+ * @return          ptr or null
+ */
+MediaPtr Project::getImportedMedia(const int index)
+{
+    MediaPtr item;
+
+    if (last_imported_media.size() >= index){
+        item = last_imported_media.at(index);
+    } else {
+        qWarning() << "No Media item at location" << index;
+    }
+
+    return item;
+}
+
+/**
+ * @brief Get the size of the Import media list
+ * @return  integer
+ */
+int Project::getMediaSize() const {
+    return last_imported_media.size();
+}
+
 void Project::list_all_sequences_worker(QVector<MediaPtr>* list, MediaPtr parent) {
     for (int i=0;i<project_model.childCount(parent);i++) {
         MediaPtr item = project_model.child(i, parent);
@@ -1265,17 +1304,21 @@ QModelIndexList Project::get_current_selected() {
     return e_panel_project->icon_view->selectionModel()->selectedIndexes();
 }
 
-#define THROBBER_LIMIT 20
-#define THROBBER_SIZE 50
 
-MediaThrobber::MediaThrobber(MediaPtr i) : pixmap(":/icons/throbber.png"), animation(0), item(i), animator(nullptr) {}
+MediaThrobber::MediaThrobber(MediaPtr i) :
+    pixmap(":/icons/throbber.png"),
+    animation(0),
+    item(i),
+    animator(nullptr)
+{
+    animator = std::make_unique<QTimer>(this);
+}
 
 void MediaThrobber::start() {
     // set up throbber
     animation_update();
-    animator = new QTimer(this);
-    animator->setInterval(20);
-    connect(animator, SIGNAL(timeout()), this, SLOT(animation_update()));
+    animator->setInterval(THROBBER_INTERVAL);
+    connect(animator.get(), SIGNAL(timeout()), this, SLOT(animation_update()));
     animator->start();
 }
 
@@ -1287,27 +1330,38 @@ void MediaThrobber::animation_update() {
     animation++;
 }
 
-void MediaThrobber::stop(int icon_type, bool replace) {
-    if (animator != nullptr) {
+void MediaThrobber::stop(const int icon_type, const bool replace) {
+    if (animator.get() != nullptr) {
         animator->stop();
-        delete animator;
     }
 
+    QIcon icon;
     switch (icon_type) {
-    case ICON_TYPE_VIDEO: project_model.set_icon(item, QIcon(":/icons/videosource.png")); break;
-    case ICON_TYPE_AUDIO: project_model.set_icon(item, QIcon(":/icons/audiosource.png")); break;
-    case ICON_TYPE_IMAGE: project_model.set_icon(item, QIcon(":/icons/imagesource.png")); break;
-    case ICON_TYPE_ERROR: project_model.set_icon(item, QIcon(":/icons/error.png")); break;
-    }
+    case ICON_TYPE_VIDEO:
+        icon.addFile(":/icons/videosource.png");
+        break;
+    case ICON_TYPE_AUDIO:
+        icon.addFile(":/icons/audiosource.png");
+        break;
+    case ICON_TYPE_IMAGE:
+        icon.addFile(":/icons/imagesource.png");
+        break;
+    case ICON_TYPE_ERROR:
+        icon.addFile(":/icons/error.png");
+        break;
+    default:
+        //TODO:
+        break;
+    }//switch
+    project_model.set_icon(item,icon);
 
     // refresh all clips
     QVector<MediaPtr> sequences = e_panel_project->list_all_project_sequences();
-    for (int i=0;i<sequences.size();i++) {
-        SequencePtr  s = sequences.at(i)->get_object<Sequence>();
-        for (int j=0;j<s->clips.size();j++) {
-            ClipPtr c = s->clips.at(j);
-            if (c != nullptr) {
-                c->refresh();
+    for (MediaPtr sqn : sequences) {
+        SequencePtr s = sqn->get_object<Sequence>();
+        for (ClipPtr clp: s->clips) {
+            if (clp != nullptr) {
+                clp->refresh();
             }
         }
     }
