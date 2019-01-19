@@ -703,14 +703,8 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
             bool found = true;
             if (lastcharindex != -1 && lastcharindex > file.lastIndexOf('/')) {
                 // image_sequence_formats
-                found = false;
-                QString ext = file.mid(lastcharindex+1);
-                for (int j=0;j<image_sequence_formats.size();j++) {
-                    if (ext == image_sequence_formats.at(j)) {
-                        found = true;
-                        break;
-                    }
-                }
+                const QString ext(file.mid(lastcharindex+1));
+                found = image_sequence_formats.contains(ext);
             } else {
                 lastcharindex = file.length();
             }
