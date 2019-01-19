@@ -33,7 +33,7 @@ system("which git") {
     DEFINES += GITHASH=\\"\"$$GITHASHVAR\\"\"
 }
 
-CONFIG += c++11
+CONFIG += c++14
 
 SOURCES += \
         main.cpp \
