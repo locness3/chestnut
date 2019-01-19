@@ -463,8 +463,6 @@ bool Clip::open(const bool open_multithreaded) {
         multithreaded = open_multithreaded;
         if (multithreaded) {
             if (open_lock.tryLock()) {
-                // maybe keep cacher instance in memory while clip exists for performance?
-//                cache_thread = new Cacher(std::shared_ptr<Clip>(this)); // TODO: check this is the right why
                 QObject::connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
                 this->start((timeline_info.track < 0) ? QThread::HighPriority : QThread::TimeCriticalPriority);
             }
