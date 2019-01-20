@@ -468,9 +468,7 @@ void PreviewGenerator::run() {
     Q_ASSERT(media != nullptr);
 
     FootagePtr ftg = footage.lock();
-    QByteArray ba = ftg->url.toUtf8();
-    char* filename = new char[ba.size()+1];
-    strcpy(filename, ba.data());
+    const char* const filename = ftg->url.toUtf8().data();
 
     QString errorStr;
     bool error = false;
@@ -533,8 +531,6 @@ void PreviewGenerator::run() {
     } else {
         media->update_tooltip();
     }
-
-    delete [] filename;
 }
 
 void PreviewGenerator::cancel() {
