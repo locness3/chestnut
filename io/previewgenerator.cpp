@@ -535,7 +535,6 @@ void PreviewGenerator::run() {
     }
 
     delete [] filename;
-    ftg->preview_gen = nullptr;
 }
 
 void PreviewGenerator::cancel() {

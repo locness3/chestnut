@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,7 +23,7 @@
 #include "io/previewgenerator.h"
 
 extern "C" {
-	#include <libavformat/avformat.h>
+#include <libavformat/avformat.h>
 }
 
 #include "project/clip.h"
@@ -40,53 +40,50 @@ Footage::Footage()
 }
 
 Footage::~Footage() {
-	reset();
-    if (preview_gen != nullptr) {
-        delete preview_gen;
-    }
+    reset();
 }
 
 void Footage::reset() {
-	if (preview_gen != nullptr) {
-		preview_gen->cancel();
-		preview_gen->wait();
-	}
-	video_tracks.clear();
-	audio_tracks.clear();
-	ready = false;
+    if (preview_gen != nullptr) {
+        preview_gen->cancel();
+        preview_gen->wait();
+    }
+    video_tracks.clear();
+    audio_tracks.clear();
+    ready = false;
 }
 
 long Footage::get_length_in_frames(const double frame_rate) {
     if (length >= 0) return qFloor((static_cast<double>(length) / static_cast<double>(AV_TIME_BASE)) * frame_rate / speed);
-	return 0;
+    return 0;
 }
 
 FootageStream* Footage::get_stream_from_file_index(bool video, int index) {
-	if (video) {
-		for (int i=0;i<video_tracks.size();i++) {
-			if (video_tracks.at(i).file_index == index) {
-				return &video_tracks[i];
-			}
-		}
-	} else {
-		for (int i=0;i<audio_tracks.size();i++) {
-			if (audio_tracks.at(i).file_index == index) {
-				return &audio_tracks[i];
-			}
-		}
-	}
-	return nullptr;
+    if (video) {
+        for (int i=0;i<video_tracks.size();i++) {
+            if (video_tracks.at(i).file_index == index) {
+                return &video_tracks[i];
+            }
+        }
+    } else {
+        for (int i=0;i<audio_tracks.size();i++) {
+            if (audio_tracks.at(i).file_index == index) {
+                return &audio_tracks[i];
+            }
+        }
+    }
+    return nullptr;
 }
 
 void FootageStream::make_square_thumb() {
-	// generate square version for QListView?
-	int square_size = qMax(video_preview.width(), video_preview.height());
-	QPixmap pixmap(square_size, square_size);
-	pixmap.fill(Qt::transparent);
-	QPainter p(&pixmap);
-	int diff = (video_preview.width() - video_preview.height())>>1;
-	int sqx = (diff < 0) ? -diff : 0;
-	int sqy = (diff > 0) ? diff : 0;
-	p.drawImage(sqx, sqy, video_preview);
-	video_preview_square = QIcon(pixmap);
+    // generate square version for QListView?
+    int square_size = qMax(video_preview.width(), video_preview.height());
+    QPixmap pixmap(square_size, square_size);
+    pixmap.fill(Qt::transparent);
+    QPainter p(&pixmap);
+    int diff = (video_preview.width() - video_preview.height())>>1;
+    int sqx = (diff < 0) ? -diff : 0;
+    int sqy = (diff > 0) ? diff : 0;
+    p.drawImage(sqx, sqy, video_preview);
+    video_preview_square = QIcon(pixmap);
 }

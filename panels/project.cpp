@@ -659,10 +659,10 @@ void Project::start_preview_generator(MediaPtr item, bool replacing) {
     item->throbber = throbber;
     QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);
 
-    PreviewGenerator* pg = new PreviewGenerator(item, item->get_object<Footage>(), replacing); //FIXME: leak
-    item->get_object<Footage>()->preview_gen = pg;
-    connect(pg, SIGNAL(set_icon(int, bool)), throbber, SLOT(stop(int, bool)));
+    PreviewGeneratorUPtr pg = std::make_unique<PreviewGenerator>(item, item->get_object<Footage>(), replacing); //FIXME: leak
+    connect(pg.get(), SIGNAL(set_icon(int, bool)), throbber, SLOT(stop(int, bool)));
     pg->start(QThread::LowPriority);
+    item->get_object<Footage>()->preview_gen = std::move(pg);
 }
 
 void Project::process_file_list(QStringList& files, bool recursive, MediaPtr replace, MediaPtr parent) {

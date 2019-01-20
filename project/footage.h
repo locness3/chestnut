@@ -76,7 +76,7 @@ public:
     bool invalid;
     double speed;
 
-    PreviewGenerator* preview_gen = nullptr;
+    std::unique_ptr<PreviewGenerator> preview_gen;
     QMutex ready_lock;
 
     bool using_inout = false;
