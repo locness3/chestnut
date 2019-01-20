@@ -48,6 +48,8 @@ using MediaWPtr = std::weak_ptr<Media>;
 class Media : public std::enable_shared_from_this<Media>
 {
 public:
+
+    Media();
     explicit Media(MediaPtr iparent);
     ~Media();
 
@@ -55,7 +57,11 @@ public:
     std::shared_ptr<T> get_object() {
         return std::dynamic_pointer_cast<T>(object);
     }
-
+    /**
+     * @brief Obtain this instance unique-id
+     * @return id
+     */
+    int getId() const;
     void clear_object();
     void set_footage(FootagePtr ftg);
     void set_sequence(SequencePtr sqn);
@@ -85,6 +91,9 @@ public:
     bool root;
     int temp_id = 0;
     int temp_id2 = 0;
+
+protected:
+    static int nextID;
 private:
     MediaType_E type = MEDIA_TYPE_NONE;
     project::ProjectItemPtr object;
@@ -95,9 +104,9 @@ private:
     QString folder_name;
     QString tooltip;
     QIcon icon;
+    int id;
 
     // Explicity impl as required
-    Media();
     Media(const Media& cpy);
     const Media& operator=(const Media& rhs);
 };

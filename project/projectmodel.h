@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,27 +24,27 @@
 
 class ProjectModel : public QAbstractItemModel
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	ProjectModel(QObject* parent = nullptr);
-	~ProjectModel() override;
+    ProjectModel(QObject* parent = nullptr);
+    ~ProjectModel() override;
 
-	void make_root();
-	void destroy_root();
-	void clear();
+    void make_root();
+    void destroy_root();
+    void clear();
     MediaPtr get_root();
     QVariant data(const QModelIndex &index, int role) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     QVariant headerData(int section, Qt::Orientation orientation,
-						int role = Qt::DisplayRole) const override;
-    QModelIndex index(int row, int column, 
-					  const QModelIndex &parent = QModelIndex()) const override;
-    QModelIndex create_index(int arow, int acolumn, const MediaPtr& m_ptr) const;
-	QModelIndex create_index(int arow, int acolumn, void *aid);
-	QModelIndex parent(const QModelIndex &index) const override;
-	bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
-	int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-	int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+                        int role = Qt::DisplayRole) const override;
+    QModelIndex index(int row, int column,
+                      const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex create_index(const int row, const int col, const MediaPtr& mda) const;
+    QModelIndex create_index(const int row, const MediaPtr& mda) const;
+    QModelIndex parent(const QModelIndex &index) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     MediaPtr getItem(const QModelIndex &index) const;
 
     void appendChild(MediaPtr parent, MediaPtr child);
@@ -56,6 +56,7 @@ public:
 
 private:
     MediaPtr root_item;
+    QMap<int, MediaPtr> project_items;
 };
 
 #endif // PROJECTMODEL_H

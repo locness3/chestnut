@@ -456,16 +456,11 @@ MediaPtr Project::new_folder(QString name) {
 }
 
 MediaPtr Project::item_to_media(const QModelIndex &index) {
+    //FIXME:
     if (sorter != nullptr) {
         const QModelIndex src = sorter->mapToSource(index);
-        void* const ptr = src.internalPointer();
-        if (ptr != nullptr) {
-            //FIXME: this is bad. creating another shared_ptr to same object
-            //            Media* const mPtr = static_cast<Media*>(ptr);
-            //            return MediaPtr(mPtr);
-        } else {
-            //            dverbose << "Retrieved a null ptr";
-        }
+//        void* const ptr = src.internalPointer();
+
     }
 
     return MediaPtr();
