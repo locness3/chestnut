@@ -121,7 +121,7 @@ private:
     int folder_id;
     int media_id;
     int sequence_id;
-    void list_all_sequences_worker(QVector<MediaPtr > *list, MediaPtr parent);
+    void list_all_sequences_worker(QVector<MediaPtr> &list, MediaPtr parent); //TODO: recursive depth limit
     QString get_file_name_from_path(const QString &path);
     QString get_file_ext_from_path(const QString &path);
     QDir proj_dir;

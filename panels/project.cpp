@@ -1277,23 +1277,30 @@ int Project::getMediaSize() const {
     return last_imported_media.size();
 }
 
-void Project::list_all_sequences_worker(QVector<MediaPtr>* list, MediaPtr parent) {
-    for (int i=0;i<project_model.childCount(parent);i++) {
+void Project::list_all_sequences_worker(QVector<MediaPtr>& list, MediaPtr parent) {
+    for (int i=0; i<project_model.childCount(parent); i++) {
         MediaPtr item = project_model.child(i, parent);
-        switch (item->get_type()) {
-        case MEDIA_TYPE_SEQUENCE:
-            list->append(item);
-            break;
-        case MEDIA_TYPE_FOLDER:
-            list_all_sequences_worker(list, item);
-            break;
+        if (item != nullptr) {
+            switch (item->get_type()) {
+            case MEDIA_TYPE_SEQUENCE:
+                list.append(item);
+                break;
+            case MEDIA_TYPE_FOLDER:
+                list_all_sequences_worker(list, item);
+                break;
+            default:
+                qWarning() << "Unknown media type" << item->get_type();
+                break;
+            }
+        } else {
+            //TODO:
         }
-    }
+    }//for
 }
 
 QVector<MediaPtr> Project::list_all_project_sequences() {
     QVector<MediaPtr> list;
-    list_all_sequences_worker(&list, nullptr);
+    list_all_sequences_worker(list, nullptr);
     return list;
 }
 
