@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,6 +20,7 @@
 
 #include <QThread>
 #include <QSemaphore>
+#include <memory>
 
 #include "project/footage.h"
 #include "project/media.h"
@@ -37,26 +38,29 @@ class PreviewGenerator : public QThread
     Q_OBJECT
 public:
     PreviewGenerator(MediaPtr item, FootagePtr ftg, const bool replacing);
-	void cancel();
+    void cancel();
 protected:
     virtual void run();
 signals:
-	void set_icon(int, bool);
+    void set_icon(int, bool);
 private:
     void parse_media();
-	bool retrieve_preview(const QString &hash);
+    bool retrieve_preview(const QString &hash);
     void generate_waveform();
-	void finalize_media();
+    void finalize_media();
     AVFormatContext* fmt_ctx;
     MediaPtr media;
-    FootagePtr footage;
-	bool retrieve_duration;
-	bool contains_still_image;
-	bool replace;
-	bool cancelled;
-	QString data_path;
+    FootageWPtr footage;
+    bool retrieve_duration;
+    bool contains_still_image;
+    bool replace;
+    bool cancelled;
+    QString data_path;
     QString get_thumbnail_path(const QString &hash, const FootageStream &ms);
     QString get_waveform_path(const QString& hash, const FootageStream &ms);
 };
 
+using PreviewGeneratorPtr = std::shared_ptr<PreviewGenerator>;
+using PreviewGeneratorUPtr = std::unique_ptr<PreviewGenerator>;
+using PreviewGeneratorWPtr = std::weak_ptr<PreviewGenerator>;
 #endif // PREVIEWGENERATOR_H

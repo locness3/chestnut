@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -39,52 +39,53 @@ class MediaThrobber;
 
 
 using FootagePtr = std::shared_ptr<Footage>;
+using FootageWPtr = std::weak_ptr<Footage>;
 
 struct FootageStream {
-	int file_index;
-	int video_width;
-	int video_height;
-	bool infinite_length;
-	double video_frame_rate;
-	int video_interlacing;
-	int video_auto_interlacing;
-	int audio_channels;
-	int audio_layout;
-	int audio_frequency;
-	bool enabled;
+    int file_index;
+    int video_width;
+    int video_height;
+    bool infinite_length;
+    double video_frame_rate;
+    int video_interlacing;
+    int video_auto_interlacing;
+    int audio_channels;
+    int audio_layout;
+    int audio_frequency;
+    bool enabled;
 
-	// preview thumbnail/waveform
-	bool preview_done;
-	QImage video_preview;
-	QIcon video_preview_square;
-	QVector<char> audio_preview;
-	void make_square_thumb();
+    // preview thumbnail/waveform
+    bool preview_done;
+    QImage video_preview;
+    QIcon video_preview_square;
+    QVector<char> audio_preview;
+    void make_square_thumb();
 };
 
 class Footage : public project::ProjectItem {
 public:
-	Footage();
+    Footage();
     virtual ~Footage();
     //FIXME: encapsulation
     QString url;
-	int64_t length;
-	QVector<FootageStream> video_tracks;
-	QVector<FootageStream> audio_tracks;
-	int save_id;
-	bool ready;
-	bool invalid;
-	double speed;
+    int64_t length;
+    QVector<FootageStream> video_tracks;
+    QVector<FootageStream> audio_tracks;
+    int save_id;
+    bool ready;
+    bool invalid;
+    double speed;
 
     PreviewGenerator* preview_gen = nullptr;
-	QMutex ready_lock;
+    QMutex ready_lock;
 
     bool using_inout = false;
-	long in;
-	long out;
+    long in;
+    long out;
 
     long get_length_in_frames(const double frame_rate);
-	FootageStream *get_stream_from_file_index(bool video, int index);
-	void reset();
+    FootageStream *get_stream_from_file_index(bool video, int index);
+    void reset();
 };
 
 #endif // FOOTAGE_H

@@ -816,9 +816,9 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
         if (imported) {
             e_undo_stack.push(ca);
 
-            for (int i=0;i<last_imported_media.size();i++) {
+            for (MediaPtr mda : last_imported_media){
                 // generate waveform/thumbnail in another thread
-                start_preview_generator(last_imported_media.at(i), replace != nullptr);
+                start_preview_generator(mda, replace != nullptr);
             }
         } else {
             delete ca;
