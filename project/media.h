@@ -53,6 +53,9 @@ public:
     explicit Media(MediaPtr iparent);
     ~Media();
 
+    Media(const Media& cpy) = delete;
+    const Media& operator=(const Media& rhs) = delete;
+
     template<typename T>
     std::shared_ptr<T> get_object() {
         return std::dynamic_pointer_cast<T>(object);
@@ -106,9 +109,6 @@ private:
     QIcon icon;
     int id;
 
-    // Explicity impl as required
-    Media(const Media& cpy);
-    const Media& operator=(const Media& rhs);
 };
 
 #endif // MEDIA_H
