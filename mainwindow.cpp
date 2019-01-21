@@ -1268,7 +1268,7 @@ void MainWindow::add_default_transition() {
 }
 
 void MainWindow::new_folder() {
-    MediaPtr m = e_panel_project->new_folder(nullptr);
+    MediaPtr m = e_panel_project->new_folder(tr("New Folder"));
     e_undo_stack.push(new AddMediaCommand(m, e_panel_project->get_selected_folder()));
 
 //    QModelIndex index = project_model.create_index(m->row(), 0, m.operator ->()); //FIXME: shared_ptr in QModelIndex?
