@@ -39,8 +39,6 @@ public:
                         int role = Qt::DisplayRole) const override;
     QModelIndex index(int row, int column,
                       const QModelIndex &parent = QModelIndex()) const override;
-    QModelIndex create_index(const int row, const int col, const MediaPtr& mda) const;
-    QModelIndex create_index(const int row, const MediaPtr& mda) const;
     QModelIndex parent(const QModelIndex &index) const override;
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -53,10 +51,14 @@ public:
     MediaPtr child(int i, MediaPtr parent = nullptr);
     int childCount(MediaPtr parent = nullptr);
     void set_icon(MediaPtr m, const QIcon &ico);
+    QModelIndex add(MediaPtr mda);
 
 private:
     MediaPtr root_item;
     QMap<int, MediaPtr> project_items;
+
+    QModelIndex create_index(const int row, const int col, const MediaPtr& mda) const;
+    QModelIndex create_index(const int row, const MediaPtr& mda) const;
 };
 
 #endif // PROJECTMODEL_H

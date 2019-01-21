@@ -198,6 +198,11 @@ void ProjectModel::set_icon(MediaPtr m, const QIcon &ico) {
 
 }
 
+QModelIndex ProjectModel::add(MediaPtr mda) {
+    project_items.insert(mda->getId(), mda);
+    return create_index(mda->row(), 0 , mda);
+}
+
 void ProjectModel::appendChild(MediaPtr parent, MediaPtr child) {
     if (parent == nullptr) {
         parent = root_item;
