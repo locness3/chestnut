@@ -451,8 +451,8 @@ bool Project::is_focused() {
     return tree_view->hasFocus() || icon_view->hasFocus();
 }
 
-MediaPtr Project::new_folder(QString name) {
-    MediaPtr item = std::make_shared<Media>(nullptr);
+MediaPtr Project::new_folder(const QString &name) {
+    MediaPtr item = std::make_shared<Media>();
     item->set_folder();
     item->set_name(name);
     return item;
@@ -960,18 +960,22 @@ void Project::load_project(bool autorecovery) {
 void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only, const QModelIndex& parent) {
     for (int i=0;i<project_model.rowCount(parent);i++) {
         const QModelIndex& item = project_model.index(i, 0, parent);
-        MediaPtr m = project_model.getItem(item);
+        MediaPtr mda = project_model.getItem(item);
+        if (mda == nullptr) {
+            qCritical() << "Null Media Ptr";
+            continue;
+        }
 
-        if (type == m->get_type()) {
-            if (m->get_type() == MEDIA_TYPE_FOLDER) {
+        if (type == mda->get_type()) {
+            if (mda->get_type() == MEDIA_TYPE_FOLDER) {
                 if (set_ids_only) {
-                    m->temp_id = folder_id; // saves a temporary ID for matching in the project file
+                    mda->temp_id = folder_id; // saves a temporary ID for matching in the project file
                     folder_id++;
                 } else {
                     // if we're saving folders, save the folder
                     stream.writeStartElement("folder");
-                    stream.writeAttribute("name", m->get_name());
-                    stream.writeAttribute("id", QString::number(m->temp_id));
+                    stream.writeAttribute("name", mda->get_name());
+                    stream.writeAttribute("id", QString::number(mda->temp_id));
                     if (!item.parent().isValid()) {
                         stream.writeAttribute("parent", "0");
                     } else {
@@ -982,14 +986,14 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
                 // save_folder(stream, item, type, set_ids_only);
             } else {
                 int folder;
-                if (!m->parentItem().expired()) {
-                    MediaPtr parPtr = m->parentItem().lock();
+                if (!mda->parentItem().expired()) {
+                    MediaPtr parPtr = mda->parentItem().lock();
                     folder = parPtr->temp_id;
                 } else {
                     folder = 0;
                 }
                 if (type == MEDIA_TYPE_FOOTAGE) {
-                    FootagePtr f = m->get_object<Footage>();
+                    FootagePtr f = mda->get_object<Footage>();
                     f->save_id = media_id;
                     stream.writeStartElement("footage");
                     stream.writeAttribute("id", QString::number(media_id));
@@ -1023,7 +1027,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
                     stream.writeEndElement();
                     media_id++;
                 } else if (type == MEDIA_TYPE_SEQUENCE) {
-                    SequencePtr  s = m->get_object<Sequence>();
+                    SequencePtr  s = mda->get_object<Sequence>();
                     if (set_ids_only) {
                         s->save_id = sequence_id;
                         sequence_id++;
@@ -1121,7 +1125,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
             }
         }
 
-        if (m->get_type() == MEDIA_TYPE_FOLDER) {
+        if (mda->get_type() == MEDIA_TYPE_FOLDER) {
             save_folder(stream, type, set_ids_only, item);
         }
     }

@@ -88,7 +88,7 @@ public:
     void load_project(bool autorecovery);
     void save_project(bool autorecovery);
 
-    MediaPtr new_folder(QString name);
+    MediaPtr new_folder(const QString& name);
     MediaPtr item_to_media(const QModelIndex& index);
 
     void save_recent_projects();
