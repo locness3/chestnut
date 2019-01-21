@@ -76,16 +76,16 @@ QString recent_proj_file;
 
 namespace
 {
-    const int       MAXIMUM_RECENT_PROJECTS             = 10;
-    const int       SEQUENCE_DEFAULT_WIDTH              = 1920;
-    const int       SEQUENCE_DEFAULT_HEIGHT             = 1080;
-    const double    SEQUENCE_DEFAULT_FRAMERATE          = 29.97;
-    const int       SEQUENCE_DEFAULT_AUDIO_FREQUENCY    = 48000;
-    const int       SEQUENCE_DEFAULT_LAYOUT             = 3;
+const int       MAXIMUM_RECENT_PROJECTS             = 10;
+const int       SEQUENCE_DEFAULT_WIDTH              = 1920;
+const int       SEQUENCE_DEFAULT_HEIGHT             = 1080;
+const double    SEQUENCE_DEFAULT_FRAMERATE          = 29.97;
+const int       SEQUENCE_DEFAULT_AUDIO_FREQUENCY    = 48000;
+const int       SEQUENCE_DEFAULT_LAYOUT             = 3;
 
-    const int       THROBBER_INTERVAL                   = 20; //ms
-    const int       THROBBER_LIMIT                      = 20;
-    const int       THROBBER_SIZE                       = 50;
+const int       THROBBER_INTERVAL                   = 20; //ms
+const int       THROBBER_LIMIT                      = 20;
+const int       THROBBER_SIZE                       = 50;
 }
 
 Project::Project(QWidget *parent) :
@@ -254,12 +254,15 @@ SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
 
     bool got_video_values = false;
     bool got_audio_values = false;
-    for (int i=0;i<media_list.size();i++) {
-        MediaPtr media = media_list.at(i);
-        switch (media->get_type()) {
+    for (MediaPtr mda: media_list){
+        if (mda == nullptr) {
+            qCritical() << "Null MediaPtr";
+            continue;
+        }
+        switch (mda->get_type()) {
         case MEDIA_TYPE_FOOTAGE:
         {
-            FootagePtr mediaFootage = media->get_object<Footage>();
+            FootagePtr mediaFootage = mda->get_object<Footage>();
             if (mediaFootage->ready) {
                 if (!got_video_values) {
                     for (int j=0;j<mediaFootage->video_tracks.size();j++) {
@@ -289,7 +292,7 @@ SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
             break;
         case MEDIA_TYPE_SEQUENCE:
         {
-            SequencePtr  seq = media->get_object<Sequence>();
+            SequencePtr  seq = mda->get_object<Sequence>();
             if (seq != nullptr) {
                 s->setWidth(seq->getWidth());
                 s->setHeight(seq->getHeight());
@@ -303,7 +306,7 @@ SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
         }
             break;
         default:
-            qWarning() << "Unknown media type" << media->get_type();
+            qWarning() << "Unknown media type" << mda->get_type();
         }//switch
         if (got_video_values && got_audio_values) break;
     }
@@ -459,7 +462,7 @@ MediaPtr Project::item_to_media(const QModelIndex &index) {
     //FIXME:
     if (sorter != nullptr) {
         const QModelIndex src = sorter->mapToSource(index);
-//        void* const ptr = src.internalPointer();
+        //        void* const ptr = src.internalPointer();
 
     }
 
@@ -501,8 +504,13 @@ void Project::delete_selected_media() {
     ComboAction* ca = new ComboAction();
     QModelIndexList selected_items = get_current_selected();
     QVector<MediaPtr> items;
-    for (int i=0;i<selected_items.size();i++) {
-        items.append(item_to_media(selected_items.at(i)));
+    for (QModelIndex idx : selected_items) {
+        MediaPtr mda = item_to_media(idx);
+        if (mda == nullptr) {
+            qCritical() << "Null Media Ptr";
+            continue;
+        }
+        items.append(mda);
     }
     bool remove = true;
     bool redraw = false;
@@ -799,7 +807,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
                         ca->append(new AddMediaCommand(item, parent));
                     } else {
                         parent->appendChild(item);
-//                        project_model.appendChild(parent, item);
+                        //                        project_model.appendChild(parent, item);
                     }
                 }
 
@@ -825,8 +833,14 @@ MediaPtr Project::get_selected_folder() {
     // if one item is selected and it's a folder, return it
     QModelIndexList selected_items = get_current_selected();
     if (selected_items.size() == 1) {
-        MediaPtr m = item_to_media(selected_items.at(0));
-        if (m->get_type() == MEDIA_TYPE_FOLDER) return m;
+        MediaPtr m = item_to_media(selected_items.front());
+        if (m != nullptr) {
+            if (m->get_type() == MEDIA_TYPE_FOLDER) {
+                return m;
+            }
+        } else {
+            qCritical() << "Null Media Ptr";
+        }
     }
     return nullptr;
 }
