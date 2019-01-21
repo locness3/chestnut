@@ -241,6 +241,9 @@ void PreviewGenerator::finalize_media() {
             }*/
         }
     }
+
+void thumb_data_cleanup(void *info) {
+	delete [] static_cast<uint8_t*>(info);
 }
 
 void PreviewGenerator::generate_waveform() {
@@ -340,8 +343,6 @@ void PreviewGenerator::generate_waveform() {
                                 avcodec_close(codec_ctx[packet->stream_index]);
                                 codec_ctx[packet->stream_index] = nullptr;
                             }
-
-                            delete[] imgData;
                         }
                         media_lengths[packet->stream_index]++;
                     } else if (fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
@@ -433,6 +434,7 @@ void PreviewGenerator::generate_waveform() {
         for (unsigned int i=0;i<fmt_ctx->nb_streams;i++) {
             if (codec_ctx[i] != nullptr) {
                 avcodec_close(codec_ctx[i]);
+			avcodec_free_context(&codec_ctx[i]);
             }
         }
         if (retrieve_duration) {
@@ -449,10 +451,7 @@ void PreviewGenerator::generate_waveform() {
     }
 
     delete [] media_lengths;
-
-    if (codec_ctx != nullptr) {
-        avcodec_free_context(codec_ctx);
-    }
+	delete [] codec_ctx;
 }
 
 QString PreviewGenerator::get_thumbnail_path(const QString& hash, const FootageStream& ms) {
