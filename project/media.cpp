@@ -64,7 +64,7 @@ Media::Media() :
     throbber(nullptr),
     root(false),
     type(MEDIA_TYPE_NONE),
-    parent(),
+    parent(std::weak_ptr<Media>()),
     id(++nextID)
 {
 
