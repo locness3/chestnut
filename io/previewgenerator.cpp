@@ -241,6 +241,7 @@ void PreviewGenerator::finalize_media() {
             }*/
         }
     }
+}
 
 void thumb_data_cleanup(void *info) {
 	delete [] static_cast<uint8_t*>(info);
