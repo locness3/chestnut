@@ -109,8 +109,8 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
 
         QAction* undoAction = menu.addAction("&Undo");
         QAction* redoAction = menu.addAction("&Redo");
-        connect(undoAction, SIGNAL(triggered(bool)), mainWindow, SLOT(undo()));
-        connect(redoAction, SIGNAL(triggered(bool)), mainWindow, SLOT(redo()));
+        connect(undoAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(undo()));
+        connect(redoAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(redo()));
         undoAction->setEnabled(e_undo_stack.canUndo());
         redoAction->setEnabled(e_undo_stack.canRedo());
         menu.addSeparator();
@@ -163,20 +163,20 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
         } else {
             // clips are selected
             QAction* cutAction = menu.addAction("C&ut");
-            connect(cutAction, SIGNAL(triggered(bool)), mainWindow, SLOT(cut()));
+            connect(cutAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(cut()));
             QAction* copyAction = menu.addAction("Cop&y");
-            connect(copyAction, SIGNAL(triggered(bool)), mainWindow, SLOT(copy()));
+            connect(copyAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(copy()));
             QAction* pasteAction = menu.addAction("&Paste");
-            connect(pasteAction, SIGNAL(triggered(bool)), mainWindow, SLOT(paste()));
+            connect(pasteAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(paste()));
             menu.addSeparator();
             QAction* speedAction = menu.addAction("&Speed/Duration");
-            connect(speedAction, SIGNAL(triggered(bool)), mainWindow, SLOT(open_speed_dialog()));
+            connect(speedAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(open_speed_dialog()));
             QAction* autoscaleAction = menu.addAction("Auto-s&cale");
             autoscaleAction->setCheckable(true);
             connect(autoscaleAction, SIGNAL(triggered(bool)), this, SLOT(toggle_autoscale()));
 
             QAction* nestAction = menu.addAction("&Nest");
-            connect(nestAction, SIGNAL(triggered(bool)), mainWindow, SLOT(nest()));
+            connect(nestAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(nest()));
 
             // stabilizer option
             /*int video_clip_count = 0;
@@ -825,7 +825,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
                     const Ghost& g = e_panel_timeline->ghosts.at(0);
 
                     if (e_panel_timeline->creating_object == ADD_OBJ_AUDIO) {
-                        mainWindow->statusBar()->clearMessage();
+                        global::mainWindow->statusBar()->clearMessage();
                         e_panel_sequence_viewer->cue_recording(qMin(g.in, g.out), qMax(g.in, g.out), g.track);
                         e_panel_timeline->creating = false;
                     } else if (g.in != g.out) {

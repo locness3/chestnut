@@ -90,7 +90,7 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em) {
 		}
 	} else {
 		qCritical() << "Invalid effect data";
-		QMessageBox::critical(mainWindow,
+        QMessageBox::critical(global::mainWindow,
 							  QCoreApplication::translate("Effect", "Invalid effect"),
 							  QCoreApplication::translate("Effect", "No candidate for effect '%1'. This effect may be corrupt. Try reinstalling it or Olive.").arg(em->name));
 	}
@@ -565,7 +565,7 @@ void Effect::field_changed() {
 
 void Effect::show_context_menu(const QPoint& pos) {
 	if (meta->type == EFFECT_TYPE_EFFECT) {
-		QMenu menu(mainWindow);
+        QMenu menu(global::mainWindow);
 
 		int index = get_index_in_clip();
 

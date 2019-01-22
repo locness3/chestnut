@@ -28,17 +28,17 @@
 class ComboBoxExCommand : public QUndoCommand {
 public:
     ComboBoxExCommand(ComboBoxEx* obj, int old_index, int new_index) :
-		combobox(obj), old_val(old_index), new_val(new_index), done(true), old_project_changed(mainWindow->isWindowModified()) {}
+        combobox(obj), old_val(old_index), new_val(new_index), done(true), old_project_changed(global::mainWindow->isWindowModified()) {}
     void undo() {
         combobox->setCurrentIndex(old_val);
         done = false;
-		mainWindow->setWindowModified(old_project_changed);
+        global::mainWindow->setWindowModified(old_project_changed);
     }
     void redo() {
         if (!done) {
             combobox->setCurrentIndex(new_val);
         }
-		mainWindow->setWindowModified(true);
+        global::mainWindow->setWindowModified(true);
     }
 private:
     ComboBoxEx* combobox;

@@ -1555,7 +1555,7 @@ void Timeline::record_btn_click() {
 	} else {
 		creating = true;
 		creating_object = ADD_OBJ_AUDIO;
-        mainWindow->statusBar()->showMessage(
+        global::mainWindow->statusBar()->showMessage(
                     tr("Click on the timeline where you want to start recording (drag to limit the recording to a certain timeframe)"),
                     10000);
 	}

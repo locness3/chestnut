@@ -88,7 +88,7 @@ MoveClipAction::MoveClipAction(ClipPtr c, const long iin, const long iout, const
       new_clip_in(iclip_in),
       new_track(itrack),
       relative(irelative),
-      old_project_changed(mainWindow->isWindowModified())
+      old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void MoveClipAction::undo() {
@@ -104,7 +104,7 @@ void MoveClipAction::undo() {
         clip->timeline_info.track = old_track;
     }
 
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void MoveClipAction::redo() {
@@ -120,7 +120,7 @@ void MoveClipAction::redo() {
         clip->timeline_info.track = new_track;
     }
 
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 DeleteClipAction::DeleteClipAction(SequencePtr s, const int clip) :
@@ -128,7 +128,7 @@ DeleteClipAction::DeleteClipAction(SequencePtr s, const int clip) :
     index(clip),
     opening_transition(-1),
     closing_transition(-1),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 DeleteClipAction::~DeleteClipAction() {
@@ -159,7 +159,7 @@ void DeleteClipAction::undo() {
 
     ref = nullptr;
 
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void DeleteClipAction::redo() {
@@ -198,7 +198,7 @@ void DeleteClipAction::redo() {
 		}
 	}
 
-	mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 ChangeSequenceAction::ChangeSequenceAction(SequencePtr s) :
@@ -219,7 +219,7 @@ SetTimelineInOutCommand::SetTimelineInOutCommand(SequencePtr s, const bool enabl
     new_enabled(enabled),
     new_in(in),
     new_out(out),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetTimelineInOutCommand::undo() {
@@ -236,7 +236,7 @@ void SetTimelineInOutCommand::undo() {
         m->out = old_out;
     }
 
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetTimelineInOutCommand::redo() {
@@ -258,7 +258,7 @@ void SetTimelineInOutCommand::redo() {
         m->out = new_out;
     }
 
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 AddEffectCommand::AddEffectCommand(ClipPtr   c, EffectPtr e, const EffectMeta *m, const int insert_pos) :
@@ -267,7 +267,7 @@ AddEffectCommand::AddEffectCommand(ClipPtr   c, EffectPtr e, const EffectMeta *m
     ref(e),
     pos(insert_pos),
     done(false),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 AddEffectCommand::~AddEffectCommand() {
@@ -282,7 +282,7 @@ void AddEffectCommand::undo() {
         clip->effects.removeAt(pos);
     }
     done = false;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void AddEffectCommand::redo() {
@@ -295,7 +295,7 @@ void AddEffectCommand::redo() {
         clip->effects.insert(pos, ref);
     }
     done = true;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 AddTransitionCommand::AddTransitionCommand(ClipPtr   c, ClipPtr s, Transition* copy, const EffectMeta *itransition, const int itype, const int ilength) :
@@ -305,7 +305,7 @@ AddTransitionCommand::AddTransitionCommand(ClipPtr   c, ClipPtr s, Transition* c
     transition(itransition),
     type(itype),
     length(ilength),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void AddTransitionCommand::undo() {
@@ -320,7 +320,7 @@ void AddTransitionCommand::undo() {
         if (secondary != nullptr) secondary->opening_transition = old_stransition;
     }
 
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void AddTransitionCommand::redo() {
@@ -345,27 +345,27 @@ void AddTransitionCommand::redo() {
 			clip->get_closing_transition()->set_length(length);
 		}
 	}
-	mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const int itype, const long ilength) :
 	clip(c),
 	type(itype),
 	new_length(ilength),
-	old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void ModifyTransitionCommand::undo() {
     Transition* t = (type == TA_OPENING_TRANSITION) ? clip->get_opening_transition() : clip->get_closing_transition();
     t->set_length(old_length);
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void ModifyTransitionCommand::redo() {
 	Transition* t = (type == TA_OPENING_TRANSITION) ? clip->get_opening_transition() : clip->get_closing_transition();
 	old_length = t->get_true_length();
 	t->set_length(new_length);
-	mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 DeleteTransitionCommand::DeleteTransitionCommand(SequencePtr s, const int transition_index) :
@@ -374,7 +374,7 @@ DeleteTransitionCommand::DeleteTransitionCommand(SequencePtr s, const int transi
 	transition(nullptr),
 	otc(nullptr),
 	ctc(nullptr),
-	old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 DeleteTransitionCommand::~DeleteTransitionCommand() {
@@ -388,7 +388,7 @@ void DeleteTransitionCommand::undo() {
     if (ctc != nullptr) ctc->closing_transition = index;
 
     transition = nullptr;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void DeleteTransitionCommand::redo() {
@@ -409,14 +409,14 @@ void DeleteTransitionCommand::redo() {
     transition = seq->transitions.at(index);
     seq->transitions[index] = nullptr;
 
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 NewSequenceCommand::NewSequenceCommand(MediaPtr s, MediaPtr iparent) :
     seq(s),
     parent(iparent),
     done(false),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {
     if (parent == nullptr) parent = project_model.get_root();
 }
@@ -429,21 +429,21 @@ void NewSequenceCommand::undo() {
     project_model.removeChild(parent, seq);
 
     done = false;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void NewSequenceCommand::redo() {
     project_model.appendChild(parent, seq);
 
     done = true;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 AddMediaCommand::AddMediaCommand(MediaPtr iitem, MediaPtr iparent) :
     item(iitem),
     parent(iparent),
     done(false),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 AddMediaCommand::~AddMediaCommand() {
@@ -453,20 +453,20 @@ AddMediaCommand::~AddMediaCommand() {
 void AddMediaCommand::undo() {
     project_model.removeChild(parent, item);
     done = false;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void AddMediaCommand::redo() {
     project_model.appendChild(parent, item);
 
     done = true;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 DeleteMediaCommand::DeleteMediaCommand(MediaPtr i) :
     item(i),
     parent(i->parentItem()),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 DeleteMediaCommand::~DeleteMediaCommand() {
@@ -476,21 +476,21 @@ DeleteMediaCommand::~DeleteMediaCommand() {
 void DeleteMediaCommand::undo() {
     project_model.appendChild(parent, item);
 
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
     done = false;
 }
 
 void DeleteMediaCommand::redo() {
     project_model.removeChild(parent, item);
 
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
     done = true;
 }
 
 AddClipCommand::AddClipCommand(SequencePtr s, QVector<ClipPtr  >& add) :
     seq(s),
     clips(add),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 AddClipCommand::~AddClipCommand() {
@@ -506,7 +506,7 @@ void AddClipCommand::undo() {
         c->close(true);
         seq->clips.removeLast();
     }
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void AddClipCommand::redo() {
@@ -529,10 +529,10 @@ void AddClipCommand::redo() {
             seq->clips.append(copy);
         }
     }
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
-LinkCommand::LinkCommand() : link(true), old_project_changed(mainWindow->isWindowModified()) {}
+LinkCommand::LinkCommand() : link(true), old_project_changed(global::mainWindow->isWindowModified()) {}
 
 void LinkCommand::undo() {
     for (int i=0;i<clips.size();i++) {
@@ -543,7 +543,7 @@ void LinkCommand::undo() {
             c->linked = old_links.at(i);
         }
     }
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void LinkCommand::redo() {
@@ -562,30 +562,30 @@ void LinkCommand::redo() {
             c->linked.clear();
         }
     }
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
-CheckboxCommand::CheckboxCommand(QCheckBox* b) : box(b), checked(box->isChecked()), done(true), old_project_changed(mainWindow->isWindowModified()) {}
+CheckboxCommand::CheckboxCommand(QCheckBox* b) : box(b), checked(box->isChecked()), done(true), old_project_changed(global::mainWindow->isWindowModified()) {}
 
 CheckboxCommand::~CheckboxCommand() {}
 
 void CheckboxCommand::undo() {
     box->setChecked(!checked);
     done = false;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void CheckboxCommand::redo() {
     if (!done) {
         box->setChecked(checked);
     }
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 ReplaceMediaCommand::ReplaceMediaCommand(MediaPtr i, QString s) :
     item(i),
     new_filename(s),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {
     old_filename = item->get_object<Footage>()->url;
 }
@@ -614,20 +614,20 @@ void ReplaceMediaCommand::replace(QString& filename) {
 void ReplaceMediaCommand::undo() {
     replace(old_filename);
 
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void ReplaceMediaCommand::redo() {
     replace(new_filename);
 
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 ReplaceClipMediaCommand::ReplaceClipMediaCommand(MediaPtr a, MediaPtr b, const bool e) :
     old_media(a),
     new_media(b),
     preserve_clip_ins(e),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void ReplaceClipMediaCommand::replace(bool undo) {
@@ -662,19 +662,19 @@ void ReplaceClipMediaCommand::replace(bool undo) {
 void ReplaceClipMediaCommand::undo() {
     replace(true);
 
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void ReplaceClipMediaCommand::redo() {
     replace(false);
 
     update_ui(true);
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 EffectDeleteCommand::EffectDeleteCommand()
     : done(false),
-      old_project_changed(mainWindow->isWindowModified())
+      old_project_changed(global::mainWindow->isWindowModified())
 {
 
 }
@@ -690,7 +690,7 @@ void EffectDeleteCommand::undo() {
     }
     e_panel_effect_controls->reload_clips();
     done = false;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void EffectDeleteCommand::redo() {
@@ -705,16 +705,16 @@ void EffectDeleteCommand::redo() {
     }
     e_panel_effect_controls->reload_clips();
     done = true;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
-MediaMove::MediaMove() : old_project_changed(mainWindow->isWindowModified()) {}
+MediaMove::MediaMove() : old_project_changed(global::mainWindow->isWindowModified()) {}
 
 void MediaMove::undo() {
     for (int i=0;i<items.size();i++) {
         project_model.moveChild(items.at(i), froms.at(i));
     }
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void MediaMove::redo() {
@@ -728,47 +728,47 @@ void MediaMove::redo() {
             project_model.moveChild(items.at(i), to);
         }
     }
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 MediaRename::MediaRename(MediaPtr iitem, QString ito) :
     item(iitem),
     from(iitem->get_name()),
     to(ito),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void MediaRename::undo() {
     item->set_name(from);
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void MediaRename::redo() {
     item->set_name(to);
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 KeyframeDelete::KeyframeDelete(EffectFieldPtr ifield, const int iindex) :
     field(ifield),
     index(iindex),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void KeyframeDelete::undo() {
     field->keyframes.insert(index, deleted_key);
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void KeyframeDelete::redo() {
     deleted_key = field->keyframes.at(index);
     field->keyframes.removeAt(index);
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 EffectFieldUndo::EffectFieldUndo(EffectFieldPtr f) :
     field(f),
     done(true),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {
     old_val = field->get_previous_data();
     new_val = field->get_current_data();
@@ -777,18 +777,18 @@ EffectFieldUndo::EffectFieldUndo(EffectFieldPtr f) :
 void EffectFieldUndo::undo() {
     field->set_current_data(old_val);
     done = false;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void EffectFieldUndo::redo() {
     if (!done) {
         field->set_current_data(new_val);
     }
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 SetAutoscaleAction::SetAutoscaleAction() :
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetAutoscaleAction::undo() {
@@ -796,7 +796,7 @@ void SetAutoscaleAction::undo() {
         clips.at(i)->timeline_info.autoscale = !clips.at(i)->timeline_info.autoscale;
     }
     e_panel_sequence_viewer->viewer_widget->update();
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetAutoscaleAction::redo() {
@@ -804,14 +804,14 @@ void SetAutoscaleAction::redo() {
         clips.at(i)->timeline_info.autoscale = !clips.at(i)->timeline_info.autoscale;
     }
     e_panel_sequence_viewer->viewer_widget->update();
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 AddMarkerAction::AddMarkerAction(SequencePtr s, const long t, QString n) :
     seq(s),
     time(t),
     name(n),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void AddMarkerAction::undo() {
@@ -821,7 +821,7 @@ void AddMarkerAction::undo() {
         seq->markers[index].name = old_name;
     }
 
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void AddMarkerAction::redo() {
@@ -842,37 +842,37 @@ void AddMarkerAction::redo() {
         seq->markers[index].name = name;
     }
 
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 MoveMarkerAction::MoveMarkerAction(Marker* m, const long o, const long n) :
     marker(m),
     old_time(o),
     new_time(n),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void MoveMarkerAction::undo() {
     marker->frame = old_time;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void MoveMarkerAction::redo() {
     marker->frame = new_time;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 DeleteMarkerAction::DeleteMarkerAction(SequencePtr s) :
     seq(s),
     sorted(false),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void DeleteMarkerAction::undo() {
     for (int i=markers.size()-1;i>=0;i--) {
         seq->markers.insert(markers.at(i), copies.at(i));
     }
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void DeleteMarkerAction::redo() {
@@ -889,55 +889,55 @@ void DeleteMarkerAction::redo() {
         seq->markers.removeAt(markers.at(i));
     }
     sorted = true;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 SetSpeedAction::SetSpeedAction(ClipPtr   c, double speed) :
     clip(c),
     old_speed(c->timeline_info.speed),
     new_speed(speed),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetSpeedAction::undo() {
     clip->timeline_info.speed = old_speed;
     clip->recalculateMaxLength();
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetSpeedAction::redo() {
     clip->timeline_info.speed = new_speed;
     clip->recalculateMaxLength();
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 SetBool::SetBool(bool* b, const bool setting) :
     boolean(b),
     old_setting(*b),
     new_setting(setting),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetBool::undo() {
     *boolean = old_setting;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetBool::redo() {
     *boolean = new_setting;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 SetSelectionsCommand::SetSelectionsCommand(SequencePtr s) :
     seq(s),
     done(true),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetSelectionsCommand::undo() {
     seq->selections = old_data;
     done = false;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetSelectionsCommand::redo() {
@@ -945,30 +945,30 @@ void SetSelectionsCommand::redo() {
         seq->selections = new_data;
         done = true;
     }
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 SetEnableCommand::SetEnableCommand(ClipPtr c, const bool enable) :
     clip(c),
     old_val(c->timeline_info.enabled),
     new_val(enable),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetEnableCommand::undo() {
     clip->timeline_info.enabled = old_val;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetEnableCommand::redo() {
     clip->timeline_info.enabled = new_val;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 EditSequenceCommand::EditSequenceCommand(MediaPtr i, SequencePtr s) :
     item(i),
     seq(s),
-    old_project_changed(mainWindow->isWindowModified()),
+    old_project_changed(global::mainWindow->isWindowModified()),
     old_name(s->getName()),
     old_width(s->getWidth()),
     old_height(s->getHeight()),
@@ -986,7 +986,7 @@ void EditSequenceCommand::undo() {
     seq->setAudioLayout(old_audio_layout);
     update();
 
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void EditSequenceCommand::redo() {
@@ -998,7 +998,7 @@ void EditSequenceCommand::redo() {
     seq->setAudioLayout(audio_layout);
     update();
 
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 void EditSequenceCommand::update() {
@@ -1018,34 +1018,34 @@ SetInt::SetInt(int* pointer, const int new_value) :
     p(pointer),
     oldval(*pointer),
     newval(new_value),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetInt::undo() {
     *p = oldval;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetInt::redo() {
     *p = newval;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 SetString::SetString(QString* pointer, QString new_value) :
     p(pointer),
     oldval(*pointer),
     newval(new_value),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetString::undo() {
     *p = oldval;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetString::redo() {
     *p = newval;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 void CloseAllClipsCommand::undo() {
@@ -1069,22 +1069,22 @@ void UpdateFootageTooltip::redo() {
 }
 
 MoveEffectCommand::MoveEffectCommand() :
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void MoveEffectCommand::undo() {
     clip->effects.move(to, from);
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void MoveEffectCommand::redo() {
     clip->effects.move(from, to);
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 RemoveClipsFromClipboard::RemoveClipsFromClipboard(int index) :
     pos(index),
-    old_project_changed(mainWindow->isWindowModified()),
+    old_project_changed(global::mainWindow->isWindowModified()),
     done(false)
 {}
 
@@ -1104,7 +1104,7 @@ void RemoveClipsFromClipboard::redo() {
 }
 
 RenameClipCommand::RenameClipCommand() :
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void RenameClipCommand::undo() {
@@ -1124,18 +1124,18 @@ void RenameClipCommand::redo() {
 SetPointer::SetPointer(void **pointer, void *data) :
     p(pointer),
     new_data(data),
-    old_changed(mainWindow->isWindowModified())
+    old_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetPointer::undo() {
     *p = old_data;
-    mainWindow->setWindowModified(old_changed);
+    global::mainWindow->setWindowModified(old_changed);
 }
 
 void SetPointer::redo() {
     old_data = *p;
     *p = new_data;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 void ReloadEffectsCommand::undo() {
@@ -1177,17 +1177,17 @@ SetDouble::SetDouble(double* pointer, double old_value, double new_value) :
     p(pointer),
     oldval(old_value),
     newval(new_value),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetDouble::undo() {
     *p = oldval;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetDouble::redo() {
     *p = newval;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 SetQVariant::SetQVariant(QVariant *itarget, const QVariant &iold, const QVariant &inew) :
@@ -1208,17 +1208,17 @@ SetLong::SetLong(long *pointer, const long old_value, const long new_value) :
     p(pointer),
     oldval(old_value),
     newval(new_value),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void SetLong::undo() {
     *p = oldval;
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetLong::redo() {
     *p = newval;
-    mainWindow->setWindowModified(true);
+    global::mainWindow->setWindowModified(true);
 }
 
 KeyframeFieldSet::KeyframeFieldSet(EffectFieldPtr ifield, const int ii) :
@@ -1226,19 +1226,19 @@ KeyframeFieldSet::KeyframeFieldSet(EffectFieldPtr ifield, const int ii) :
     index(ii),
     key(ifield->keyframes.at(ii)),
     done(true),
-    old_project_changed(mainWindow->isWindowModified())
+    old_project_changed(global::mainWindow->isWindowModified())
 {}
 
 void KeyframeFieldSet::undo() {
     field->keyframes.removeAt(index);
-    mainWindow->setWindowModified(old_project_changed);
+    global::mainWindow->setWindowModified(old_project_changed);
     done = false;
 }
 
 void KeyframeFieldSet::redo() {
     if (!done) {
         field->keyframes.insert(index, key);
-        mainWindow->setWindowModified(true);
+        global::mainWindow->setWindowModified(true);
     }
     done = true;
 }

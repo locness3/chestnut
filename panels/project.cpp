@@ -122,22 +122,22 @@ Project::Project(QWidget *parent) :
 
     QPushButton* toolbar_open = new QPushButton("Open");
     toolbar_open->setToolTip("Open Project");
-    connect(toolbar_open, SIGNAL(clicked(bool)), mainWindow, SLOT(open_project()));
+    connect(toolbar_open, SIGNAL(clicked(bool)), global::mainWindow, SLOT(open_project()));
     toolbar->addWidget(toolbar_open);
 
     QPushButton* toolbar_save = new QPushButton("Save");
     toolbar_save->setToolTip("Save Project");
-    connect(toolbar_save, SIGNAL(clicked(bool)), mainWindow, SLOT(save_project()));
+    connect(toolbar_save, SIGNAL(clicked(bool)), global::mainWindow, SLOT(save_project()));
     toolbar->addWidget(toolbar_save);
 
     QPushButton* toolbar_undo = new QPushButton("Undo");
     toolbar_undo->setToolTip("Undo");
-    connect(toolbar_undo, SIGNAL(clicked(bool)), mainWindow, SLOT(undo()));
+    connect(toolbar_undo, SIGNAL(clicked(bool)), global::mainWindow, SLOT(undo()));
     toolbar->addWidget(toolbar_undo);
 
     QPushButton* toolbar_redo = new QPushButton("Redo");
     toolbar_redo->setToolTip("Redo");
-    connect(toolbar_redo, SIGNAL(clicked(bool)), mainWindow, SLOT(redo()));
+    connect(toolbar_redo, SIGNAL(clicked(bool)), global::mainWindow, SLOT(redo()));
     toolbar->addWidget(toolbar_redo);
 
     toolbar->addStretch();
@@ -950,7 +950,7 @@ void Project::new_project() {
     set_sequence(nullptr);
     e_panel_footage_viewer->set_media(nullptr);
     clear();
-    mainWindow->setWindowModified(false);
+    global::mainWindow->setWindowModified(false);
 }
 
 void Project::load_project(bool autorecovery) {
@@ -1179,7 +1179,7 @@ void Project::save_project(bool autorecovery) {
 
     if (!autorecovery) {
         add_recent_project(project_url);
-        mainWindow->setWindowModified(false);
+        global::mainWindow->setWindowModified(false);
     }
 }
 
@@ -1244,7 +1244,7 @@ void Project::go_up_dir() {
 
 void Project::make_new_menu() {
     QMenu new_menu(this);
-    mainWindow->make_new_menu(&new_menu);
+    global::mainWindow->make_new_menu(&new_menu);
     new_menu.exec(QCursor::pos());
 }
 

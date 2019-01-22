@@ -71,7 +71,7 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
     QObject::connect(import_action, SIGNAL(triggered(bool)), project_parent, SLOT(import_dialog()));
 
     QMenu* new_menu = menu.addMenu(tr("New"));
-    mainWindow->make_new_menu(new_menu);
+    global::mainWindow->make_new_menu(new_menu);
 
     if (items.size() > 0) {
         MediaPtr mda = project_parent->item_to_media(items.at(0));

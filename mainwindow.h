@@ -220,6 +220,9 @@ private:
 	bool enable_launch_with_project = false;
 };
 
-extern MainWindow* mainWindow;
+namespace global {
+    // TODO: sort out items in ::global
+    extern MainWindow* mainWindow;
+}
 
 #endif // MAINWINDOW_H

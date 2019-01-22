@@ -138,7 +138,7 @@ void PreferencesDialog::save() {
 	}
 
     e_config.css_path = custom_css_fn->text();
-    mainWindow->load_css_from_file(e_config.css_path);
+    global::mainWindow->load_css_from_file(e_config.css_path);
 	e_config.recording_mode = recordingComboBox->currentIndex() + 1;
 	e_config.img_seq_formats = imgSeqFormatEdit->text();
 	e_config.fast_seeking = fastSeekButton->isChecked();

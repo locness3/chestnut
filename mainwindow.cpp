@@ -69,7 +69,7 @@
 #include <QApplication>
 #include <QPushButton>
 
-MainWindow* mainWindow;
+MainWindow* global::mainWindow;
 
 #define DEFAULT_CSS "QPushButton::checked { background: rgb(25, 25, 25); }"
 
@@ -138,7 +138,7 @@ MainWindow::MainWindow(QWidget *parent, const QString &an) :
 
     debug_dialog = new DebugDialog(this);
 
-    mainWindow = this;
+    global::mainWindow = this;
 
     // set up style?
 

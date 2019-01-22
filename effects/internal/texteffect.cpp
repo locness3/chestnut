@@ -249,7 +249,7 @@ void TextEffect::text_edit_menu() {
 }
 
 void TextEffect::open_text_edit() {
-	TextEditDialog ted(mainWindow, text_val->get_current_data().toString());
+    TextEditDialog ted(global::mainWindow, text_val->get_current_data().toString());
 	ted.exec();
 	QString result = ted.get_string();
 	if (!result.isEmpty()) {

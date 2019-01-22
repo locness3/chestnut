@@ -451,7 +451,7 @@ void ExportThread::run() {
         if (audio_enabled) apkt_alloc = true;
     }
 
-	mainWindow->set_rendering_state(false);
+    global::mainWindow->set_rendering_state(false);
 
     if (audio_enabled && continueEncode) {
 		// flush swresample

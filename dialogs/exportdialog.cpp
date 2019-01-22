@@ -523,9 +523,9 @@ void ExportDialog::export_action() {
 
 		closeActiveClips(e_sequence);
 
-		mainWindow->set_rendering_state(true);
+        global::mainWindow->set_rendering_state(true);
 
-		mainWindow->autorecover_interval();
+        global::mainWindow->autorecover_interval();
 
 		e_rendering = true;
 		e_panel_sequence_viewer->viewer_widget->context()->doneCurrent();
