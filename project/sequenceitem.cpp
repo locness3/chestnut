@@ -21,6 +21,6 @@ const QString& SequenceItem::getName() const {
 }
 
 
-project::SequenceItemType_E SequenceItem::getType() const {
-    return project::SEQUENCE_ITEM_NONE;
+project::SequenceItemType SequenceItem::getType() const {
+    return project::SequenceItemType::NONE;
 }

@@ -67,7 +67,7 @@ public:
     Clip(const Clip& cpy) = delete;
     const Clip& operator=(const Clip& rhs) = delete;
 
-    virtual project::SequenceItemType_E getType() const;
+    virtual project::SequenceItemType getType() const;
 
     bool isActive(const long playhead);
     /**

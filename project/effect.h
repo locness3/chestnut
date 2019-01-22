@@ -140,7 +140,7 @@ class Effect : public QObject, project::SequenceItem {
 public:
     Effect(ClipPtr c, const EffectMeta* em);
     virtual ~Effect();
-    virtual project::SequenceItemType_E getType() const;
+    virtual project::SequenceItemType getType() const;
 
 
     EffectRowPtr add_row(const QString &name, bool savable = true, bool keyframable = true);

@@ -505,8 +505,8 @@ Effect::~Effect() {
 }
 
 
-project::SequenceItemType_E Effect::getType() const {
-    return project::SEQUENCE_ITEM_EFFECT;
+project::SequenceItemType Effect::getType() const {
+    return project::SequenceItemType::EFFECT;
 }
 
 void Effect::copy_field_keyframes(std::shared_ptr<Effect> e) {

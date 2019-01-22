@@ -126,8 +126,8 @@ ClipPtr Clip::copy(SequencePtr s) {
 }
 
 
-project::SequenceItemType_E Clip::getType() const {
-    return project::SEQUENCE_ITEM_CLIP;
+project::SequenceItemType Clip::getType() const {
+    return project::SequenceItemType::CLIP;
 }
 
 

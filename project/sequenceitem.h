@@ -5,10 +5,10 @@
 #include <QString>
 
 namespace project {
-    enum SequenceItemType_E {
-        SEQUENCE_ITEM_CLIP = 0,
-        SEQUENCE_ITEM_EFFECT = 1,
-        SEQUENCE_ITEM_NONE
+    enum class SequenceItemType {
+        CLIP = 0,
+        EFFECT = 1,
+        NONE
     };
 
     class SequenceItem
@@ -16,11 +16,15 @@ namespace project {
     public:
         SequenceItem();
         virtual ~SequenceItem();
+        SequenceItem(const SequenceItem&) = delete;
+        SequenceItem(const SequenceItem&&) = delete;
+        SequenceItem& operator=(const SequenceItem&) = delete;
+        SequenceItem& operator=(const SequenceItem&&) = delete;
 
         void setName(const QString& val);
         const QString& getName() const;
 
-        virtual SequenceItemType_E getType() const;
+        virtual SequenceItemType getType() const;
 
     private:
         friend class Clip;
