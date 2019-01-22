@@ -635,11 +635,16 @@ int Effect::get_index_in_clip() {
 }
 
 bool Effect::is_enabled() {
+    if ( (container != nullptr) && (container->enabled_check != nullptr) ) {
 	return container->enabled_check->isChecked();
+    }
+    return false;
 }
 
-void Effect::set_enabled(bool b) {
+void Effect::set_enabled(const bool b) {
+    if ( (container != nullptr) && (container->enabled_check != nullptr) ) {
 	container->enabled_check->setChecked(b);
+    }
 }
 
 QVariant load_data_from_string(int type, const QString& string) {
