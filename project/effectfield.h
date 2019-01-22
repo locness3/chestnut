@@ -18,13 +18,13 @@
 #ifndef EFFECTFIELD_H
 #define EFFECTFIELD_H
 
-#define EFFECT_FIELD_DOUBLE 0
-#define EFFECT_FIELD_COLOR 1
-#define EFFECT_FIELD_STRING 2
-#define EFFECT_FIELD_BOOL 3
-#define EFFECT_FIELD_COMBO 4
-#define EFFECT_FIELD_FONT 5
-#define EFFECT_FIELD_FILE 6
+//#define EffectFieldType::DOUBLE 0
+//#define EffectFieldType::COLOR 1
+//#define EffectFieldType::STRING 2
+//#define EffectFieldType::BOOL 3
+//#define EffectFieldType::COMBO 4
+//#define EffectFieldType::FONT 5
+//#define EffectFieldType::FILE 6
 
 #include <QObject>
 #include <QVariant>
@@ -36,12 +36,23 @@
 class EffectRow;
 class ComboAction;
 
+enum class EffectFieldType {
+    DOUBLE = 0,
+    COLOR = 1,
+    STRING = 2,
+    BOOL = 3,
+    COMBO = 4,
+    FONT = 5,
+    FILE = 6,
+    UNKNOWN
+};
+
 class EffectField : public QObject, std::enable_shared_from_this<EffectField> {
 	Q_OBJECT
 public:
-	EffectField(EffectRow* parent, int t, const QString& i);
+    EffectField(EffectRow* parent, const EffectFieldType t, const QString& i);
 	EffectRow* parent_row;
-	int type;
+    EffectFieldType type;
 	QString id;
 
 	QVariant get_previous_data();

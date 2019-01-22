@@ -161,7 +161,7 @@ VSTHostWin::VSTHostWin(Clip* c, const EffectMeta *em) : Effect(c, em) {
 
 	initializeIO();
 
-	file_field = add_row(tr("Plugin"), true, false)->add_field(EFFECT_FIELD_FILE, "filename");
+	file_field = add_row(tr("Plugin"), true, false)->add_field(EffectFieldType::FILE, "filename");
 	connect(file_field, SIGNAL(changed()), this, SLOT(change_plugin()));
 
 	EffectRow* interface_row = add_row(tr("Interface"), false, false);

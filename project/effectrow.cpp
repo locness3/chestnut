@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -35,34 +35,34 @@
 
 EffectRow::EffectRow(Effect* parent, const bool save, QGridLayout* uilayout,
                      const QString& n, const int row, const bool keyframable) :
-	parent_effect(parent),
-	savable(save),
-	keyframing(false),
-	ui(uilayout),
-	name(n),
-	ui_row(row),
-	just_made_unsafe_keyframe(false)
+    parent_effect(parent),
+    savable(save),
+    keyframing(false),
+    ui(uilayout),
+    name(n),
+    ui_row(row),
+    just_made_unsafe_keyframe(false)
 {
-	label = new ClickableLabel(name + ":");
+    label = new ClickableLabel(name + ":");
 
-	ui->addWidget(label, row, 0);
+    ui->addWidget(label, row, 0);
 
-	column_count = 1;
+    column_count = 1;
 
-	keyframe_nav = nullptr;
+    keyframe_nav = nullptr;
     if (parent_effect->meta != nullptr
             && parent_effect->meta->type != EFFECT_TYPE_TRANSITION
             && keyframable) {
-		connect(label, SIGNAL(clicked()), this, SLOT(focus_row()));
+        connect(label, SIGNAL(clicked()), this, SLOT(focus_row()));
 
-		keyframe_nav = new KeyframeNavigator();
-		connect(keyframe_nav, SIGNAL(goto_previous_key()), this, SLOT(goto_previous_key()));
-		connect(keyframe_nav, SIGNAL(toggle_key()), this, SLOT(toggle_key()));
-		connect(keyframe_nav, SIGNAL(goto_next_key()), this, SLOT(goto_next_key()));
-		connect(keyframe_nav, SIGNAL(keyframe_enabled_changed(bool)), this, SLOT(set_keyframe_enabled(bool)));
-		connect(keyframe_nav, SIGNAL(clicked()), this, SLOT(focus_row()));
-		ui->addWidget(keyframe_nav, row, 6);
-	}
+        keyframe_nav = new KeyframeNavigator();
+        connect(keyframe_nav, SIGNAL(goto_previous_key()), this, SLOT(goto_previous_key()));
+        connect(keyframe_nav, SIGNAL(toggle_key()), this, SLOT(toggle_key()));
+        connect(keyframe_nav, SIGNAL(goto_next_key()), this, SLOT(goto_next_key()));
+        connect(keyframe_nav, SIGNAL(keyframe_enabled_changed(bool)), this, SLOT(set_keyframe_enabled(bool)));
+        connect(keyframe_nav, SIGNAL(clicked()), this, SLOT(focus_row()));
+        ui->addWidget(keyframe_nav, row, 6);
+    }
 }
 
 EffectRow::~EffectRow() {
@@ -70,101 +70,101 @@ EffectRow::~EffectRow() {
 }
 
 bool EffectRow::isKeyframing() {
-	return keyframing;
+    return keyframing;
 }
 
 void EffectRow::setKeyframing(bool b) {
-	if (parent_effect->meta->type != EFFECT_TYPE_TRANSITION) {
-		keyframing = b;
-		if (keyframe_nav != nullptr) {
-		keyframe_nav->enable_keyframes(b);
-		}
-	}
+    if (parent_effect->meta->type != EFFECT_TYPE_TRANSITION) {
+        keyframing = b;
+        if (keyframe_nav != nullptr) {
+            keyframe_nav->enable_keyframes(b);
+        }
+    }
 }
 
 void EffectRow::set_keyframe_enabled(bool enabled) {
-	if (enabled) {
-		ComboAction* ca = new ComboAction();
-		ca->append(new SetKeyframing(this, true));
-		set_keyframe_now(ca);
-		e_undo_stack.push(ca);
-	} else {
+    if (enabled) {
+        ComboAction* ca = new ComboAction();
+        ca->append(new SetKeyframing(this, true));
+        set_keyframe_now(ca);
+        e_undo_stack.push(ca);
+    } else {
         if (QMessageBox::question(e_panel_effect_controls,
                                   tr("Disable Keyframes"),
                                   tr("Disabling keyframes will delete all current keyframes. Are you sure you want to do this?"),
                                   QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
-			// clear
-			ComboAction* ca = new ComboAction();
-			for (int i=0;i<fieldCount();i++) {
+            // clear
+            ComboAction* ca = new ComboAction();
+            for (int i=0;i<fieldCount();i++) {
                 EffectFieldPtr f = field(i);
-				for (int j=0;j<f->keyframes.size();j++) {
-					ca->append(new KeyframeDelete(f, 0));
-				}
-			}
-			ca->append(new SetKeyframing(this, false));
-			e_undo_stack.push(ca);
+                for (int j=0;j<f->keyframes.size();j++) {
+                    ca->append(new KeyframeDelete(f, 0));
+                }
+            }
+            ca->append(new SetKeyframing(this, false));
+            e_undo_stack.push(ca);
             e_panel_effect_controls->update_keyframes();
-		} else {
-			setKeyframing(true);
-		}
-	}
+        } else {
+            setKeyframing(true);
+        }
+    }
 }
 
 void EffectRow::goto_previous_key() {
-	long key = LONG_MIN;
+    long key = LONG_MIN;
     ClipPtr c = parent_effect->parent_clip;
-	for (int i=0;i<fieldCount();i++) {
+    for (int i=0;i<fieldCount();i++) {
         EffectFieldPtr f = field(i);
-		for (int j=0;j<f->keyframes.size();j++) {
+        for (int j=0;j<f->keyframes.size();j++) {
             long comp = f->keyframes.at(j).time - c->timeline_info.clip_in + c->timeline_info.in;
-			if (comp < e_sequence->playhead) {
-				key = qMax(comp, key);
-			}
-		}
-	}
+            if (comp < e_sequence->playhead) {
+                key = qMax(comp, key);
+            }
+        }
+    }
     if (key != LONG_MIN) e_panel_sequence_viewer->seek(key);
 }
 
 void EffectRow::toggle_key() {
     QVector<EffectFieldPtr> key_fields;
-	QVector<int> key_field_index;
+    QVector<int> key_field_index;
     ClipPtr c = parent_effect->parent_clip;
-	for (int j=0;j<fieldCount();j++) {
+    for (int j=0;j<fieldCount();j++) {
         EffectFieldPtr f = field(j);
-		for (int i=0;i<f->keyframes.size();i++) {
+        for (int i=0;i<f->keyframes.size();i++) {
             long comp = c->timeline_info.in - c->timeline_info.clip_in + f->keyframes.at(i).time;
-			if (comp == e_sequence->playhead) {
-				key_fields.append(f);
-				key_field_index.append(i);
-			}
-		}
-	}
+            if (comp == e_sequence->playhead) {
+                key_fields.append(f);
+                key_field_index.append(i);
+            }
+        }
+    }
 
-	ComboAction* ca = new ComboAction();
-	if (key_fields.size() == 0) {
-		// keyframe doesn't exist, set one
-		set_keyframe_now(ca);
-	} else {
-		for (int i=0;i<key_fields.size();i++) {
-			ca->append(new KeyframeDelete(key_fields.at(i), key_field_index.at(i)));
-		}
-	}
-	e_undo_stack.push(ca);
-	update_ui(false);
+    ComboAction* ca = new ComboAction();
+    if (key_fields.size() == 0) {
+        // keyframe doesn't exist, set one
+        set_keyframe_now(ca);
+    } else {
+        for (int i=0;i<key_fields.size();i++) {
+            ca->append(new KeyframeDelete(key_fields.at(i), key_field_index.at(i)));
+        }
+    }
+    e_undo_stack.push(ca);
+    update_ui(false);
 }
 
 void EffectRow::goto_next_key() {
-	long key = LONG_MAX;
+    long key = LONG_MAX;
     ClipPtr c = parent_effect->parent_clip;
-	for (int i=0;i<fieldCount();i++) {
+    for (int i=0;i<fieldCount();i++) {
         EffectFieldPtr f = field(i);
-		for (int j=0;j<f->keyframes.size();j++) {
+        for (int j=0;j<f->keyframes.size();j++) {
             long comp = f->keyframes.at(j).time - c->timeline_info.clip_in + c->timeline_info.in;
-			if (comp > e_sequence->playhead) {
-				key = qMin(comp, key);
-			}
-		}
-	}
+            if (comp > e_sequence->playhead) {
+                key = qMin(comp, key);
+            }
+        }
+    }
     if (key != LONG_MAX) e_panel_sequence_viewer->seek(key);
 }
 
@@ -172,22 +172,22 @@ void EffectRow::focus_row() {
     e_panel_graph_editor->set_row(this);
 }
 
-EffectFieldPtr EffectRow::add_field(int type, const QString& id, int colspan) {
+EffectFieldPtr EffectRow::add_field(const EffectFieldType type, const QString& id, int colspan) {
     EffectFieldPtr field = std::make_shared<EffectField>(this, type, id);
     if (parent_effect->meta->type != EFFECT_TYPE_TRANSITION) {
         connect(field.operator ->(), SIGNAL(clicked()), this, SLOT(focus_row()));
     }
-	fields.append(field);
-	QWidget* element = field->get_ui_element();
-	ui->addWidget(element, ui_row, column_count, 1, colspan);
-	column_count++;
+    fields.append(field);
+    QWidget* element = field->get_ui_element();
+    ui->addWidget(element, ui_row, column_count, 1, colspan);
+    column_count++;
     connect(field.operator ->(), SIGNAL(changed()), parent_effect, SLOT(field_changed()));
-	return field;
+    return field;
 }
 
 void EffectRow::add_widget(QWidget* w) {
-	ui->addWidget(w, ui_row, column_count);
-	column_count++;
+    ui->addWidget(w, ui_row, column_count);
+    column_count++;
 }
 
 
@@ -195,55 +195,55 @@ void EffectRow::add_widget(QWidget* w) {
 void EffectRow::set_keyframe_now(ComboAction* ca) {
     long time = e_sequence->playhead-parent_effect->parent_clip->timeline_info.in + parent_effect->parent_clip->timeline_info.clip_in;
 
-	if (!just_made_unsafe_keyframe) {
-		EffectKeyframe key;
-		key.time = time;
+    if (!just_made_unsafe_keyframe) {
+        EffectKeyframe key;
+        key.time = time;
 
-		unsafe_keys.resize(fieldCount());
-		unsafe_old_data.resize(fieldCount());
-		key_is_new.resize(fieldCount());
+        unsafe_keys.resize(fieldCount());
+        unsafe_old_data.resize(fieldCount());
+        key_is_new.resize(fieldCount());
 
-		for (int i=0;i<fieldCount();i++) {
+        for (int i=0;i<fieldCount();i++) {
             EffectFieldPtr f = field(i);
 
-			int exist_key = -1;
-			int closest_key = 0;
-			for (int j=0;j<f->keyframes.size();j++) {
-				if (f->keyframes.at(j).time == time) {
-					exist_key = j;
-				} else if (f->keyframes.at(j).time < time
-						   && f->keyframes.at(closest_key).time < f->keyframes.at(j).time) {
-					closest_key = j;
-				}
-			}
-			if (exist_key == -1) {
-				key.type = (f->keyframes.size() == 0) ? KEYFRAME_TYPE_LINEAR : f->keyframes.at(closest_key).type;
-				key.data = f->get_current_data();//f->keyframes.at(closest_key).data;
-				unsafe_keys[i] = f->keyframes.size();
-				f->keyframes.append(key);
-				key_is_new[i] = true;
-			} else {
-				unsafe_keys[i] = exist_key;
-				key_is_new[i] = false;
-			}
-			unsafe_old_data[i] = f->get_current_data();
-		}
-		just_made_unsafe_keyframe = true;
-	}
+            int exist_key = -1;
+            int closest_key = 0;
+            for (int j=0;j<f->keyframes.size();j++) {
+                if (f->keyframes.at(j).time == time) {
+                    exist_key = j;
+                } else if (f->keyframes.at(j).time < time
+                           && f->keyframes.at(closest_key).time < f->keyframes.at(j).time) {
+                    closest_key = j;
+                }
+            }
+            if (exist_key == -1) {
+                key.type = (f->keyframes.size() == 0) ? KEYFRAME_TYPE_LINEAR : f->keyframes.at(closest_key).type;
+                key.data = f->get_current_data();//f->keyframes.at(closest_key).data;
+                unsafe_keys[i] = f->keyframes.size();
+                f->keyframes.append(key);
+                key_is_new[i] = true;
+            } else {
+                unsafe_keys[i] = exist_key;
+                key_is_new[i] = false;
+            }
+            unsafe_old_data[i] = f->get_current_data();
+        }
+        just_made_unsafe_keyframe = true;
+    }
 
-	for (int i=0;i<fieldCount();i++) {
-		field(i)->keyframes[unsafe_keys.at(i)].data = field(i)->get_current_data();
-	}
+    for (int i=0;i<fieldCount();i++) {
+        field(i)->keyframes[unsafe_keys.at(i)].data = field(i)->get_current_data();
+    }
 
-	if (ca != nullptr)	{
-		for (int i=0;i<fieldCount();i++) {
-			if (key_is_new.at(i)) ca->append(new KeyframeFieldSet(field(i), unsafe_keys.at(i)));
-			ca->append(new SetQVariant(&field(i)->keyframes[unsafe_keys.at(i)].data, unsafe_old_data.at(i), field(i)->get_current_data()));
-		}
-		unsafe_keys.clear();
-		unsafe_old_data.clear();
-		just_made_unsafe_keyframe = false;
-	}
+    if (ca != nullptr)	{
+        for (int i=0;i<fieldCount();i++) {
+            if (key_is_new.at(i)) ca->append(new KeyframeFieldSet(field(i), unsafe_keys.at(i)));
+            ca->append(new SetQVariant(&field(i)->keyframes[unsafe_keys.at(i)].data, unsafe_old_data.at(i), field(i)->get_current_data()));
+        }
+        unsafe_keys.clear();
+        unsafe_old_data.clear();
+        just_made_unsafe_keyframe = false;
+    }
 
     e_panel_effect_controls->update_keyframes();
 
@@ -251,55 +251,55 @@ void EffectRow::set_keyframe_now(ComboAction* ca) {
 
 
 
-	/*if (ca != nullptr) {
-		just_made_unsafe_keyframe = false;
-	} else {
-		if (!just_made_unsafe_keyframe) {
-			just_made_unsafe_keyframe = true;
-		}
-	}*/
+    /*if (ca != nullptr) {
+        just_made_unsafe_keyframe = false;
+    } else {
+        if (!just_made_unsafe_keyframe) {
+            just_made_unsafe_keyframe = true;
+        }
+    }*/
 
 
-	/*int index = -1;
+    /*int index = -1;
     long time = sequence->playhead-parent_effect->parent_clip->timeline_in+parent_effect->parent_clip->timeline_info.clip_in;
-	for (int j=0;j<fieldCount();j++) {
+    for (int j=0;j<fieldCount();j++) {
         EffectFieldUPtr f = field(j);
-		for (int i=0;i<f->keyframes.size();i++) {
-			if (f->keyframes.at(i).time == time) {
-				index = i;
-				break;
-			}
-		}
-	}
+        for (int i=0;i<f->keyframes.size();i++) {
+            if (f->keyframes.at(i).time == time) {
+                index = i;
+                break;
+            }
+        }
+    }
 
-	KeyframeSet* ks = new KeyframeSet(this, index, time, just_made_unsafe_keyframe);
+    KeyframeSet* ks = new KeyframeSet(this, index, time, just_made_unsafe_keyframe);
 
-	if (ca != nullptr) {
-		just_made_unsafe_keyframe = false;
-		ca->append(ks);
-	} else {
-		if (index == -1) just_made_unsafe_keyframe = true;
-		ks->redo();
-		delete ks;
-	}
+    if (ca != nullptr) {
+        just_made_unsafe_keyframe = false;
+        ca->append(ks);
+    } else {
+        if (index == -1) just_made_unsafe_keyframe = true;
+        ks->redo();
+        delete ks;
+    }
 
-	panel_effect_controls->update_keyframes();*/
+    panel_effect_controls->update_keyframes();*/
 }
 
 void EffectRow::delete_keyframe_at_time(ComboAction* ca, long time) {
-	for (int j=0;j<fieldCount();j++) {
+    for (int j=0;j<fieldCount();j++) {
         EffectFieldPtr f = field(j);
-		for (int i=0;i<f->keyframes.size();i++) {
-			if (f->keyframes.at(i).time == time) {
-				ca->append(new KeyframeDelete(f, i));
-				break;
-			}
-		}
-	}
+        for (int i=0;i<f->keyframes.size();i++) {
+            if (f->keyframes.at(i).time == time) {
+                ca->append(new KeyframeDelete(f, i));
+                break;
+            }
+        }
+    }
 }
 
 const QString &EffectRow::get_name() {
-	return name;
+    return name;
 }
 
 EffectFieldPtr EffectRow::field(const int index) {
@@ -307,5 +307,5 @@ EffectFieldPtr EffectRow::field(const int index) {
 }
 
 int EffectRow::fieldCount() {
-	return fields.size();
+    return fields.size();
 }

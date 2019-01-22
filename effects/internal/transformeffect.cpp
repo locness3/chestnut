@@ -48,34 +48,34 @@
 TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em) {
 	enable_coords = true;
     EffectRowPtr position_row = add_row(tr("Position"));
-	position_x = position_row->add_field(EFFECT_FIELD_DOUBLE, "posx"); // position X
-	position_y = position_row->add_field(EFFECT_FIELD_DOUBLE, "posy"); // position Y
+    position_x = position_row->add_field(EffectFieldType::DOUBLE, "posx"); // position X
+    position_y = position_row->add_field(EffectFieldType::DOUBLE, "posy"); // position Y
 
     EffectRowPtr scale_row = add_row(tr("Scale"));
-	scale_x = scale_row->add_field(EFFECT_FIELD_DOUBLE, "scalex"); // scale X (and Y is uniform scale is selected)
+    scale_x = scale_row->add_field(EffectFieldType::DOUBLE, "scalex"); // scale X (and Y is uniform scale is selected)
 	scale_x->set_double_minimum_value(0);
 	scale_x->set_double_maximum_value(3000);
-	scale_y = scale_row->add_field(EFFECT_FIELD_DOUBLE, "scaley"); // scale Y (disabled if uniform scale is selected)
+    scale_y = scale_row->add_field(EffectFieldType::DOUBLE, "scaley"); // scale Y (disabled if uniform scale is selected)
 	scale_y->set_double_minimum_value(0);
 	scale_y->set_double_maximum_value(3000);
 
     EffectRowPtr uniform_scale_row = add_row(tr("Uniform Scale"));
-	uniform_scale_field = uniform_scale_row->add_field(EFFECT_FIELD_BOOL, "uniformscale"); // uniform scale option
+    uniform_scale_field = uniform_scale_row->add_field(EffectFieldType::BOOL, "uniformscale"); // uniform scale option
 
     EffectRowPtr rotation_row = add_row(tr("Rotation"));
-	rotation = rotation_row->add_field(EFFECT_FIELD_DOUBLE, "rotation");
+    rotation = rotation_row->add_field(EffectFieldType::DOUBLE, "rotation");
 
     EffectRowPtr anchor_point_row = add_row(tr("Anchor Point"));
-	anchor_x_box = anchor_point_row->add_field(EFFECT_FIELD_DOUBLE, "anchorx"); // anchor point X
-	anchor_y_box = anchor_point_row->add_field(EFFECT_FIELD_DOUBLE, "anchory"); // anchor point Y
+    anchor_x_box = anchor_point_row->add_field(EffectFieldType::DOUBLE, "anchorx"); // anchor point X
+    anchor_y_box = anchor_point_row->add_field(EffectFieldType::DOUBLE, "anchory"); // anchor point Y
 
     EffectRowPtr opacity_row = add_row(tr("Opacity"));
-	opacity = opacity_row->add_field(EFFECT_FIELD_DOUBLE, "opacity"); // opacity
+    opacity = opacity_row->add_field(EffectFieldType::DOUBLE, "opacity"); // opacity
 	opacity->set_double_minimum_value(0);
 	opacity->set_double_maximum_value(100);
 
     EffectRowPtr blend_mode_row = add_row(tr("Blend Mode"));
-	blend_mode_box = blend_mode_row->add_field(EFFECT_FIELD_COMBO, "blendmode"); // blend mode
+    blend_mode_box = blend_mode_row->add_field(EffectFieldType::COMBO, "blendmode"); // blend mode
     blend_mode_box->add_combo_item(tr("Normal"), BLEND_MODE_NORMAL);
     blend_mode_box->add_combo_item(tr("Overlay"), BLEND_MODE_OVERLAY);
     blend_mode_box->add_combo_item(tr("Screen"), BLEND_MODE_SCREEN);

@@ -22,7 +22,7 @@
 CrossDissolveTransition::CrossDissolveTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Transition(c, s, em) {
 	enable_coords = true;
 
-//    add_row("Smooth")->add_field(EFFECT_FIELD_BOOL, "smooth");
+//    add_row("Smooth")->add_field(EffectFieldType::BOOL, "smooth");
 }
 
 void CrossDissolveTransition::process_coords(double progress, GLTextureCoords&, int data) {
