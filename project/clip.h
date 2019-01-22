@@ -64,8 +64,10 @@ public:
     ClipPtr copy(SequencePtr s);
 
     Clip() = delete;
-    Clip(const Clip& cpy) = delete;
-    const Clip& operator=(const Clip& rhs) = delete;
+    Clip(const Clip&) = delete;
+    Clip(const Clip&&) = delete;
+    Clip& operator=(const Clip&) = delete;
+    Clip& operator=(const Clip&&) = delete;
 
     virtual project::SequenceItemType getType() const;
 

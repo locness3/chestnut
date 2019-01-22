@@ -529,7 +529,7 @@ EffectRowPtr Effect::add_row(const QString& name, bool savable, bool keyframable
 	return row;
 }
 
-EffectRowPtr Effect::row(int i) {
+EffectRowPtr Effect::row(const int i) {
 	return rows.at(i);
 }
 
@@ -636,14 +636,14 @@ int Effect::get_index_in_clip() {
 
 bool Effect::is_enabled() {
     if ( (container != nullptr) && (container->enabled_check != nullptr) ) {
-	return container->enabled_check->isChecked();
+        return container->enabled_check->isChecked();
     }
     return false;
 }
 
 void Effect::set_enabled(const bool b) {
     if ( (container != nullptr) && (container->enabled_check != nullptr) ) {
-	container->enabled_check->setChecked(b);
+        container->enabled_check->setChecked(b);
     }
 }
 
