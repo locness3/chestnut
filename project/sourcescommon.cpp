@@ -204,7 +204,11 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& 
 
 void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIndex& drop_item, const QModelIndexList& items) {
     const QMimeData* mimeData = event->mimeData();
-    MediaPtr m = project_parent->item_to_media(drop_item);
+    auto m = project_parent->item_to_media(drop_item);
+    if (!m) {
+        qCritical() << "Null Media ptr";
+        return;
+    }
     if (mimeData->hasUrls()) {
         // drag files in from outside
         QList<QUrl> urls = mimeData->urls();

@@ -27,7 +27,10 @@ class ProjectModel : public QAbstractItemModel
     Q_OBJECT
 public:
     ProjectModel(QObject* parent = nullptr);
-    ~ProjectModel() override;
+    virtual ~ProjectModel() override;
+
+    ProjectModel(const ProjectModel&) = delete;
+    ProjectModel& operator=(const ProjectModel&) = delete;
 
     void make_root();
     void destroy_root();
@@ -52,6 +55,7 @@ public:
     int childCount(MediaPtr parent = nullptr);
     void set_icon(MediaPtr m, const QIcon &ico);
     QModelIndex add(MediaPtr mda);
+    MediaPtr get(const QModelIndex& idx);
 
 private:
     MediaPtr root_item;

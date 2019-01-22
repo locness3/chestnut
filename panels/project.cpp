@@ -461,7 +461,8 @@ MediaPtr Project::new_folder(const QString &name) {
 MediaPtr Project::item_to_media(const QModelIndex &index) {
     //FIXME:
     if (sorter != nullptr) {
-        const QModelIndex src = sorter->mapToSource(index);
+        const auto src = sorter->mapToSource(index);
+        return project_model.get(src);
         //        void* const ptr = src.internalPointer();
 
     }
@@ -552,7 +553,7 @@ void Project::delete_selected_media() {
                             } else if (confirm.clickedButton() == skip_button) {
                                 // remove media item and any folders containing it from the remove list
                                 MediaWPtr parent = item;
-                                while (!parent.expired()) {
+                                while (!parent.expired()) { //FIXME:
                                     parents.append(parent);
                                     MediaPtr parPtr = parent.lock();
                                     // re-add item's siblings
@@ -604,23 +605,26 @@ void Project::delete_selected_media() {
         // remove media and parents
         for (int m=0; m < parents.size(); m++) {
             for (int l=0; l < items.size(); l++) {
-                if (!parents.at(m).expired()) {
-                    MediaPtr parPtr = parents.at(m).lock();
+                if (auto parPtr = parents.at(m).lock()) {
                     if (items.at(l) == parPtr) {
                         items.removeAt(l);
                         l--;
                     }
                 }
+            }//for
+        }//for
+
+        //        for (int i=0;i<items.size();i++) {
+        for (auto item : items) {
+            if (!item) {
+                continue;
             }
-        }
+            ca->append(new DeleteMediaCommand(item));
 
-        for (int i=0;i<items.size();i++) {
-            ca->append(new DeleteMediaCommand(items.at(i)));
-
-            if (items.at(i)->get_type() == MEDIA_TYPE_SEQUENCE) {
+            if (item->get_type() == MEDIA_TYPE_SEQUENCE) {
                 redraw = true;
 
-                SequencePtr  s = items.at(i)->get_object<Sequence>();
+                auto s = item->get_object<Sequence>();
 
                 if (s == e_sequence) {
                     ca->append(new ChangeSequenceAction(nullptr));
@@ -629,21 +633,20 @@ void Project::delete_selected_media() {
                 if (s == e_panel_footage_viewer->seq) {
                     e_panel_footage_viewer->set_media(nullptr);
                 }
-            } else if (items.at(i)->get_type() == MEDIA_TYPE_FOOTAGE) {
-                if (e_panel_footage_viewer->seq != nullptr) {
-                    for (int j=0;j<e_panel_footage_viewer->seq->clips.size();j++) {
-                        ClipPtr c = e_panel_footage_viewer->seq->clips.at(j);
-                        if (c != nullptr) {
+            } else if (item->get_type() == MEDIA_TYPE_FOOTAGE) {
+                if (!e_panel_footage_viewer->seq) {
+                    for (auto clp : e_panel_footage_viewer->seq->clips) {
+                        if (!clp) {
                             // TODO: this was never true. object was only ever set to a Footage/Sequence* or nullptr
-                            //							if (c->timeline_info.media == items.at(i)->get_object()) {
-                            //								panel_footage_viewer->set_media(nullptr);
-                            //							}
+                            // if (c->timeline_info.media == items.at(i)->get_object()) {
+                            //  panel_footage_viewer->set_media(nullptr);
+                            // }
                             break;
                         }
                     }
                 }
             }
-        }
+        } //for
         e_undo_stack.push(ca);
 
         // redraw clips
@@ -986,14 +989,13 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
                 // save_folder(stream, item, type, set_ids_only);
             } else {
                 int folder;
-                if (!mda->parentItem().expired()) {
-                    MediaPtr parPtr = mda->parentItem().lock();
+                if (auto parPtr = mda->parentItem().lock()) {
                     folder = parPtr->temp_id;
                 } else {
                     folder = 0;
                 }
                 if (type == MEDIA_TYPE_FOOTAGE) {
-                    FootagePtr f = mda->get_object<Footage>();
+                    auto f = mda->get_object<Footage>();
                     f->save_id = media_id;
                     stream.writeStartElement("footage");
                     stream.writeAttribute("id", QString::number(media_id));

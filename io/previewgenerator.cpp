@@ -66,8 +66,7 @@ PreviewGenerator::PreviewGenerator(MediaPtr item, FootagePtr ftg, const bool rep
 }
 
 void PreviewGenerator::parse_media() {
-    if (!footage.expired()) {
-        FootagePtr ftg = footage.lock();
+    if (auto ftg = footage.lock()) {
         // detect video/audio streams in file
         for (int i=0;i<(int)fmt_ctx->nb_streams;i++) {
             // Find the decoder for the video stream
@@ -165,10 +164,9 @@ bool PreviewGenerator::retrieve_preview(const QString& hash) {
     }
 
     bool found = true;
-    if (!footage.expired()) {
-        FootagePtr ftg = footage.lock();
-        for (FootageStream& stream: ftg->video_tracks) {
-            QString thumb_path = get_thumbnail_path(hash, stream);
+    if (auto ftg = footage.lock()) {
+        for (auto& stream: ftg->video_tracks) {
+            auto thumb_path = get_thumbnail_path(hash, stream);
             QFile f(thumb_path);
             if (f.exists() && stream.video_preview.load(thumb_path)) {
                 //dout << "loaded thumb" << ms->file_index << "from" << thumb_path;
@@ -180,13 +178,13 @@ bool PreviewGenerator::retrieve_preview(const QString& hash) {
             }
         } //for
 
-        for (FootageStream& stream: ftg->audio_tracks) {
-            QString waveform_path = get_waveform_path(hash, stream);
+        for (auto& stream: ftg->audio_tracks) {
+            auto waveform_path = get_waveform_path(hash, stream);
             QFile f(waveform_path);
             if (f.exists()) {
                 //dout << "loaded wave" << ms->file_index << "from" << waveform_path;
                 f.open(QFile::ReadOnly);
-                QByteArray data = f.readAll();
+                auto data = f.readAll();
                 stream.audio_preview.resize(data.size());
                 for (int j=0;j<data.size();j++) {
                     // faster way?
@@ -201,10 +199,10 @@ bool PreviewGenerator::retrieve_preview(const QString& hash) {
         } //for
 
         if (!found) {
-            for (FootageStream& stream: ftg->video_tracks) {
+            for (auto& stream: ftg->video_tracks) {
                 stream.preview_done = false;
             }
-            for (FootageStream& stream: ftg->audio_tracks) {
+            for (auto& stream: ftg->audio_tracks) {
                 stream.audio_preview.clear();
                 stream.preview_done = false;
             }
@@ -214,8 +212,7 @@ bool PreviewGenerator::retrieve_preview(const QString& hash) {
 }
 
 void PreviewGenerator::finalize_media() {
-    if (!footage.expired()) {
-        FootagePtr ftg = footage.lock();
+    if (auto ftg = footage.lock()) {
         ftg->ready_lock.unlock();
         ftg->ready = true;
 
@@ -244,7 +241,7 @@ void PreviewGenerator::finalize_media() {
 }
 
 void thumb_data_cleanup(void *info) {
-	delete [] static_cast<uint8_t*>(info);
+    delete [] static_cast<uint8_t*>(info);
 }
 
 void PreviewGenerator::generate_waveform() {
@@ -279,9 +276,7 @@ void PreviewGenerator::generate_waveform() {
     } while (codec_ctx[packet->stream_index] == nullptr);
     avcodec_send_packet(codec_ctx[packet->stream_index], packet);
 
-    if (!footage.expired()) {
-        FootagePtr ftg = footage.lock();
-
+    if (auto ftg = footage.lock()) {
         while (!end_of_file) {
             while (codec_ctx[packet->stream_index] == nullptr || avcodec_receive_frame(codec_ctx[packet->stream_index], temp_frame) == AVERROR(EAGAIN)) {
                 av_packet_unref(packet);
@@ -435,7 +430,7 @@ void PreviewGenerator::generate_waveform() {
         for (unsigned int i=0;i<fmt_ctx->nb_streams;i++) {
             if (codec_ctx[i] != nullptr) {
                 avcodec_close(codec_ctx[i]);
-			avcodec_free_context(&codec_ctx[i]);
+                avcodec_free_context(&codec_ctx[i]);
             }
         }
         if (retrieve_duration) {
@@ -452,7 +447,7 @@ void PreviewGenerator::generate_waveform() {
     }
 
     delete [] media_lengths;
-	delete [] codec_ctx;
+    delete [] codec_ctx;
 }
 
 QString PreviewGenerator::get_thumbnail_path(const QString& hash, const FootageStream& ms) {
@@ -467,69 +462,68 @@ void PreviewGenerator::run() {
     Q_ASSERT(!footage.expired());
     Q_ASSERT(media != nullptr);
 
-    FootagePtr ftg = footage.lock();
-    const char* const filename = ftg->url.toUtf8().data();
+    if (auto ftg = footage.lock()) {
+        const char* const filename = ftg->url.toUtf8().data();
 
-    QString errorStr;
-    bool error = false;
-    int errCode = avformat_open_input(&fmt_ctx, filename, nullptr, nullptr);
-    if(errCode != 0) {
-        char err[1024];
-        av_strerror(errCode, err, 1024);
-        errorStr = tr("Could not open file - %1").arg(err);
-        error = true;
-    } else {
-        errCode = avformat_find_stream_info(fmt_ctx, nullptr);
-        if (errCode < 0) {
+        QString errorStr;
+        bool error = false;
+        int errCode = avformat_open_input(&fmt_ctx, filename, nullptr, nullptr);
+        if(errCode != 0) {
             char err[1024];
             av_strerror(errCode, err, 1024);
-            errorStr = tr("Could not find stream information - %1").arg(err);
+            errorStr = tr("Could not open file - %1").arg(err);
             error = true;
         } else {
-            av_dump_format(fmt_ctx, 0, filename, 0);
-            parse_media();
+            errCode = avformat_find_stream_info(fmt_ctx, nullptr);
+            if (errCode < 0) {
+                char err[1024];
+                av_strerror(errCode, err, 1024);
+                errorStr = tr("Could not find stream information - %1").arg(err);
+                error = true;
+            } else {
+                av_dump_format(fmt_ctx, 0, filename, 0);
+                parse_media();
 
-            // see if we already have data for this
-            QFileInfo file_info(ftg->url);
-            QString cache_file = ftg->url.mid(ftg->url.lastIndexOf('/')+1)
-                    + QString::number(file_info.size())
-                    + QString::number(file_info.lastModified().toMSecsSinceEpoch());
-            //dout << "using hash" << cache_file;
-            QString hash = QCryptographicHash::hash(cache_file.toUtf8(), QCryptographicHash::Md5).toHex();
+                // see if we already have data for this
+                QFileInfo file_info(ftg->url);
+                QString cache_file = ftg->url.mid(ftg->url.lastIndexOf('/')+1)
+                        + QString::number(file_info.size())
+                        + QString::number(file_info.lastModified().toMSecsSinceEpoch());
+                //dout << "using hash" << cache_file;
+                QString hash = QCryptographicHash::hash(cache_file.toUtf8(), QCryptographicHash::Md5).toHex();
 
-            if (retrieve_preview(hash)) {
-                sem.acquire();
+                if (retrieve_preview(hash)) {
+                    sem.acquire();
 
-                generate_waveform();
+                    generate_waveform();
 
-                // save preview to file
-                for (int i=0;i<ftg->video_tracks.size();i++) {
-                    FootageStream& ms = ftg->video_tracks[i];
-                    ms.video_preview.save(get_thumbnail_path(hash, ms), "PNG");
-                    //dout << "saved" << ms->file_index << "thumbnail to" << get_thumbnail_path(hash, ms);
+                    // save preview to file
+                    for (auto& ms : ftg->video_tracks) {
+                        ms.video_preview.save(get_thumbnail_path(hash, ms), "PNG");
+                        //dout << "saved" << ms->file_index << "thumbnail to" << get_thumbnail_path(hash, ms);
+                    }
+                    for (auto& ms : ftg->audio_tracks) {
+                        QFile f(get_waveform_path(hash, ms));
+                        f.open(QFile::WriteOnly);
+                        f.write(ms.audio_preview.constData(), ms.audio_preview.size());
+                        f.close();
+                        //dout << "saved" << ms->file_index << "waveform to" << get_waveform_path(hash, ms);
+                    }
+
+                    sem.release();
                 }
-                for (int i=0;i<ftg->audio_tracks.size();i++) {
-                    FootageStream& ms = ftg->audio_tracks[i];
-                    QFile f(get_waveform_path(hash, ms));
-                    f.open(QFile::WriteOnly);
-                    f.write(ms.audio_preview.constData(), ms.audio_preview.size());
-                    f.close();
-                    //dout << "saved" << ms->file_index << "waveform to" << get_waveform_path(hash, ms);
-                }
-
-                sem.release();
             }
+            avformat_close_input(&fmt_ctx);
         }
-        avformat_close_input(&fmt_ctx);
-    }
 
-    if (error) {
-        media->update_tooltip(errorStr);
-        emit set_icon(ICON_TYPE_ERROR, replace);
-        ftg->invalid = true;
-        ftg->ready_lock.unlock();
-    } else {
-        media->update_tooltip();
+        if (error) {
+            media->update_tooltip(errorStr);
+            emit set_icon(ICON_TYPE_ERROR, replace);
+            ftg->invalid = true;
+            ftg->ready_lock.unlock();
+        } else {
+            media->update_tooltip();
+        }
     }
 }
 

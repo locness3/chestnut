@@ -65,7 +65,7 @@ Media::Media() :
     root(false),
     type(MEDIA_TYPE_NONE),
     parent(std::weak_ptr<Media>()),
-    id(++nextID)
+    id(nextID++)
 {
 
 }
@@ -75,7 +75,7 @@ Media::Media(MediaPtr iparent) :
     root(false),
     type(MEDIA_TYPE_NONE),
     parent(iparent),
-    id(++nextID)
+    id(nextID++)
 {
 
 }
@@ -370,8 +370,7 @@ QVariant Media::data(int column, int role) {
 }
 
 int Media::row() const {
-    if (!parent.expired()) {
-        MediaPtr parPtr = parent.lock();
+    if (auto parPtr = parent.lock()) {
         //        return parPtr->children.indexOf(shared_from_this()); //FIXME:
     }
     return 0;

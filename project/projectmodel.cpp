@@ -203,6 +203,11 @@ QModelIndex ProjectModel::add(MediaPtr mda) {
     return create_index(mda->row(), 0 , mda);
 }
 
+
+MediaPtr ProjectModel::get(const QModelIndex& idx) {
+    return project_items.value(idx.internalId());
+}
+
 void ProjectModel::appendChild(MediaPtr parent, MediaPtr child) {
     if (parent == nullptr) {
         parent = root_item;
@@ -218,9 +223,7 @@ void ProjectModel::moveChild(MediaPtr child, MediaPtr to) {
     if (to == nullptr) {
         to = root_item;
     }
-    MediaWPtr from = child->parentItem();
-    if (!from.expired()) {
-        MediaPtr parPtr = from.lock();
+    if (auto parPtr = child->parentItem().lock()) {
         beginMoveRows(
                     parPtr == root_item ? QModelIndex() : create_index(parPtr->row(), 0 , parPtr),
                     child->row(),
