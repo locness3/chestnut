@@ -63,6 +63,10 @@ public:
     virtual ~Clip();
     ClipPtr copy(SequencePtr s);
 
+    Clip() = delete;
+    Clip(const Clip& cpy) = delete;
+    const Clip& operator=(const Clip& rhs) = delete;
+
     virtual project::SequenceItemType_E getType() const;
 
     bool isActive(const long playhead);
@@ -276,10 +280,6 @@ private:
               const bool relative = false);
 
 
-    // Explicitly impl as required
-    Clip();
-    Clip(const Clip& cpy);
-    const Clip& operator=(const Clip& rhs);
 };
 
 #endif // CLIP_H

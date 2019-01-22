@@ -89,14 +89,6 @@ Clip::~Clip() {
     av_packet_free(&media_handling.pkt);
 }
 
-/**
- * @brief Copy constructor
- * @param cpy
- */
-Clip::Clip(const Clip& cpy)
-{
-
-}
 
 ClipPtr Clip::copy(SequencePtr s) {
     ClipPtr copyClip = std::make_shared<Clip>(s);
