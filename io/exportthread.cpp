@@ -175,15 +175,15 @@ bool ExportThread::setupVideo() {
 	video_frame = av_frame_alloc();
 	av_frame_make_writable(video_frame);
 	video_frame->format = AV_PIX_FMT_RGBA;
-    video_frame->width = e_sequence->getWidth();
-    video_frame->height = e_sequence->getHeight();
+    video_frame->width = global::sequence->getWidth();
+    video_frame->height = global::sequence->getHeight();
 	av_frame_get_buffer(video_frame, 0);
 
 	av_init_packet(&video_pkt);
 
 	sws_ctx = sws_getContext(
-                e_sequence->getWidth(),
-                e_sequence->getHeight(),
+                global::sequence->getWidth(),
+                global::sequence->getHeight(),
 				AV_PIX_FMT_RGBA,
 				video_width,
 				video_height,
@@ -272,9 +272,9 @@ bool ExportThread::setupAudio() {
 			acodec_ctx->channel_layout,
 			acodec_ctx->sample_fmt,
 			acodec_ctx->sample_rate,
-            e_sequence->getAudioLayout(),
+            global::sequence->getAudioLayout(),
 			AV_SAMPLE_FMT_S16,
-            e_sequence->getAudioFrequency(),
+            global::sequence->getAudioFrequency(),
 			0,
 			nullptr
 		);
@@ -282,7 +282,7 @@ bool ExportThread::setupAudio() {
 
 	// initialize raw audio frame
 	audio_frame = av_frame_alloc();
-    audio_frame->sample_rate = e_sequence->getAudioFrequency();
+    audio_frame->sample_rate = global::sequence->getAudioFrequency();
 	audio_frame->nb_samples = acodec_ctx->frame_size;
 	if (audio_frame->nb_samples == 0) audio_frame->nb_samples = 256; // should possibly be smaller?
 	audio_frame->format = AV_SAMPLE_FMT_S16;
@@ -372,16 +372,16 @@ void ExportThread::run() {
 
 	mutex.lock();
 
-	while (e_sequence->playhead <= end_frame && continueEncode) {
+	while (global::sequence->playhead <= end_frame && continueEncode) {
 		start_time = QDateTime::currentMSecsSinceEpoch();
 
 		if (audio_enabled) {
-            compose_audio(nullptr, e_sequence, true);
+            compose_audio(nullptr, global::sequence, true);
 		}
 		if (video_enabled) {
 			do {
 				// TODO optimize by rendering the next frame while encoding the last
-                renderer->start_render(nullptr, e_sequence, nullptr, video_frame->data[0]);
+                renderer->start_render(nullptr, global::sequence, nullptr, video_frame->data[0]);
 				waitCond.wait(&mutex);
 				if (!continueEncode) break;
 			} while (renderer->did_texture_fail());
@@ -389,7 +389,7 @@ void ExportThread::run() {
 		}
 
 		// encode last frame while rendering next frame
-        double timecode_secs = (double) (e_sequence->playhead-start_frame) / e_sequence->getFrameRate();
+        double timecode_secs = (double) (global::sequence->playhead-start_frame) / global::sequence->getFrameRate();
 		if (video_enabled) {
 			// change pixel format
 			sws_scale(sws_ctx, video_frame->data, video_frame->linesize, 0, video_frame->height, sws_frame->data, sws_frame->linesize);
@@ -430,14 +430,14 @@ void ExportThread::run() {
 		// encoding stats
 		frame_time = (QDateTime::currentMSecsSinceEpoch()-start_time);
 		total_time += frame_time;
-		remaining_frames = (end_frame-e_sequence->playhead);
+		remaining_frames = (end_frame-global::sequence->playhead);
 		avg_time = (total_time/frame_count);
 		eta = (remaining_frames*avg_time);
 
 //        qInfo() << "Encoded frame" << sequence->playhead << "- took" << frame_time << "ms (avg:" << avg_time << "ms, remaining:" << remaining_frames << ", ETA:" << eta << ")";
 
-		emit progress_changed(qRound(((double) (e_sequence->playhead-start_frame) / (double) (end_frame-start_frame)) * 100), eta);
-		e_sequence->playhead++;
+		emit progress_changed(qRound(((double) (global::sequence->playhead-start_frame) / (double) (end_frame-start_frame)) * 100), eta);
+		global::sequence->playhead++;
 		frame_count++;
 	}
 

@@ -39,11 +39,11 @@ class Sequence : public project::ProjectItem {
 public:
 
     Sequence();
-    virtual ~Sequence();
-    /**
-     * @brief Copy constructor
-     * @param cpy
-     */
+    virtual ~Sequence() override;
+    Sequence(const Sequence&& cpy) = delete;
+    Sequence& operator=(const Sequence&) = delete;
+    Sequence& operator=(const Sequence&&) = delete;
+
     Sequence(const Sequence& cpy);
     std::shared_ptr<Sequence> copy();
     void getTrackLimits(int& video_limit, int& audio_limit) const;
@@ -79,12 +79,11 @@ private:
     double frame_rate = 0.0;
     int audio_frequency = 0;
     int audio_layout = 0;
-
-    // Impl as required
-    const Sequence& operator=(const Sequence& rhs);
 };
 
-// static variable for the currently active sequence
-extern SequencePtr e_sequence;
+namespace global {
+    // static variable for the currently active sequence
+    extern SequencePtr sequence;
+}
 
 #endif // SEQUENCE_H

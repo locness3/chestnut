@@ -128,7 +128,7 @@ bool Viewer::is_main_sequence() {
 
 void Viewer::set_main_sequence() {
     clean_created_seq();
-    set_sequence(true, e_sequence);
+    set_sequence(true, global::sequence);
 }
 
 void Viewer::reset_all_audio() {
@@ -699,7 +699,7 @@ void Viewer::set_media(MediaPtr m) {
                     seq->setFrameRate(video_stream.video_frame_rate * footage->speed);
                 }
 
-                ClipPtr c = std::make_shared<Clip>(e_sequence);
+                ClipPtr c = std::make_shared<Clip>(global::sequence);
                 c->timeline_info.media= media;
                 c->timeline_info.media_stream = video_stream.file_index;
                 c->timeline_info.in = 0;
@@ -718,7 +718,7 @@ void Viewer::set_media(MediaPtr m) {
                 const FootageStream& audio_stream = footage->audio_tracks.at(0);
                 seq->setAudioFrequency(audio_stream.audio_frequency);
 
-                ClipPtr c = std::make_shared<Clip>(e_sequence);
+                ClipPtr c = std::make_shared<Clip>(global::sequence);
                 c->timeline_info.media= media;
                 c->timeline_info.media_stream = audio_stream.file_index;
                 c->timeline_info.in = 0;
@@ -819,7 +819,7 @@ void Viewer::set_sequence(bool main, SequencePtr s) {
     }
 
     main_sequence = main;
-    seq = (main) ? e_sequence : s;
+    seq = (main) ? global::sequence : s;
 
     bool null_sequence = (seq == nullptr);
 

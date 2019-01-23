@@ -128,7 +128,7 @@ void clear_audio_ibuffer() {
 }
 
 int current_audio_freq() {
-	return audio_rendering ? e_sequence->getAudioFrequency() : audio_output->format().sampleRate();
+	return audio_rendering ? global::sequence->getAudioFrequency() : audio_output->format().sampleRate();
 }
 
 int get_buffer_offset_from_frame(double framerate, long frame) {
@@ -307,7 +307,7 @@ void write_wave_trailer(QFile& f) {
 }
 
 bool start_recording() {
-	if (e_sequence == nullptr) {
+	if (global::sequence == nullptr) {
 		qCritical() << "No active sequence to record into";
 		return false;
 	}

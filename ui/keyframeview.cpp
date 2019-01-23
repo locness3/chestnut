@@ -109,13 +109,13 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 		visible_out = 0;
 
         for (int j=0;j<e_panel_effect_controls->selected_clips.size();j++) {
-            ClipPtr c = e_sequence->clips.at(e_panel_effect_controls->selected_clips.at(j));
+            ClipPtr c = global::sequence->clips.at(e_panel_effect_controls->selected_clips.at(j));
             visible_in = qMin(visible_in, c->timeline_info.in);
             visible_out = qMax(visible_out, c->timeline_info.out);
 		}
 
         for (int j=0;j<e_panel_effect_controls->selected_clips.size();j++) {
-            ClipPtr c = e_sequence->clips.at(e_panel_effect_controls->selected_clips.at(j));
+            ClipPtr c = global::sequence->clips.at(e_panel_effect_controls->selected_clips.at(j));
             for (int i=0; i < c->effects.size(); i++) {
                 EffectPtr e = c->effects.at(i);
 				if (e->container->is_expanded()) {
@@ -177,7 +177,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
         e_panel_effect_controls->horizontalScrollBar->setMaximum(qMax(max_width - width(), 0));
 		header->set_visible_in(visible_in);
 
-        int playhead_x = getScreenPointFromFrame(e_panel_effect_controls->zoom, e_sequence->playhead-visible_in) - x_scroll;
+        int playhead_x = getScreenPointFromFrame(e_panel_effect_controls->zoom, global::sequence->playhead-visible_in) - x_scroll;
         if (dragging && e_panel_timeline->snapped) {
 			p.setPen(Qt::white);
 		} else {
@@ -382,7 +382,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
                     ClipPtr c = field->parent_row->parent_effect->parent_clip;
                     long key_time = old_key_vals.at(i) + frame_diff - c->timeline_info.clip_in + c->timeline_info.in;
 					long key_eval = key_time;
-                    if (e_panel_timeline->snap_to_point(e_sequence->playhead, &key_eval)) {
+                    if (e_panel_timeline->snap_to_point(global::sequence->playhead, &key_eval)) {
 						frame_diff += (key_eval - key_time);
 						break;
 					}

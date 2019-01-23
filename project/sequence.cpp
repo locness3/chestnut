@@ -24,7 +24,8 @@
 
 #include "debug.h"
 
-Sequence::Sequence()  {
+Sequence::Sequence() : ProjectItem()
+{
 }
 
 
@@ -178,4 +179,4 @@ void Sequence::getTrackLimits(int& video_limit, int& audio_limit) const {
 }
 
 // static variable for the currently active sequence
-SequencePtr e_sequence;
+SequencePtr global::sequence;

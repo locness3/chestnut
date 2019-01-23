@@ -108,7 +108,7 @@ void ReplaceClipMediaDialog::replace() {
                         QMessageBox::Ok
                     );
 		} else {
-            if (new_item->get_type() == MEDIA_TYPE_SEQUENCE && e_sequence == new_item->get_object<Sequence>()) {
+            if (new_item->get_type() == MEDIA_TYPE_SEQUENCE && global::sequence == new_item->get_object<Sequence>()) {
                 QMessageBox::critical(
                             this,
                             tr("Active sequence selected"),
@@ -122,8 +122,8 @@ void ReplaceClipMediaDialog::replace() {
 							use_same_media_in_points->isChecked()
 						);
 
-				for (int i=0;i<e_sequence->clips.size();i++) {
-                    ClipPtr c = e_sequence->clips.at(i);
+				for (int i=0;i<global::sequence->clips.size();i++) {
+                    ClipPtr c = global::sequence->clips.at(i);
                     if (c != nullptr && c->timeline_info.media == media) {
 						rcmc->clips.append(c);
 					}

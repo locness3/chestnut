@@ -1,7 +1,7 @@
 /*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -32,11 +32,11 @@
 #include "debug.h"
 
 extern "C" {
-	#include <libavformat/avformat.h>
-	#include <libavutil/pixdesc.h>
-	#include <libavcodec/avcodec.h>
-	#include <libswscale/swscale.h>
-	#include <libswresample/swresample.h>
+#include <libavformat/avformat.h>
+#include <libavutil/pixdesc.h>
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
+#include <libswresample/swresample.h>
 }
 
 #include <QtMath>
@@ -60,22 +60,21 @@ long refactor_frame_number(long framenumber, double source_frame_rate, double ta
 
 void set_sequence(SequencePtr s) {
     e_panel_effect_controls->clear_effects(true);
-	e_sequence = s;
+    global::sequence = s;
     e_panel_sequence_viewer->set_main_sequence();
     e_panel_timeline->update_sequence();
     e_panel_timeline->setFocus();
 }
 
 void closeActiveClips(SequencePtr s) {
-	if (s != nullptr) {
-		for (int i=0;i<s->clips.size();i++) {
-            ClipPtr c = s->clips.at(i);
-			if (c != nullptr) {
-                if (c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
+    if (s != nullptr) {
+        for (auto c : s->clips) {
+            if (c != nullptr) {
+                if (c->timeline_info.media && (c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) ) {
                     closeActiveClips(c->timeline_info.media->get_object<Sequence>());
                 }
                 c->close(true);
-			}
-		}
-	}
+            }
+        }
+    }
 }

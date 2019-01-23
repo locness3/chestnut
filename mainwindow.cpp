@@ -410,7 +410,7 @@ void MainWindow::delete_slot() {
     if (e_panel_timeline->headers->hasFocus()) {
         e_panel_timeline->headers->delete_markers();
     } else if (e_panel_timeline->focused()) {
-        e_panel_timeline->delete_selection(e_sequence->selections, false);
+        e_panel_timeline->delete_selection(global::sequence->selections, false);
     } else if (e_panel_effect_controls->is_focused()) {
         e_panel_effect_controls->delete_effects();
     } else if (e_panel_project->is_focused()) {
@@ -464,7 +464,7 @@ void MainWindow::zoom_out() {
 }
 
 void MainWindow::export_dialog() {
-    if (e_sequence == nullptr) {
+    if (global::sequence == nullptr) {
         QMessageBox::information(this, tr("No active sequence"), tr("Please open the sequence you wish to export."), QMessageBox::Ok);
     } else {
         ExportDialog e(this);
@@ -473,7 +473,7 @@ void MainWindow::export_dialog() {
 }
 
 void MainWindow::ripple_delete() {
-    if (e_sequence != nullptr) e_panel_timeline->delete_selection(e_sequence->selections, true);
+    if (global::sequence != nullptr) e_panel_timeline->delete_selection(global::sequence->selections, true);
 }
 
 void MainWindow::editMenu_About_To_Be_Shown() {
@@ -494,10 +494,10 @@ void MainWindow::redo() {
 }
 
 void MainWindow::open_speed_dialog() {
-    if (e_sequence != nullptr) {
+    if (global::sequence != nullptr) {
         SpeedDialog s(this);
-        for (int i=0;i<e_sequence->clips.size();i++) {
-            ClipPtr c = e_sequence->clips.at(i);
+        for (int i=0;i<global::sequence->clips.size();i++) {
+            ClipPtr c = global::sequence->clips.at(i);
             if (c != nullptr && c->is_selected(true)) {
                 s.clips.append(c);
             }
@@ -507,7 +507,7 @@ void MainWindow::open_speed_dialog() {
 }
 
 void MainWindow::cut() {
-    if (e_sequence != nullptr) {
+    if (global::sequence != nullptr) {
         QDockWidget* focused_panel = get_focused_panel();
         if (e_panel_timeline == focused_panel) {
             e_panel_timeline->copy(true);
@@ -518,7 +518,7 @@ void MainWindow::cut() {
 }
 
 void MainWindow::copy() {
-    if (e_sequence != nullptr) {
+    if (global::sequence != nullptr) {
         QDockWidget* focused_panel = get_focused_panel();
         if (e_panel_timeline == focused_panel) {
             e_panel_timeline->copy(false);
@@ -530,7 +530,7 @@ void MainWindow::copy() {
 
 void MainWindow::paste() {
     QDockWidget* focused_panel = get_focused_panel();
-    if ((e_panel_timeline == focused_panel || e_panel_effect_controls == focused_panel) && e_sequence != nullptr) {
+    if ((e_panel_timeline == focused_panel || e_panel_effect_controls == focused_panel) && global::sequence != nullptr) {
         e_panel_timeline->paste(false);
     }
 }
@@ -1165,14 +1165,14 @@ void MainWindow::playpause() {
 
 void MainWindow::prev_cut() {
     QDockWidget* focused_panel = get_focused_panel();
-    if (e_sequence != nullptr && (e_panel_timeline == focused_panel || e_panel_sequence_viewer == focused_panel)) {
+    if (global::sequence != nullptr && (e_panel_timeline == focused_panel || e_panel_sequence_viewer == focused_panel)) {
         e_panel_timeline->previous_cut();
     }
 }
 
 void MainWindow::next_cut() {
     QDockWidget* focused_panel = get_focused_panel();
-    if (e_sequence != nullptr && (e_panel_timeline == focused_panel || e_panel_sequence_viewer == focused_panel)) {
+    if (global::sequence != nullptr && (e_panel_timeline == focused_panel || e_panel_sequence_viewer == focused_panel)) {
         e_panel_timeline->next_cut();
     }
 }
@@ -1448,15 +1448,15 @@ void MainWindow::set_tsa_custom() {
 }
 
 void MainWindow::set_marker() {
-    if (e_sequence != nullptr) e_panel_timeline->set_marker();
+    if (global::sequence != nullptr) e_panel_timeline->set_marker();
 }
 
 void MainWindow::toggle_enable_clips() {
-    if (e_sequence != nullptr) {
+    if (global::sequence != nullptr) {
         ComboAction* ca = new ComboAction();
         bool push_undo = false;
-        for (int i=0;i<e_sequence->clips.size();i++) {
-            ClipPtr  c = e_sequence->clips.at(i);
+        for (int i=0;i<global::sequence->clips.size();i++) {
+            ClipPtr  c = global::sequence->clips.at(i);
             if (c != nullptr && c->is_selected(true)) {
                 ca->append(new SetEnableCommand(c, !c->timeline_info.enabled));
                 push_undo = true;
@@ -1482,13 +1482,13 @@ void MainWindow::edit_to_out_point() {
 }
 
 void MainWindow::nest() {
-    if (e_sequence != nullptr) {
+    if (global::sequence != nullptr) {
         QVector<int> selected_clips;
         long earliest_point = LONG_MAX;
 
         // get selected clips
-        for (int i=0;i<e_sequence->clips.size();i++) {
-            ClipPtr  c = e_sequence->clips.at(i);
+        for (int i=0;i<global::sequence->clips.size();i++) {
+            ClipPtr  c = global::sequence->clips.at(i);
             if (c != nullptr && c->is_selected(true)) {
                 selected_clips.append(i);
                 earliest_point = qMin(c->timeline_info.in, earliest_point);
@@ -1503,19 +1503,19 @@ void MainWindow::nest() {
 
             // create "nest" sequence
             s->setName(e_panel_project->get_next_sequence_name(tr("Nested Sequence")));
-            s->setWidth(e_sequence->getWidth());
-            s->setHeight(e_sequence->getHeight());
-            s->setFrameRate(e_sequence->getFrameRate());
-            s->setAudioFrequency(e_sequence->getAudioFrequency());
-            s->setAudioLayout(e_sequence->getAudioLayout());
+            s->setWidth(global::sequence->getWidth());
+            s->setHeight(global::sequence->getHeight());
+            s->setFrameRate(global::sequence->getFrameRate());
+            s->setAudioFrequency(global::sequence->getAudioFrequency());
+            s->setAudioLayout(global::sequence->getAudioLayout());
 
             // copy all selected clips to the nest
             for (int i=0;i<selected_clips.size();i++) {
                 // delete clip from old sequence
-                ca->append(new DeleteClipAction(e_sequence, selected_clips.at(i)));
+                ca->append(new DeleteClipAction(global::sequence, selected_clips.at(i)));
 
                 // copy to new
-                ClipPtr  copy = e_sequence->clips.at(selected_clips.at(i))->copy(s);
+                ClipPtr  copy = global::sequence->clips.at(selected_clips.at(i))->copy(s);
                 copy->timeline_info.in -= earliest_point;
                 copy->timeline_info.out -= earliest_point;
                 s->clips.append(copy);
@@ -1527,11 +1527,11 @@ void MainWindow::nest() {
             // add nested sequence to active sequence
             QVector<MediaPtr> media_list;
             media_list.append(m);
-            e_panel_timeline->create_ghosts_from_media(e_sequence, earliest_point, media_list);
-            e_panel_timeline->add_clips_from_ghosts(ca, e_sequence);
+            e_panel_timeline->create_ghosts_from_media(global::sequence, earliest_point, media_list);
+            e_panel_timeline->add_clips_from_ghosts(ca, global::sequence);
 
             e_panel_effect_controls->clear_effects(true);
-            e_sequence->selections.clear();
+            global::sequence->selections.clear();
 
             e_undo_stack.push(ca);
 
@@ -1542,7 +1542,7 @@ void MainWindow::nest() {
 
 void MainWindow::paste_insert() {
     QDockWidget* focused_panel = get_focused_panel();
-    if (focused_panel == e_panel_timeline && e_sequence != nullptr) {
+    if (focused_panel == e_panel_timeline && global::sequence != nullptr) {
         e_panel_timeline->paste(true);
     }
 }

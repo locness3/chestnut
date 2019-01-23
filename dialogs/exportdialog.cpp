@@ -74,13 +74,13 @@ enum ExportFormats {
 ExportDialog::ExportDialog(QWidget *parent) :
 	QDialog(parent)
 {
-    setWindowTitle(tr("Export \"%1\"").arg(e_sequence->getName()));
+    setWindowTitle(tr("Export \"%1\"").arg(global::sequence->getName()));
 	setup_ui();
 
 	rangeCombobox->setCurrentIndex(0);
-	if (e_sequence->using_workarea) {
+	if (global::sequence->using_workarea) {
         rangeCombobox->setEnabled(true);
-        if (e_sequence->enable_workarea) rangeCombobox->setCurrentIndex(1);
+        if (global::sequence->enable_workarea) rangeCombobox->setCurrentIndex(1);
 	}
 
 	format_strings.resize(FORMAT_SIZE);
@@ -111,10 +111,10 @@ ExportDialog::ExportDialog(QWidget *parent) :
 	}
 	formatCombobox->setCurrentIndex(FORMAT_MPEG4);
 
-    widthSpinbox->setValue(e_sequence->getWidth());
-    heightSpinbox->setValue(e_sequence->getHeight());
-    samplingRateSpinbox->setValue(e_sequence->getAudioFrequency());
-    framerateSpinbox->setValue(e_sequence->getFrameRate());
+    widthSpinbox->setValue(global::sequence->getWidth());
+    heightSpinbox->setValue(global::sequence->getHeight());
+    samplingRateSpinbox->setValue(global::sequence->getAudioFrequency());
+    framerateSpinbox->setValue(global::sequence->getFrameRate());
 }
 
 ExportDialog::~ExportDialog()
@@ -521,7 +521,7 @@ void ExportDialog::export_action() {
 		connect(et, SIGNAL(finished()), this, SLOT(render_thread_finished()));
 		connect(et, SIGNAL(progress_changed(int, qint64)), this, SLOT(update_progress_bar(int, qint64)));
 
-		closeActiveClips(e_sequence);
+		closeActiveClips(global::sequence);
 
         global::mainWindow->set_rendering_state(true);
 
@@ -551,10 +551,10 @@ void ExportDialog::export_action() {
 		}
 
 		et->start_frame = 0;
-		et->end_frame = e_sequence->getEndFrame(); // entire sequence
+		et->end_frame = global::sequence->getEndFrame(); // entire sequence
 		if (rangeCombobox->currentIndex() == 1) {
-			et->start_frame = qMax(e_sequence->workarea_in, et->start_frame);
-			et->end_frame = qMin(e_sequence->workarea_out, et->end_frame);
+			et->start_frame = qMax(global::sequence->workarea_in, et->start_frame);
+			et->end_frame = qMin(global::sequence->workarea_out, et->end_frame);
 		}
 
 		et->ed = this;
@@ -602,7 +602,7 @@ void ExportDialog::comp_type_changed(int) {
 	case COMPRESSION_TYPE_CBR:
 	case COMPRESSION_TYPE_TARGETBR:
         videoBitrateLabel->setText(tr("Bitrate (Mbps):"));
-        videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * e_sequence->getHeight()) - 4.5)));
+        videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * global::sequence->getHeight()) - 4.5)));
 		break;
 	case COMPRESSION_TYPE_CFR:
         videoBitrateLabel->setText(tr("Quality (CRF):"));

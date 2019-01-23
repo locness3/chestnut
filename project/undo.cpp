@@ -210,7 +210,7 @@ void ChangeSequenceAction::undo() {
 }
 
 void ChangeSequenceAction::redo() {
-    old_sequence = e_sequence;
+    old_sequence = global::sequence;
     set_sequence(new_sequence);
 }
 
@@ -1009,7 +1009,7 @@ void EditSequenceCommand::update() {
         if (seq->clips.at(i) != nullptr) seq->clips.at(i)->refresh();
     }
 
-    if (e_sequence == seq) {
+    if (global::sequence == seq) {
         set_sequence(seq);
     }
 }
@@ -1053,7 +1053,7 @@ void CloseAllClipsCommand::undo() {
 }
 
 void CloseAllClipsCommand::redo() {
-    closeActiveClips(e_sequence);
+    closeActiveClips(global::sequence);
 }
 
 UpdateFootageTooltip::UpdateFootageTooltip(MediaPtr i) :
