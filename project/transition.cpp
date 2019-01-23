@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -40,8 +40,8 @@
 
 
 namespace{
-    const long DEFAULT_TRANSITION_LENGTH = 30;
-    const long MINIMUM_TRANSITION_LENGTH = 0;
+const long DEFAULT_TRANSITION_LENGTH = 30;
+const long MINIMUM_TRANSITION_LENGTH = 0;
 }
 
 Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
@@ -54,13 +54,13 @@ Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
     length_field->set_double_default_value(DEFAULT_TRANSITION_LENGTH);
     length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
 
-	LabelSlider* length_ui_ele = static_cast<LabelSlider*>(length_field->ui_element);
-	length_ui_ele->set_display_type(LABELSLIDER_FRAMENUMBER);
+    LabelSlider* length_ui_ele = static_cast<LabelSlider*>(length_field->ui_element);
+    length_ui_ele->set_display_type(LABELSLIDER_FRAMENUMBER);
     length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->getFrameRate());
 }
 
 int Transition::copy(ClipPtr c, ClipPtr s) {
-	return create_transition(c, s, meta, length);
+    return create_transition(c, s, meta, length);
 }
 
 void Transition::set_length(const long value) {
@@ -69,51 +69,53 @@ void Transition::set_length(const long value) {
 }
 
 long Transition::get_true_length() const {
-	return length;
+    return length;
 }
 
 long Transition::get_length() const {
     if (!secondary_clip.expired()) {
-		return length * 2;
-	}
-	return length;
+        return length * 2;
+    }
+    return length;
 }
 
 void Transition::set_length_from_slider() {
-	set_length(length_field->get_double_value(0));
-	update_ui(false);
+    set_length(length_field->get_double_value(0));
+    update_ui(false);
 }
 
-Transition* get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* em) {
-	if (!em->filename.isEmpty()) {
-		// load effect from file
-		return new Transition(c, s, em);
-	} else if (em->internal >= 0 && em->internal < TRANSITION_INTERNAL_COUNT) {
-		// must be an internal effect
-		switch (em->internal) {
-		case TRANSITION_INTERNAL_CROSSDISSOLVE: return new CrossDissolveTransition(c, s, em);
-		case TRANSITION_INTERNAL_LINEARFADE: return new LinearFadeTransition(c, s, em);
-		case TRANSITION_INTERNAL_EXPONENTIALFADE: return new ExponentialFadeTransition(c, s, em);
-		case TRANSITION_INTERNAL_LOGARITHMICFADE: return new LogarithmicFadeTransition(c, s, em);
-		case TRANSITION_INTERNAL_CUBE: return new CubeTransition(c, s, em);
-		}
-	} else {
-		qCritical() << "Invalid transition data";
+TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* em) {
+    if (!em->filename.isEmpty()) {
+        // load effect from file
+        return std::make_shared<Transition>(c, s, em);
+    } else if (em->internal >= 0 && em->internal < TRANSITION_INTERNAL_COUNT) {
+        // must be an internal effect
+        switch (em->internal) {
+        case TRANSITION_INTERNAL_CROSSDISSOLVE: return std::make_shared<CrossDissolveTransition>(c, s, em);
+        case TRANSITION_INTERNAL_LINEARFADE: return std::make_shared<LinearFadeTransition>(c, s, em);
+        case TRANSITION_INTERNAL_EXPONENTIALFADE: return std::make_shared<ExponentialFadeTransition>(c, s, em);
+        case TRANSITION_INTERNAL_LOGARITHMICFADE: return std::make_shared<LogarithmicFadeTransition>(c, s, em);
+        case TRANSITION_INTERNAL_CUBE: return std::make_shared<CubeTransition>(c, s, em);
+        }
+    } else {
+        qCritical() << "Invalid transition data";
         QMessageBox::critical(global::mainWindow,
                               QCoreApplication::translate("transition", "Invalid transition"),
                               QCoreApplication::translate("transition", "No candidate for transition '%1'. This transition may be corrupt. Try reinstalling it or Olive.").arg(em->name)
-                        );
-	}
-	return nullptr;
+                              );
+    }
+    return nullptr;
 }
 
 int create_transition(ClipPtr c, ClipPtr s, const EffectMeta* em, long length) {
-	Transition* t = get_transition_from_meta(c, s, em);
-	if (t != nullptr) {
-		if (length >= 0) t->set_length(length);
-        QVector<Transition*>& transition_list = (c->sequence == nullptr) ? e_clipboard_transitions : c->sequence->transitions;
-		transition_list.append(t);
-		return transition_list.size() - 1;
-	}
-	return -1;
+    auto t = get_transition_from_meta(c, s, em);
+    if (t != nullptr) {
+        if (length >= 0) {
+            t->set_length(length);
+        }
+        QVector<TransitionPtr>& transition_list = (c->sequence == nullptr) ? e_clipboard_transitions : c->sequence->transitions;
+        transition_list.append(t);
+        return transition_list.size() - 1;
+    }
+    return -1;
 }

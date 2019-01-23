@@ -23,11 +23,8 @@
 
 int e_clipboard_type = CLIPBOARD_TYPE_CLIP;
 QVector<project::SequenceItemPtr> e_clipboard;
-QVector<Transition*> e_clipboard_transitions;
+QVector<TransitionPtr> e_clipboard_transitions;
 
 void clear_clipboard() {
-	for (int i=0;e_clipboard_transitions.size();i++) {
-		delete e_clipboard_transitions.at(i);
-	}
 	e_clipboard.clear();
 }

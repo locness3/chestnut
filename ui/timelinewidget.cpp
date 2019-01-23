@@ -2237,7 +2237,7 @@ void draw_waveform(ClipPtr clip, const FootageStream* ms, long media_length, QPa
 }
 
 void draw_transition(QPainter& p, ClipPtr c, const QRect& clip_rect, QRect& text_rect, int transition_type) {
-    Transition* t = (transition_type == TA_OPENING_TRANSITION) ? c->get_opening_transition() : c->get_closing_transition();
+    auto t = (transition_type == TA_OPENING_TRANSITION) ? c->get_opening_transition() : c->get_closing_transition();
     if (t != nullptr) {
         QColor transition_color(255, 0, 0, 16);
         int transition_width = getScreenPointFromFrame(e_panel_timeline->zoom, t->get_true_length());

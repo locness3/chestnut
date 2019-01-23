@@ -298,7 +298,7 @@ void AddEffectCommand::redo() {
     global::mainWindow->setWindowModified(true);
 }
 
-AddTransitionCommand::AddTransitionCommand(ClipPtr   c, ClipPtr s, Transition* copy, const EffectMeta *itransition, const int itype, const int ilength) :
+AddTransitionCommand::AddTransitionCommand(ClipPtr   c, ClipPtr s, TransitionPtr copy, const EffectMeta *itransition, const int itype, const int ilength) :
     clip(c),
     secondary(s),
     transition_to_copy(copy),
@@ -356,13 +356,13 @@ ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const int itype, con
 {}
 
 void ModifyTransitionCommand::undo() {
-    Transition* t = (type == TA_OPENING_TRANSITION) ? clip->get_opening_transition() : clip->get_closing_transition();
+    TransitionPtr t = (type == TA_OPENING_TRANSITION) ? clip->get_opening_transition() : clip->get_closing_transition();
     t->set_length(old_length);
     global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void ModifyTransitionCommand::redo() {
-	Transition* t = (type == TA_OPENING_TRANSITION) ? clip->get_opening_transition() : clip->get_closing_transition();
+    TransitionPtr t = (type == TA_OPENING_TRANSITION) ? clip->get_opening_transition() : clip->get_closing_transition();
 	old_length = t->get_true_length();
 	t->set_length(new_length);
     global::mainWindow->setWindowModified(true);
@@ -378,7 +378,6 @@ DeleteTransitionCommand::DeleteTransitionCommand(SequencePtr s, const int transi
 {}
 
 DeleteTransitionCommand::~DeleteTransitionCommand() {
-	if (transition != nullptr) delete transition;
 }
 
 void DeleteTransitionCommand::undo() {
@@ -532,7 +531,12 @@ void AddClipCommand::redo() {
     global::mainWindow->setWindowModified(true);
 }
 
-LinkCommand::LinkCommand() : link(true), old_project_changed(global::mainWindow->isWindowModified()) {}
+LinkCommand::LinkCommand()
+    : link(true),
+      old_project_changed(global::mainWindow->isWindowModified())
+{
+
+}
 
 void LinkCommand::undo() {
     for (int i=0;i<clips.size();i++) {

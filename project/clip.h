@@ -131,8 +131,8 @@ public:
 	void queue_remove_earliest();
 
 
-    Transition* get_opening_transition();
-    Transition* get_closing_transition();
+    TransitionPtr get_opening_transition();
+    TransitionPtr get_closing_transition();
 
     /**
      * @brief get_frame

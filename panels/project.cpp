@@ -1052,7 +1052,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
                         stream.writeAttribute("workareaOut", QString::number(s->workarea_out));
 
                         for (int j=0;j<s->transitions.size();j++) {
-                            Transition* t = s->transitions.at(j);
+                            auto t = s->transitions.at(j);
                             if (t != nullptr) {
                                 stream.writeStartElement("transition");
                                 stream.writeAttribute("id", QString::number(j));
@@ -1063,7 +1063,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
                         }
 
                         for (int j=0;j<s->clips.size();j++) {
-                            ClipPtr c = s->clips.at(j);
+                            auto c = s->clips.at(j);
                             if (c != nullptr) {
                                 stream.writeStartElement("clip"); // clip
                                 stream.writeAttribute("id", QString::number(j));

@@ -142,13 +142,13 @@ private:
 
 class AddTransitionCommand : public QUndoCommand {
 public:
-    AddTransitionCommand(ClipPtr c, ClipPtr s, Transition *copy, const EffectMeta* itransition, const int itype, const int ilength);
+    AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const EffectMeta* itransition, const int itype, const int ilength);
     virtual void undo();
     virtual void redo();
 private:
     ClipPtr clip;
     ClipPtr secondary;
-    Transition* transition_to_copy;
+    TransitionPtr transition_to_copy;
     const EffectMeta* transition;
     int type;
     int length;
@@ -179,7 +179,7 @@ public:
 private:
     SequencePtr seq;
     int index;
-    Transition* transition;
+    TransitionPtr transition;
     ClipPtr otc;
     ClipPtr ctc;
     bool old_project_changed;

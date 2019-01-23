@@ -743,7 +743,7 @@ void LoadThread::create_effect_ui(
         }
     } else {
         int transition_index = create_transition(c, nullptr, meta);
-        Transition* t = c->sequence->transitions.at(transition_index);
+        auto t = c->sequence->transitions.at(transition_index);
         if (effect_length > -1) t->set_length(effect_length);
         t->set_enabled(effect_enabled);
         t->load(*stream);

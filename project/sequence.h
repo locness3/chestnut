@@ -30,6 +30,7 @@ class Clip;
 class Transition;
 class Media;
 typedef std::shared_ptr<Clip> ClipPtr;
+typedef std::shared_ptr<Transition> TransitionPtr;
 
 using SequencePtr = std::shared_ptr<Sequence>;
 using SequenceUPtr = std::unique_ptr<Sequence>;
@@ -68,7 +69,7 @@ public:
     bool enable_workarea = true;
     long workarea_in = 0;
     long workarea_out = 0;
-    QVector<Transition*> transitions;
+    QVector<TransitionPtr> transitions;
     QVector<Marker> markers;
     long playhead = 0;
     bool wrapper_sequence = false;

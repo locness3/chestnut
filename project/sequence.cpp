@@ -1,7 +1,7 @@
 /*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -59,13 +59,13 @@ Sequence::Sequence(const Sequence& cpy) :
 
 std::shared_ptr<Sequence> Sequence::copy() {
     std::shared_ptr<Sequence> s = std::make_shared<Sequence>();
-	s->name = QCoreApplication::translate("Sequence", "%1 (copy)").arg(name);
+    s->name = QCoreApplication::translate("Sequence", "%1 (copy)").arg(name);
     s->width = width;
     s->height = height;
     s->frame_rate = frame_rate;
     s->audio_frequency = audio_frequency;
     s->audio_layout = audio_layout;
-	s->clips.resize(clips.size());
+    s->clips.resize(clips.size());
 
     for (int i=0;i<clips.size();i++) {
         ClipPtr c = clips.at(i);
@@ -77,53 +77,52 @@ std::shared_ptr<Sequence> Sequence::copy() {
             s->clips[i] = copy;
         }
     }
-	return s;
+    return s;
 }
 
 long Sequence::getEndFrame() const{
-	long end = 0;
-	for (int j=0;j<clips.size();j++) {
+    long end = 0;
+    for (int j=0;j<clips.size();j++) {
         ClipPtr c = clips.at(j);
         if (c != nullptr && c->timeline_info.out > end) {
             end = c->timeline_info.out;
-		}
-	}
-	return end;
+        }
+    }
+    return end;
 }
 
 void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
-	int transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
-	if (transition_index > -1) {
-		bool del = true;
+    int transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
+    if (transition_index > -1) {
+        bool del = true;
 
-		Transition* t = transitions.at(transition_index);
+        auto t = transitions.at(transition_index);
         if (!t->secondary_clip.expired()) {
-			for (int i=0;i<clips.size();i++) {
+            for (int i=0;i<clips.size();i++) {
                 ClipPtr comp = clips.at(i);
                 if (comp != nullptr && c != comp
                         && (c->opening_transition == transition_index || c->closing_transition == transition_index)) {
-					if (type == TA_OPENING_TRANSITION) {
-						// convert to closing transition
+                    if (type == TA_OPENING_TRANSITION) {
+                        // convert to closing transition
                         t->parent_clip = t->secondary_clip.lock();
-					}
+                    }
 
-					del = false;
+                    del = false;
                     t->secondary_clip.reset();
-				}
-			}
-		}
+                }
+            }
+        }
 
-		if (del) {
-			delete transitions.at(transition_index);
-			transitions[transition_index] = nullptr;
-		}
+        if (del) {
+            transitions[transition_index] = nullptr;
+        }
 
-		if (type == TA_OPENING_TRANSITION) {
-			c->opening_transition = -1;
-		} else {
-			c->closing_transition = -1;
-		}
-	}
+        if (type == TA_OPENING_TRANSITION) {
+            c->opening_transition = -1;
+        } else {
+            c->closing_transition = -1;
+        }
+    }
 }
 
 
@@ -166,15 +165,15 @@ void Sequence::setAudioLayout(const int layout) {
 void Sequence::getTrackLimits(int& video_limit, int& audio_limit) const {
     video_limit = 0;
     audio_limit = 0;
-	for (int j=0;j<clips.size();j++) {
+    for (int j=0;j<clips.size();j++) {
         ClipPtr c = clips.at(j);
         if (c != nullptr) {
             if (c->timeline_info.track < 0 && c->timeline_info.track < video_limit) { // video clip
                 video_limit = c->timeline_info.track;
             } else if (c->timeline_info.track > audio_limit) {
                 audio_limit = c->timeline_info.track;
-			}
-		}
+            }
+        }
     }//for
 }
 

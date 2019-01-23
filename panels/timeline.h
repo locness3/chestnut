@@ -83,7 +83,7 @@ struct Ghost {
     bool trimming = false;
 
 	// transition trimming
-    Transition* transition = nullptr;
+    TransitionPtr transition = nullptr;
 };
 
 class Timeline : public QDockWidget

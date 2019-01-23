@@ -20,15 +20,14 @@
 
 #include <QVector>
 #include "project/sequenceitem.h"
-
-class Transition;
+#include "project/transition.h"
 
 
 #define CLIPBOARD_TYPE_CLIP 0
 #define CLIPBOARD_TYPE_EFFECT 1
 
 extern int e_clipboard_type;
-extern QVector<Transition*> e_clipboard_transitions;
+extern QVector<TransitionPtr> e_clipboard_transitions;
 extern QVector<project::SequenceItemPtr> e_clipboard;
 void clear_clipboard();
 

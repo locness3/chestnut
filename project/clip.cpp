@@ -630,7 +630,7 @@ void Clip::queue_remove_earliest() {
     queue.removeAt(earliest_frame);
 }
 
-Transition* Clip::get_opening_transition() {
+TransitionPtr Clip::get_opening_transition() {
     if (opening_transition > -1) {
         if (this->sequence == nullptr) {
             return e_clipboard_transitions.at(opening_transition);
@@ -641,7 +641,7 @@ Transition* Clip::get_opening_transition() {
     return nullptr;
 }
 
-Transition* Clip::get_closing_transition() {
+TransitionPtr Clip::get_closing_transition() {
     if (closing_transition > -1) {
         if (this->sequence == nullptr) {
             return e_clipboard_transitions.at(closing_transition);
