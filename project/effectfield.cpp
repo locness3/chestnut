@@ -40,6 +40,7 @@
 #include "debug.h"
 
 EffectField::EffectField(EffectRow *parent, const EffectFieldType t, const QString &i) :
+    QObject(parent),
 	parent_row(parent),
 	type(t),
 	id(i)
