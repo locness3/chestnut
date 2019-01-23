@@ -25,7 +25,7 @@ public:
     VolumeEffect(ClipPtr c, const EffectMeta* em);
 	void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
 
-    EffectFieldPtr volume_val;
+    EffectField* volume_val;
 };
 
 #endif // VOLUMEEFFECT_H

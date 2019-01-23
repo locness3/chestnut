@@ -351,7 +351,7 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                                             } else if (comp == "STRING") {
                                                 type = EffectFieldType::STRING;
                                             } else if (comp == "FILE") {
-                                                type = EffectFieldType::FILE;
+                                                type = EffectFieldType::FILE_T;
                                             }
                                         } else if (attr.name() == "id") {
                                             id = attr.value().toString();
@@ -361,8 +361,8 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                                     if (id.isEmpty()) {
                                         qCritical() << "Couldn't load field from" << em->filename << "- ID cannot be empty.";
                                     } else if (type != EffectFieldType::UNKNOWN) {
-                                        EffectFieldPtr field = row->add_field(type, id);
-                                        connect(field.operator ->(), SIGNAL(changed()), this, SLOT(field_changed()));
+                                        EffectField* field = row->add_field(type, id);
+                                        connect(field, SIGNAL(changed()), this, SLOT(field_changed()));
                                         switch (type) {
                                         case EffectFieldType::DOUBLE:
                                             for (int i=0;i<attributes.size();i++) {
@@ -444,7 +444,7 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                                                 }
                                             }
                                             break;
-                                        case EffectFieldType::FILE:
+                                        case EffectFieldType::FILE_T:
                                             for (int i=0;i<attributes.size();i++) {
                                                 const QXmlStreamAttribute& attr = attributes.at(i);
                                                 if (attr.name() == "filename") {
@@ -515,8 +515,8 @@ void Effect::copy_field_keyframes(std::shared_ptr<Effect> e) {
         EffectRowPtr copy_row(e->rows.at(i));
         copy_row->setKeyframing(row->isKeyframing());
         for (int j=0;j<row->fieldCount();j++) {
-            EffectFieldPtr field = row->field(j);
-            EffectFieldPtr copy_field = copy_row->field(j);
+            EffectField* field = row->field(j);
+            EffectField* copy_field = copy_row->field(j);
             copy_field->keyframes = field->keyframes;
             copy_field->set_current_data(field->get_current_data());
         }
@@ -655,7 +655,7 @@ QVariant load_data_from_string(const EffectFieldType type, const QString& string
     case EffectFieldType::COMBO: return string.toInt();
     case EffectFieldType::STRING:
     case EffectFieldType::FONT:
-    case EffectFieldType::FILE:
+    case EffectFieldType::FILE_T:
         return string;
     }
     return QVariant();
@@ -669,7 +669,7 @@ QString save_data_to_string(const EffectFieldType type, const QVariant& data) {
     case EffectFieldType::COMBO: return QString::number(data.toInt());
     case EffectFieldType::STRING:
     case EffectFieldType::FONT:
-    case EffectFieldType::FILE:
+    case EffectFieldType::FILE_T:
         return data.toString();
     default:
         break;
@@ -711,7 +711,7 @@ void Effect::load(QXmlStreamReader& stream) {
                                 }
                             }
 
-                            EffectFieldPtr field = row->field(field_number);
+                            EffectField* field = row->field(field_number);
 
                             // get current field value
                             for (int k=0;k<stream.attributes().size();k++) {
@@ -779,7 +779,7 @@ void Effect::save(QXmlStreamWriter& stream) {
         if (row->savable) {
             stream.writeStartElement("row"); // row
             for (int j=0;j<row->fieldCount();j++) {
-                EffectFieldPtr field = row->field(j);
+                EffectField* field = row->field(j);
                 stream.writeStartElement("field"); // field
                 stream.writeAttribute("id", field->id);
                 stream.writeAttribute("value", save_data_to_string(field->type, field->get_current_data()));
@@ -919,7 +919,7 @@ void Effect::process_shader(double timecode, GLTextureCoords&) {
     for (int i=0;i<rows.size();i++) {
         EffectRowPtr row(rows.at(i));
         for (int j=0;j<row->fieldCount();j++) {
-            EffectFieldPtr field = row->field(j);
+            EffectField* field = row->field(j);
             if (!field->id.isEmpty()) {
                 switch (field->type) {
                 case EffectFieldType::DOUBLE:
@@ -941,7 +941,7 @@ void Effect::process_shader(double timecode, GLTextureCoords&) {
                     glslProgram->setUniformValue(field->id.toUtf8().constData(), field->get_combo_index(timecode));
                     break;
                 case EffectFieldType::FONT: break; // can you even send a string to a uniform value?
-                case EffectFieldType::FILE: break; // can you even send a string to a uniform value?
+                case EffectFieldType::FILE_T: break; // can you even send a string to a uniform value?
                 }
             }
         }
@@ -1049,7 +1049,7 @@ void Effect::redraw(double) {
     for (int i=0;i<rows.size();i++) {
         EffectRow* row = rows.at(i);
         for (int j=0;j<row->fieldCount();j++) {
-            EffectFieldPtr field = row->field(j);
+            EffectField* field = row->field(j);
             if (!field->id.isEmpty()) {
                 switch (field->type) {
                 case EffectFieldType::DOUBLE:
@@ -1094,7 +1094,7 @@ bool Effect::valueHasChanged(double timecode) {
         for (int i=0;i<row_count();i++) {
             EffectRowPtr crow(row(i));
             for (int j=0;j<crow->fieldCount();j++) {
-                EffectFieldPtr field = crow->field(j);
+                EffectField* field = crow->field(j);
                 field->validate_keyframe_data(timecode);
                 if (cachedValues.at(index) != field->get_current_data()) {
                     changed = true;

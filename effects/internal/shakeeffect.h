@@ -28,9 +28,9 @@ public:
     ShakeEffect(ClipPtr  c, const EffectMeta* em);
     void process_coords(double timecode, GLTextureCoords& coords, int data);
 
-    EffectFieldPtr intensity_val;
-    EffectFieldPtr rotation_val;
-    EffectFieldPtr frequency_val;
+    EffectField* intensity_val;
+    EffectField* rotation_val;
+    EffectField* frequency_val;
 private:
 	double random_vals[RANDOM_VAL_SIZE];
 };

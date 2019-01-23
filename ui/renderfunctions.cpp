@@ -229,7 +229,7 @@ GLuint compose_sequence(Viewer* viewer,
 					case MEDIA_TYPE_FOOTAGE:
 						// set up opengl texture
 						if (c->texture == nullptr) {
-							c->texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+                            c->texture = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
                             c->texture->setSize(c->media_handling.stream->codecpar->width, c->media_handling.stream->codecpar->height);
 							c->texture->setFormat(get_gl_tex_fmt_from_av(c->pix_fmt));
 							c->texture->setMipLevels(c->texture->maximumMipLevels());
@@ -282,7 +282,7 @@ GLuint compose_sequence(Viewer* viewer,
 						// for nested sequences
                         if (c->timeline_info.media->get_type()== MEDIA_TYPE_SEQUENCE) {
 							nests.append(c);
-							textureID = compose_sequence(viewer, ctx, seq, nests, video, render_audio, gizmos, texture_failed, rendering);
+                            textureID = compose_sequence(viewer, ctx, seq, nests, video, render_audio, gizmos, texture_failed, rendering);
 							nests.removeLast();
 							fbo_switcher = true;
 						}
@@ -460,7 +460,7 @@ GLuint compose_sequence(Viewer* viewer,
                 if (render_audio || (e_config.enable_audio_scrubbing && audio_scrub)) {
                     if (c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
 						nests.append(c);
-						compose_sequence(viewer, ctx, seq, nests, video, render_audio, gizmos, texture_failed, rendering);
+                        compose_sequence(viewer, ctx, seq, nests, video, render_audio, gizmos, texture_failed, rendering);
 						nests.removeLast();
 					} else {
 						if (c->lock.tryLock()) {

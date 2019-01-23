@@ -60,7 +60,7 @@ class Clip : public project::SequenceItem, QThread, std::enable_shared_from_this
 public:
 
     explicit Clip(SequencePtr s);
-    virtual ~Clip();
+    virtual ~Clip() override;
     ClipPtr copy(SequencePtr s);
 
     Clip() = delete;
@@ -220,7 +220,7 @@ public:
 
 	// video playback variables
 	QOpenGLFramebufferObject** fbo;
-    QOpenGLTexture* texture;
+    std::unique_ptr<QOpenGLTexture> texture = nullptr;
 	long texture_frame;
 
     struct AudioPlaybackInfo {

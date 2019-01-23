@@ -478,11 +478,10 @@ void Clip::close(const bool wait) {
     if (is_open) {
         // destroy opengl texture in main thread
         if (texture != nullptr) {
-            delete texture;
             texture = nullptr;
         }
 
-        foreach (EffectPtr eff, effects) {
+        for (auto eff : effects) {
             if (eff != nullptr) {
                 if (eff->is_open()) {
                     eff->close();
@@ -509,7 +508,7 @@ void Clip::close(const bool wait) {
                 close_worker();
             }
         } else {
-            if (timeline_info.media != nullptr && (timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE)) {
+            if (timeline_info.media && (timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE)) {
                 closeActiveClips(timeline_info.media->get_object<Sequence>());
             }
 
@@ -1002,7 +1001,7 @@ void Clip::refactor_frame_rate(ComboAction* ca, double multiplier, bool change_t
         for (int j=0; j<effectNow->row_count();j++) {
             EffectRowPtr effectRowNow = effectNow->row(j);
             for (int l=0; l<effectRowNow->fieldCount(); l++) {
-                EffectFieldPtr f = effectRowNow->field(l);
+                EffectField* f = effectRowNow->field(l);
                 for (int k=0; k<f->keyframes.size(); k++) {
                     ca->append(new SetLong(&f->keyframes[k].time, f->keyframes[k].time, f->keyframes[k].time * multiplier));
                 }

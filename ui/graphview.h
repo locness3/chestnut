@@ -104,7 +104,7 @@ private:
 
 	bool click_add;
 	bool click_add_proc;
-    EffectFieldPtr click_add_field;
+    EffectField* click_add_field;
 	int click_add_key;
 	int click_add_type;
 private slots:

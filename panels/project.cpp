@@ -357,7 +357,7 @@ void Project::replace_media(MediaPtr item, QString filename) {
 }
 
 void Project::replace_clip_media() {
-    if (e_sequence == nullptr) {
+    if (global::sequence == nullptr) {
         QMessageBox::critical(this,
                               tr("No active sequence"),
                               tr("No sequence is active, please open the sequence you want to replace clips from."),
@@ -366,7 +366,7 @@ void Project::replace_clip_media() {
         QModelIndexList selected_items = get_current_selected();
         if (selected_items.size() == 1) {
             MediaPtr item = item_to_media(selected_items.at(0));
-            if (item->get_type() == MEDIA_TYPE_SEQUENCE && e_sequence == item->get_object<Sequence>()) {
+            if (item->get_type() == MEDIA_TYPE_SEQUENCE && global::sequence == item->get_object<Sequence>()) {
                 QMessageBox::critical(this,
                                       tr("Active sequence selected"),
                                       tr("You cannot insert a sequence into itself, so no clips of this media would be in this sequence."),
@@ -600,7 +600,7 @@ void Project::delete_selected_media() {
     // remove
     if (remove) {
         e_panel_effect_controls->clear_effects(true);
-        if (e_sequence != nullptr) e_sequence->selections.clear();
+        if (global::sequence != nullptr) global::sequence->selections.clear();
 
         // remove media and parents
         for (int m=0; m < parents.size(); m++) {
@@ -626,7 +626,7 @@ void Project::delete_selected_media() {
 
                 auto s = item->get_object<Sequence>();
 
-                if (s == e_sequence) {
+                if (s == global::sequence) {
                     ca->append(new ChangeSequenceAction(nullptr));
                 }
 
@@ -893,7 +893,7 @@ void Project::import_dialog() {
 }
 
 void Project::delete_clips_using_selected_media() {
-    if (e_sequence == nullptr) {
+    if (global::sequence == nullptr) {
         QMessageBox::critical(this,
                               tr("No active sequence"),
                               tr("No sequence is active, please open the sequence you want to delete clips from."),
@@ -902,13 +902,13 @@ void Project::delete_clips_using_selected_media() {
         ComboAction* ca = new ComboAction();
         bool deleted = false;
         QModelIndexList items = get_current_selected();
-        for (int i=0;i<e_sequence->clips.size();i++) {
-            ClipPtr c = e_sequence->clips.at(i);
+        for (int i=0;i<global::sequence->clips.size();i++) {
+            ClipPtr c = global::sequence->clips.at(i);
             if (c != nullptr) {
                 for (int j=0;j<items.size();j++) {
                     MediaPtr m = item_to_media(items.at(j));
                     if (c->timeline_info.media == m) {
-                        ca->append(new DeleteClipAction(e_sequence, i));
+                        ca->append(new DeleteClipAction(global::sequence, i));
                         deleted = true;
                     }
                 }
@@ -1043,7 +1043,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
                         stream.writeAttribute("framerate", QString::number(s->getFrameRate(), 'f', 10));
                         stream.writeAttribute("afreq", QString::number(s->getAudioFrequency()));
                         stream.writeAttribute("alayout", QString::number(s->getAudioLayout()));
-                        if (s == e_sequence) {
+                        if (s == global::sequence) {
                             stream.writeAttribute("open", "1");
                         }
                         stream.writeAttribute("workarea", QString::number(s->using_workarea));

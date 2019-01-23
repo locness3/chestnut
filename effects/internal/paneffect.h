@@ -25,7 +25,7 @@ public:
     PanEffect(ClipPtr c, const EffectMeta* em);
 	void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
 
-    EffectFieldPtr pan_val;
+    EffectField* pan_val;
 };
 
 #endif // PANEFFECT_H

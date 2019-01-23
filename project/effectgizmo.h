@@ -46,13 +46,13 @@ public:
     QVector<QPoint> world_pos;
     QVector<QPoint> screen_pos;
 
-    EffectFieldPtr x_field1;
+    EffectField* x_field1;
     double x_field_multi1;
-    EffectFieldPtr y_field1;
+    EffectField* y_field1;
     double y_field_multi1;
-    EffectFieldPtr x_field2;
+    EffectField* x_field2;
     double x_field_multi2;
-    EffectFieldPtr y_field2;
+    EffectField* y_field2;
     double y_field_multi2;
 
     void set_previous_value();

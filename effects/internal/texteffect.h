@@ -30,23 +30,23 @@ public:
     TextEffect(ClipPtr c, const EffectMeta *em);
 	void redraw(double timecode);
 
-    EffectFieldPtr text_val;
-    EffectFieldPtr size_val;
-    EffectFieldPtr set_color_button;
-    EffectFieldPtr set_font_combobox;
-    EffectFieldPtr halign_field;
-    EffectFieldPtr valign_field;
-    EffectFieldPtr word_wrap_field;
+    EffectField* text_val;
+    EffectField* size_val;
+    EffectField* set_color_button;
+    EffectField* set_font_combobox;
+    EffectField* halign_field;
+    EffectField* valign_field;
+    EffectField* word_wrap_field;
 
-    EffectFieldPtr outline_bool;
-    EffectFieldPtr outline_width;
-    EffectFieldPtr outline_color;
+    EffectField* outline_bool;
+    EffectField* outline_width;
+    EffectField* outline_color;
 
-    EffectFieldPtr shadow_bool;
-    EffectFieldPtr shadow_distance;
-    EffectFieldPtr shadow_color;
-    EffectFieldPtr shadow_softness;
-    EffectFieldPtr shadow_opacity;
+    EffectField* shadow_bool;
+    EffectField* shadow_distance;
+    EffectField* shadow_color;
+    EffectField* shadow_softness;
+    EffectField* shadow_opacity;
 private slots:
 	void outline_enable(bool);
 	void shadow_enable(bool);

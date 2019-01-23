@@ -96,7 +96,7 @@ void EffectRow::set_keyframe_enabled(bool enabled) {
             // clear
             ComboAction* ca = new ComboAction();
             for (int i=0;i<fieldCount();i++) {
-                EffectFieldPtr f = field(i);
+                EffectField* f = field(i);
                 for (int j=0;j<f->keyframes.size();j++) {
                     ca->append(new KeyframeDelete(f, 0));
                 }
@@ -114,7 +114,7 @@ void EffectRow::goto_previous_key() {
     long key = LONG_MIN;
     ClipPtr c = parent_effect->parent_clip;
     for (int i=0;i<fieldCount();i++) {
-        EffectFieldPtr f = field(i);
+        EffectField* f = field(i);
         for (int j=0;j<f->keyframes.size();j++) {
             long comp = f->keyframes.at(j).time - c->timeline_info.clip_in + c->timeline_info.in;
             if (comp < global::sequence->playhead) {
@@ -126,11 +126,11 @@ void EffectRow::goto_previous_key() {
 }
 
 void EffectRow::toggle_key() {
-    QVector<EffectFieldPtr> key_fields;
+    QVector<EffectField*> key_fields;
     QVector<int> key_field_index;
     ClipPtr c = parent_effect->parent_clip;
     for (int j=0;j<fieldCount();j++) {
-        EffectFieldPtr f = field(j);
+        EffectField* f = field(j);
         for (int i=0;i<f->keyframes.size();i++) {
             long comp = c->timeline_info.in - c->timeline_info.clip_in + f->keyframes.at(i).time;
             if (comp == global::sequence->playhead) {
@@ -157,7 +157,7 @@ void EffectRow::goto_next_key() {
     long key = LONG_MAX;
     ClipPtr c = parent_effect->parent_clip;
     for (int i=0;i<fieldCount();i++) {
-        EffectFieldPtr f = field(i);
+        EffectField* f = field(i);
         for (int j=0;j<f->keyframes.size();j++) {
             long comp = f->keyframes.at(j).time - c->timeline_info.clip_in + c->timeline_info.in;
             if (comp > global::sequence->playhead) {
@@ -172,16 +172,16 @@ void EffectRow::focus_row() {
     e_panel_graph_editor->set_row(this);
 }
 
-EffectFieldPtr EffectRow::add_field(const EffectFieldType type, const QString& id, int colspan) {
-    EffectFieldPtr field = std::make_shared<EffectField>(this, type, id);
+EffectField* EffectRow::add_field(const EffectFieldType type, const QString& id, int colspan) {
+    EffectField* field = new EffectField(this, type, id);
     if (parent_effect->meta->type != EFFECT_TYPE_TRANSITION) {
-        connect(field.operator ->(), SIGNAL(clicked()), this, SLOT(focus_row()));
+        connect(field, SIGNAL(clicked()), this, SLOT(focus_row()));
     }
     fields.append(field);
     QWidget* element = field->get_ui_element();
     ui->addWidget(element, ui_row, column_count, 1, colspan);
     column_count++;
-    connect(field.operator ->(), SIGNAL(changed()), parent_effect, SLOT(field_changed()));
+    connect(field, SIGNAL(changed()), parent_effect, SLOT(field_changed()));
     return field;
 }
 
@@ -204,7 +204,7 @@ void EffectRow::set_keyframe_now(ComboAction* ca) {
         key_is_new.resize(fieldCount());
 
         for (int i=0;i<fieldCount();i++) {
-            EffectFieldPtr f = field(i);
+            EffectField* f = field(i);
 
             int exist_key = -1;
             int closest_key = 0;
@@ -288,7 +288,7 @@ void EffectRow::set_keyframe_now(ComboAction* ca) {
 
 void EffectRow::delete_keyframe_at_time(ComboAction* ca, long time) {
     for (int j=0;j<fieldCount();j++) {
-        EffectFieldPtr f = field(j);
+        EffectField* f = field(j);
         for (int i=0;i<f->keyframes.size();i++) {
             if (f->keyframes.at(i).time == time) {
                 ca->append(new KeyframeDelete(f, i));
@@ -302,7 +302,7 @@ const QString &EffectRow::get_name() {
     return name;
 }
 
-EffectFieldPtr EffectRow::field(const int index) {
+EffectField* EffectRow::field(const int index) {
     return fields.at(index);
 }
 

@@ -130,7 +130,7 @@ TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em
 	rect_gizmo->x_field1 = position_x;
 	rect_gizmo->y_field1 = position_y;
 
-	connect(uniform_scale_field.operator ->(), SIGNAL(toggled(bool)), this, SLOT(toggle_uniform_scale(bool)));
+    connect(uniform_scale_field, SIGNAL(toggled(bool)), this, SLOT(toggle_uniform_scale(bool)));
 
 	// set defaults
 	uniform_scale_field->set_bool_value(true);

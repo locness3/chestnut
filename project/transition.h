@@ -51,7 +51,7 @@ private slots:
 	void set_length_from_slider();
 private:
 	long length; // used only for transitions
-    EffectFieldPtr length_field;
+    EffectField* length_field;
 };
 
 

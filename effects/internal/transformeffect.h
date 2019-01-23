@@ -31,16 +31,16 @@ public:
 public slots:
 	void toggle_uniform_scale(bool enabled);
 private:
-    EffectFieldPtr position_x = nullptr;
-    EffectFieldPtr position_y = nullptr;
-    EffectFieldPtr scale_x = nullptr;
-    EffectFieldPtr scale_y = nullptr;
-    EffectFieldPtr uniform_scale_field = nullptr;
-    EffectFieldPtr rotation = nullptr;
-    EffectFieldPtr anchor_x_box = nullptr;
-    EffectFieldPtr anchor_y_box = nullptr;
-    EffectFieldPtr opacity = nullptr;
-    EffectFieldPtr blend_mode_box = nullptr;
+    EffectField* position_x = nullptr;
+    EffectField* position_y = nullptr;
+    EffectField* scale_x = nullptr;
+    EffectField* scale_y = nullptr;
+    EffectField* uniform_scale_field = nullptr;
+    EffectField* rotation = nullptr;
+    EffectField* anchor_x_box = nullptr;
+    EffectField* anchor_y_box = nullptr;
+    EffectField* opacity = nullptr;
+    EffectField* blend_mode_box = nullptr;
 
     EffectGizmoPtr top_left_gizmo = nullptr;
     EffectGizmoPtr top_center_gizmo = nullptr;
