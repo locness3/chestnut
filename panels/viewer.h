@@ -45,8 +45,14 @@ class Viewer : public QDockWidget
 	Q_OBJECT
 
 public:
-	explicit Viewer(QWidget *parent = 0);
-	~Viewer();
+    explicit Viewer(QWidget *parent = nullptr);
+    virtual ~Viewer();
+
+    Viewer() = delete;
+    Viewer(const Viewer&) = delete;
+    Viewer(const Viewer&&) = delete;
+    Viewer& operator=(const Viewer&) = delete;
+    Viewer& operator=(const Viewer&&) = delete;
 
 	bool is_focused();
 	bool is_main_sequence();
