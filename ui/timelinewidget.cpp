@@ -2434,7 +2434,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                                     if (waveform_limit > 0) checkerboard_rect.setLeft(checkerboard_rect.left() + waveform_limit);
                                 }
 
-                                draw_waveform(clip, ms, media_length, &p, clip_rect, waveform_start, waveform_limit, e_panel_timeline->zoom);
+                                draw_waveform(clip, ms, media_length, p, clip_rect, waveform_start, waveform_limit, e_panel_timeline->zoom);
                             }
                         }
                         if (draw_checkerboard) {
