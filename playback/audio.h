@@ -23,8 +23,6 @@
 #include <QWaitCondition>
 #include <QMutex>
 
-//#define INT16_MAX 0x7fff
-//#define INT16_MIN (-INT16_MAX-1)
 
 class QIODevice;
 class QAudioOutput;
@@ -47,6 +45,7 @@ private:
 	int send_audio_to_output(int offset, int max);
 };
 
+//FIXME: christ almighty. Get rid of the globals, somehow.
 extern QAudioOutput* audio_output;
 extern QIODevice* audio_io_device;
 extern AudioSenderThread* audio_thread;
@@ -60,6 +59,8 @@ extern double audio_ibuffer_timecode;
 extern bool audio_scrub;
 extern bool recording;
 extern bool audio_rendering;
+
+
 void clear_audio_ibuffer();
 
 int current_audio_freq();
