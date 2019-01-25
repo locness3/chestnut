@@ -829,7 +829,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
                         e_panel_sequence_viewer->cue_recording(qMin(g.in, g.out), qMax(g.in, g.out), g.track);
                         e_panel_timeline->creating = false;
                     } else if (g.in != g.out) {
-                        ClipPtr c(new Clip(global::sequence));
+                        ClipPtr c(std::make_shared<Clip>(global::sequence));
                         c->timeline_info.media = nullptr;
                         c->timeline_info.in = qMin(g.in, g.out);
                         c->timeline_info.out = qMax(g.in, g.out);
