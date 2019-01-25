@@ -83,8 +83,8 @@ public:
     long in;
     long out;
 
-    long get_length_in_frames(const double frame_rate);
-    FootageStream *get_stream_from_file_index(bool video, int index);
+    long get_length_in_frames(const double frame_rate) const;
+    bool get_stream_from_file_index(const bool video, const int index, FootageStream& stream);
     void reset();
 };
 

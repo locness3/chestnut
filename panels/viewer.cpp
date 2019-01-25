@@ -715,10 +715,10 @@ void Viewer::set_media(MediaPtr m) {
             }
 
             if (footage->audio_tracks.size() > 0) {
-                const FootageStream& audio_stream = footage->audio_tracks.at(0);
+                const auto& audio_stream = footage->audio_tracks.at(0);
                 seq->setAudioFrequency(audio_stream.audio_frequency);
 
-                ClipPtr c = std::make_shared<Clip>(global::sequence);
+                auto c = std::make_shared<Clip>(global::sequence);
                 c->timeline_info.media= media;
                 c->timeline_info.media_stream = audio_stream.file_index;
                 c->timeline_info.in = 0;

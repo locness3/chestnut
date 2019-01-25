@@ -53,26 +53,35 @@ void Footage::reset() {
     ready = false;
 }
 
-long Footage::get_length_in_frames(const double frame_rate) {
-    if (length >= 0) return qFloor((static_cast<double>(length) / static_cast<double>(AV_TIME_BASE)) * frame_rate / speed);
+long Footage::get_length_in_frames(const double frame_rate) const {
+    if (length >= 0) {
+        return qFloor((static_cast<double>(length) / static_cast<double>(AV_TIME_BASE)) * frame_rate / speed);
+    }
     return 0;
 }
 
-FootageStream* Footage::get_stream_from_file_index(bool video, int index) {
+
+bool Footage::get_stream_from_file_index(const bool video, const int index, FootageStream& stream)
+{
+    bool found = false;
     if (video) {
-        for (int i=0;i<video_tracks.size();i++) {
-            if (video_tracks.at(i).file_index == index) {
-                return &video_tracks[i];
+        for (auto& track : video_tracks) {
+            if (track.file_index == index) {
+                found = true;
+                stream = track;
+                break;
             }
         }
     } else {
-        for (int i=0;i<audio_tracks.size();i++) {
-            if (audio_tracks.at(i).file_index == index) {
-                return &audio_tracks[i];
+        for (auto& track : audio_tracks) {
+            if (track.file_index == index) {
+                found = true;
+                stream = track;
+                break;
             }
         }
     }
-    return nullptr;
+    return found;
 }
 
 void FootageStream::make_square_thumb() {

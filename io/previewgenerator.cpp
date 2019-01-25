@@ -299,10 +299,11 @@ void PreviewGenerator::generate_waveform() {
                 }
             }
             if (!end_of_file) {
-                FootageStream* s = ftg->get_stream_from_file_index(fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO, packet->stream_index);
-                if (s != nullptr) {
+                const bool isVideo = fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO;
+                FootageStream ms;
+                if (ftg->get_stream_from_file_index(isVideo, packet->stream_index, ms)) {
                     if (fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-                        if (!s->preview_done) {
+                        if (!ms.preview_done) {
                             int dstH = 120; //FIXME: magic num
                             int dstW = dstH * ((float)temp_frame->width/(float)temp_frame->height);
                             uint8_t* imgData = new uint8_t[dstW*dstH*4];
@@ -324,14 +325,14 @@ void PreviewGenerator::generate_waveform() {
                             linesize[0] = dstW*4;
                             sws_scale(sws_ctx, temp_frame->data, temp_frame->linesize, 0, temp_frame->height, &imgData, linesize);
 
-                            s->video_preview = QImage(imgData, dstW, dstH, linesize[0], QImage::Format_RGBA8888);
-                            s->make_square_thumb();
+                            ms.video_preview = QImage(imgData, dstW, dstH, linesize[0], QImage::Format_RGBA8888);
+                            ms.make_square_thumb();
 
                             // is video interlaced?
-                            s->video_auto_interlacing = (temp_frame->interlaced_frame) ? ((temp_frame->top_field_first) ? VIDEO_TOP_FIELD_FIRST : VIDEO_BOTTOM_FIELD_FIRST) : VIDEO_PROGRESSIVE;
-                            s->video_interlacing = s->video_auto_interlacing;
+                            ms.video_auto_interlacing = (temp_frame->interlaced_frame) ? ((temp_frame->top_field_first) ? VIDEO_TOP_FIELD_FIRST : VIDEO_BOTTOM_FIELD_FIRST) : VIDEO_PROGRESSIVE;
+                            ms.video_interlacing = ms.video_auto_interlacing;
 
-                            s->preview_done = true;
+                            ms.preview_done = true;
 
                             sws_freeContext(sws_ctx);
 
@@ -385,8 +386,8 @@ void PreviewGenerator::generate_waveform() {
                                         break;
                                     }
                                 }
-                                s->audio_preview.append(min >> 8);
-                                s->audio_preview.append(max >> 8);
+                                ms.audio_preview.append(min >> 8);
+                                ms.audio_preview.append(max >> 8);
                                 if (cancelled) break;
                             }
                         }

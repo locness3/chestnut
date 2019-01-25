@@ -250,14 +250,22 @@ double Media::get_frame_rate(const int stream) {
     switch (get_type()) {
     case MEDIA_TYPE_FOOTAGE:
     {
-        FootagePtr f = get_object<Footage>();
-        if (stream < 0) {
-            return f->video_tracks.at(0).video_frame_rate * f->speed;
+        if (auto ftg = get_object<Footage>()) {
+            if (stream < 0) {
+                return ftg->video_tracks.at(0).video_frame_rate * ftg->speed;
+            }
+            FootageStream ms;
+            if (ftg->get_stream_from_file_index(true, stream, ms)) {
+                return ms.video_frame_rate * ftg->speed;
+            }
         }
-        return f->get_stream_from_file_index(true, stream)->video_frame_rate * f->speed;
+        break;
     }
     case MEDIA_TYPE_SEQUENCE:
-        return get_object<Sequence>()->getFrameRate();
+        if (auto sqn = get_object<Sequence>()) {
+            return sqn->getFrameRate();
+        }
+        break;
     default:
         qWarning() << "Unknown media type" << get_type();
         break;
@@ -270,14 +278,22 @@ int Media::get_sampling_rate(const int stream) {
     switch (get_type()) {
     case MEDIA_TYPE_FOOTAGE:
     {
-        FootagePtr f = get_object<Footage>();
-        if (stream < 0) {
-            return f->audio_tracks.at(0).audio_frequency * f->speed;
+        if (auto ftg = get_object<Footage>()) {
+            if (stream < 0) {
+                return ftg->audio_tracks.at(0).audio_frequency * ftg->speed;
+            }
+            FootageStream ms;
+            if (ftg->get_stream_from_file_index(false, stream, ms)) {
+                return ms.audio_frequency * ftg->speed;
+            }
         }
-        return get_object<Footage>()->get_stream_from_file_index(false, stream)->audio_frequency * f->speed;
+        break;
     }
     case MEDIA_TYPE_SEQUENCE:
-        return get_object<Sequence>()->getAudioFrequency();
+        if (auto sqn = get_object<Sequence>()) {
+            return sqn->getAudioFrequency();
+        }
+        break;
     default:
         qWarning() << "Unknown media type" << get_type();
         break;
