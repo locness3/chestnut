@@ -98,7 +98,7 @@ void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
 
         auto transition_for_delete = transitions.at(transition_index);
         if (!transition_for_delete->secondary_clip.expired()) {
-            for (auto comp : clips)
+            for (auto comp : clips) {
                 if (comp != nullptr && c != comp
                         && (c->opening_transition == transition_index || c->closing_transition == transition_index)) {
                     if (type == TA_OPENING_TRANSITION) {
