@@ -2213,24 +2213,24 @@ int color_brightness(const QColor& color) {
 void draw_waveform(ClipPtr& clip, const FootageStream& ms, const long media_length, QPainter &p, const QRect& clip_rect,
                    const int waveform_start, const int waveform_limit, const double zoom)
 {
-    //FIXME: magic numbers
+    //FIXME: magic numbers in function
     auto divider = ms.audio_channels*2;
-    int channel_height = clip_rect.height()/ms.audio_channels;
+    auto channel_height = clip_rect.height()/ms.audio_channels;
 
-    for (int i=waveform_start;i<waveform_limit;i++) {
-        int waveform_index = qFloor((((clip->timeline_info.clip_in + ((double) i/zoom))/media_length) * ms.audio_preview.size())/divider)*divider;
+    for (auto i=waveform_start; i<waveform_limit; ++i) {
+        auto waveform_index = qFloor((((clip->timeline_info.clip_in + (static_cast<double>(i)/zoom))/media_length) * ms.audio_preview.size())/divider)*divider;
 
         if (clip->timeline_info.reverse) {
             waveform_index = ms.audio_preview.size() - waveform_index - (ms.audio_channels * 2);
         }
 
-        for (int j=0;j<ms.audio_channels;j++) {
-            int mid = (e_config.rectified_waveforms) ? clip_rect.top()+channel_height*(j+1) : clip_rect.top()+channel_height*j+(channel_height/2);
-            int offset = waveform_index+(j*2);
+        for (auto j=0; j<ms.audio_channels; ++j) {
+            auto mid = (e_config.rectified_waveforms) ? clip_rect.top()+channel_height*(j+1) : clip_rect.top()+channel_height*j+(channel_height/2);
+            auto offset = waveform_index+(j*2);
 
             if ((offset + 1) < ms.audio_preview.size()) {
-                qint8 min = (double)ms.audio_preview.at(offset) / 128.0 * (channel_height/2);
-                qint8 max = (double)ms.audio_preview.at(offset+1) / 128.0 * (channel_height/2);
+                const auto min = static_cast<double>(ms.audio_preview.at(offset)) / 128.0 * (channel_height/2);
+                const auto max = static_cast<double>(ms.audio_preview.at(offset+1)) / 128.0 * (channel_height/2);
 
                 if (e_config.rectified_waveforms)  {
                     p.drawLine(clip_rect.left()+i, mid, clip_rect.left()+i, mid - (max - min));

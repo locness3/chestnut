@@ -42,6 +42,7 @@ using FootagePtr = std::shared_ptr<Footage>;
 using FootageWPtr = std::weak_ptr<Footage>;
 
 struct FootageStream {
+    //FIXME: this really shouldn't be a struct
     int file_index;
     int video_width;
     int video_height;
