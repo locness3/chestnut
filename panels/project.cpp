@@ -574,7 +574,7 @@ void Project::delete_selected_media() {
                                     }
 
                                     parent = parent->parentItem();
-                                }
+                                }//while
 
                                 skip = true;
                             } else if (confirm.clickedButton() == abort_button) {

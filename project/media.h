@@ -57,7 +57,7 @@ public:
     const Media& operator=(const Media& rhs) = delete;
 
     template<typename T>
-    std::shared_ptr<T> get_object() {
+    auto get_object() {
         return std::dynamic_pointer_cast<T>(object);
     }
     /**
@@ -86,7 +86,7 @@ public:
     int childCount() const;
     int columnCount() const;
     QVariant data(int column, int role);
-    int row() const;
+    int row();
     MediaPtr parentItem();
     void removeChild(int i);
 

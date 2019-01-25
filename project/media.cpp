@@ -85,6 +85,8 @@ Media::~Media() {
         delete throbber;
     }
 }
+
+
 /**
  * @brief Obtain this instance unique-id
  * @return id
@@ -385,9 +387,9 @@ QVariant Media::data(int column, int role) {
     return QVariant();
 }
 
-int Media::row() const {
+int Media::row() {
     if (auto parPtr = parent.lock()) {
-        //        return parPtr->children.indexOf(shared_from_this()); //FIXME:
+        return parPtr->children.indexOf(shared_from_this());
     }
     return 0;
 }
