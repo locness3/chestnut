@@ -346,6 +346,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
                 if (mda != nullptr) {
                     FootagePtr ftg = mda->get_object<Footage>();
                     if (ftg != nullptr) {
+                        //FIXME: why is there a lock followed immediately by unlock?
                         ftg->ready_lock.lock();
                         ftg->ready_lock.unlock();
 

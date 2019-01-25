@@ -31,11 +31,11 @@ extern "C" {
 Footage::Footage()
     : ProjectItem(),
       ready(false),
-      preview_gen(nullptr),
       invalid(false),
+      speed(1.0),
+      preview_gen(nullptr),
       in(0),
-      out(0),
-      speed(1.0)
+      out(0)
 {
     ready_lock.lock();
 }
@@ -64,7 +64,7 @@ long Footage::get_length_in_frames(const double frame_rate) const {
 
 bool Footage::get_stream_from_file_index(const bool video, const int index, FootageStream& stream)
 {
-    bool found = false;
+    auto found = false;
     if (video) {
         for (auto& track : video_tracks) {
             if (track.file_index == index) {
@@ -87,13 +87,13 @@ bool Footage::get_stream_from_file_index(const bool video, const int index, Foot
 
 void FootageStream::make_square_thumb() {
     // generate square version for QListView?
-    int square_size = qMax(video_preview.width(), video_preview.height());
-    QPixmap pixmap(square_size, square_size);
+    const auto max_dimension = qMax(video_preview.width(), video_preview.height());
+    QPixmap pixmap(max_dimension, max_dimension);
     pixmap.fill(Qt::transparent);
     QPainter p(&pixmap);
-    int diff = (video_preview.width() - video_preview.height())>>1;
-    int sqx = (diff < 0) ? -diff : 0;
-    int sqy = (diff > 0) ? diff : 0;
+    const auto diff = (video_preview.width() - video_preview.height()) / 2;
+    const auto sqx = (diff < 0) ? -diff : 0;
+    const auto sqy = (diff > 0) ? diff : 0;
     p.drawImage(sqx, sqy, video_preview);
     video_preview_square = QIcon(pixmap);
 }

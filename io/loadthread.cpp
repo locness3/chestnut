@@ -135,6 +135,7 @@ bool LoadThread::is_element(QXmlStreamReader &stream) {
                 || stream.name() == "effect");
 }
 
+//FIXME: sweet jesus. A function just shy of 500lines long...
 bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
     f.seek(0);
     stream.setDevice(stream.device());
@@ -142,7 +143,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
     QString root_search;
     QString child_search;
 
-    switch (type) {
+    switch (type) { //FIXME: mixing values/types
     case LOAD_TYPE_VERSION:
         root_search = "version";
         break;

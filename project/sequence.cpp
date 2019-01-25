@@ -68,7 +68,7 @@ std::shared_ptr<Sequence> Sequence::copy() {
     sqn->audio_layout = audio_layout;
     sqn->clips.resize(clips.size());
 
-    for (int i=0;i<clips.size();i++) {
+    for (auto i=0;i<clips.size();i++) {
         auto c = clips.at(i);
         if (c == nullptr) {
             sqn->clips[i] = nullptr;

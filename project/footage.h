@@ -67,6 +67,11 @@ class Footage : public project::ProjectItem {
 public:
     Footage();
     virtual ~Footage();
+    Footage(const Footage&) = delete;
+    Footage(const Footage&&) = delete;
+    Footage& operator=(const Footage&) = delete;
+    Footage& operator=(const Footage&&) = delete;
+
     //FIXME: encapsulation
     QString url;
     int64_t length;

@@ -409,25 +409,25 @@ void Viewer::pause() {
             e_panel_project->process_file_list(file_list);
 
             // add it to the sequence
-            ClipPtr c = std::make_shared<Clip>(seq);
-            MediaPtr m = e_panel_project->getImportedMedia(0);
-            FootagePtr f = m->get_object<Footage>();
+            auto clp = std::make_shared<Clip>(seq);
+            auto mda = e_panel_project->getImportedMedia(0);
+            auto ftg = mda->get_object<Footage>();
 
             f->ready_lock.lock();
 
-            c->timeline_info.media = m; // latest media
-            c->timeline_info.media_stream = 0;
-            c->timeline_info.in = recording_start;
-            c->timeline_info.out = recording_start + f->get_length_in_frames(seq->getFrameRate());
-            c->timeline_info.clip_in = 0;
-            c->timeline_info.track = recording_track;
-            c->timeline_info.color = PAUSE_COLOR;
-            c->timeline_info.name = m->get_name();
+            clp->timeline_info.media = mda; // latest media
+            clp->timeline_info.media_stream = 0;
+            clp->timeline_info.in = recording_start;
+            clp->timeline_info.out = recording_start + ftg->get_length_in_frames(seq->getFrameRate());
+            clp->timeline_info.clip_in = 0;
+            clp->timeline_info.track = recording_track;
+            clp->timeline_info.color = PAUSE_COLOR;
+            clp->timeline_info.name = mda->get_name();
 
             f->ready_lock.unlock();
 
             QVector<ClipPtr> add_clips;
-            add_clips.append(c);
+            add_clips.append(clp);
             e_undo_stack.push(new AddClipCommand(seq, add_clips)); // add clip
         }
     }

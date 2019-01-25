@@ -65,6 +65,11 @@ PreviewGenerator::PreviewGenerator(MediaPtr item, FootagePtr ftg, const bool rep
     connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
 }
 
+PreviewGenerator::~PreviewGenerator()
+{
+
+}
+
 void PreviewGenerator::parse_media() {
     if (auto ftg = footage.lock()) {
         // detect video/audio streams in file

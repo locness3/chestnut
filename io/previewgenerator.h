@@ -38,6 +38,7 @@ class PreviewGenerator : public QThread
     Q_OBJECT
 public:
     PreviewGenerator(MediaPtr item, FootagePtr ftg, const bool replacing);
+    virtual ~PreviewGenerator();
     void cancel();
 protected:
     virtual void run();
