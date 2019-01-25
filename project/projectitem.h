@@ -32,7 +32,7 @@ namespace project {
     public:
         ProjectItem();
         virtual ~ProjectItem();
-        virtual void setName(const QString val);
+        virtual void setName(const QString& val);
         virtual const QString& getName() const;
 
     private:

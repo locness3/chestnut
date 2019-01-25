@@ -30,7 +30,7 @@ ProjectItem::~ProjectItem()
 
 }
 
-void ProjectItem::setName(const QString val)
+void ProjectItem::setName(const QString& val)
 {
     name = val;
 }
