@@ -99,8 +99,13 @@ void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
         auto transition_for_delete = transitions.at(transition_index);
         if (!transition_for_delete->secondary_clip.expired()) {
             for (auto comp : clips) {
-                if (comp != nullptr && c != comp
-                        && (c->opening_transition == transition_index || c->closing_transition == transition_index)) {
+                if (!comp){
+                    continue;
+                }
+                if (c != comp){ //TODO: check this is the correct comparison
+                    continue;
+                }
+                if ( ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) )) {
                     if (type == TA_OPENING_TRANSITION) {
                         // convert to closing transition
                         transition_for_delete->parent_clip = transition_for_delete->secondary_clip.lock();
@@ -109,7 +114,7 @@ void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
                     del = false;
                     transition_for_delete->secondary_clip.reset();
                 }
-            }
+            }//for
         }
 
         if (del) {
@@ -164,14 +169,14 @@ void Sequence::setAudioLayout(const int layout) {
 void Sequence::getTrackLimits(int& video_limit, int& audio_limit) const {
     video_limit = 0;
     audio_limit = 0;
-    for (int j=0;j<clips.size();j++) {
-        ClipPtr c = clips.at(j);
-        if (c != nullptr) {
-            if (c->timeline_info.track < 0 && c->timeline_info.track < video_limit) { // video clip
-                video_limit = c->timeline_info.track;
-            } else if (c->timeline_info.track > audio_limit) {
-                audio_limit = c->timeline_info.track;
-            }
+    for (auto clp : clips) {
+        if (clp == nullptr) {
+            continue;
+        }
+        if ( (clp->timeline_info.track < 0) && (clp->timeline_info.track < video_limit) ) { // video clip
+            video_limit = clp->timeline_info.track;
+        } else if (clp->timeline_info.track > audio_limit) {
+            audio_limit = clp->timeline_info.track;
         }
     }//for
 }
