@@ -634,14 +634,13 @@ void Project::delete_selected_media() {
                     e_panel_footage_viewer->set_media(nullptr);
                 }
             } else if (item->get_type() == MEDIA_TYPE_FOOTAGE) {
-                if (!e_panel_footage_viewer->seq) {
+                if (e_panel_footage_viewer->seq) {
                     for (auto clp : e_panel_footage_viewer->seq->clips) {
-                        if (!clp) {
-                            // TODO: this was never true. object was only ever set to a Footage/Sequence* or nullptr
-                            // if (c->timeline_info.media == items.at(i)->get_object()) {
-                            //  panel_footage_viewer->set_media(nullptr);
-                            // }
-                            break;
+                        if (clp) {
+                             if (clp->timeline_info.media == item) {
+                                e_panel_footage_viewer->set_media(nullptr); //TODO: create a clear()
+                                break;
+                             }
                         }
                     }
                 }
