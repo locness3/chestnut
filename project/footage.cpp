@@ -29,7 +29,8 @@ extern "C" {
 #include "project/clip.h"
 
 Footage::Footage()
-    : ready(false),
+    : ProjectItem(),
+      ready(false),
       preview_gen(nullptr),
       invalid(false),
       in(0),

@@ -31,6 +31,7 @@ namespace project {
     {
     public:
         ProjectItem();
+        explicit ProjectItem(const QString& itemName);
         virtual ~ProjectItem();
         virtual void setName(const QString& val);
         virtual const QString& getName() const;

@@ -37,6 +37,7 @@ Sequence::~Sequence() {
  * @param cpy
  */
 Sequence::Sequence(const Sequence& cpy) :
+    ProjectItem(),
     selections(cpy.selections),
     clips(cpy.clips),
     save_id(cpy.save_id),
@@ -58,57 +59,55 @@ Sequence::Sequence(const Sequence& cpy) :
 }
 
 std::shared_ptr<Sequence> Sequence::copy() {
-    std::shared_ptr<Sequence> s = std::make_shared<Sequence>();
-    s->name = QCoreApplication::translate("Sequence", "%1 (copy)").arg(name);
-    s->width = width;
-    s->height = height;
-    s->frame_rate = frame_rate;
-    s->audio_frequency = audio_frequency;
-    s->audio_layout = audio_layout;
-    s->clips.resize(clips.size());
+    auto sqn = std::make_shared<Sequence>();
+    sqn->name = QCoreApplication::translate("Sequence", "%1 (copy)").arg(name);
+    sqn->width = width;
+    sqn->height = height;
+    sqn->frame_rate = frame_rate;
+    sqn->audio_frequency = audio_frequency;
+    sqn->audio_layout = audio_layout;
+    sqn->clips.resize(clips.size());
 
     for (int i=0;i<clips.size();i++) {
-        ClipPtr c = clips.at(i);
+        auto c = clips.at(i);
         if (c == nullptr) {
-            s->clips[i] = nullptr;
+            sqn->clips[i] = nullptr;
         } else {
-            ClipPtr copy(c->copy(s));
+            auto copy(c->copy(sqn));
             copy->linked = c->linked;
-            s->clips[i] = copy;
+            sqn->clips[i] = copy;
         }
     }
-    return s;
+    return sqn;
 }
 
 long Sequence::getEndFrame() const{
-    long end = 0;
-    for (int j=0;j<clips.size();j++) {
-        ClipPtr c = clips.at(j);
-        if (c != nullptr && c->timeline_info.out > end) {
-            end = c->timeline_info.out;
+    auto end = 0L;
+    for (auto clp : clips) {
+        if (clp && (clp->timeline_info.out > end) ) {
+            end = clp->timeline_info.out;
         }
     }
     return end;
 }
 
 void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
-    int transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
+    auto transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
     if (transition_index > -1) {
-        bool del = true;
+        auto del = true;
 
-        auto t = transitions.at(transition_index);
-        if (!t->secondary_clip.expired()) {
-            for (int i=0;i<clips.size();i++) {
-                ClipPtr comp = clips.at(i);
+        auto transition_for_delete = transitions.at(transition_index);
+        if (!transition_for_delete->secondary_clip.expired()) {
+            for (auto comp : clips)
                 if (comp != nullptr && c != comp
                         && (c->opening_transition == transition_index || c->closing_transition == transition_index)) {
                     if (type == TA_OPENING_TRANSITION) {
                         // convert to closing transition
-                        t->parent_clip = t->secondary_clip.lock();
+                        transition_for_delete->parent_clip = transition_for_delete->secondary_clip.lock();
                     }
 
                     del = false;
-                    t->secondary_clip.reset();
+                    transition_for_delete->secondary_clip.reset();
                 }
             }
         }

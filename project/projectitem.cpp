@@ -25,6 +25,13 @@ ProjectItem::ProjectItem()
 
 }
 
+
+ProjectItem::ProjectItem(const QString& itemName)
+    : name(itemName)
+{
+
+}
+
 ProjectItem::~ProjectItem()
 {
 
