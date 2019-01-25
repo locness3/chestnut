@@ -502,49 +502,52 @@ bool delete_clips_in_clipboard_with_media(ComboAction* ca, MediaPtr m) {
 }
 
 void Project::delete_selected_media() {
-    ComboAction* ca = new ComboAction();
-    QModelIndexList selected_items = get_current_selected();
+    auto ca = new ComboAction();
+    auto selected_items = get_current_selected();
     QVector<MediaPtr> items;
-    for (QModelIndex idx : selected_items) {
-        MediaPtr mda = item_to_media(idx);
+    for (auto idx : selected_items) {
+        auto mda = item_to_media(idx);
         if (mda == nullptr) {
             qCritical() << "Null Media Ptr";
             continue;
         }
         items.append(mda);
     }
-    bool remove = true;
-    bool redraw = false;
+    auto remove = true;
+    auto redraw = false;
 
     // check if media is in use
-    QVector<MediaWPtr> parents;
+    QVector<MediaPtr> parents;
     QVector<MediaPtr> sequence_items;
     QVector<MediaPtr> all_top_level_items;
-    for (int i=0;i<project_model.childCount();i++) {
+    for (auto i=0;i<project_model.childCount();i++) {
         all_top_level_items.append(project_model.child(i));
     }
     get_all_media_from_table(all_top_level_items, sequence_items, MEDIA_TYPE_SEQUENCE); // find all sequences in project
     if (sequence_items.size() > 0) {
         QVector<MediaPtr> media_items;
         get_all_media_from_table(items, media_items, MEDIA_TYPE_FOOTAGE);
-        for (int i=0;i<media_items.size();i++) {
-            MediaPtr item = media_items.at(i);
-            FootagePtr media = item->get_object<Footage>();
+        auto abort = false;
+        for (auto i=0; (i<media_items.size()) && (!abort); ++i) {
+            auto item = media_items.at(i);
             bool confirm_delete = false;
-            for (int j=0;j<sequence_items.size();j++) {
-                SequencePtr  seq = sequence_items.at(j)->get_object<Sequence>();
-                for (int k=0;k<seq->clips.size();k++) {
-                    ClipPtr c = seq->clips.at(k);
-                    if (c != nullptr && c->timeline_info.media == item) {
+            auto skip = false;
+            for (auto j=0; j<sequence_items.size() && (!abort) && (!skip); ++j) {
+                auto seq = sequence_items.at(j)->get_object<Sequence>();
+                for (auto k=0; (k<seq->clips.size()) && (!abort) && (!skip); ++k) {
+                    auto c = seq->clips.at(k);
+                    if ( (c != nullptr) && (c->timeline_info.media == item) ) {
                         if (!confirm_delete) {
+                            auto ftg = item->get_object<Footage>();
                             // we found a reference, so we know we'll need to ask if the user wants to delete it
                             QMessageBox confirm(this);
                             confirm.setWindowTitle(tr("Delete media in use?"));
-                            confirm.setText(tr("The media '%1' is currently used in '%2'. Deleting it will remove all instances in the sequence. Are you sure you want to do this?").arg(media->getName(),  seq->getName()));
-                            QAbstractButton* yes_button = confirm.addButton(QMessageBox::Yes);
+                            confirm.setText(tr("The media '%1' is currently used in '%2'. Deleting it will remove all instances in the sequence."
+                                               "Are you sure you want to do this?").arg(ftg ->getName(), seq->getName()));
+                            auto yes_button = confirm.addButton(QMessageBox::Yes);
                             QAbstractButton* skip_button = nullptr;
                             if (items.size() > 1) skip_button = confirm.addButton("Skip", QMessageBox::NoRole);
-                            QAbstractButton* abort_button = confirm.addButton(QMessageBox::Cancel);
+                            auto abort_button = confirm.addButton(QMessageBox::Cancel);
                             confirm.exec();
                             if (confirm.clickedButton() == yes_button) {
                                 // remove all clips referencing this media
@@ -552,13 +555,12 @@ void Project::delete_selected_media() {
                                 redraw = true;
                             } else if (confirm.clickedButton() == skip_button) {
                                 // remove media item and any folders containing it from the remove list
-                                MediaWPtr parent = item;
-                                while (!parent.expired()) { //FIXME:
+                                auto parent = item;
+                                while (parent) {
                                     parents.append(parent);
-                                    MediaPtr parPtr = parent.lock();
                                     // re-add item's siblings
-                                    for (int m=0; m < parPtr->childCount();m++) {
-                                        MediaPtr child = parPtr->child(m);
+                                    for (int m=0; m < parent->childCount();m++) {
+                                        auto child = parent->child(m);
                                         bool found = false;
                                         for (int n=0; n<items.size(); n++) {
                                             if (items.at(n) == child) {
@@ -571,30 +573,28 @@ void Project::delete_selected_media() {
                                         }
                                     }
 
-                                    parent = parPtr->parentItem();
+                                    parent = parent->parentItem();
                                 }
 
-                                j = sequence_items.size();
-                                k = seq->clips.size();
+                                skip = true;
                             } else if (confirm.clickedButton() == abort_button) {
                                 // break out of loop
-                                i = media_items.size();
-                                j = sequence_items.size();
-                                k = seq->clips.size();
-
+                                abort = true;
                                 remove = false;
+                            } else {
+                                // TODO: anything expected to be done here?
                             }
                         }
                         if (confirm_delete) {
                             ca->append(new DeleteClipAction(seq, k));
                         }
                     }
-                }
-            }
+                }//for
+            }//for
             if (confirm_delete) {
                 delete_clips_in_clipboard_with_media(ca, item);
             }
-        }
+        }//for
     }
 
     // remove
@@ -605,7 +605,7 @@ void Project::delete_selected_media() {
         // remove media and parents
         for (int m=0; m < parents.size(); m++) {
             for (int l=0; l < items.size(); l++) {
-                if (auto parPtr = parents.at(m).lock()) {
+                if (auto parPtr = parents.at(m)) {
                     if (items.at(l) == parPtr) {
                         items.removeAt(l);
                         l--;
@@ -614,7 +614,6 @@ void Project::delete_selected_media() {
             }//for
         }//for
 
-        //        for (int i=0;i<items.size();i++) {
         for (auto item : items) {
             if (!item) {
                 continue;
@@ -637,12 +636,13 @@ void Project::delete_selected_media() {
                 if (e_panel_footage_viewer->seq) {
                     for (auto clp : e_panel_footage_viewer->seq->clips) {
                         if (clp) {
-                             if (clp->timeline_info.media == item) {
+                            if (clp->timeline_info.media == item) {
+                                // Media viewer is displaying the clip for deletion, so clear it
                                 e_panel_footage_viewer->set_media(nullptr); //TODO: create a clear()
                                 break;
-                             }
+                            }
                         }
-                    }
+                    }//for
                 }
             }
         } //for
@@ -988,7 +988,7 @@ void Project::save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only,
                 // save_folder(stream, item, type, set_ids_only);
             } else {
                 int folder;
-                if (auto parPtr = mda->parentItem().lock()) {
+                if (auto parPtr = mda->parentItem()) {
                     folder = parPtr->temp_id;
                 } else {
                     folder = 0;

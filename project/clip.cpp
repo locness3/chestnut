@@ -57,6 +57,7 @@ double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sam
 }
 
 Clip::Clip(SequencePtr s) :
+    QThread(nullptr),
     sequence(s),
     opening_transition(-1),
     closing_transition(-1),

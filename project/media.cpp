@@ -392,8 +392,8 @@ int Media::row() const {
     return 0;
 }
 
-MediaWPtr Media::parentItem() {
-    return parent;
+MediaPtr Media::parentItem() {
+    return parent.lock();
 }
 
 void Media::removeChild(int i) {

@@ -31,6 +31,11 @@ public:
     MainWindow(QWidget *parent, const QString& an);
 	void updateTitle(const QString &url);
 	virtual ~MainWindow();
+    MainWindow() = delete;
+    MainWindow(const MainWindow&) = delete;
+    MainWindow(const MainWindow&&) = delete;
+    MainWindow operator=(const MainWindow&) = delete;
+    MainWindow operator=(const MainWindow&&) = delete;
 
 	void launch_with_project(const QString& s);
 

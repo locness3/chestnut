@@ -131,7 +131,6 @@ void MainWindow::setup_layout(bool reset) {
 
 MainWindow::MainWindow(QWidget *parent, const QString &an) :
     QMainWindow(parent),
-    enable_launch_with_project(false),
     app_name(an)
 {
     open_debug_file();
@@ -271,7 +270,6 @@ MainWindow::MainWindow(QWidget *parent, const QString &an) :
 MainWindow::~MainWindow() {
     free_panels();
     close_debug_file();
-    delete clear_open_recent_action;
 }
 
 void MainWindow::launch_with_project(const QString& s) {
@@ -610,7 +608,7 @@ void MainWindow::setup_menus() {
 
     file_menu->addAction(tr("&Open Project"), this, SLOT(open_project()), QKeySequence("Ctrl+O"))->setProperty("id", "openproj");
 
-    clear_open_recent_action = new QAction(tr("Clear Recent List")); //FIXME: leak.
+    clear_open_recent_action = new QAction(tr("Clear Recent List"), this);
     clear_open_recent_action->setProperty("id", "clearopenrecent");
     connect(clear_open_recent_action, SIGNAL(triggered()), e_panel_project, SLOT(clear_recent_projects()));
 

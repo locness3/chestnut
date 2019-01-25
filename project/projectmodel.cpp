@@ -223,7 +223,7 @@ void ProjectModel::moveChild(MediaPtr child, MediaPtr to) {
     if (to == nullptr) {
         to = root_item;
     }
-    if (auto parPtr = child->parentItem().lock()) {
+    if (auto parPtr = child->parentItem()) {
         beginMoveRows(
                     parPtr == root_item ? QModelIndex() : create_index(parPtr->row(), 0 , parPtr),
                     child->row(),

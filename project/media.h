@@ -87,7 +87,7 @@ public:
     int columnCount() const;
     QVariant data(int column, int role);
     int row() const;
-    MediaWPtr parentItem();
+    MediaPtr parentItem();
     void removeChild(int i);
 
     MediaThrobber* throbber;

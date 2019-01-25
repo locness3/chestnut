@@ -548,7 +548,7 @@ void Timeline::delete_selection(QVector<Selection>& selections, bool ripple_dele
     if (selections.size() > 0) {
         e_panel_effect_controls->clear_effects(true);
 
-        ComboAction* ca = new ComboAction();
+        auto ca = new ComboAction();
 
         delete_areas_and_relink(ca, selections);
 
