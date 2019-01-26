@@ -296,7 +296,7 @@ bool ExportThread::setupAudio() {
 }
 
 bool ExportThread::setupContainer() {
-    avformat_alloc_output_context2(&fmt_ctx, nullptr, nullptr, c_filename);
+    avformat_alloc_output_context2(&fmt_ctx, nullptr, nullptr, filename.toUtf8().data());
     if (!fmt_ctx) {
         qCritical() << "Could not create output context";
         ed->export_error = tr("could not create output format context");
@@ -305,7 +305,7 @@ bool ExportThread::setupContainer() {
 
     //av_dump_format(fmt_ctx, 0, c_filename, 1);
 
-    ret = avio_open(&fmt_ctx->pb, c_filename, AVIO_FLAG_WRITE);
+    ret = avio_open(&fmt_ctx->pb,  filename.toUtf8().data(), AVIO_FLAG_WRITE);
     if (ret < 0) {
         qCritical() << "Could not open output file." << ret;
         ed->export_error = tr("could not open output file (%1)").arg(QString::number(ret));
@@ -323,11 +323,6 @@ void ExportThread::run() {
         ed->export_error = tr("could not make OpenGL context current");
         return;
     }
-
-    // copy filename
-    QByteArray ba = filename.toUtf8();
-    c_filename = new char[ba.size()+1];
-    strcpy(c_filename, ba.data());
 
     continueEncode = setupContainer();
 
@@ -494,8 +489,6 @@ void ExportThread::run() {
         swr_free(&swr_ctx);
         av_frame_free(&swr_frame);
     }
-
-    delete [] c_filename;
 }
 
 void ExportThread::wake() {

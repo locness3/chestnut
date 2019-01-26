@@ -100,7 +100,6 @@ private:
 
     int aframe_bytes;
     int ret;
-    char* c_filename;
 
     QMutex mutex;
     QWaitCondition waitCond;
