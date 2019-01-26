@@ -105,7 +105,7 @@ void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
                 if (c != comp){ //TODO: check this is the correct comparison
                     continue;
                 }
-                if ( ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) )) {
+                if ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) ) {
                     if (type == TA_OPENING_TRANSITION) {
                         // convert to closing transition
                         transition_for_delete->parent_clip = transition_for_delete->secondary_clip.lock();
