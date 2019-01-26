@@ -82,18 +82,13 @@ QVariant ProjectModel::headerData(int section, Qt::Orientation orientation, int 
 }
 
 QModelIndex ProjectModel::index(int row, int column, const QModelIndex &parent) const {
-    if (!hasIndex(row, column, parent))
+    if (!hasIndex(row, column, parent)) {
         return QModelIndex();
-
-    MediaPtr parentItem;
-
-    if (!parent.isValid()) {
-        parentItem = root_item;
-    } else {
-        parentItem = getItem(parent);
     }
 
-    MediaPtr childItem = parentItem->child(row);
+    auto parentItem = parent.isValid() ? getItem(parent) : root_item;
+
+    auto childItem = parentItem->child(row);
     if (childItem) {
         return create_index(row, column, childItem);
     } else {
