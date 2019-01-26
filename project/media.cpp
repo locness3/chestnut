@@ -370,11 +370,11 @@ QVariant Media::data(int column, int role) {
             if (root) return QCoreApplication::translate("Media", "Rate");
             if (get_type() == MEDIA_TYPE_SEQUENCE) return QString::number(get_frame_rate()) + " FPS";
             if (get_type() == MEDIA_TYPE_FOOTAGE) {
-                FootagePtr f = get_object<Footage>();
-                double r;
-                if (f->video_tracks.size() > 0 && !qIsNull(r = get_frame_rate())) {
-                    return QString::number(get_frame_rate()) + " FPS";
-                } else if (f->audio_tracks.size() > 0) {
+                auto ftg = get_object<Footage>();
+                const double rate = get_frame_rate();
+                if ( (ftg->video_tracks.size() > 0) && !qIsNull(rate)) {
+                    return QString::number(rate) + " FPS";
+                } else if (ftg->audio_tracks.size() > 0) {
                     return QString::number(get_sampling_rate()) + " Hz";
                 }
             }
