@@ -261,7 +261,7 @@ void load_shader_effects() {
 }
 
 void load_vst_effects() {
-
+    qWarning() << "Function does nothing";
 }
 
 void init_effects() {
@@ -562,7 +562,9 @@ int Effect::gizmo_count(){
     return gizmos.size();
 }
 
-void Effect::refresh() {}
+void Effect::refresh() {
+    //Implemented by its subclasses
+}
 
 void Effect::field_changed() {
     e_panel_sequence_viewer->viewer_widget->frame_update();
