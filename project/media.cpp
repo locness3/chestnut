@@ -253,7 +253,7 @@ double Media::get_frame_rate(const int stream) {
     case MEDIA_TYPE_FOOTAGE:
     {
         if (auto ftg = get_object<Footage>()) {
-            if (stream < 0) {
+            if ( (stream < 0) && !ftg->video_tracks.empty()) {
                 return ftg->video_tracks.at(0).video_frame_rate * ftg->speed;
             }
             FootageStream ms;
