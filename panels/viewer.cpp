@@ -413,7 +413,7 @@ void Viewer::pause() {
             auto mda = e_panel_project->getImportedMedia(0);
             auto ftg = mda->get_object<Footage>();
 
-            f->ready_lock.lock();
+            ftg->ready_lock.lock();
 
             clp->timeline_info.media = mda; // latest media
             clp->timeline_info.media_stream = 0;
