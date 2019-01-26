@@ -424,7 +424,7 @@ void Viewer::pause() {
             clp->timeline_info.color = PAUSE_COLOR;
             clp->timeline_info.name = mda->get_name();
 
-            f->ready_lock.unlock();
+            ftg->ready_lock.unlock();
 
             QVector<ClipPtr> add_clips;
             add_clips.append(clp);
