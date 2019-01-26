@@ -70,7 +70,6 @@ void SourceTable::mousePressEvent(QMouseEvent* event) {
 }
 
 void SourceTable::mouseDoubleClickEvent(QMouseEvent* event) {
-    //FIXME: crash happening here
     if (project_parent != nullptr) {
         if (project_parent->sources_common != nullptr) {
             project_parent->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());

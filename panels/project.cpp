@@ -459,17 +459,12 @@ MediaPtr Project::new_folder(const QString &name) {
 }
 
 MediaPtr Project::item_to_media(const QModelIndex &index) {
-    //FIXME:
     if (sorter != nullptr) {
         const auto src = sorter->mapToSource(index);
         return project_model.get(src);
-        //        void* const ptr = src.internalPointer();
-
     }
 
     return MediaPtr();
-    //    return static_cast<Media*>(sorter->mapToSource(index).internalPointer()); //FIXME: ptr cast issue
-    //    return static_cast<Media>(index.internalPointer());
 }
 
 void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPtr>& list, int search_type) {
