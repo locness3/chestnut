@@ -190,6 +190,7 @@ void Timeline::toggle_show_all() {
 void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point, QVector<MediaPtr>& media_list) {
     video_ghosts = false;
     audio_ghosts = false;
+    auto entry = entry_point;
 
     for (auto mda : media_list) {
         bool can_import = true;
@@ -234,7 +235,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
             g.trimming = false;
             g.old_clip_in = g.clip_in = default_clip_in;
             g.media = mda;
-            g.in = entry_point;
+            g.in = entry;
             g.transition = nullptr;
 
             switch (mda->get_type()) {
@@ -244,7 +245,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
                     g.out = g.in + 100;
                 } else {
                     long length = ftg->get_length_in_frames(seq->getFrameRate());
-                    g.out = entry_point + length - default_clip_in;
+                    g.out = entry + length - default_clip_in;
                     if (ftg->using_inout) {
                         g.out -= (length - default_clip_out);
                     }
@@ -268,7 +269,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
                 }
                 break;
             case MEDIA_TYPE_SEQUENCE:
-                g.out = entry_point + sequence_length - default_clip_in;
+                g.out = entry + sequence_length - default_clip_in;
 
                 if (lcl_seq->using_workarea && lcl_seq->enable_workarea) {
                     g.out -= (sequence_length - default_clip_out);
@@ -287,7 +288,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
                 break;
             }//switch
 
-//            entry_point = g.out; //TODO: should this be assigned? It used to do nothing (pass by val) and not used later
+            entry = g.out;
         }
     } //for
 
