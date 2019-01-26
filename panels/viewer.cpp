@@ -678,7 +678,7 @@ void Viewer::set_media(MediaPtr m) {
         {
             FootagePtr footage = media->get_object<Footage>();
 
-            SequencePtr seq = std::make_shared<Sequence>();
+            seq = std::make_shared<Sequence>();
             created_sequence = true;
             seq->wrapper_sequence = true;
             seq->setName(footage->getName());
