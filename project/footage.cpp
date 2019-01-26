@@ -20,13 +20,14 @@
 #include <QDebug>
 #include <QtMath>
 #include <QPainter>
+
 #include "io/previewgenerator.h"
+#include "project/clip.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
 }
 
-#include "project/clip.h"
 
 Footage::Footage()
     : ProjectItem(),
