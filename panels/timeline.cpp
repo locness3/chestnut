@@ -187,39 +187,38 @@ void Timeline::toggle_show_all() {
     }
 }
 
-void Timeline::create_ghosts_from_media(SequencePtr seq, long entry_point, QVector<MediaPtr>& media_list) {
+void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point, QVector<MediaPtr>& media_list) {
     video_ghosts = false;
     audio_ghosts = false;
 
-    for (int i=0;i<media_list.size();i++) {
+    for (auto mda : media_list) {
         bool can_import = true;
-
-        MediaPtr medium = media_list.at(i);
         FootagePtr ftg;
         SequencePtr lcl_seq;
-        project::ProjectItemPtr media;
-        long sequence_length = 0;
-        long default_clip_in = 0;
-        long default_clip_out = 0;
+        auto sequence_length = 0L;
+        auto default_clip_in = 0L;
+        auto default_clip_out = 0L;
 
-        switch (medium->get_type()) {
+        switch (mda->get_type()) {
         case MEDIA_TYPE_FOOTAGE:
-            ftg = medium->get_object<Footage>();
+            ftg = mda->get_object<Footage>();
             can_import = ftg->ready;
             if (ftg->using_inout) {
-                double source_fr = 30;
-                if (ftg->video_tracks.size() > 0 && !qIsNull(ftg->video_tracks.at(0).video_frame_rate)) source_fr = ftg->video_tracks.at(0).video_frame_rate * ftg->speed;
+                auto source_fr = 30.0;
+                if ( (ftg->video_tracks.size() > 0) && !qIsNull(ftg->video_tracks.at(0).video_frame_rate)) {
+                    source_fr = ftg->video_tracks.at(0).video_frame_rate * ftg->speed;
+                }
                 default_clip_in = refactor_frame_number(ftg->in, source_fr, seq->getFrameRate());
                 default_clip_out = refactor_frame_number(ftg->out, source_fr, seq->getFrameRate());
             }
             break;
         case MEDIA_TYPE_SEQUENCE:
-            lcl_seq = medium->get_object<Sequence>();
+            lcl_seq = mda->get_object<Sequence>();
             sequence_length = lcl_seq->getEndFrame();
             if (lcl_seq != nullptr) {
                 sequence_length = refactor_frame_number(sequence_length, lcl_seq->getFrameRate(), seq->getFrameRate());
             }
-            can_import = (lcl_seq != lcl_seq && sequence_length != 0);
+            can_import = ( (lcl_seq != seq) && (sequence_length != 0) );
             if (lcl_seq->using_workarea) {
                 default_clip_in = refactor_frame_number(lcl_seq->workarea_in, lcl_seq->getFrameRate(), seq->getFrameRate());
                 default_clip_out = refactor_frame_number(lcl_seq->workarea_out, lcl_seq->getFrameRate(), seq->getFrameRate());
@@ -227,18 +226,18 @@ void Timeline::create_ghosts_from_media(SequencePtr seq, long entry_point, QVect
             break;
         default:
             can_import = false;
-        }
+        }//switch
 
         if (can_import) {
             Ghost g;
             g.clip = -1;
             g.trimming = false;
             g.old_clip_in = g.clip_in = default_clip_in;
-            g.media = medium;
+            g.media = mda;
             g.in = entry_point;
             g.transition = nullptr;
 
-            switch (medium->get_type()) {
+            switch (mda->get_type()) {
             case MEDIA_TYPE_FOOTAGE:
                 // is video source a still image?
                 if (ftg->video_tracks.size() > 0 && ftg->video_tracks.at(0).infinite_length && ftg->audio_tracks.size() == 0) {
@@ -283,10 +282,15 @@ void Timeline::create_ghosts_from_media(SequencePtr seq, long entry_point, QVect
                 video_ghosts = true;
                 audio_ghosts = true;
                 break;
-            }
-            entry_point = g.out;
+            default:
+                qWarning() << "Unhandled Media Type" << static_cast<int>(mda->get_type());
+                break;
+            }//switch
+
+//            entry_point = g.out; //TODO: should this be assigned? It used to do nothing (pass by val) and not used later
         }
-    }
+    } //for
+
     for (int i=0;i<ghosts.size();i++) {
         Ghost& g = ghosts[i];
         g.old_in = g.in;

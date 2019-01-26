@@ -117,7 +117,7 @@ public:
 	void previous_cut();
 	void next_cut();
 
-    void create_ghosts_from_media(SequencePtr seq, long entry_point, QVector<MediaPtr> &media_list);
+    void create_ghosts_from_media(SequencePtr& seq, const long entry_point, QVector<MediaPtr> &media_list);
     void add_clips_from_ghosts(ComboAction *ca, SequencePtr s);
 
 	int getTimelineScreenPointFromFrame(long frame);
