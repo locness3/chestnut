@@ -87,7 +87,10 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em) {
 #ifdef _WIN32
         case EFFECT_INTERNAL_VST: return new VSTHostWin(c, em);
 #endif
-        }
+        default:
+            qWarning() << "Unknown Effect Type" << em->internal;
+            break;
+        }//switch
     } else {
         qCritical() << "Invalid effect data";
         QMessageBox::critical(global::mainWindow,
@@ -452,7 +455,10 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                                                 }
                                             }
                                             break;
-                                        }
+                                        default:
+                                            qWarning() << "Unknown EffectField type" << static_cast<int>(type);
+                                            break;
+                                        }//switch
                                     }
                                 }
                             }
@@ -942,10 +948,13 @@ void Effect::process_shader(double timecode, GLTextureCoords&) {
                     break;
                 case EffectFieldType::FONT: break; // can you even send a string to a uniform value?
                 case EffectFieldType::FILE_T: break; // can you even send a string to a uniform value?
+                default:
+                    qWarning() << "Unknown EffectField type" << static_cast<int>(field->type);
+                    break;
                 }
             }
-        }
-    }
+        }//for
+    }//for
 }
 
 void Effect::process_coords(double, GLTextureCoords&, int data) {}
