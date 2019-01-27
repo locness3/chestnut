@@ -30,12 +30,14 @@ public:
     virtual ~ProjectModel() override;
 
     ProjectModel(const ProjectModel&) = delete;
+    ProjectModel(const ProjectModel&&) = delete;
     ProjectModel& operator=(const ProjectModel&) = delete;
+    ProjectModel& operator=(const ProjectModel&&) = delete;
 
     void make_root();
     void destroy_root();
     void clear();
-    MediaPtr get_root();
+    MediaPtr root();
     QVariant data(const QModelIndex &index, int role) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     QVariant headerData(int section, Qt::Orientation orientation,
@@ -51,7 +53,7 @@ public:
     void appendChild(MediaPtr parent, MediaPtr child);
     void moveChild(MediaPtr child, MediaPtr to);
     void removeChild(MediaPtr parent, MediaPtr m);
-    MediaPtr child(int i, MediaPtr parent = nullptr);
+    MediaPtr child(const int index, MediaPtr parent = nullptr);
     int childCount(MediaPtr parent = nullptr);
     void set_icon(MediaPtr m, const QIcon &ico);
     QModelIndex add(MediaPtr mda);

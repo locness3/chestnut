@@ -417,7 +417,7 @@ NewSequenceCommand::NewSequenceCommand(MediaPtr s, MediaPtr iparent) :
     done(false),
     old_project_changed(global::mainWindow->isWindowModified())
 {
-    if (parent == nullptr) parent = project_model.get_root();
+    if (parent == nullptr) parent = project_model.root();
 }
 
 NewSequenceCommand::~NewSequenceCommand() {
@@ -722,7 +722,7 @@ void MediaMove::undo() {
 }
 
 void MediaMove::redo() {
-    if (to == nullptr) to = project_model.get_root();
+    if (to == nullptr) to = project_model.root();
     froms.resize(items.size());
     for (int i=0;i<items.size();i++) {
         MediaWPtr parent = items.at(i)->parentItem();

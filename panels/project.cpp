@@ -414,7 +414,7 @@ void Project::open_properties() {
 }
 
 MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaPtr parent) {
-    if (parent == nullptr) parent = project_model.get_root();
+    if (parent == nullptr) parent = project_model.root();
     MediaPtr item = std::make_shared<Media>(parent);
     item->set_sequence(s);
 
@@ -422,7 +422,7 @@ MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaP
         ca->append(new NewSequenceCommand(item, parent));
         if (open) ca->append(new ChangeSequenceAction(s));
     } else {
-        if (parent == project_model.get_root()) {
+        if (parent == project_model.root()) {
             project_model.appendChild(parent, item);
         } else {
             parent->appendChild(item);
