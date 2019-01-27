@@ -82,7 +82,7 @@ public:
     bool invalid;
     double speed;
 
-    std::unique_ptr<PreviewGenerator> preview_gen;
+    PreviewGenerator* preview_gen;
     QMutex ready_lock;
 
     bool using_inout = false;

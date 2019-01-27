@@ -652,17 +652,17 @@ void Project::delete_selected_media() {
     }
 }
 
-void Project::start_preview_generator(MediaPtr item, bool replacing) {
+void Project::start_preview_generator(MediaPtr item, const bool replacing) {
     // set up throbber animation
-    MediaThrobber* throbber = new MediaThrobber(item);
+    const auto throbber = new MediaThrobber(item);
     throbber->moveToThread(QApplication::instance()->thread());
     item->throbber = throbber;
     QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);
 
-    PreviewGeneratorUPtr pg = std::make_unique<PreviewGenerator>(item, item->get_object<Footage>(), replacing); //FIXME: leak
-    connect(pg.get(), SIGNAL(set_icon(int, bool)), throbber, SLOT(stop(int, bool)));
+    const auto pg = new PreviewGenerator(item, item->get_object<Footage>(), replacing, this);
+    connect(pg, SIGNAL(set_icon(int, bool)), throbber, SLOT(stop(int, bool)));
     pg->start(QThread::LowPriority);
-    item->get_object<Footage>()->preview_gen = std::move(pg);
+    item->get_object<Footage>()->preview_gen = pg;
 }
 
 void Project::process_file_list(QStringList& files, bool recursive, MediaPtr replace, MediaPtr parent) {

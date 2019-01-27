@@ -105,7 +105,7 @@ public:
 
     QModelIndexList get_current_selected();
 
-    void start_preview_generator(MediaPtr item, bool replacing);
+    void start_preview_generator(MediaPtr item, const bool replacing);
     void get_all_media_from_table(QVector<MediaPtr> &items, QVector<MediaPtr> &list, const MediaType type = MediaType::NONE);
 
     QWidget* toolbar_widget;

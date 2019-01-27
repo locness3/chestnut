@@ -48,7 +48,7 @@ Footage::~Footage() {
 void Footage::reset() {
     if (preview_gen != nullptr) {
         preview_gen->cancel();
-        preview_gen->wait();
+//        preview_gen->wait(); //FIXME: segfault. hard to ascertain why
     }
     video_tracks.clear();
     audio_tracks.clear();
