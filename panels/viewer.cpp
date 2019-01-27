@@ -17,6 +17,14 @@
  */
 #include "viewer.h"
 
+#include <QtMath>
+#include <QAudioOutput>
+#include <QPainter>
+#include <QStringList>
+#include <QTimer>
+#include <QHBoxLayout>
+#include <QPushButton>
+
 #include "playback/audio.h"
 #include "timeline.h"
 #include "panels/project.h"
@@ -38,20 +46,11 @@
 #include "debug.h"
 
 
-
-
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 }
 
-#include <QtMath>
-#include <QAudioOutput>
-#include <QPainter>
-#include <QStringList>
-#include <QTimer>
-#include <QHBoxLayout>
-#include <QPushButton>
 
 namespace {
 const int FRAMES_IN_ONE_MINUTE = 1798; // 1800 - 2
