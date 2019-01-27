@@ -285,17 +285,16 @@ void PreviewGenerator::generate_waveform() {
         while (!end_of_file) {
             while (codec_ctx[packet->stream_index] == nullptr || avcodec_receive_frame(codec_ctx[packet->stream_index], temp_frame) == AVERROR(EAGAIN)) {
                 av_packet_unref(packet);
-                int read_ret = av_read_frame(fmt_ctx, packet);
-
-                //dout << "read frame for" << footage->name << footage->url << read_ret << "retrieve_duration:" << retrieve_duration << "eof:" << end_of_file << "packet pts:" << packet->pts;
-
+                const auto read_ret = av_read_frame(fmt_ctx, packet);
                 if (read_ret < 0) {
                     end_of_file = true;
-                    if (read_ret != AVERROR_EOF) qCritical() << "Failed to read packet for preview generation" << read_ret;
+                    if (read_ret != AVERROR_EOF) {
+                        qCritical() << "Failed to read packet for preview generation" << read_ret;
+                    }
                     break;
                 }
                 if (codec_ctx[packet->stream_index] != nullptr) {
-                    int send_ret = avcodec_send_packet(codec_ctx[packet->stream_index], packet);
+                    const auto send_ret = avcodec_send_packet(codec_ctx[packet->stream_index], packet);
                     if (send_ret < 0 && send_ret != AVERROR(EAGAIN)) {
                         qCritical() << "Failed to send packet for preview generation - aborting" << send_ret;
                         end_of_file = true;
@@ -304,13 +303,13 @@ void PreviewGenerator::generate_waveform() {
                 }
             }
             if (!end_of_file) {
-                const bool isVideo = fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO;
+                const auto isVideo = fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO;
                 FootageStream ms;
                 if (ftg->get_stream_from_file_index(isVideo, packet->stream_index, ms)) {
                     if (fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
                         if (!ms.preview_done) {
-                            int dstH = 120; //FIXME: magic num
-                            int dstW = dstH * ((float)temp_frame->width/(float)temp_frame->height);
+                            const int dstH = 120; //FIXME: magic num
+                            const int dstW = dstH * ((float)temp_frame->width/(float)temp_frame->height);
                             uint8_t* imgData = new uint8_t[dstW*dstH*4];
 
                             sws_ctx = sws_getContext(
@@ -334,7 +333,9 @@ void PreviewGenerator::generate_waveform() {
                             ms.make_square_thumb();
 
                             // is video interlaced?
-                            ms.video_auto_interlacing = (temp_frame->interlaced_frame) ? ((temp_frame->top_field_first) ? VIDEO_TOP_FIELD_FIRST : VIDEO_BOTTOM_FIELD_FIRST) : VIDEO_PROGRESSIVE;
+                            ms.video_auto_interlacing = (temp_frame->interlaced_frame)
+                                    ? ((temp_frame->top_field_first) ? VIDEO_TOP_FIELD_FIRST : VIDEO_BOTTOM_FIELD_FIRST)
+                                    : VIDEO_PROGRESSIVE;
                             ms.video_interlacing = ms.video_auto_interlacing;
 
                             ms.preview_done = true;
@@ -348,12 +349,11 @@ void PreviewGenerator::generate_waveform() {
                         }
                         media_lengths[packet->stream_index]++;
                     } else if (fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-                        int interval = qFloor((temp_frame->sample_rate/WAVEFORM_RESOLUTION)/4)*4;
-
+                        const auto interval = qFloor((temp_frame->sample_rate/WAVEFORM_RESOLUTION)/4)*4;
                         AVFrame* swr_frame = av_frame_alloc();
-                        swr_frame->channel_layout = temp_frame->channel_layout;
-                        swr_frame->sample_rate = temp_frame->sample_rate;
-                        swr_frame->format = AV_SAMPLE_FMT_S16P;
+                        swr_frame->channel_layout   = temp_frame->channel_layout;
+                        swr_frame->sample_rate      = temp_frame->sample_rate;
+                        swr_frame->format           = AV_SAMPLE_FMT_S16P;
 
                         swr_ctx = swr_alloc_set_opts(
                                     nullptr,
@@ -372,15 +372,15 @@ void PreviewGenerator::generate_waveform() {
                         swr_convert_frame(swr_ctx, swr_frame, temp_frame);
 
                         // TODO implement a way to terminate this if the user suddenly closes the project while the waveform is being generated
-                        int sample_size = av_get_bytes_per_sample(static_cast<AVSampleFormat>(swr_frame->format));
-                        int nb_bytes = swr_frame->nb_samples * sample_size;
-                        int byte_interval = interval * sample_size;
+                        const auto sample_size = av_get_bytes_per_sample(static_cast<AVSampleFormat>(swr_frame->format));
+                        const auto nb_bytes = swr_frame->nb_samples * sample_size;
+                        const auto byte_interval = interval * sample_size;
                         for (int i=0;i<nb_bytes;i+=byte_interval) {
-                            for (int j=0;j<swr_frame->channels;j++) {
+                            for (int j=0; j<swr_frame->channels; ++j) {
                                 qint16 min = 0;
                                 qint16 max = 0;
-                                for (int k=0;k<byte_interval;k+=sample_size) {
-                                    if (i+k < nb_bytes) {
+                                for (int k=0; k<byte_interval; k+=sample_size) {
+                                    if ( (i+k) < nb_bytes) {
                                         qint16 sample = ((swr_frame->data[j][i+k+1] << 8) | swr_frame->data[j][i+k]);
                                         if (sample > max) {
                                             max = sample;
@@ -413,8 +413,8 @@ void PreviewGenerator::generate_waveform() {
                     done = false; //FIXME: never used
                 } else if (ftg->audio_tracks.size() == 0) {
                     done = true;
-                    for (int i=0;i<ftg->video_tracks.size();i++) {
-                        if (!ftg->video_tracks.at(i).preview_done) {
+                    for (auto trk : ftg->video_tracks) {
+                        if (!trk.preview_done) {
                             done = false;
                             break;
                         }
