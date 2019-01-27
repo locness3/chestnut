@@ -42,8 +42,12 @@ void ProjectModel::make_root() {
 }
 
 void ProjectModel::destroy_root() {
-    if (e_panel_sequence_viewer != nullptr) e_panel_sequence_viewer->viewer_widget->delete_function();
-    if (e_panel_footage_viewer != nullptr) e_panel_footage_viewer->viewer_widget->delete_function();
+    if ( (e_panel_sequence_viewer != nullptr) && (e_panel_sequence_viewer->viewer_widget != nullptr) ){
+        e_panel_sequence_viewer->viewer_widget->delete_function();
+    }
+    if ( (e_panel_footage_viewer != nullptr) && (e_panel_footage_viewer->viewer_widget != nullptr) ) {
+        e_panel_footage_viewer->viewer_widget->delete_function();
+    }
 }
 
 void ProjectModel::clear() {
