@@ -74,7 +74,7 @@ public:
 
     //FIXME: encapsulation
     QString url;
-    int64_t length;
+    int64_t length = 0;
     QVector<FootageStream> video_tracks;
     QVector<FootageStream> audio_tracks;
     int save_id;
