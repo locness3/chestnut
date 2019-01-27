@@ -329,7 +329,7 @@ void PreviewGenerator::generate_waveform() {
                             linesize[0] = dstW*4;
                             sws_scale(sws_ctx, temp_frame->data, temp_frame->linesize, 0, temp_frame->height, &imgData, linesize);
 
-                            ms.video_preview = QImage(imgData, dstW, dstH, linesize[0], QImage::Format_RGBA8888, thumb_data_cleanup);
+                            ms.video_preview = QImage(imgData, dstW, dstH, linesize[0], QImage::Format_RGBA8888);
                             ms.make_square_thumb();
 
                             // is video interlaced?
