@@ -281,6 +281,7 @@ void EffectInit::run() {
     qInfo() << "Finished initializing effects";
 }
 
+//FIXME: congitive complexity of 322.....
 Effect::Effect(ClipPtr c, const EffectMeta *em) :
     parent_clip(c),
     meta(em),
@@ -330,7 +331,7 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                             while (!reader.atEnd() && !(reader.name() == "row" && reader.isEndElement())) {
                                 reader.readNext();
                                 if (reader.name() == "field" && reader.isStartElement()) {
-                                    auto type = EffectFieldType::UNKNOWN;
+                                    auto fieldType = EffectFieldType::UNKNOWN;
                                     QString id;
 
                                     // get field type
@@ -340,19 +341,19 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                                         if (attr.name() == "type") {
                                             QString comp = attr.value().toString().toUpper();
                                             if (comp == "DOUBLE") {
-                                                type = EffectFieldType::DOUBLE;
+                                                fieldType = EffectFieldType::DOUBLE;
                                             } else if (comp == "BOOL") {
-                                                type = EffectFieldType::BOOL;
+                                                fieldType = EffectFieldType::BOOL;
                                             } else if (comp == "COLOR") {
-                                                type = EffectFieldType::COLOR;
+                                                fieldType = EffectFieldType::COLOR;
                                             } else if (comp == "COMBO") {
-                                                type = EffectFieldType::COMBO;
+                                                fieldType = EffectFieldType::COMBO;
                                             } else if (comp == "FONT") {
-                                                type = EffectFieldType::FONT;
+                                                fieldType = EffectFieldType::FONT;
                                             } else if (comp == "STRING") {
-                                                type = EffectFieldType::STRING;
+                                                fieldType = EffectFieldType::STRING;
                                             } else if (comp == "FILE") {
-                                                type = EffectFieldType::FILE_T;
+                                                fieldType = EffectFieldType::FILE_T;
                                             }
                                         } else if (attr.name() == "id") {
                                             id = attr.value().toString();
@@ -361,10 +362,10 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
 
                                     if (id.isEmpty()) {
                                         qCritical() << "Couldn't load field from" << em->filename << "- ID cannot be empty.";
-                                    } else if (type != EffectFieldType::UNKNOWN) {
-                                        EffectField* field = row->add_field(type, id);
+                                    } else if (fieldType != EffectFieldType::UNKNOWN) {
+                                        EffectField* field = row->add_field(fieldType, id);
                                         connect(field, SIGNAL(changed()), this, SLOT(field_changed()));
-                                        switch (type) {
+                                        switch (fieldType) {
                                         case EffectFieldType::DOUBLE:
                                             for (int i=0;i<attributes.size();i++) {
                                                 const QXmlStreamAttribute& attr = attributes.at(i);
@@ -454,7 +455,7 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                                             }
                                             break;
                                         default:
-                                            qWarning() << "Unknown EffectField type" << static_cast<int>(type);
+                                            qWarning() << "Unknown EffectField type" << static_cast<int>(fieldType);
                                             break;
                                         }//switch
                                     }
