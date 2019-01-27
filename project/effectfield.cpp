@@ -296,10 +296,11 @@ QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
 
 void EffectField::ui_element_change() {
     bool dragging_double = (type == EffectFieldType::DOUBLE && static_cast<LabelSlider*>(ui_element)->is_dragging());
-    ComboAction* ca = nullptr;
-    if (!dragging_double) ca = new ComboAction();
+    const auto ca = dragging_double ? nullptr : new ComboAction();
     make_key_from_change(ca);
-    if (!dragging_double) e_undo_stack.push(ca);
+    if (!dragging_double) {
+        e_undo_stack.push(ca);
+    }
     emit changed();
 }
 
@@ -308,8 +309,7 @@ void EffectField::make_key_from_change(ComboAction* ca) {
         parent_row->set_keyframe_now(ca);
     } else if (ca != nullptr) {
         // set undo
-        EffectField* tmp = this;
-        ca->append(new EffectFieldUndo(tmp)); // FIXME: std::bad_weak_ptr. no shared object of 'this' yet
+        ca->append(new EffectFieldUndo(this));
     }
 }
 

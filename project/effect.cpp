@@ -994,8 +994,7 @@ void Effect::gizmo_draw(double, GLTextureCoords &) {}
 void Effect::gizmo_move(EffectGizmoPtr &gizmo, const int x_movement, const int y_movement, const double timecode, const bool done) {
     for (int i=0;i<gizmos.size();i++) {
         if (gizmos.at(i) == gizmo) {
-            ComboAction* ca = nullptr;
-            if (done) ca = new ComboAction();
+            const auto ca = done ? new ComboAction : nullptr;
             if (gizmo->x_field1 != nullptr) {
                 gizmo->x_field1->set_double_value(gizmo->x_field1->get_double_value(timecode) + x_movement*gizmo->x_field_multi1);
                 gizmo->x_field1->make_key_from_change(ca);
