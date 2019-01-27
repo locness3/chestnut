@@ -209,55 +209,53 @@ QList<QString> get_effects_paths() {
 }
 
 void load_shader_effects() {
-    QList<QString> effects_paths = get_effects_paths();
-
-    for (int h=0;h<effects_paths.size();h++) {
-        const QString& effects_path = effects_paths.at(h);
-        QDir effects_dir(effects_path);
+    for (auto& effects_path : get_effects_paths()){
+        const QDir effects_dir(effects_path);
         if (effects_dir.exists()) {
-            QList<QString> entries = effects_dir.entryList(QStringList("*.xml"), QDir::Files);
-            for (int i=0;i<entries.size();i++) {
-                QFile file(effects_path + "/" + entries.at(i));
-                if (!file.open(QIODevice::ReadOnly)) {
-                    qCritical() << "Could not open" << entries.at(i);
-                    return;
-                }
-
-                QXmlStreamReader reader(&file);
-                while (!reader.atEnd()) {
-                    if (reader.name() == "effect") {
-                        QString effect_name = "";
-                        QString effect_cat = "";
-                        const QXmlStreamAttributes attr = reader.attributes();
-                        for (int j=0;j<attr.size();j++) {
-                            if (attr.at(j).name() == "name") {
-                                effect_name = attr.at(j).value().toString();
-                            } else if (attr.at(j).name() == "category") {
-                                effect_cat = attr.at(j).value().toString();
-                            }
-                        }
-                        if (!effect_name.isEmpty()) {
-                            EffectMeta em;
-                            em.type = EFFECT_TYPE_EFFECT;
-                            em.subtype = EFFECT_TYPE_VIDEO;
-                            em.name = effect_name;
-                            em.category = effect_cat;
-                            em.filename = file.fileName();
-                            em.path = effects_path;
-                            em.internal = -1;
-                            effects.append(em);
-                        } else {
-                            qCritical() << "Invalid effect found in" << entries.at(i);
-                        }
-                        break;
-                    }
-                    reader.readNext();
-                }
-
-                file.close();
-            }
+            continue;
         }
-    }
+        const QList<QString> entries = effects_dir.entryList(QStringList("*.xml"), QDir::Files);
+        for (auto entry : entries) {
+            QFile file(effects_path + "/" + entry);
+            if (!file.open(QIODevice::ReadOnly)) {
+                qCritical() << "Could not open" << entry;
+                return;
+            }
+
+            QXmlStreamReader reader(&file);
+            while (!reader.atEnd()) {
+                if (reader.name() == "effect") {
+                    QString effect_name = "";
+                    QString effect_cat = "";
+                    const QXmlStreamAttributes attribs = reader.attributes();
+                    for (auto attrib : attribs) {
+                        if (attrib.name() == "name") {
+                            effect_name = attrib.value().toString();
+                        } else if (attrib.name() == "category") {
+                            effect_cat = attrib.value().toString();
+                        }
+                    }
+                    if (!effect_name.isEmpty()) {
+                        EffectMeta em;
+                        em.type = EFFECT_TYPE_EFFECT;
+                        em.subtype = EFFECT_TYPE_VIDEO;
+                        em.name = effect_name;
+                        em.category = effect_cat;
+                        em.filename = file.fileName();
+                        em.path = effects_path;
+                        em.internal = -1;
+                        effects.append(em);
+                    } else {
+                        qCritical() << "Invalid effect found in" << entry;
+                    }
+                    break;
+                }
+                reader.readNext();
+            }//while
+
+            file.close();
+        }//for
+    }//for
 }
 
 void load_vst_effects() {
