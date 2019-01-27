@@ -194,7 +194,7 @@ int AudioSenderThread::send_audio_to_output(int offset, int max) {
 		s = panel_footage_viewer->seq;
 	}*/
 	if (e_panel_sequence_viewer->playing) {
-		s = e_panel_sequence_viewer->seq;
+        s = e_panel_sequence_viewer->getSequence();
 	}
 	if (s != nullptr) {
 		if (e_panel_timeline->audio_monitor->sample_cache_offset == -1) {

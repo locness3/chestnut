@@ -60,8 +60,7 @@ MediaPtr ProjectModel::get_root() {
 QVariant ProjectModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid())
         return QVariant();
-    MediaPtr item = getItem(index);
-    if (item != nullptr) {
+    if (auto item = getItem(index)) {
         return item->data(index.column(), role);
     }
     return QVariant();

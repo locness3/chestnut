@@ -94,12 +94,12 @@ public:
 	void reset_all_audio();
 	void update_parents(bool reload_fx = false);
 
-	ViewerWidget* viewer_widget;
-
-    MediaPtr media;
-    SequencePtr seq;
+    ViewerWidget* viewer_widget;
 
 	void resizeEvent(QResizeEvent *event);
+
+    MediaPtr getMedia();
+    SequencePtr getSequence();
 
 public slots:
 	void play_wake();
@@ -129,6 +129,9 @@ private:
     long get_seq_out();
 
 	void setup_ui();
+
+    SequencePtr seq;
+    MediaPtr media;
 
     bool main_sequence;
     bool created_sequence;

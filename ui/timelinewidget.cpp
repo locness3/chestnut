@@ -321,9 +321,9 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
     }
 
     if (event->source() == e_panel_footage_viewer->viewer_widget) {
-        SequencePtr proposed_seq = e_panel_footage_viewer->seq;
+        auto proposed_seq = e_panel_footage_viewer->getSequence();
         if (proposed_seq != global::sequence) { // don't allow nesting the same sequence
-            media_list.append(e_panel_footage_viewer->media);
+            media_list.append(e_panel_footage_viewer->getMedia());
             import_init = true;
         }
     }
@@ -2562,7 +2562,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
             QRect active_rec_rect(
                         rec_track_x,
                         rec_track_y,
-                        getScreenPointFromFrame(e_panel_timeline->zoom, e_panel_sequence_viewer->seq->playhead - e_panel_sequence_viewer->recording_start),
+                        getScreenPointFromFrame(e_panel_timeline->zoom, e_panel_sequence_viewer->getSequence()->playhead - e_panel_sequence_viewer->recording_start),
                         rec_track_height
                         );
             p.setPen(QPen(QColor(192, 0, 0), 2));

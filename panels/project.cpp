@@ -624,12 +624,12 @@ void Project::delete_selected_media() {
                     ca->append(new ChangeSequenceAction(nullptr));
                 }
 
-                if (s == e_panel_footage_viewer->seq) {
+                if (s == e_panel_footage_viewer->getSequence()) {
                     e_panel_footage_viewer->set_media(nullptr);
                 }
             } else if (item->get_type() == MEDIA_TYPE_FOOTAGE) {
-                if (e_panel_footage_viewer->seq) {
-                    for (auto clp : e_panel_footage_viewer->seq->clips) {
+                if (e_panel_footage_viewer->getSequence()) {
+                    for (auto clp : e_panel_footage_viewer->getSequence()->clips) {
                         if (clp) {
                             if (clp->timeline_info.media == item) {
                                 // Media viewer is displaying the clip for deletion, so clear it

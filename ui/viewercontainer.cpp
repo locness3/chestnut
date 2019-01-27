@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -45,7 +45,7 @@ ViewerContainer::ViewerContainer(QWidget *parent) :
 }
 
 ViewerContainer::~ViewerContainer() {
-	delete child;
+    delete child;
     delete area;
 }
 
@@ -68,20 +68,20 @@ void ViewerContainer::dragScrollMove(const QPoint &p) {
 }
 
 void ViewerContainer::adjust() {
-    if (viewer->seq != nullptr) {
+    if (auto sqn = viewer->getSequence()) {
         if (child->waveform) {
             child->move(0, 0);
             child->resize(size());
         } else if (fit) {
-            double aspect_ratio = double(viewer->seq->getWidth())/double(viewer->seq->getHeight());
+            const auto aspect_ratio = static_cast<double>(sqn->getWidth())/static_cast<double>(sqn->getHeight());
 
-            int widget_x = 0;
-            int widget_y = 0;
-            int widget_width = width();
-            int widget_height = height();
-			double widget_ar = double(widget_width) / double(widget_height);
+            auto widget_x = 0;
+            auto widget_y = 0;
+            auto widget_width = width();
+            auto widget_height = height();
+            const auto widget_ar = static_cast<double>(widget_width) / static_cast<double>(widget_height);
 
-            bool widget_is_wider_than_sequence = widget_ar > aspect_ratio;
+            const bool widget_is_wider_than_sequence = widget_ar > aspect_ratio;
 
             if (widget_is_wider_than_sequence) {
                 widget_width = widget_height * aspect_ratio;
@@ -94,24 +94,28 @@ void ViewerContainer::adjust() {
             child->move(widget_x, widget_y);
             child->resize(widget_width, widget_height);
 
-            zoom = double(widget_width) / double(viewer->seq->getWidth());
+            zoom = static_cast<double>(widget_width) / static_cast<double>(sqn->getWidth());
         } else {
-            int zoomed_width = double(viewer->seq->getWidth())*zoom;
-            int zoomed_height = double(viewer->seq->getHeight())*zoom;
-            int zoomed_x = 0;
-            int zoomed_y = 0;
+            const auto zoomed_width = qRound(viewer->getSequence()->getWidth() * zoom);
+            const auto zoomed_height = qRound(viewer->getSequence()->getHeight() * zoom);
+            auto zoomed_x = 0;
+            auto zoomed_y = 0;
 
-            if (zoomed_width < width()) zoomed_x = (width()>>1)-(zoomed_width>>1);
-            if (zoomed_height < height()) zoomed_y = (height()>>1)-(zoomed_height>>1);
+            if (zoomed_width < width()) {
+                zoomed_x = (width()>>1)-(zoomed_width>>1);
+            }
+            if (zoomed_height < height()) {
+                zoomed_y = (height()>>1)-(zoomed_height>>1);
+            }
 
             child->move(zoomed_x, zoomed_y);
             child->resize(zoomed_width, zoomed_height);
         }
-	}
+    }
     area->resize(qMax(width(), child->width()), qMax(height(), child->height()));
 }
 
 void ViewerContainer::resizeEvent(QResizeEvent *event) {
-	event->accept();
-	adjust();
+    event->accept();
+    adjust();
 }

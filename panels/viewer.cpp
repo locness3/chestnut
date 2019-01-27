@@ -470,6 +470,17 @@ void Viewer::resizeEvent(QResizeEvent *) {
     }
 }
 
+
+MediaPtr Viewer::getMedia()
+{
+    return media;
+}
+
+SequencePtr Viewer::getSequence()
+{
+    return seq;
+}
+
 void Viewer::update_viewer() {
     update_header_zoom();
     viewer_widget->frame_update();

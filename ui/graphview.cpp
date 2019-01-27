@@ -218,7 +218,7 @@ QVector<int> sort_keys_from_field(EffectField* field) {
 void GraphView::paintEvent(QPaintEvent *) {
 	QPainter p(this);
 
-    if (e_panel_sequence_viewer->seq != nullptr) {
+    if (e_panel_sequence_viewer->getSequence() != nullptr) {
 		// draw grid lines
 
 		p.setPen(Qt::gray);
@@ -329,7 +329,7 @@ void GraphView::paintEvent(QPaintEvent *) {
 
 		// draw playhead
 		p.setPen(Qt::red);
-        int playhead_x = get_screen_x(e_panel_sequence_viewer->seq->playhead - visible_in);
+        int playhead_x = get_screen_x(e_panel_sequence_viewer->getSequence()->playhead - visible_in);
 		p.drawLine(playhead_x, 0, playhead_x, height());
 
 		if (rect_select) {

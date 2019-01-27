@@ -107,7 +107,7 @@ ViewerWidget::~ViewerWidget() {
 }
 
 void ViewerWidget::delete_function() {
-    closeActiveClips(viewer->seq);
+    closeActiveClips(viewer->getSequence());
 }
 
 void ViewerWidget::set_waveform_scroll(int s) {
@@ -176,7 +176,7 @@ void ViewerWidget::save_frame() {
             fn += selected_ext;
         }
 
-        renderer->start_render(context(), viewer->seq, fn);
+        renderer->start_render(context(), viewer->getSequence(), fn);
     }
 }
 
@@ -241,19 +241,19 @@ void ViewerWidget::initializeGL() {
 }
 
 void ViewerWidget::frame_update() {
-    if (viewer->seq != nullptr) {
-        bool render_audio = (viewer->playing || audio_rendering);
+    if (auto sqn = viewer->getSequence()) {
+        const auto render_audio = (viewer->playing || audio_rendering);
 
         // send context to other thread for drawing
         if (waveform) {
             update();
         } else {
             doneCurrent();
-            renderer->start_render(context(), viewer->seq);
+            renderer->start_render(context(), sqn);
         }
 
         // render the audio
-        compose_audio(viewer, viewer->seq, render_audio);
+        compose_audio(viewer, sqn, render_audio);
     }
 }
 
@@ -277,8 +277,8 @@ void ViewerWidget::seek_from_click(int x) {
 
 void ViewerWidget::context_destroy() {
     makeCurrent();
-    if (viewer->seq != nullptr) {
-        closeActiveClips(viewer->seq);
+    if (viewer->getSequence() != nullptr) {
+        closeActiveClips(viewer->getSequence());
     }
     if (window != nullptr) {
         delete window;
@@ -290,7 +290,7 @@ void ViewerWidget::context_destroy() {
 
 EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(int x, int y) {
     if (gizmos != nullptr) {
-        double multiplier = double(viewer->seq->getWidth()) / double(width());
+        double multiplier = double(viewer->getSequence()->getWidth()) / double(width());
         QPoint mouse_pos(qRound(x*multiplier), qRound((height()-y)*multiplier));
         int dot_size = 2 * qRound(GIZMO_DOT_SIZE * multiplier);
         int target_size = 2 * qRound(GIZMO_TARGET_SIZE * multiplier);
@@ -328,7 +328,7 @@ EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(int x, int y) {
 
 void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
     if (selected_gizmo != nullptr) {
-        double multiplier = double(viewer->seq->getWidth()) / double(width());
+        double multiplier = double(viewer->getSequence()->getWidth()) / double(width());
 
         int x_movement = qRound((event->pos().x() - drag_start_x)*multiplier);
         int y_movement = qRound((event->pos().y() - drag_start_y)*multiplier);
@@ -409,9 +409,9 @@ void ViewerWidget::close_window() {
 
 void ViewerWidget::draw_waveform_func() {
     QPainter p(this);
-    if (viewer->seq->using_workarea) {
-        int in_x = getScreenPointFromFrame(waveform_zoom, viewer->seq->workarea_in) - waveform_scroll;
-        int out_x = getScreenPointFromFrame(waveform_zoom, viewer->seq->workarea_out) - waveform_scroll;
+    if (viewer->getSequence()->using_workarea) {
+        int in_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_in) - waveform_scroll;
+        int out_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_out) - waveform_scroll;
 
         p.fillRect(QRect(in_x, 0, out_x - in_x, height()), QColor(255, 255, 255, 64));
         p.setPen(Qt::white);
@@ -424,7 +424,7 @@ void ViewerWidget::draw_waveform_func() {
     p.setPen(Qt::green);
     draw_waveform(waveform_clip, *waveform_ms, waveform_clip->timeline_info.out, p, wr, waveform_scroll, width()+waveform_scroll, waveform_zoom);
     p.setPen(Qt::red);
-    int playhead_x = getScreenPointFromFrame(waveform_zoom, viewer->seq->playhead) - waveform_scroll;
+    int playhead_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->playhead) - waveform_scroll;
     p.drawLine(playhead_x, 0, playhead_x, height());
 }
 
@@ -500,12 +500,12 @@ void ViewerWidget::draw_gizmos() {
     float color[4];
     glGetFloatv(GL_CURRENT_COLOR, color);
 
-    float dot_size = GIZMO_DOT_SIZE / width() * viewer->seq->getWidth();
-    float target_size = GIZMO_TARGET_SIZE / width() * viewer->seq->getWidth();
+    float dot_size = GIZMO_DOT_SIZE / width() * viewer->getSequence()->getWidth();
+    float target_size = GIZMO_TARGET_SIZE / width() * viewer->getSequence()->getWidth();
 
     glPushMatrix();
     glLoadIdentity();
-    glOrtho(0, viewer->seq->getWidth(), viewer->seq->getHeight(), 0, -1, 10);
+    glOrtho(0, viewer->getSequence()->getWidth(), viewer->getSequence()->getHeight(), 0, -1, 10);
     float gizmo_z = 0.0f;
     for (int j=0;j<gizmos->gizmo_count();j++) {
         EffectGizmoPtr g = gizmos->gizmo(j);
@@ -611,14 +611,14 @@ void ViewerWidget::paintGL() {
         glDisable(GL_TEXTURE_2D);
 
         if (window != nullptr && window->isVisible()) {
-            window->set_texture(renderer->texColorBuffer, double(viewer->seq->getWidth())/double(viewer->seq->getHeight()), &renderer->mutex);
+            window->set_texture(renderer->texColorBuffer, double(viewer->getSequence()->getWidth())/double(viewer->getSequence()->getHeight()), &renderer->mutex);
         }
 
         renderer->mutex.unlock();
 
         if (renderer->did_texture_fail()) {
             doneCurrent();
-            renderer->start_render(context(), viewer->seq);
+            renderer->start_render(context(), viewer->getSequence());
         }
     }
 }
