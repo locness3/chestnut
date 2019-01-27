@@ -247,9 +247,11 @@ QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
             if (before_keyframe == after_keyframe) {
                 value = keyframes.at(before_keyframe).data.value<QColor>();
             } else {
-                QColor before_data = keyframes.at(before_keyframe).data.value<QColor>();
-                QColor after_data = keyframes.at(after_keyframe).data.value<QColor>();
-                value = QColor(lerp(before_data.red(), after_data.red(), progress), lerp(before_data.green(), after_data.green(), progress), lerp(before_data.blue(), after_data.blue(), progress));
+                const auto before_color = keyframes.at(before_keyframe).data.value<QColor>();
+                const auto after_color = keyframes.at(after_keyframe).data.value<QColor>();
+                value = QColor(lerp(before_color.red(), after_color.red(), progress),
+                               lerp(before_color.green(), after_color.green(), progress),
+                               lerp(before_color.blue(), after_color.blue(), progress));
             }
             if (async) {
                 return value;
