@@ -63,7 +63,7 @@ int Media::nextID = 0;
 Media::Media() :
     throbber(nullptr),
     root(false),
-    type(MEDIA_TYPE_NONE),
+    type(MediaType::NONE),
     parent(std::weak_ptr<Media>()),
     id(nextID++)
 {
@@ -73,7 +73,7 @@ Media::Media() :
 Media::Media(MediaPtr iparent) :
     throbber(nullptr),
     root(false),
-    type(MEDIA_TYPE_NONE),
+    type(MediaType::NONE),
     parent(iparent),
     id(nextID++)
 {
@@ -96,17 +96,17 @@ int Media::getId() const {
 }
 
 void Media::clear_object() {
-    type = MEDIA_TYPE_NONE;
+    type = MediaType::NONE;
     object = nullptr;
 }
 void Media::set_footage(FootagePtr ftg) {
-    type = MEDIA_TYPE_FOOTAGE;
+    type = MediaType::FOOTAGE;
     object = ftg;
 }
 
 void Media::set_sequence(SequencePtr sqn) {
     set_icon(QIcon(":/icons/sequence.png"));
-    type = MEDIA_TYPE_SEQUENCE;
+    type = MediaType::SEQUENCE;
     object = sqn;
     if (sqn != nullptr) update_tooltip();
 }
@@ -114,7 +114,7 @@ void Media::set_sequence(SequencePtr sqn) {
 void Media::set_folder() {
     if (folder_name.isEmpty()) folder_name = QCoreApplication::translate("Media", "New Folder");
     set_icon(QIcon(":/icons/folder.png"));
-    type = MEDIA_TYPE_FOLDER;
+    type = MediaType::FOLDER;
     object = nullptr;
 }
 
@@ -128,7 +128,7 @@ void Media::set_parent(MediaWPtr p) {
 
 void Media::update_tooltip(const QString& error) {
     switch (type) {
-    case MEDIA_TYPE_FOOTAGE:
+    case MediaType::FOOTAGE:
     {
         FootagePtr f = get_object<Footage>();
         tooltip = QCoreApplication::translate("Media", "Name:") + " " + f->getName() + "\n" + QCoreApplication::translate("Media", "Filename:") + " " + f->url + "\n";
@@ -197,7 +197,7 @@ void Media::update_tooltip(const QString& error) {
         }
     }
         break;
-    case MEDIA_TYPE_SEQUENCE:
+    case MediaType::SEQUENCE:
     {
         SequencePtr s = get_object<Sequence>();
 
@@ -219,38 +219,38 @@ void Media::update_tooltip(const QString& error) {
 
 }
 
-MediaType_E Media::get_type() const {
+MediaType Media::get_type() const {
     return type;
 }
 
 const QString &Media::get_name() {
     switch (type) {
-    case MEDIA_TYPE_FOOTAGE: return get_object<Footage>()->getName();
-    case MEDIA_TYPE_SEQUENCE: return get_object<Sequence>()->getName();
+    case MediaType::FOOTAGE: return get_object<Footage>()->getName();
+    case MediaType::SEQUENCE: return get_object<Sequence>()->getName();
     default: return folder_name;
     }
 }
 
 void Media::set_name(const QString &name) {
     switch (type) {
-    case MEDIA_TYPE_FOOTAGE:
+    case MediaType::FOOTAGE:
         get_object<Footage>()->setName(name);
         break;
-    case MEDIA_TYPE_SEQUENCE:
+    case MediaType::SEQUENCE:
         get_object<Sequence>()->setName(name);
         break;
-    case MEDIA_TYPE_FOLDER:
+    case MediaType::FOLDER:
         folder_name = name;
         break;
     default:
-        qWarning() << "Unknown media type" << type;
+        qWarning() << "Unknown media type" << static_cast<int>(type);
         break;
     }//switch
 }
 
 double Media::get_frame_rate(const int stream) {
     switch (get_type()) {
-    case MEDIA_TYPE_FOOTAGE:
+    case MediaType::FOOTAGE:
     {
         if (auto ftg = get_object<Footage>()) {
             if ( (stream < 0) && !ftg->video_tracks.empty()) {
@@ -263,13 +263,13 @@ double Media::get_frame_rate(const int stream) {
         }
         break;
     }
-    case MEDIA_TYPE_SEQUENCE:
+    case MediaType::SEQUENCE:
         if (auto sqn = get_object<Sequence>()) {
             return sqn->getFrameRate();
         }
         break;
     default:
-        qWarning() << "Unknown media type" << get_type();
+        qWarning() << "Unknown media type" << static_cast<int>(get_type());
         break;
     }//switch
 
@@ -278,7 +278,7 @@ double Media::get_frame_rate(const int stream) {
 
 int Media::get_sampling_rate(const int stream) {
     switch (get_type()) {
-    case MEDIA_TYPE_FOOTAGE:
+    case MediaType::FOOTAGE:
     {
         if (auto ftg = get_object<Footage>()) {
             if (stream < 0) {
@@ -291,13 +291,13 @@ int Media::get_sampling_rate(const int stream) {
         }
         break;
     }
-    case MEDIA_TYPE_SEQUENCE:
+    case MediaType::SEQUENCE:
         if (auto sqn = get_object<Sequence>()) {
             return sqn->getAudioFrequency();
         }
         break;
     default:
-        qWarning() << "Unknown media type" << get_type();
+        qWarning() << "Unknown media type" << static_cast<int>(get_type());
         break;
     }//switch
     return 0;
@@ -335,7 +335,7 @@ QVariant Media::data(int column, int role) {
     switch (role) {
     case Qt::DecorationRole:
         if (column == 0) {
-            if (get_type() == MEDIA_TYPE_FOOTAGE) {
+            if (get_type() == MediaType::FOOTAGE) {
                 FootagePtr f = get_object<Footage>();
                 if (f->video_tracks.size() > 0
                         && f->video_tracks.at(0).preview_done) {
@@ -351,11 +351,11 @@ QVariant Media::data(int column, int role) {
         case 0: return (root) ? QCoreApplication::translate("Media", "Name") : get_name();
         case 1:
             if (root) return QCoreApplication::translate("Media", "Duration");
-            if (get_type() == MEDIA_TYPE_SEQUENCE) {
+            if (get_type() == MediaType::SEQUENCE) {
                 SequencePtr s = get_object<Sequence>();
                 return frame_to_timecode(s->getEndFrame(), e_config.timecode_view, s->getFrameRate());
             }
-            if (get_type() == MEDIA_TYPE_FOOTAGE) {
+            if (get_type() == MediaType::FOOTAGE) {
                 FootagePtr f = get_object<Footage>();
                 double r = 30;
 
@@ -368,8 +368,8 @@ QVariant Media::data(int column, int role) {
             break;
         case 2:
             if (root) return QCoreApplication::translate("Media", "Rate");
-            if (get_type() == MEDIA_TYPE_SEQUENCE) return QString::number(get_frame_rate()) + " FPS";
-            if (get_type() == MEDIA_TYPE_FOOTAGE) {
+            if (get_type() == MediaType::SEQUENCE) return QString::number(get_frame_rate()) + " FPS";
+            if (get_type() == MediaType::FOOTAGE) {
                 auto ftg = get_object<Footage>();
                 const double rate = get_frame_rate();
                 if ( (ftg->video_tracks.size() > 0) && !qIsNull(rate)) {

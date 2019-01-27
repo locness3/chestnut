@@ -684,7 +684,7 @@ void Viewer::set_media(MediaPtr m) {
     clean_created_seq();
     if (media != nullptr) {
         switch (media->get_type()) {
-        case MEDIA_TYPE_FOOTAGE:
+        case MediaType::FOOTAGE:
         {
             auto ftg = media->get_object<Footage>();
 
@@ -753,7 +753,7 @@ void Viewer::set_media(MediaPtr m) {
             seq->setAudioLayout(AV_CH_LAYOUT_STEREO);
         }
             break;
-        case MEDIA_TYPE_SEQUENCE:
+        case MediaType::SEQUENCE:
             seq = media->get_object<Sequence>();
             break;
         default:

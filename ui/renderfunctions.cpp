@@ -115,26 +115,26 @@ GLuint compose_sequence(Viewer* viewer,
                         QOpenGLContext* ctx,
                         SequencePtr seq,
                         QVector<ClipPtr> &nests,
-                        bool video,
-                        bool render_audio,
+                        const bool video,
+                        const bool render_audio,
                         EffectPtr &gizmos,
                         bool &texture_failed,
-                        bool rendering) {
+                        const bool rendering) {
     GLint current_fbo = 0;
     if (video) {
         glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &current_fbo);
     }
-    SequencePtr s = seq;
-    long playhead = s->playhead;
+    auto lcl_seq = seq;
+    long playhead = lcl_seq->playhead;
 
     if (!nests.isEmpty()) {
-        for (int i=0;i<nests.size();i++) {
-            s = nests.at(i)->timeline_info.media->get_object<Sequence>();
-            playhead += nests.at(i)->timeline_info.clip_in - nests.at(i)->get_timeline_in_with_transition();
-            playhead = refactor_frame_number(playhead, nests.at(i)->sequence->getFrameRate(), s->getFrameRate());
+        for(auto nest_clip : nests) {
+            lcl_seq = nest_clip->timeline_info.media->get_object<Sequence>();
+            playhead += nest_clip->timeline_info.clip_in - nest_clip->get_timeline_in_with_transition();
+            playhead = refactor_frame_number(playhead, nest_clip->sequence->getFrameRate(), lcl_seq->getFrameRate());
         }
 
-        if (video && nests.last()->fbo != nullptr) {
+        if (video && (nests.last()->fbo != nullptr) ) {
             nests.last()->fbo[0]->bind();
             glClear(GL_COLOR_BUFFER_BIT);
             //			nests.last()->fbo[0]->release();
@@ -142,70 +142,72 @@ GLuint compose_sequence(Viewer* viewer,
         }
     }
 
-    int audio_track_count = 0;
+    auto audio_track_count = 0;
 
     QVector<ClipPtr> current_clips;
 
-    for (int i=0; i < s->clips.size();i++) {
-        ClipPtr c = s->clips.at(i);
-
+    for (auto clp : lcl_seq->clips) {
         // if clip starts within one second and/or hasn't finished yet
-        if (c != nullptr) {
+        if (clp != nullptr) {
             //			if (!(!nests.isEmpty() && !same_sign(c->track, nests.last()->track))) {
-            if ((c->timeline_info.track < 0) == video) {
-                bool clip_is_active = false;
+            if ((clp->timeline_info.track < 0) == video) {
+                auto clip_is_active = false;
 
-                if (c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
-                    FootagePtr m = c->timeline_info.media->get_object<Footage>();
-                    if (!m->invalid && !(c->timeline_info.track >= 0 && !is_audio_device_set())) {
-                        if (m->ready) {
+                if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->get_type() == MediaType::FOOTAGE) ) {
+                    auto ftg = clp->timeline_info.media->get_object<Footage>();
+                    if (!ftg->invalid && !( (clp->timeline_info.track >= 0) && !is_audio_device_set())) {
+                        if (ftg->ready) {
                             FootageStream ms;
-                            const bool found = m->get_stream_from_file_index(c->timeline_info.track < 0,
-                                                                             c->timeline_info.media_stream,
+                            const auto found = ftg->get_stream_from_file_index(clp->timeline_info.track < 0,
+                                                                             clp->timeline_info.media_stream,
                                                                              ms);
-                            if (found && c->isActive(playhead)) {
+                            if (found && clp->isActive(playhead)) {
                                 // if thread is already working, we don't want to touch this,
                                 // but we also don't want to hang the UI thread
-                                c->open(!rendering);
+                                clp->open(!rendering);
                                 clip_is_active = true;
-                                if (c->timeline_info.track >= 0) {
+                                if (clp->timeline_info.track >= 0) {
                                     audio_track_count++;
                                 }
-                            } else if (c->is_open) {
-                                c->close(false);
+                            } else if (clp->is_open) {
+                                clp->close(false);
                             }
                         } else {
-                            //qWarning() << "Media '" + m->name + "' was not ready, retrying...";
+                            qWarning() << "Media '" + ftg->getName() + "' was not ready, retrying...";
                             texture_failed = true;
                         }
                     }
                 } else {
-                    if (c->isActive(playhead)) {
-                        c->open(!rendering);
+                    if (clp->isActive(playhead)) {
+                        clp->open(!rendering);
                         clip_is_active = true;
-                    } else if (c->is_open) {
-                        c->close(false);
+                    } else if (clp->is_open) {
+                        clp->close(false);
                     }
                 }
                 if (clip_is_active) {
                     bool added = false;
-                    for (int j=0;j<current_clips.size();j++) {
-                        if (current_clips.at(j)->timeline_info.track < c->timeline_info.track) {
-                            current_clips.insert(j, c);
+                    for (int j=0; j<current_clips.size(); ++j) {
+                        if (!current_clips.at(j)){
+                            qDebug() << "Clip is Null";
+                            continue;
+                        }
+                        if (current_clips.at(j)->timeline_info.track < clp->timeline_info.track) {
+                            current_clips.insert(j, clp);
                             added = true;
                             break;
                         }
                     }
                     if (!added) {
-                        current_clips.append(c);
+                        current_clips.append(clp);
                     }
                 }
             }
         }
-    }
+    }//for
 
-    int half_width = s->getWidth()/2;
-    int half_height = s->getHeight()/2;
+    const auto half_width = lcl_seq->getWidth()/2;
+    const auto half_height = lcl_seq->getHeight()/2;
 
     if (video) {
         glPushMatrix();
@@ -213,53 +215,59 @@ GLuint compose_sequence(Viewer* viewer,
         glOrtho(-half_width, half_width, -half_height, half_height, -1, 10);
     }
 
-    for (int i=0;i<current_clips.size();i++) {
-        ClipPtr c = current_clips.at(i);
+    for (int i=0; i<current_clips.size(); ++i) {
+        auto clp = current_clips.at(i);
 
-        if (c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE && !c->finished_opening) {
+        if ( (clp->timeline_info.media != nullptr)
+             && (clp->timeline_info.media->get_type() == MediaType::FOOTAGE)
+             && !clp->finished_opening) {
             qWarning() << "Tried to display clip" << i << "but it's closed";
             texture_failed = true;
         } else {
-            if (c->timeline_info.track < 0) {
+            if (clp->timeline_info.track < 0) {
                 ctx->functions()->GL_DEFAULT_BLEND;
                 glColor4f(1.0, 1.0, 1.0, 1.0);
 
                 GLuint textureID = 0;
-                int video_width = c->getWidth();
-                int video_height = c->getHeight();
+                int video_width = clp->getWidth();
+                int video_height = clp->getHeight();
 
-                if (c->timeline_info.media != nullptr) {
-                    switch (c->timeline_info.media->get_type()) {
-                    case MEDIA_TYPE_FOOTAGE:
+                if (clp->timeline_info.media != nullptr) {
+                    switch (clp->timeline_info.media->get_type()) {
+                    case MediaType::FOOTAGE:
                         // set up opengl texture
-                        if (c->texture == nullptr) {
-                            c->texture = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
-                            c->texture->setSize(c->media_handling.stream->codecpar->width, c->media_handling.stream->codecpar->height);
-                            c->texture->setFormat(get_gl_tex_fmt_from_av(c->pix_fmt));
-                            c->texture->setMipLevels(c->texture->maximumMipLevels());
-                            c->texture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
-                            c->texture->allocateStorage(get_gl_pix_fmt_from_av(c->pix_fmt), QOpenGLTexture::UInt8);
+                        if (clp->texture == nullptr) {
+                            clp->texture = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
+                            clp->texture->setSize(clp->media_handling.stream->codecpar->width,
+                                                  clp->media_handling.stream->codecpar->height);
+                            clp->texture->setFormat(get_gl_tex_fmt_from_av(clp->pix_fmt));
+                            clp->texture->setMipLevels(clp->texture->maximumMipLevels());
+                            clp->texture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
+                            clp->texture->allocateStorage(get_gl_pix_fmt_from_av(clp->pix_fmt), QOpenGLTexture::UInt8);
                         }
-                        c->get_frame(playhead, texture_failed);
-                        textureID = c->texture->textureId();
+                        clp->get_frame(playhead, texture_failed);
+                        textureID = clp->texture->textureId();
                         break;
-                    case MEDIA_TYPE_SEQUENCE:
+                    case MediaType::SEQUENCE:
                         textureID = -1;
+                        break;
+                    default:
+                        qWarning() << "Unhandled sequence type" << static_cast<int>(clp->timeline_info.media->get_type());
                         break;
                     }
                 }
 
-                if (textureID == 0 && c->timeline_info.media != nullptr) {
+                if ( (textureID == 0) && (clp->timeline_info.media != nullptr) ) {
                     qWarning() << "Texture hasn't been created yet";
                     texture_failed = true;
-                } else if (playhead >= c->get_timeline_in_with_transition()) {
+                } else if (playhead >= clp->get_timeline_in_with_transition()) {
                     glPushMatrix();
 
                     // start preparing cache
-                    if (c->fbo == nullptr) {
-                        c->fbo = new QOpenGLFramebufferObject* [2];
-                        c->fbo[0] = new QOpenGLFramebufferObject(video_width, video_height);
-                        c->fbo[1] = new QOpenGLFramebufferObject(video_width, video_height);
+                    if (clp->fbo == nullptr) {
+                        clp->fbo = new QOpenGLFramebufferObject* [2];
+                        clp->fbo[0] = new QOpenGLFramebufferObject(video_width, video_height);
+                        clp->fbo[1] = new QOpenGLFramebufferObject(video_width, video_height);
                     }
 
                     // clear fbos
@@ -276,22 +284,22 @@ GLuint compose_sequence(Viewer* viewer,
 
                     GLuint composite_texture;
 
-                    if (c->timeline_info.media == nullptr) {
-                        c->fbo[fbo_switcher]->bind();
+                    if (clp->timeline_info.media == nullptr) {
+                        clp->fbo[fbo_switcher]->bind();
                         glClear(GL_COLOR_BUFFER_BIT);
                         //						c->fbo[fbo_switcher]->release();
                         ctx->functions()->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, current_fbo);
-                        composite_texture = c->fbo[fbo_switcher]->texture();
+                        composite_texture = clp->fbo[fbo_switcher]->texture();
                     } else {
                         // for nested sequences
-                        if (c->timeline_info.media->get_type()== MEDIA_TYPE_SEQUENCE) {
-                            nests.append(c);
+                        if (clp->timeline_info.media->get_type()== MediaType::SEQUENCE) {
+                            nests.append(clp);
                             textureID = compose_sequence(viewer, ctx, seq, nests, video, render_audio, gizmos, texture_failed, rendering);
                             nests.removeLast();
                             fbo_switcher = true;
                         }
 
-                        composite_texture = draw_clip(ctx, c->fbo[fbo_switcher], textureID, true);
+                        composite_texture = draw_clip(ctx, clp->fbo[fbo_switcher], textureID, true);
                     }
 
                     fbo_switcher = !fbo_switcher;
@@ -309,22 +317,22 @@ GLuint compose_sequence(Viewer* viewer,
                     coords.textureTopLeftQ = coords.textureTopRightQ = coords.textureTopLeftQ = coords.textureBottomLeftQ = 1;
 
                     // set up autoscale
-                    if (c->timeline_info.autoscale && (video_width != s->getWidth() && video_height != s->getHeight())) {
-                        float width_multiplier = float(s->getWidth()) / float(video_width);
-                        float height_multiplier = float(s->getHeight()) / float(video_height);
+                    if (clp->timeline_info.autoscale && (video_width != lcl_seq->getWidth() && video_height != lcl_seq->getHeight())) {
+                        float width_multiplier = float(lcl_seq->getWidth()) / float(video_width);
+                        float height_multiplier = float(lcl_seq->getHeight()) / float(video_height);
                         float scale_multiplier = qMin(width_multiplier, height_multiplier);
                         glScalef(scale_multiplier, scale_multiplier, 1);
                     }
 
                     // EFFECT CODE START
-                    double timecode = c->get_timecode(playhead);
+                    double timecode = clp->get_timecode(playhead);
 
                     EffectPtr first_gizmo_effect = nullptr;
                     EffectPtr selected_effect = nullptr;
 
-                    for (int j=0;j<c->effects.size();j++) {
-                        EffectPtr e = c->effects.at(j);
-                        process_effect(ctx, c, e, timecode, coords, composite_texture, fbo_switcher, texture_failed, TA_NO_TRANSITION);
+                    for (int j=0;j<clp->effects.size();j++) {
+                        EffectPtr e = clp->effects.at(j);
+                        process_effect(ctx, clp, e, timecode, coords, composite_texture, fbo_switcher, texture_failed, TA_NO_TRANSITION);
 
                         if (e->are_gizmos_enabled()) {
                             if (first_gizmo_effect == nullptr) {
@@ -339,27 +347,27 @@ GLuint compose_sequence(Viewer* viewer,
                     if (selected_effect != nullptr) {
                         gizmos = selected_effect;
                         //						(*gizmos) = selected_effect;
-                    } else if (c->is_selected(true)) {
+                    } else if (clp->is_selected(true)) {
                         gizmos = first_gizmo_effect;
                         //						(*gizmos) = first_gizmo_effect;
                     }
 
-                    if (c->get_opening_transition() != nullptr) {
-                        int transition_progress = playhead - c->get_timeline_in_with_transition();
-                        if (transition_progress < c->get_opening_transition()->get_length()) {
-                            EffectPtr trans(c->get_opening_transition());
-                            process_effect(ctx, c, trans,
-                                           (double)transition_progress/(double)c->get_opening_transition()->get_length(),
+                    if (clp->get_opening_transition() != nullptr) {
+                        int transition_progress = playhead - clp->get_timeline_in_with_transition();
+                        if (transition_progress < clp->get_opening_transition()->get_length()) {
+                            EffectPtr trans(clp->get_opening_transition());
+                            process_effect(ctx, clp, trans,
+                                           (double)transition_progress/(double)clp->get_opening_transition()->get_length(),
                                            coords, composite_texture, fbo_switcher, texture_failed, TA_OPENING_TRANSITION);
                         }
                     }
 
-                    if (c->get_closing_transition() != nullptr) {
-                        int transition_progress = playhead - (c->get_timeline_out_with_transition() - c->get_closing_transition()->get_length());
-                        if (transition_progress >= 0 && transition_progress < c->get_closing_transition()->get_length()) {
-                            EffectPtr trans(c->get_closing_transition());
-                            process_effect(ctx, c, trans,
-                                           (double)transition_progress/(double)c->get_closing_transition()->get_length(),
+                    if (clp->get_closing_transition() != nullptr) {
+                        int transition_progress = playhead - (clp->get_timeline_out_with_transition() - clp->get_closing_transition()->get_length());
+                        if (transition_progress >= 0 && transition_progress < clp->get_closing_transition()->get_length()) {
+                            EffectPtr trans(clp->get_closing_transition());
+                            process_effect(ctx, clp, trans,
+                                           (double)transition_progress/(double)clp->get_closing_transition()->get_length(),
                                            coords, composite_texture, fbo_switcher, texture_failed, TA_CLOSING_TRANSITION);
                         }
                     }
@@ -382,7 +390,7 @@ GLuint compose_sequence(Viewer* viewer,
                     if (!nests.isEmpty()) {
                         nests.last()->fbo[0]->bind();
                     }
-                    glViewport(0, 0, s->getWidth(), s->getHeight());
+                    glViewport(0, 0, lcl_seq->getWidth(), lcl_seq->getHeight());
 
                     glBindTexture(GL_TEXTURE_2D, composite_texture);
 
@@ -466,24 +474,24 @@ GLuint compose_sequence(Viewer* viewer,
                 }
             } else {
                 if (render_audio || (e_config.enable_audio_scrubbing && audio_scrub)) {
-                    if (c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
-                        nests.append(c);
+                    if (clp->timeline_info.media != nullptr && clp->timeline_info.media->get_type() == MediaType::SEQUENCE) {
+                        nests.append(clp);
                         compose_sequence(viewer, ctx, seq, nests, video, render_audio, gizmos, texture_failed, rendering);
                         nests.removeLast();
                     } else {
-                        if (c->lock.tryLock()) {
+                        if (clp->lock.tryLock()) {
                             // clip is not caching, start caching audio
-                            c->cache(playhead, c->audio_playback.reset, !render_audio, nests);
-                            c->lock.unlock();
+                            clp->cache(playhead, clp->audio_playback.reset, !render_audio, nests);
+                            clp->lock.unlock();
                         }
                     }
                 }
 
                 // visually update all the keyframe values
-                if (c->sequence == seq) { // only if you can currently see them
-                    double ts = (playhead - c->get_timeline_in_with_transition() + c->get_clip_in_with_transition())/s->getFrameRate();
-                    for (int i=0; i<c->effects.size(); i++) {
-                        EffectPtr e = c->effects.at(i);
+                if (clp->sequence == seq) { // only if you can currently see them
+                    double ts = (playhead - clp->get_timeline_in_with_transition() + clp->get_clip_in_with_transition())/lcl_seq->getFrameRate();
+                    for (int i=0; i<clp->effects.size(); i++) {
+                        EffectPtr e = clp->effects.at(i);
                         for (int j=0;j<e->row_count();j++) {
                             EffectRowPtr r = e->row(j);
                             for (int k=0;k<r->fieldCount();k++) {

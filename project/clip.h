@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -113,22 +113,22 @@ public:
 
 
     void reset_audio();
-	void reset();
-	void refresh();
+    void reset();
+    void refresh();
     long get_clip_in_with_transition();
-	long get_timeline_in_with_transition();
-	long get_timeline_out_with_transition();
-	long getLength();
+    long get_timeline_in_with_transition();
+    long get_timeline_out_with_transition();
+    long getLength();
     double getMediaFrameRate();
-	long getMaximumLength();
-	void recalculateMaxLength();
-	int getWidth();
-	int getHeight();
+    long getMaximumLength();
+    void recalculateMaxLength();
+    int getWidth();
+    int getHeight();
     void refactor_frame_rate(ComboAction* ca, double multiplier, bool change_timeline_points);
 
-	// queue functions
-	void queue_clear();
-	void queue_remove_earliest();
+    // queue functions
+    void queue_clear();
+    void queue_remove_earliest();
 
 
     TransitionPtr get_opening_transition();
@@ -173,13 +173,13 @@ public:
         bool autoscale = true;
     } timeline_info;
 
-	// other variables (should be deep copied/duplicated in copy())
+    // other variables (should be deep copied/duplicated in copy())
     QList<EffectPtr> effects;
     QVector<int> linked;
     int opening_transition;
     int closing_transition;
 
-	// media handling
+    // media handling
     struct {
         AVFormatContext* formatCtx = nullptr;
         AVStream* stream = nullptr;
@@ -191,37 +191,37 @@ public:
         long calculated_length = -1;
     } media_handling;
 
-	// temporary variables
+    // temporary variables
     int load_id;
     bool undeletable;
-	bool reached_end;
-	bool pkt_written;
+    bool reached_end;
+    bool pkt_written;
     bool is_open;
     bool finished_opening;
     bool replaced;
-	bool ignore_reverse;
-	int pix_fmt;
+    bool ignore_reverse;
+    int pix_fmt;
 
-	// caching functions
-	bool use_existing_frame;
+    // caching functions
+    bool use_existing_frame;
     bool multithreaded;
     QWaitCondition can_cache;
-	int max_queue_size;
-	QVector<AVFrame*> queue;
-	QMutex queue_lock;
+    int max_queue_size;
+    QVector<AVFrame*> queue;
+    QMutex queue_lock;
     QMutex lock;
-	QMutex open_lock;
+    QMutex open_lock;
     int64_t last_invalid_ts;
 
-	// converters/filters
-	AVFilterGraph* filter_graph;
-	AVFilterContext* buffersink_ctx;
-	AVFilterContext* buffersrc_ctx;
+    // converters/filters
+    AVFilterGraph* filter_graph;
+    AVFilterContext* buffersink_ctx;
+    AVFilterContext* buffersrc_ctx;
 
-	// video playback variables
-	QOpenGLFramebufferObject** fbo;
+    // video playback variables
+    QOpenGLFramebufferObject** fbo;
     std::unique_ptr<QOpenGLTexture> texture = nullptr;
-	long texture_frame;
+    long texture_frame;
 
     struct AudioPlaybackInfo {
         // audio playback variables
@@ -251,7 +251,6 @@ private:
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 
-    // TODO: all the _playhead_ var could be in the end cache_info.playhead
     long playhead_to_frame(const long playhead);
     int64_t playhead_to_timestamp(const long playhead);
     bool retrieve_next_frame(AVFrame* frame);

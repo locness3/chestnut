@@ -28,11 +28,11 @@
 #include "project/footage.h"
 
 
-enum MediaType_E {
-    MEDIA_TYPE_FOOTAGE = 0,
-    MEDIA_TYPE_SEQUENCE = 1,
-    MEDIA_TYPE_FOLDER = 2,
-    MEDIA_TYPE_NONE
+enum class MediaType {
+    FOOTAGE = 0,
+    SEQUENCE = 1,
+    FOLDER = 2,
+    NONE
 };
 
 class MediaThrobber;
@@ -72,7 +72,7 @@ public:
     void set_icon(const QIcon &ico);
     void set_parent(MediaWPtr p);
     void update_tooltip(const QString& error = 0);
-    MediaType_E get_type() const;
+    MediaType get_type() const;
     const QString& get_name();
     void set_name(const QString& n);
 
@@ -98,7 +98,7 @@ public:
 protected:
     static int nextID;
 private:
-    MediaType_E type = MEDIA_TYPE_NONE;
+    MediaType type = MediaType::NONE;
     project::ProjectItemPtr object;
 
     // item functions

@@ -11,14 +11,14 @@
 class Viewer;
 
 GLuint compose_sequence(Viewer* viewer,
-						QOpenGLContext* ctx,
+                        QOpenGLContext* ctx,
                         SequencePtr seq,
                         QVector<ClipPtr> &nests,
-						bool video,
-						bool render_audio,
+                        const bool video,
+                        const bool render_audio,
                         EffectPtr& gizmos,
                         bool &texture_failed,
-						bool rendering);
+                        const bool rendering);
 
 void compose_audio(Viewer* viewer, SequencePtr seq, bool render_audio);
 

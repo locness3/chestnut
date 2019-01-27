@@ -185,7 +185,7 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
                 if (selected_clips.at(i)->timeline_info.track < 0) {
                     video_clip_count++;
                     if (selected_clips.at(i)>timeline_info.media == nullptr
-                            || selected_clips.at(i)->timeline_info.media->get_type() != MEDIA_TYPE_FOOTAGE) {
+                            || selected_clips.at(i)->timeline_info.media->get_type() != MediaType::FOOTAGE) {
                         all_video_is_footage = false;
                     }
                 }
@@ -290,7 +290,7 @@ void TimelineWidget::open_sequence_properties() {
     for (int i=0;i<project_model.childCount();i++) {
         all_top_level_items.append(project_model.child(i));
     }
-    e_panel_project->get_all_media_from_table(all_top_level_items, sequence_items, MEDIA_TYPE_SEQUENCE); // find all sequences in project
+    e_panel_project->get_all_media_from_table(all_top_level_items, sequence_items, MediaType::SEQUENCE); // find all sequences in project
     for (int i=0;i<sequence_items.size();i++) {
         if (sequence_items.at(i)->get_object<Sequence>() == global::sequence) {
             NewSequenceDialog nsd(this, sequence_items.at(i));
@@ -1325,7 +1325,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
 
         FootageStream ms;
         bool found = false;
-        if (g.clip != -1 && c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
+        if (g.clip != -1 && c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MediaType::FOOTAGE) {
              auto ftg = c->timeline_info.media->get_object<Footage>();
              if (ftg) {
                 found = ftg->get_stream_from_file_index(c->timeline_info.track < 0, c->timeline_info.media_stream, ms);
@@ -1336,7 +1336,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
         if (e_panel_timeline->creating) {
             // i feel like we might need something here but we haven't so far?
         } else if (effective_tool == TIMELINE_TOOL_SLIP) {
-            if ((c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE)
+            if ((c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MediaType::SEQUENCE)
                     || (found && !ms.infinite_length)) {
                 // prevent slip moving a clip below 0 clip_in
                 validator = g.old_clip_in - frame_diff;
@@ -1359,7 +1359,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
                 }
 
                 // prevent clip_in from going below 0
-                if ((c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE)
+                if ((c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MediaType::SEQUENCE)
                         || (found && !ms.infinite_length)) {
                     validator = g.old_clip_in + frame_diff;
                     if (validator < 0) frame_diff -= validator;
@@ -1370,7 +1370,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
                 if (validator < 1) frame_diff += (1 - validator);
 
                 // prevent clip length exceeding media length
-                if ((c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE)
+                if ((c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MediaType::SEQUENCE)
                         || (found && !ms.infinite_length)) {
                     validator = g.old_clip_in + g.ghost_length + frame_diff;
                     if (validator > g.media_length) frame_diff -= validator - g.media_length;
@@ -1458,14 +1458,14 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
                     if (validator > 0) frame_diff -= validator;
                 } else {
                     // prevent clip_in from going below 0
-                    if (c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE
+                    if (c->timeline_info.media->get_type() == MediaType::SEQUENCE
                             || (found && !ms.infinite_length)) {
                         validator = g.old_clip_in + frame_diff;
                         if (validator < 0) frame_diff -= validator;
                     }
 
                     // prevent clip length exceeding media length
-                    if (c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE
+                    if (c->timeline_info.media->get_type() == MediaType::SEQUENCE
                             || (found && !ms.infinite_length)) {
                         validator = g.old_clip_in + g.ghost_length + frame_diff;
                         if (validator > g.media_length) frame_diff -= validator - g.media_length;
@@ -2344,7 +2344,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                     int thumb_x = clip_rect.x() + 1;
 
                     if (clip->timeline_info.media != nullptr &&
-                            clip->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
+                            clip->timeline_info.media->get_type() == MediaType::FOOTAGE) {
                         bool draw_checkerboard = false;
                         QRect checkerboard_rect(clip_rect);
                         auto ftg = clip->timeline_info.media->get_object<Footage>();

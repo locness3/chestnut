@@ -43,6 +43,7 @@ class SourceIconView;
 class QPushButton;
 class SourcesCommon;
 
+// FIXME: singular enum type
 #define LOAD_TYPE_VERSION 69
 #define LOAD_TYPE_URL 70
 
@@ -105,7 +106,7 @@ public:
     QModelIndexList get_current_selected();
 
     void start_preview_generator(MediaPtr item, bool replacing);
-    void get_all_media_from_table(QVector<MediaPtr> &items, QVector<MediaPtr> &list, int type = -1);
+    void get_all_media_from_table(QVector<MediaPtr> &items, QVector<MediaPtr> &list, const MediaType type = MediaType::NONE);
 
     QWidget* toolbar_widget;
 public slots:
@@ -117,7 +118,7 @@ public slots:
     void replace_clip_media();
     void open_properties();
 private:
-    void save_folder(QXmlStreamWriter& stream, int type, bool set_ids_only, const QModelIndex &parent = QModelIndex());
+    void save_folder(QXmlStreamWriter& stream, const MediaType type, bool set_ids_only, const QModelIndex &parent = QModelIndex());
     int folder_id;
     int media_id;
     int sequence_id;

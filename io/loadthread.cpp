@@ -150,15 +150,15 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
     case LOAD_TYPE_URL:
         root_search = "url";
         break;
-    case MEDIA_TYPE_FOLDER:
+    case static_cast<int>(MediaType::FOLDER):
         root_search = "folders";
         child_search = "folder";
         break;
-    case MEDIA_TYPE_FOOTAGE:
+    case static_cast<int>(MediaType::FOOTAGE):
         root_search = "media";
         child_search = "footage";
         break;
-    case MEDIA_TYPE_SEQUENCE:
+    case static_cast<int>(MediaType::SEQUENCE):
         root_search = "sequences";
         child_search = "sequence";
         break;
@@ -190,7 +190,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                     read_next(stream);
                     if (stream.name() == child_search && stream.isStartElement()) {
                         switch (type) {
-                        case MEDIA_TYPE_FOLDER:
+                        case static_cast<int>(MediaType::FOLDER):
                         {
                             MediaPtr folder = e_panel_project->new_folder(nullptr);
                             folder->temp_id2 = 0;
@@ -207,7 +207,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                             loaded_folders.append(folder);
                         }
                             break;
-                        case MEDIA_TYPE_FOOTAGE:
+                        case static_cast<int>(MediaType::FOOTAGE):
                         {
                             int folder = 0;
 
@@ -272,7 +272,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                             loaded_media_items.append(item);
                         }
                             break;
-                        case MEDIA_TYPE_SEQUENCE:
+                        case static_cast<int>(MediaType::SEQUENCE):
                         {
                             MediaPtr parent = nullptr;
                             SequencePtr  s = std::make_shared<Sequence>();
@@ -376,7 +376,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                         } else if (attr.name() == "autoscale") {
                                             c->timeline_info.autoscale = (attr.value() == "1");
                                         } else if (attr.name() == "media") {
-                                            media_type = MEDIA_TYPE_FOOTAGE;
+                                            media_type = static_cast<int>(MediaType::FOOTAGE);
                                             media_id = attr.value().toInt();
                                         } else if (attr.name() == "stream") {
                                             stream_id = attr.value().toInt();
@@ -391,7 +391,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                         } else if (attr.name() == "closing") {
                                             c->closing_transition = attr.value().toInt();
                                         } else if (attr.name() == "sequence") {
-                                            media_type = MEDIA_TYPE_SEQUENCE;
+                                            media_type = static_cast<int>(MediaType::SEQUENCE);
 
                                             // since we haven't finished loading sequences, we defer linking this until later
                                             c->timeline_info.media = nullptr;
@@ -401,19 +401,17 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                     }
 
                                     // set media and media stream
-                                    switch (media_type) {
-                                    case MEDIA_TYPE_FOOTAGE:
+                                    if (media_type == static_cast<int>(MediaType::FOOTAGE)) {
                                         if (media_id >= 0) {
                                             for (int j=0;j<loaded_media_items.size();j++) {
-                                                FootagePtr  m = loaded_media_items.at(j)->get_object<Footage>();
-                                                if (m->save_id == media_id) {
+                                                auto  ftg = loaded_media_items.at(j)->get_object<Footage>();
+                                                if (ftg->save_id == media_id) {
                                                     c->timeline_info.media = loaded_media_items.at(j);
                                                     c->timeline_info.media_stream = stream_id;
                                                     break;
                                                 }
                                             }
                                         }
-                                        break;
                                     }
 
                                     // load links and effects
@@ -590,7 +588,7 @@ void LoadThread::run() {
 
     // load folders first
     if (cont) {
-        cont = load_worker(file, stream, MEDIA_TYPE_FOLDER);
+        cont = load_worker(file, stream, static_cast<int>(MediaType::FOLDER));
     }
 
     // load media
@@ -606,12 +604,12 @@ void LoadThread::run() {
             }
         }
 
-        cont = load_worker(file, stream, MEDIA_TYPE_FOOTAGE);
+        cont = load_worker(file, stream, static_cast<int>(MediaType::FOOTAGE));
     }
 
     // load sequences
     if (cont) {
-        cont = load_worker(file, stream, MEDIA_TYPE_SEQUENCE);
+        cont = load_worker(file, stream, static_cast<int>(MediaType::SEQUENCE));
     }
 
     if (!cancelled) {
@@ -619,7 +617,9 @@ void LoadThread::run() {
             xml_error = false;
             if (show_err) emit error();
         } else if (stream.hasError()) {
-            error_str = tr("%1 - Line: %2 Col: %3").arg(stream.errorString(), QString::number(stream.lineNumber()), QString::number(stream.columnNumber()));
+            error_str = tr("%1 - Line: %2 Col: %3").arg(stream.errorString(),
+                                                        QString::number(stream.lineNumber()),
+                                                        QString::number(stream.columnNumber()));
             xml_error = true;
             emit error();
             cont = false;

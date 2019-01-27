@@ -70,7 +70,7 @@ void closeActiveClips(SequencePtr s) {
     if (s != nullptr) {
         for (auto c : s->clips) {
             if (c != nullptr) {
-                if (c->timeline_info.media && (c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) ) {
+                if (c->timeline_info.media && (c->timeline_info.media->get_type() == MediaType::SEQUENCE) ) {
                     closeActiveClips(c->timeline_info.media->get_object<Sequence>());
                 }
                 c->close(true);

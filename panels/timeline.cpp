@@ -201,7 +201,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
         auto default_clip_out = 0L;
 
         switch (mda->get_type()) {
-        case MEDIA_TYPE_FOOTAGE:
+        case MediaType::FOOTAGE:
             ftg = mda->get_object<Footage>();
             can_import = ftg->ready;
             if (ftg->using_inout) {
@@ -213,7 +213,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
                 default_clip_out = refactor_frame_number(ftg->out, source_fr, seq->getFrameRate());
             }
             break;
-        case MEDIA_TYPE_SEQUENCE:
+        case MediaType::SEQUENCE:
             lcl_seq = mda->get_object<Sequence>();
             sequence_length = lcl_seq->getEndFrame();
             if (lcl_seq != nullptr) {
@@ -239,7 +239,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
             g.transition = nullptr;
 
             switch (mda->get_type()) {
-            case MEDIA_TYPE_FOOTAGE:
+            case MediaType::FOOTAGE:
                 // is video source a still image?
                 if (ftg->video_tracks.size() > 0 && ftg->video_tracks.at(0).infinite_length && ftg->audio_tracks.size() == 0) {
                     g.out = g.in + 100;
@@ -268,7 +268,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
                     }
                 }
                 break;
-            case MEDIA_TYPE_SEQUENCE:
+            case MediaType::SEQUENCE:
                 g.out = entry + sequence_length - default_clip_in;
 
                 if (lcl_seq->using_workarea && lcl_seq->enable_workarea) {
@@ -316,7 +316,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
         c->timeline_info.out = g.out;
         c->timeline_info.clip_in = g.clip_in;
         c->timeline_info.track = g.track;
-        if (c->timeline_info.media->get_type() == MEDIA_TYPE_FOOTAGE) {
+        if (c->timeline_info.media->get_type() == MediaType::FOOTAGE) {
             FootagePtr m = c->timeline_info.media->get_object<Footage>();
             if (m->video_tracks.size() == 0) {
                 // audio only (greenish)
@@ -329,7 +329,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
                 c->timeline_info.color = AUDIO_VIDEO_COLOR;
             }
             c->timeline_info.name = m->getName();
-        } else if (c->timeline_info.media->get_type() == MEDIA_TYPE_SEQUENCE) {
+        } else if (c->timeline_info.media->get_type() == MediaType::SEQUENCE) {
             // sequence (red?ish?)
             c->timeline_info.color = SEQUENCE_COLOR;
 
