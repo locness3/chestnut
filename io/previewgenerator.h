@@ -39,6 +39,13 @@ class PreviewGenerator : public QThread
 public:
     PreviewGenerator(MediaPtr item, FootagePtr ftg, const bool replacing);
     virtual ~PreviewGenerator();
+
+    PreviewGenerator() = delete;
+    PreviewGenerator(const PreviewGenerator&) = delete;
+    PreviewGenerator(const PreviewGenerator&&) = delete;
+    PreviewGenerator& operator=(const PreviewGenerator&) = delete;
+    PreviewGenerator& operator=(const PreviewGenerator&&) = delete;
+
     void cancel();
 protected:
     virtual void run();

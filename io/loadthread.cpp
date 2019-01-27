@@ -342,61 +342,62 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                     }
                                     transition_data.append(td);
                                 } else if (stream.name() == "clip" && stream.isStartElement()) {
-                                    int media_type = -1;
-                                    int media_id, stream_id;
-                                    ClipPtr c = std::make_shared<Clip>(s);
+                                    auto media_type = -1;
+                                    int media_id;
+                                    int stream_id;
+                                    const auto clp = std::make_shared<Clip>(s);
 
                                     // backwards compatibility code
-                                    c->timeline_info.autoscale = false;
+                                    clp->timeline_info.autoscale = false;
 
-                                    c->timeline_info.media = nullptr;
+                                    clp->timeline_info.media = nullptr;
 
                                     for (int j=0;j<stream.attributes().size();j++) {
                                         const QXmlStreamAttribute& attr = stream.attributes().at(j);
                                         if (attr.name() == "name") {
-                                            c->timeline_info.name = attr.value().toString();
+                                            clp->timeline_info.name = attr.value().toString();
                                         } else if (attr.name() == "enabled") {
-                                            c->timeline_info.enabled = (attr.value() == "1");
+                                            clp->timeline_info.enabled = (attr.value() == "1");
                                         } else if (attr.name() == "id") {
-                                            c->load_id = attr.value().toInt();
+                                            clp->load_id = attr.value().toInt();
                                         } else if (attr.name() == "clipin") {
-                                            c->timeline_info.clip_in = attr.value().toLong();
+                                            clp->timeline_info.clip_in = attr.value().toLong();
                                         } else if (attr.name() == "in") {
-                                            c->timeline_info.in = attr.value().toLong();
+                                            clp->timeline_info.in = attr.value().toLong();
                                         } else if (attr.name() == "out") {
-                                            c->timeline_info.out = attr.value().toLong();
+                                            clp->timeline_info.out = attr.value().toLong();
                                         } else if (attr.name() == "track") {
-                                            c->timeline_info.track = attr.value().toInt();
+                                            clp->timeline_info.track = attr.value().toInt();
                                         } else if (attr.name() == "r") {
-                                            c->timeline_info.color.setRed(attr.value().toInt());
+                                            clp->timeline_info.color.setRed(attr.value().toInt());
                                         } else if (attr.name() == "g") {
-                                            c->timeline_info.color.setGreen(attr.value().toInt());
+                                            clp->timeline_info.color.setGreen(attr.value().toInt());
                                         } else if (attr.name() == "b") {
-                                            c->timeline_info.color.setBlue(attr.value().toInt());
+                                            clp->timeline_info.color.setBlue(attr.value().toInt());
                                         } else if (attr.name() == "autoscale") {
-                                            c->timeline_info.autoscale = (attr.value() == "1");
+                                            clp->timeline_info.autoscale = (attr.value() == "1");
                                         } else if (attr.name() == "media") {
                                             media_type = static_cast<int>(MediaType::FOOTAGE);
                                             media_id = attr.value().toInt();
                                         } else if (attr.name() == "stream") {
                                             stream_id = attr.value().toInt();
                                         } else if (attr.name() == "speed") {
-                                            c->timeline_info.speed = attr.value().toDouble();
+                                            clp->timeline_info.speed = attr.value().toDouble();
                                         } else if (attr.name() == "maintainpitch") {
-                                            c->timeline_info.maintain_audio_pitch = (attr.value() == "1");
+                                            clp->timeline_info.maintain_audio_pitch = (attr.value() == "1");
                                         } else if (attr.name() == "reverse") {
-                                            c->timeline_info.reverse = (attr.value() == "1");
+                                            clp->timeline_info.reverse = (attr.value() == "1");
                                         } else if (attr.name() == "opening") {
-                                            c->opening_transition = attr.value().toInt();
+                                            clp->opening_transition = attr.value().toInt();
                                         } else if (attr.name() == "closing") {
-                                            c->closing_transition = attr.value().toInt();
+                                            clp->closing_transition = attr.value().toInt();
                                         } else if (attr.name() == "sequence") {
                                             media_type = static_cast<int>(MediaType::SEQUENCE);
 
                                             // since we haven't finished loading sequences, we defer linking this until later
-                                            c->timeline_info.media = nullptr;
-                                            c->timeline_info.media_stream = attr.value().toInt();
-                                            loaded_clips.append(c);
+                                            clp->timeline_info.media = nullptr;
+                                            clp->timeline_info.media_stream = attr.value().toInt();
+                                            loaded_clips.append(clp);
                                         }
                                     }
 
@@ -406,8 +407,8 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                             for (int j=0;j<loaded_media_items.size();j++) {
                                                 auto  ftg = loaded_media_items.at(j)->get_object<Footage>();
                                                 if (ftg->save_id == media_id) {
-                                                    c->timeline_info.media = loaded_media_items.at(j);
-                                                    c->timeline_info.media_stream = stream_id;
+                                                    clp->timeline_info.media = loaded_media_items.at(j);
+                                                    clp->timeline_info.media_stream = stream_id;
                                                     break;
                                                 }
                                             }
@@ -425,7 +426,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                                         for (int k=0;k<stream.attributes().size();k++) {
                                                             const QXmlStreamAttribute& link_attr = stream.attributes().at(k);
                                                             if (link_attr.name() == "id") {
-                                                                c->linked.append(link_attr.value().toInt());
+                                                                clp->linked.append(link_attr.value().toInt());
                                                                 break;
                                                             }
                                                         }
@@ -434,13 +435,13 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                                 if (cancelled) return false;
                                             } else if (stream.isStartElement() && (stream.name() == "effect" || stream.name() == "opening" || stream.name() == "closing")) {
                                                 // "opening" and "closing" are backwards compatibility code
-                                                load_effect(stream, c);
+                                                load_effect(stream, clp);
                                             }
                                         }
                                     }
                                     if (cancelled) return false;
 
-                                    s->clips.append(c);
+                                    s->clips.append(clp);
                                 }
                             }
                             if (cancelled) return false;

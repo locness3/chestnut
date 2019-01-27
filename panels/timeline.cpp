@@ -309,35 +309,35 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
 
         earliest_point = qMin(earliest_point, g.in);
 
-        ClipPtr c = std::make_shared<Clip>(s);
-        c->timeline_info.media = g.media;
-        c->timeline_info.media_stream = g.media_stream;
-        c->timeline_info.in = g.in;
-        c->timeline_info.out = g.out;
-        c->timeline_info.clip_in = g.clip_in;
-        c->timeline_info.track = g.track;
-        if (c->timeline_info.media->get_type() == MediaType::FOOTAGE) {
-            FootagePtr m = c->timeline_info.media->get_object<Footage>();
-            if (m->video_tracks.size() == 0) {
+        auto clp = std::make_shared<Clip>(s);
+        clp->timeline_info.media = g.media;
+        clp->timeline_info.media_stream = g.media_stream;
+        clp->timeline_info.in = g.in;
+        clp->timeline_info.out = g.out;
+        clp->timeline_info.clip_in = g.clip_in;
+        clp->timeline_info.track = g.track;
+        if (clp->timeline_info.media->get_type() == MediaType::FOOTAGE) {
+            auto ftg = clp->timeline_info.media->get_object<Footage>();
+            if (ftg->video_tracks.size() == 0) {
                 // audio only (greenish)
-                c->timeline_info.color = AUDIO_ONLY_COLOR;
-            } else if (m->audio_tracks.size() == 0) {
+                clp->timeline_info.color = AUDIO_ONLY_COLOR;
+            } else if (ftg->audio_tracks.size() == 0) {
                 // video only (orangeish)
-                c->timeline_info.color = VIDEO_ONLY_COLOR;
+                clp->timeline_info.color = VIDEO_ONLY_COLOR;
             } else {
                 // video and audio (blueish)
-                c->timeline_info.color = AUDIO_VIDEO_COLOR;
+                clp->timeline_info.color = AUDIO_VIDEO_COLOR;
             }
-            c->timeline_info.name = m->getName();
-        } else if (c->timeline_info.media->get_type() == MediaType::SEQUENCE) {
+            clp->timeline_info.name = ftg->getName();
+        } else if (clp->timeline_info.media->get_type() == MediaType::SEQUENCE) {
             // sequence (red?ish?)
-            c->timeline_info.color = SEQUENCE_COLOR;
+            clp->timeline_info.color = SEQUENCE_COLOR;
 
-            SequencePtr media = c->timeline_info.media->get_object<Sequence>();
-            c->timeline_info.name = media->getName();
+            SequencePtr media = clp->timeline_info.media->get_object<Sequence>();
+            clp->timeline_info.name = media->getName();
         }
-        c->recalculateMaxLength();
-        added_clips.append(c);
+        clp->recalculateMaxLength();
+        added_clips.append(clp);
     }
     ca->append(new AddClipCommand(s, added_clips));
 
