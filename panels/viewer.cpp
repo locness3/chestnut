@@ -61,6 +61,7 @@ const int RECORD_FLASHER_INTERVAL = 500;
 const int MEDIA_WIDTH = 1980;
 const int MEDIA_HEIGHT = 1080;
 const int MEDIA_AUDIO_FREQUENCY = 48000;
+const int MEDIA_FRAME_RATE = 30;
 
 const char* const PANEL_NAME = "Viewer";
 const char* const PANEL_TITLE_FORMAT = "%1: %2";
@@ -661,7 +662,6 @@ void Viewer::setup_ui() {
 }
 
 void Viewer::set_media(MediaPtr m) {
-    //FIXME: magic numbers
     main_sequence = false;
     if (media != nullptr) {
         if (media == m) {
@@ -675,62 +675,64 @@ void Viewer::set_media(MediaPtr m) {
         switch (media->get_type()) {
         case MEDIA_TYPE_FOOTAGE:
         {
-            FootagePtr footage = media->get_object<Footage>();
+            auto ftg = media->get_object<Footage>();
 
             seq = std::make_shared<Sequence>();
             created_sequence = true;
             seq->wrapper_sequence = true;
-            seq->setName(footage->getName());
+            seq->setName(ftg->getName());
 
-            seq->using_workarea = footage->using_inout;
-            if (footage->using_inout) {
-                seq->workarea_in = footage->in;
-                seq->workarea_out = footage->out;
+            seq->using_workarea = ftg->using_inout;
+            if (ftg->using_inout) {
+                seq->workarea_in = ftg->in;
+                seq->workarea_out = ftg->out;
             }
 
-            seq->setFrameRate(30); //TODO: 29.97 elsewhere...
+            seq->setFrameRate(MEDIA_FRAME_RATE);
 
-            if (footage->video_tracks.size() > 0) {
-                const FootageStream& video_stream = footage->video_tracks.at(0);
+            if (ftg->video_tracks.size() > 0) {
+                const auto& video_stream = ftg->video_tracks.front();
                 seq->setWidth(video_stream.video_width);
                 seq->setHeight(video_stream.video_height);
                 if ( (video_stream.video_frame_rate > 0) && (!video_stream.infinite_length) ) {
-                    seq->setFrameRate(video_stream.video_frame_rate * footage->speed);
+                    seq->setFrameRate(video_stream.video_frame_rate * ftg->speed);
                 }
 
-                ClipPtr c = std::make_shared<Clip>(global::sequence);
-                c->timeline_info.media= media;
-                c->timeline_info.media_stream = video_stream.file_index;
-                c->timeline_info.in = 0;
-                c->timeline_info.out = footage->get_length_in_frames(seq->getFrameRate());
-                if (c->timeline_info.out <= 0) c->timeline_info.out = 150;
-                c->timeline_info.track = -1;
-                c->timeline_info.clip_in = 0;
-                c->recalculateMaxLength();
-                seq->clips.append(c);
+                auto clp = std::make_shared<Clip>(global::sequence);
+                clp->timeline_info.media        = media;
+                clp->timeline_info.media_stream = video_stream.file_index;
+                clp->timeline_info.in           = 0;
+                clp->timeline_info.out          = ftg->get_length_in_frames(seq->getFrameRate());
+                if (clp->timeline_info.out <= 0) {
+                    clp->timeline_info.out = 150;
+                }
+                clp->timeline_info.track    = -1;
+                clp->timeline_info.clip_in  = 0;
+                clp->recalculateMaxLength();
+                seq->clips.append(clp);
             } else {
                 seq->setWidth(MEDIA_WIDTH);
                 seq->setHeight(MEDIA_HEIGHT);
             }
 
-            if (footage->audio_tracks.size() > 0) {
-                const auto& audio_stream = footage->audio_tracks.at(0);
+            if (ftg->audio_tracks.size() > 0) {
+                const auto& audio_stream = ftg->audio_tracks.front();
                 seq->setAudioFrequency(audio_stream.audio_frequency);
 
-                auto c = std::make_shared<Clip>(global::sequence);
-                c->timeline_info.media= media;
-                c->timeline_info.media_stream = audio_stream.file_index;
-                c->timeline_info.in = 0;
-                c->timeline_info.out = footage->get_length_in_frames(seq->getFrameRate());
-                c->timeline_info.track = 0;
-                c->timeline_info.clip_in = 0;
-                c->recalculateMaxLength();
-                seq->clips.append(c);
+                auto clp = std::make_shared<Clip>(global::sequence);
+                clp->timeline_info.media        = media;
+                clp->timeline_info.media_stream = audio_stream.file_index;
+                clp->timeline_info.in           = 0;
+                clp->timeline_info.out          = ftg->get_length_in_frames(seq->getFrameRate());
+                clp->timeline_info.track        = 0;
+                clp->timeline_info.clip_in      = 0;
+                clp->recalculateMaxLength();
+                seq->clips.append(clp);
 
-                if (footage->video_tracks.size() == 0) {
-                    viewer_widget->waveform = true;
-                    viewer_widget->waveform_clip = c;
-                    viewer_widget->waveform_ms = &audio_stream;
+                if (ftg->video_tracks.size() == 0) {
+                    viewer_widget->waveform         = true;
+                    viewer_widget->waveform_clip    = clp;
+                    viewer_widget->waveform_ms      = &audio_stream;
                     viewer_widget->frame_update();
                 }
             } else {
@@ -744,7 +746,7 @@ void Viewer::set_media(MediaPtr m) {
             seq = media->get_object<Sequence>();
             break;
         default:
-            //TODO: log/something
+            qWarning() << "Unhandled media type" << static_cast<int>(media->get_type());
             break;
         }//switch
     }
