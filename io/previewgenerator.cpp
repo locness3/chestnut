@@ -250,11 +250,7 @@ void thumb_data_cleanup(void *info) {
 }
 
 void PreviewGenerator::generate_waveform() {
-    SwsContext* sws_ctx;
-    SwrContext* swr_ctx;
-    AVFrame* temp_frame = av_frame_alloc();
     AVCodecContext** codec_ctx = new AVCodecContext* [fmt_ctx->nb_streams];
-    int64_t* media_lengths = new int64_t[fmt_ctx->nb_streams]{0};
     for (unsigned int i=0;i<fmt_ctx->nb_streams;i++) {
         codec_ctx[i] = nullptr;
         if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO || fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
@@ -282,6 +278,10 @@ void PreviewGenerator::generate_waveform() {
     avcodec_send_packet(codec_ctx[packet->stream_index], packet);
 
     if (auto ftg = footage.lock()) {
+        SwsContext* sws_ctx = nullptr;
+        SwrContext* swr_ctx = nullptr;
+        AVFrame* temp_frame = av_frame_alloc();
+        int64_t* media_lengths = new int64_t[fmt_ctx->nb_streams]{0};
         while (!end_of_file) {
             while (codec_ctx[packet->stream_index] == nullptr || avcodec_receive_frame(codec_ctx[packet->stream_index], temp_frame) == AVERROR(EAGAIN)) {
                 av_packet_unref(packet);
@@ -450,9 +450,10 @@ void PreviewGenerator::generate_waveform() {
             ftg->length = (double) media_lengths[maximum_stream] / av_q2d(fmt_ctx->streams[maximum_stream]->avg_frame_rate) * AV_TIME_BASE; // TODO redo with PTS
             finalize_media();
         }
+
+        delete [] media_lengths;
     }
 
-    delete [] media_lengths;
     delete [] codec_ctx;
 }
 
