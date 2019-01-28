@@ -38,6 +38,7 @@ public:
     EffectField* add_field(const EffectFieldType type, const QString &id, int colspan = 1);
     void add_widget(QWidget *w);
     EffectField* field(const int index);
+    const QVector<EffectField*>& getFields() const;
     int fieldCount();
     void set_keyframe_now(ComboAction *ca);
     void delete_keyframe_at_time(ComboAction *ca, long time);

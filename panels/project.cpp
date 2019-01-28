@@ -955,11 +955,11 @@ void Project::load_project(bool autorecovery) {
 }
 
 void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool set_ids_only, const QModelIndex& parent) {
-    for (int i=0;i<project_model.rowCount(parent);i++) {
-        const QModelIndex& item = project_model.index(i, 0, parent);
-        MediaPtr mda = project_model.getItem(item);
+    for (int i=0;i<project_model.rowCount(parent); ++i) {
+        const auto& item = project_model.index(i, 0, parent);
+        auto mda = project_model.getItem(item);
         if (mda == nullptr) {
-            qCritical() << "Null Media Ptr";
+            qCritical() << "Null Media Ptr" << static_cast<int>(type) << i;
             continue;
         }
 
@@ -1292,8 +1292,7 @@ int Project::getMediaSize() const {
 
 void Project::list_all_sequences_worker(QVector<MediaPtr>& list, MediaPtr parent) {
     for (int i=0; i<project_model.childCount(parent); ++i) {
-        MediaPtr item = project_model.child(i, parent);
-        if (item != nullptr) {
+        if (auto item = project_model.child(i, parent)) {
             switch (item->get_type()) {
             case MediaType::SEQUENCE:
                 list.append(item);
@@ -1306,7 +1305,7 @@ void Project::list_all_sequences_worker(QVector<MediaPtr>& list, MediaPtr parent
                 break;
             }
         } else {
-            //TODO:
+            qWarning() << "Null Media ptr";
         }
     }//for
 }

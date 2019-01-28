@@ -151,6 +151,8 @@ public:
 
     EffectRowPtr add_row(const QString &name, bool savable = true, bool keyframable = true);
     EffectRowPtr row(const int i);
+    const QVector<EffectRowPtr>& getRows() const;
+
     int row_count();
     /**
      * @brief Create a new EffectGizmo and add to internal list

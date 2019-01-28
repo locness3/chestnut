@@ -538,6 +538,11 @@ EffectRowPtr Effect::row(const int i) {
     return rows.at(i);
 }
 
+
+const QVector<EffectRowPtr> &Effect::getRows() const {
+    return rows;
+}
+
 int Effect::row_count() {
     return rows.size();
 }

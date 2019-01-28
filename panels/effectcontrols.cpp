@@ -266,8 +266,10 @@ void EffectControls::deselect_all_effects(QWidget* sender) {
                     efct->container->header_click(false, false);
                 }
             }
+        } else {
+            qWarning() << "Null clip at index" << idx;
         }
-    }
+    }//for
     e_panel_sequence_viewer->viewer_widget->update();
 }
 

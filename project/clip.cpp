@@ -180,11 +180,11 @@ bool Clip::open_worker() {
         }
     } else if (timeline_info.media->get_type() == MediaType::FOOTAGE) {
         // opens file resource for FFmpeg and prepares Clip struct for playback
-        auto m = timeline_info.media->get_object<Footage>();
-        const char* filename = m->url.toUtf8().data();
+        auto ftg = timeline_info.media->get_object<Footage>();
+        const char* const filename = ftg->url.toUtf8().data();
 
         FootageStream ms;
-        if (!m->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream, ms)) {
+        if (!ftg->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream, ms)) {
             return false;
         }
         int errCode = avformat_open_input(
@@ -222,12 +222,12 @@ bool Clip::open_worker() {
             if (e_config.upcoming_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
                 max_queue_size += qCeil(e_config.upcoming_queue_size);
             } else {
-                max_queue_size += qCeil(ms.video_frame_rate * m->speed * e_config.upcoming_queue_size);
+                max_queue_size += qCeil(ms.video_frame_rate * ftg->speed * e_config.upcoming_queue_size);
             }
             if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
                 max_queue_size += qCeil(e_config.previous_queue_size);
             } else {
-                max_queue_size += qCeil(ms.video_frame_rate * m->speed * e_config.previous_queue_size);
+                max_queue_size += qCeil(ms.video_frame_rate * ftg->speed * e_config.previous_queue_size);
             }
         }
 
@@ -250,13 +250,13 @@ bool Clip::open_worker() {
 
         // Open codec
         if (avcodec_open2(media_handling.codecCtx, media_handling.codec, &media_handling.opts) < 0) {
-            dout << "[ERROR] Could not open codec";
+            qCritical() << "Could not open codec";
         }
 
         // allocate filtergraph
         filter_graph = avfilter_graph_alloc();
         if (filter_graph == nullptr) {
-            dout << "[ERROR] Could not create filtergraph";
+            qCritical() << "Could not create filtergraph";
         }
         char filter_args[512];
 
@@ -358,7 +358,7 @@ bool Clip::open_worker() {
 
             int target_sample_rate = current_audio_freq();
 
-            double playback_speed = timeline_info.speed * m->speed;
+            double playback_speed = timeline_info.speed * ftg->speed;
 
             if (qFuzzyCompare(playback_speed, 1.0)) {
                 avfilter_link(buffersrc_ctx, 0, buffersink_ctx, 0);
@@ -458,7 +458,7 @@ bool Clip::open(const bool open_multithreaded) {
         multithreaded = open_multithreaded;
         if (multithreaded) {
             if (open_lock.tryLock()) {
-                QObject::connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
+                //                QObject::connect(this, SIGNAL(finished()), this, SLOT(deleteLater())); //TODO: this needs resolving
                 this->start((timeline_info.track < 0) ? QThread::HighPriority : QThread::TimeCriticalPriority);
             }
         } else {
@@ -777,7 +777,6 @@ void Clip::get_frame(const long playhead, bool& texture_failed) {
         if (target_frame == nullptr || reset) {
             // reset cache
             texture_failed = true;
-            dout << "[INFO] Frame queue couldn't keep up - either the user seeked or the system is overloaded (queue size:" << queue.size() <<  ") " << reset;
         }
 
         if (target_frame != nullptr) {
@@ -803,7 +802,9 @@ void Clip::get_frame(const long playhead, bool& texture_failed) {
 
             texture->setData(0, get_gl_pix_fmt_from_av(pix_fmt), QOpenGLTexture::UInt8, data);
 
-            if (copied) delete [] data;
+            if (copied) {
+                delete [] data;
+            }
 
             glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
         }
@@ -1009,18 +1010,24 @@ void Clip::refactor_frame_rate(ComboAction* ca, double multiplier, bool change_t
     }
 
     // move keyframes
-    for (int i=0;i<effects.size();i++) {
-        EffectPtr effectNow = effects.at(i);
-        for (int j=0; j<effectNow->row_count();j++) {
-            EffectRowPtr effectRowNow = effectNow->row(j);
-            for (int l=0; l<effectRowNow->fieldCount(); l++) {
-                EffectField* f = effectRowNow->field(l);
-                for (int k=0; k<f->keyframes.size(); k++) {
-                    ca->append(new SetLong(&f->keyframes[k].time, f->keyframes[k].time, f->keyframes[k].time * multiplier));
-                }
-            }
+    for (auto effectNow : effects) {
+        if (!effectNow) {
+            continue;
         }
-    }
+        for (auto effectRowNow : effectNow->getRows()) {
+            if (!effectRowNow) {
+                continue;
+            }
+            for (auto f : effectRowNow->getFields()) {
+                if (f == nullptr) {
+                    continue;
+                }
+                for (auto key : f->keyframes) {
+                    ca->append(new SetLong(&key.time, key.time, key.time * multiplier));
+                }//for
+            }//for
+        }//for
+    }//for
 }
 
 void Clip::run() {
@@ -1097,7 +1104,7 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
         }
     }
 
-    //TODO: hmm
+    //FIXME: hmm
     //    if (!nests.isEmpty()) {
     //        ClipPtr next_nest = nests.last();
     //        nests.removeLast();
@@ -1116,7 +1123,7 @@ int64_t Clip::playhead_to_timestamp(const long playhead) {
     return seconds_to_timestamp(playhead_to_seconds(playhead));
 }
 
-bool Clip::retrieve_next_frame(AVFrame* frame) { //TODO: frame could be the same class member over & over
+bool Clip::retrieve_next_frame(AVFrame* frame) {
     int result = 0;
     int receive_ret;
 

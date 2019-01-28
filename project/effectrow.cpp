@@ -306,6 +306,12 @@ EffectField* EffectRow::field(const int index) {
     return fields.at(index);
 }
 
+
+const QVector<EffectField*>& EffectRow::getFields() const
+{
+    return fields;
+}
+
 int EffectRow::fieldCount() {
     return fields.size();
 }

@@ -330,8 +330,10 @@ GLuint compose_sequence(Viewer* viewer,
                     EffectPtr first_gizmo_effect = nullptr;
                     EffectPtr selected_effect = nullptr;
 
-                    for (int j=0;j<clp->effects.size();j++) {
-                        EffectPtr e = clp->effects.at(j);
+                    for (auto e : clp->effects) {
+                        if (!e) {
+                            continue;
+                        }
                         process_effect(ctx, clp, e, timecode, coords, composite_texture, fbo_switcher, texture_failed, TA_NO_TRANSITION);
 
                         if (e->are_gizmos_enabled()) {
@@ -342,7 +344,7 @@ GLuint compose_sequence(Viewer* viewer,
                                 selected_effect = e;
                             }
                         }
-                    }
+                    }//for
 
                     if (selected_effect != nullptr) {
                         gizmos = selected_effect;
