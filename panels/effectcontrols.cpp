@@ -259,11 +259,12 @@ void EffectControls::clear_effects(bool clear_cache) {
 }
 
 void EffectControls::deselect_all_effects(QWidget* sender) {
-    for (int i=0;i<selected_clips.size();i++) {
-        ClipPtr c = global::sequence->clips.at(selected_clips.at(i));
-        for (int j=0;j<c->effects.size();j++) {
-            if (c->effects.at(j)->container != sender) {
-                c->effects.at(j)->container->header_click(false, false);
+    for (auto idx : selected_clips) {
+        if (auto clp = global::sequence->clips.at(idx)) {
+            for (auto efct : clp->effects) {
+                if (efct && (efct->container != sender) ) {
+                    efct->container->header_click(false, false);
+                }
             }
         }
     }
