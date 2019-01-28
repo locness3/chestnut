@@ -211,35 +211,35 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                         {
                             int folder = 0;
 
-                            MediaPtr item = std::make_shared<Media>(nullptr);
-                            FootagePtr m = std::make_shared<Footage>();
+                            auto item = std::make_shared<Media>();
+                            auto ftg = std::make_shared<Footage>();
 
-                            m->using_inout = false;
+                            ftg->using_inout = false;
 
                             for (int j=0;j<stream.attributes().size();j++) {
                                 const QXmlStreamAttribute& attr = stream.attributes().at(j);
                                 if (attr.name() == "id") {
-                                    m->save_id = attr.value().toInt();
+                                    ftg->save_id = attr.value().toInt();
                                 } else if (attr.name() == "folder") {
                                     folder = attr.value().toInt();
                                 } else if (attr.name() == "name") {
-                                    m->setName(attr.value().toString());
+                                    ftg->setName(attr.value().toString());
                                 } else if (attr.name() == "url") {
-                                    m->url = attr.value().toString();
+                                    ftg->url = attr.value().toString();
 
-                                    if (!QFileInfo::exists(m->url)) { // if path is not absolute
-                                        QString proj_dir_test = proj_dir.absoluteFilePath(m->url);
-                                        QString internal_proj_dir_test = internal_proj_dir.absoluteFilePath(m->url);
+                                    if (!QFileInfo::exists(ftg->url)) { // if path is not absolute
+                                        QString proj_dir_test = proj_dir.absoluteFilePath(ftg->url);
+                                        QString internal_proj_dir_test = internal_proj_dir.absoluteFilePath(ftg->url);
 
                                         if (QFileInfo::exists(proj_dir_test)) { // if path is relative to the project's current dir
-                                            m->url = proj_dir_test;
+                                            ftg->url = proj_dir_test;
                                             qInfo() << "Matched" << attr.value().toString() << "relative to project's current directory";
                                         } else if (QFileInfo::exists(internal_proj_dir_test)) { // if path is relative to the last directory the project was saved in
-                                            m->url = internal_proj_dir_test;
+                                            ftg->url = internal_proj_dir_test;
                                             qInfo() << "Matched" << attr.value().toString() << "relative to project's internal directory";
-                                        } else if (m->url.contains('%')) {
+                                        } else if (ftg->url.contains('%')) {
                                             // hack for image sequences (qt won't be able to find the URL with %, but ffmpeg may)
-                                            m->url = internal_proj_dir_test;
+                                            ftg->url = internal_proj_dir_test;
                                             qInfo() << "Guess image sequence" << attr.value().toString() << "path to project's internal directory";
                                         } else {
                                             qInfo() << "Failed to match" << attr.value().toString() << "to file";
@@ -248,19 +248,19 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                         qInfo() << "Matched" << attr.value().toString() << "with absolute path";
                                     }
                                 } else if (attr.name() == "duration") {
-                                    m->length = attr.value().toLongLong();
+                                    ftg->length = attr.value().toLongLong();
                                 } else if (attr.name() == "using_inout") {
-                                    m->using_inout = (attr.value() == "1");
+                                    ftg->using_inout = (attr.value() == "1");
                                 } else if (attr.name() == "in") {
-                                    m->in = attr.value().toLong();
+                                    ftg->in = attr.value().toLong();
                                 } else if (attr.name() == "out") {
-                                    m->out = attr.value().toLong();
+                                    ftg->out = attr.value().toLong();
                                 } else if (attr.name() == "speed") {
-                                    m->speed = attr.value().toDouble();
+                                    ftg->speed = attr.value().toDouble();
                                 }
                             }
 
-                            item->set_footage(m);
+                            item->set_footage(ftg);
 
                             if (folder == 0) {
                                 project_model.appendChild(nullptr, item);

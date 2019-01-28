@@ -60,12 +60,7 @@ QString get_channel_layout_name(int channels, uint64_t layout) {
 int Media::nextID = 0;
 
 
-Media::Media() :
-    throbber(nullptr),
-    root(false),
-    type(MediaType::NONE),
-    parent(std::weak_ptr<Media>()),
-    id(nextID++)
+Media::Media() : Media(nullptr)
 {
 
 }

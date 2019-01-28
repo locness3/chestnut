@@ -41,7 +41,7 @@ ProjectModel::~ProjectModel() {
 }
 
 void ProjectModel::make_root() {
-    root_item = std::make_shared<Media>(nullptr);
+    root_item = std::make_shared<Media>();
     root_item->temp_id = 0;
     root_item->root = true;
 }
