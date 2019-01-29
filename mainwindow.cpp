@@ -1271,13 +1271,16 @@ void MainWindow::new_folder() {
 
     QModelIndex index = project_model.add(m);
     switch (e_config.project_view_type) {
-    case PROJECT_VIEW_TREE:
+    case ProjectView::TREE:
         e_panel_project->tree_view->edit(e_panel_project->sorter->mapFromSource(index));
         break;
-    case PROJECT_VIEW_ICON:
+    case ProjectView::ICON:
         e_panel_project->icon_view->edit(e_panel_project->sorter->mapFromSource(index));
         break;
-    }
+    default:
+        //TODO:
+        break;
+    }//switch
 }
 
 void MainWindow::fileMenu_About_To_Be_Shown() {

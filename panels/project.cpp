@@ -855,7 +855,7 @@ bool Project::reveal_media(MediaPtr media, QModelIndex parent) {
 
             QModelIndex hierarchy = sorted_index.parent();
 
-            if (e_config.project_view_type == PROJECT_VIEW_TREE) {
+            if (e_config.project_view_type == ProjectView::TREE) {
                 while (hierarchy.isValid()) {
                     tree_view->setExpanded(hierarchy, true);
                     hierarchy = hierarchy.parent();
@@ -863,7 +863,7 @@ bool Project::reveal_media(MediaPtr media, QModelIndex parent) {
 
                 // select item
                 tree_view->selectionModel()->select(sorted_index, QItemSelectionModel::Select);
-            } else if (e_config.project_view_type == PROJECT_VIEW_ICON) {
+            } else if (e_config.project_view_type == ProjectView::ICON) {
                 icon_view->setRootIndex(hierarchy);
                 icon_view->selectionModel()->select(sorted_index, QItemSelectionModel::Select);
                 set_up_dir_enabled();
@@ -1182,26 +1182,29 @@ void Project::save_project(bool autorecovery) {
 }
 
 void Project::update_view_type() {
-    tree_view->setVisible(e_config.project_view_type == PROJECT_VIEW_TREE);
-    icon_view_container->setVisible(e_config.project_view_type == PROJECT_VIEW_ICON);
+    tree_view->setVisible(e_config.project_view_type == ProjectView::TREE);
+    icon_view_container->setVisible(e_config.project_view_type == ProjectView::ICON);
 
     switch (e_config.project_view_type) {
-    case PROJECT_VIEW_TREE:
+    case ProjectView::TREE:
         sources_common->view = tree_view;
         break;
-    case PROJECT_VIEW_ICON:
+    case ProjectView::ICON:
         sources_common->view = icon_view;
         break;
-    }
+    default:
+        //TODO:
+        break;
+    }//switch
 }
 
 void Project::set_icon_view() {
-    e_config.project_view_type = PROJECT_VIEW_ICON;
+    e_config.project_view_type = ProjectView::ICON;
     update_view_type();
 }
 
 void Project::set_tree_view() {
-    e_config.project_view_type = PROJECT_VIEW_TREE;
+    e_config.project_view_type = ProjectView::TREE;
     update_view_type();
 }
 
@@ -1317,7 +1320,7 @@ QVector<MediaPtr> Project::list_all_project_sequences() {
 }
 
 QModelIndexList Project::get_current_selected() {
-    if (e_config.project_view_type == PROJECT_VIEW_TREE) {
+    if (e_config.project_view_type == ProjectView::TREE) {
         return e_panel_project->tree_view->selectionModel()->selectedRows();
     }
     return e_panel_project->icon_view->selectionModel()->selectedIndexes();

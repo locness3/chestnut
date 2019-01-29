@@ -35,11 +35,14 @@
 #define AUTOSCROLL_PAGE_SCROLL 1
 #define AUTOSCROLL_SMOOTH_SCROLL 2
 
-#define PROJECT_VIEW_TREE 0
-#define PROJECT_VIEW_ICON 1
 
 #define FRAME_QUEUE_TYPE_FRAMES 0
 #define FRAME_QUEUE_TYPE_SECONDS 1
+
+enum class ProjectView {
+    TREE = 0,
+    ICON = 1
+};
 
 //FIXME; oh,wow
 struct Config {
@@ -68,7 +71,7 @@ struct Config {
 	int audio_rate;
 	bool fast_seeking;
 	bool hover_focus;
-	int project_view_type;
+    ProjectView project_view_type;
 	bool set_name_with_marker;
 	bool show_project_toolbar;
 	bool disable_multithreading_for_images;
