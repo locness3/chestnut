@@ -93,7 +93,7 @@ Project::Project(QWidget *parent) :
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-    QWidget* dockWidgetContents = new QWidget();
+    QWidget* dockWidgetContents = new QWidget(this);
     QVBoxLayout* verticalLayout = new QVBoxLayout(dockWidgetContents);
     verticalLayout->setContentsMargins(0, 0, 0, 0);
     verticalLayout->setSpacing(0);
