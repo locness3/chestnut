@@ -709,7 +709,7 @@ void Viewer::set_media(MediaPtr m) {
                     seq->setFrameRate(video_stream.video_frame_rate * ftg->speed);
                 }
 
-                auto clp = std::make_shared<Clip>(global::sequence);
+                auto clp = std::make_shared<Clip>(seq);
                 clp->timeline_info.media        = media;
                 clp->timeline_info.media_stream = video_stream.file_index;
                 clp->timeline_info.in           = 0;
