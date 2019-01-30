@@ -193,6 +193,10 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
     auto entry = entry_point;
 
     for (auto mda : media_list) {
+        if (!mda) {
+            qWarning() << "Null Media ptr";
+            continue;
+        }
         bool can_import = true;
         FootagePtr ftg;
         SequencePtr lcl_seq;
