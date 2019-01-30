@@ -27,6 +27,5 @@ extern bool e_rendering;
 
 long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate);
 void set_sequence(SequencePtr s);
-void closeActiveClips(SequencePtr s);
 
 #endif // PLAYBACK_H

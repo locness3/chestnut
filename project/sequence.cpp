@@ -166,6 +166,24 @@ int Sequence::getAudioLayout() const {
 void Sequence::setAudioLayout(const int layout) {
     audio_layout = layout;
 }
+
+
+void Sequence::closeActiveClips()
+{
+    for (auto c : clips) {
+        if (!c) {
+            qWarning() << "Null Clip ptr";
+            continue;
+        }
+        if (c->timeline_info.media && (c->timeline_info.media->get_type() == MediaType::SEQUENCE) ) {
+            if (auto seq = c->timeline_info.media->get_object<Sequence>()) {
+                seq->closeActiveClips(); //FIXME: no recusion depth limit
+            }
+        }
+        c->close(true);
+    }//for
+}
+
 void Sequence::getTrackLimits(int& video_limit, int& audio_limit) const {
     video_limit = 0;
     audio_limit = 0;

@@ -1303,6 +1303,9 @@ void Project::list_all_sequences_worker(QVector<MediaPtr>& list, MediaPtr parent
             case MediaType::FOLDER:
                 list_all_sequences_worker(list, item);
                 break;
+            case MediaType::FOOTAGE:
+                // Ignore
+                break;
             default:
                 qWarning() << "Unknown media type" << static_cast<int>(item->get_type());
                 break;

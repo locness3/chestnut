@@ -827,7 +827,7 @@ void Viewer::set_sequence(bool main, SequencePtr s) {
     reset_all_audio();
 
     if (seq != nullptr) {
-        closeActiveClips(seq);
+        seq->closeActiveClips();
     }
 
     main_sequence = main;

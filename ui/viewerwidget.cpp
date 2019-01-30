@@ -107,7 +107,9 @@ ViewerWidget::~ViewerWidget() {
 }
 
 void ViewerWidget::delete_function() {
-    closeActiveClips(viewer->getSequence());
+    if (viewer != nullptr && viewer->getSequence()) {
+        viewer->getSequence()->closeActiveClips();
+    }
 }
 
 void ViewerWidget::set_waveform_scroll(int s) {
@@ -277,8 +279,8 @@ void ViewerWidget::seek_from_click(int x) {
 
 void ViewerWidget::context_destroy() {
     makeCurrent();
-    if (viewer->getSequence() != nullptr) {
-        closeActiveClips(viewer->getSequence());
+    if ((viewer->getSequence() != nullptr) && viewer->getSequence()) {
+        viewer->getSequence()->closeActiveClips();
     }
     if (window != nullptr) {
         delete window;

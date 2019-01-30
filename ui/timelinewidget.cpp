@@ -311,11 +311,11 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
     QVector<MediaPtr> media_list;
     e_panel_timeline->importing_files = false;
 
-    if (event->source() == e_panel_project->tree_view || event->source() == e_panel_project->icon_view) {
-        QModelIndexList items = e_panel_project->get_current_selected();
+    if ( (event->source() == e_panel_project->tree_view) || (event->source() == e_panel_project->icon_view) ) {
+        auto items = e_panel_project->get_current_selected();
         media_list.resize(items.size());
-        for (int i=0;i<items.size();i++) {
-            media_list[i] = e_panel_project->item_to_media(items.at(i));
+        for (auto item : items) {
+            media_list.append(e_panel_project->item_to_media(item));
         }
         import_init = true;
     }
@@ -332,9 +332,8 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
         QList<QUrl> urls = event->mimeData()->urls();
         if (!urls.isEmpty()) {
             QStringList file_list;
-
-            for (int i=0;i<urls.size();i++) {
-                file_list.append(urls.at(i).toLocalFile());
+            for (auto url : urls) {
+                file_list.append(url.toLocalFile());
             }
 
             e_panel_project->process_file_list(file_list);
@@ -342,11 +341,8 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
             for (int i=0; i < e_panel_project->getMediaSize(); i++) {
                 // waits for media to have a duration
                 // TODO would be much nicer if this was multithreaded
-                MediaPtr mda = e_panel_project->getImportedMedia(i);
-                if (mda != nullptr) {
-                    FootagePtr ftg = mda->get_object<Footage>();
-                    if (ftg != nullptr) {
-                        //FIXME: why is there a lock followed immediately by unlock?
+                if (auto mda = e_panel_project->getImportedMedia(i)) {
+                    if (auto ftg = mda->get_object<Footage>()) {
                         ftg->ready_lock.lock();
                         ftg->ready_lock.unlock();
 
@@ -354,12 +350,12 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
                             media_list.append(mda);
                         }
                     } else {
-                        //TODO:
+                        qWarning() << "Footage Ptr is NULL";
                     }
                 } else {
-                    //TODO:
+                    qWarning() << "Media Ptr is NULL";
                 }
-            }
+            }//for
 
             if (media_list.isEmpty()) {
                 e_undo_stack.undo();
@@ -374,7 +370,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
         event->acceptProposedAction();
 
         long entry_point;
-        SequencePtr seq = global::sequence;
+        auto seq = global::sequence;
 
         if (seq == nullptr) {
             // if no sequence, we're going to create a new one using the clips as a reference
@@ -1326,10 +1322,10 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
         FootageStream ms;
         bool found = false;
         if (g.clip != -1 && c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MediaType::FOOTAGE) {
-             auto ftg = c->timeline_info.media->get_object<Footage>();
-             if (ftg) {
+            auto ftg = c->timeline_info.media->get_object<Footage>();
+            if (ftg) {
                 found = ftg->get_stream_from_file_index(c->timeline_info.track < 0, c->timeline_info.media_stream, ms);
-             }
+            }
         }
 
         // validate ghosts for trimming
@@ -2350,7 +2346,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                         auto ftg = clip->timeline_info.media->get_object<Footage>();
                         FootageStream ms;
                         if (!ftg->get_stream_from_file_index(clip->timeline_info.track < 0,
-                                                            clip->timeline_info.media_stream,
+                                                             clip->timeline_info.media_stream,
                                                              ms) ) {
                             draw_checkerboard = true;
                         } else if (ms.preview_done) {

@@ -512,7 +512,9 @@ void Clip::close(const bool wait) {
             }
         } else {
             if (timeline_info.media && (timeline_info.media->get_type() == MediaType::SEQUENCE)) {
-                closeActiveClips(timeline_info.media->get_object<Sequence>());
+                if (auto seq = timeline_info.media->get_object<Sequence>()) {
+                    seq->closeActiveClips();
+                }
             }
 
             is_open = false;
