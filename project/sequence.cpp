@@ -24,6 +24,10 @@
 
 #include "debug.h"
 
+namespace {
+    const auto RECURSION_LIMIT = 100;
+}
+
 Sequence::Sequence() : ProjectItem()
 {
 }
@@ -168,8 +172,9 @@ void Sequence::setAudioLayout(const int layout) {
 }
 
 
-void Sequence::closeActiveClips()
+void Sequence::closeActiveClips(const int depth)
 {
+    if (depth > RECURSION_LIMIT) return;
     for (auto c : clips) {
         if (!c) {
             qWarning() << "Null Clip ptr";
@@ -177,7 +182,7 @@ void Sequence::closeActiveClips()
         }
         if (c->timeline_info.media && (c->timeline_info.media->get_type() == MediaType::SEQUENCE) ) {
             if (auto seq = c->timeline_info.media->get_object<Sequence>()) {
-                seq->closeActiveClips(); //FIXME: no recusion depth limit
+                seq->closeActiveClips(depth + 1);
             }
         }
         c->close(true);

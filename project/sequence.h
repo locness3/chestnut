@@ -62,7 +62,7 @@ public:
     int getAudioLayout() const;
     void setAudioLayout(const int layout);
 
-    void closeActiveClips();
+    void closeActiveClips(const int depth=0);
 
     QVector<Selection> selections;
     QVector<ClipPtr> clips;
