@@ -91,7 +91,7 @@ class Timeline : public QDockWidget
 	Q_OBJECT
 public:
 	explicit Timeline(QWidget *parent = 0);
-	~Timeline();
+    virtual ~Timeline() = default;
 
 	bool focused();
 	void set_zoom(bool in);

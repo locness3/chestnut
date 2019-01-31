@@ -44,7 +44,9 @@ void SourceIconView::item_click(const QModelIndex& index) {
 
 void SourceIconView::mousePressEvent(QMouseEvent* event) {
     project_parent->sources_common->mousePressEvent(event);
-    if (!indexAt(event->pos()).isValid()) selectionModel()->clear();
+    if (!indexAt(event->pos()).isValid()) {
+        selectionModel()->clear();
+    }
     QListView::mousePressEvent(event);
 }
 
@@ -66,15 +68,16 @@ void SourceIconView::dragMoveEvent(QDragMoveEvent *event) {
 
 void SourceIconView::dropEvent(QDropEvent* event) {
     QModelIndex drop_item = indexAt(event->pos());
-    if (!drop_item.isValid()) drop_item = rootIndex();
+    if (!drop_item.isValid()) {
+        drop_item = rootIndex();
+    }
     project_parent->sources_common->dropEvent(this, event, drop_item, selectedIndexes());
 }
 
 void SourceIconView::mouseDoubleClickEvent(QMouseEvent *event) {
     bool default_behavior = true;
     if (selectedIndexes().size() == 1) {
-        MediaPtr m = project_parent->item_to_media(selectedIndexes().at(0));
-        if (m != nullptr) {
+        if (auto m = project_parent->item_to_media(selectedIndexes().front())) {
             if (m->get_type() == MediaType::FOLDER) {
                 default_behavior = false;
                 setRootIndex(selectedIndexes().at(0));

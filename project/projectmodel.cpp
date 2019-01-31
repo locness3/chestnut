@@ -194,7 +194,6 @@ MediaPtr ProjectModel::getItem(const QModelIndex &index) const {
 }
 
 void ProjectModel::set_icon(MediaPtr m, const QIcon &ico) {
-    // This seems to be the only point at which data is added to the model
     project_items.insert(m->getId(), m);
     const auto index = create_index(m->row(), m);
     m->set_icon(ico);

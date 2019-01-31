@@ -136,7 +136,6 @@ Timeline::Timeline(QWidget *parent) :
     update_sequence();
 }
 
-Timeline::~Timeline() {}
 
 void Timeline::previous_cut() {
     if (global::sequence->playhead > 0) {
@@ -206,15 +205,16 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
 
         switch (mda->get_type()) {
         case MediaType::FOOTAGE:
-            ftg = mda->get_object<Footage>();
-            can_import = ftg->ready;
-            if (ftg->using_inout) {
-                auto source_fr = 30.0;
-                if ( (ftg->video_tracks.size() > 0) && !qIsNull(ftg->video_tracks.at(0).video_frame_rate)) {
-                    source_fr = ftg->video_tracks.at(0).video_frame_rate * ftg->speed;
+            if (ftg = mda->get_object<Footage>()) {
+                can_import = ftg->ready;
+                if (ftg->using_inout) {
+                    auto source_fr = 30.0;
+                    if ( (!ftg->video_tracks.empty()) && !qIsNull(ftg->video_tracks.front().video_frame_rate)) {
+                        source_fr = ftg->video_tracks.front().video_frame_rate * ftg->speed;
+                    }
+                    default_clip_in = refactor_frame_number(ftg->in, source_fr, seq->getFrameRate());
+                    default_clip_out = refactor_frame_number(ftg->out, source_fr, seq->getFrameRate());
                 }
-                default_clip_in = refactor_frame_number(ftg->in, source_fr, seq->getFrameRate());
-                default_clip_out = refactor_frame_number(ftg->out, source_fr, seq->getFrameRate());
             }
             break;
         case MediaType::SEQUENCE:
@@ -231,73 +231,75 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
             break;
         default:
             can_import = false;
+            break;
         }//switch
 
-        if (can_import) {
-            Ghost g;
-            g.clip = -1;
-            g.trimming = false;
-            g.old_clip_in = g.clip_in = default_clip_in;
-            g.media = mda;
-            g.in = entry;
-            g.transition = nullptr;
-
-            switch (mda->get_type()) {
-            case MediaType::FOOTAGE:
-                // is video source a still image?
-                if (ftg->video_tracks.size() > 0 && ftg->video_tracks.at(0).infinite_length && ftg->audio_tracks.size() == 0) {
-                    g.out = g.in + 100;
-                } else {
-                    long length = ftg->get_length_in_frames(seq->getFrameRate());
-                    g.out = entry + length - default_clip_in;
-                    if (ftg->using_inout) {
-                        g.out -= (length - default_clip_out);
-                    }
-                }
-
-                for (int j=0;j<ftg->audio_tracks.size();j++) {
-                    if (ftg->audio_tracks.at(j).enabled) {
-                        g.track = j;
-                        g.media_stream = ftg->audio_tracks.at(j).file_index;
-                        ghosts.append(g);
-                        audio_ghosts = true;
-                    }
-                }
-                for (int j=0;j<ftg->video_tracks.size();j++) {
-                    if (ftg->video_tracks.at(j).enabled) {
-                        g.track = -1-j;
-                        g.media_stream = ftg->video_tracks.at(j).file_index;
-                        ghosts.append(g);
-                        video_ghosts = true;
-                    }
-                }
-                break;
-            case MediaType::SEQUENCE:
-                g.out = entry + sequence_length - default_clip_in;
-
-                if (lcl_seq->using_workarea && lcl_seq->enable_workarea) {
-                    g.out -= (sequence_length - default_clip_out);
-                }
-
-                g.track = -1;
-                ghosts.append(g);
-                g.track = 0;
-                ghosts.append(g);
-
-                video_ghosts = true;
-                audio_ghosts = true;
-                break;
-            default:
-                qWarning() << "Unhandled Media Type" << static_cast<int>(mda->get_type());
-                break;
-            }//switch
-
-            entry = g.out;
+        if (!can_import) {
+            continue;
         }
+
+        Ghost g;
+        g.clip = -1;
+        g.trimming = false;
+        g.old_clip_in = g.clip_in = default_clip_in;
+        g.media = mda;
+        g.in = entry;
+        g.transition = nullptr;
+
+        switch (mda->get_type()) {
+        case MediaType::FOOTAGE:
+            // is video source a still image?
+            if (ftg->video_tracks.size() > 0 && ftg->video_tracks.at(0).infinite_length && ftg->audio_tracks.size() == 0) {
+                g.out = g.in + 100;
+            } else {
+                long length = ftg->get_length_in_frames(seq->getFrameRate());
+                g.out = entry + length - default_clip_in;
+                if (ftg->using_inout) {
+                    g.out -= (length - default_clip_out);
+                }
+            }
+
+            for (int j=0;j<ftg->audio_tracks.size();j++) {
+                if (ftg->audio_tracks.at(j).enabled) {
+                    g.track = j;
+                    g.media_stream = ftg->audio_tracks.at(j).file_index;
+                    ghosts.append(g);
+                    audio_ghosts = true;
+                }
+            }
+            for (int j=0;j<ftg->video_tracks.size();j++) {
+                if (ftg->video_tracks.at(j).enabled) {
+                    g.track = -1-j;
+                    g.media_stream = ftg->video_tracks.at(j).file_index;
+                    ghosts.append(g);
+                    video_ghosts = true;
+                }
+            }
+            break;
+        case MediaType::SEQUENCE:
+            g.out = entry + sequence_length - default_clip_in;
+
+            if (lcl_seq->using_workarea && lcl_seq->enable_workarea) {
+                g.out -= (sequence_length - default_clip_out);
+            }
+
+            g.track = -1;
+            ghosts.append(g);
+            g.track = 0;
+            ghosts.append(g);
+
+            video_ghosts = true;
+            audio_ghosts = true;
+            break;
+        default:
+            qWarning() << "Unhandled Media Type" << static_cast<int>(mda->get_type());
+            break;
+        }//switch
+
+        entry = g.out;
     } //for
 
-    for (int i=0;i<ghosts.size();i++) {
-        Ghost& g = ghosts[i];
+    for (auto& g : ghosts) {
         g.old_in = g.in;
         g.old_out = g.out;
         g.old_track = g.track;
