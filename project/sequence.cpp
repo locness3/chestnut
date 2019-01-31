@@ -25,11 +25,79 @@
 #include "debug.h"
 
 namespace {
-    const auto RECURSION_LIMIT = 100;
+const auto      RECURSION_LIMIT = 100;
+const int       DEFAULT_WIDTH              = 1920;
+const int       DEFAULT_HEIGHT             = 1080;
+const double    DEFAULT_FRAMERATE          = 29.97;
+const int       DEFAULT_AUDIO_FREQUENCY    = 48000;
+const int       DEFAULT_LAYOUT             = 3;
 }
 
-Sequence::Sequence() : ProjectItem()
+
+Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName)
+    : ProjectItem(sequenceName),
+      width(DEFAULT_WIDTH),
+      height(DEFAULT_HEIGHT),
+      frame_rate(DEFAULT_FRAMERATE),
+      audio_frequency(DEFAULT_AUDIO_FREQUENCY),
+      audio_layout(DEFAULT_LAYOUT)
 {
+    bool got_video_values = false;
+    bool got_audio_values = false;
+    for (auto mda : media_list){
+        if (mda == nullptr) {
+            qCritical() << "Null MediaPtr";
+            continue;
+        }
+        switch (mda->get_type()) {
+        case MediaType::FOOTAGE:
+        {
+            auto ftg = mda->get_object<Footage>();
+            if (!ftg->ready || got_video_values) {
+                break;
+            }
+            for (const auto& ms : ftg->video_tracks) {
+                width = ms.video_width;
+                height = ms.video_height;
+                if (!qFuzzyCompare(ms.video_frame_rate, 0.0)) {
+                    frame_rate = ms.video_frame_rate * ftg->speed;
+
+                    if (ms.video_interlacing != VIDEO_PROGRESSIVE) {
+                        frame_rate *= 2;
+                    }
+
+                    // only break with a decent frame rate, otherwise there may be a better candidate
+                    got_video_values = true;
+                    break;
+                }
+            }//for
+            if (!got_audio_values && !ftg->audio_tracks.empty()) {
+                const auto& ms = ftg->audio_tracks.front();
+                audio_frequency = ms.audio_frequency;
+                got_audio_values = true;
+            }
+        }
+            break;
+        case MediaType::SEQUENCE:
+        {
+            if (auto seq = mda->get_object<Sequence>()) {
+                width = seq->getWidth();
+                height  = seq->getHeight();
+                frame_rate = seq->getFrameRate();
+                audio_frequency = seq->getAudioFrequency();
+                audio_layout = seq->getAudioLayout();
+
+                got_video_values = true;
+                got_audio_values = true;
+            }
+        }
+            break;
+        default:
+            qWarning() << "Unknown media type" << static_cast<int>(mda->get_type());
+        }//switch
+        if (got_video_values && got_audio_values) break;
+    } //for
+
 }
 
 

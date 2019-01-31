@@ -39,7 +39,8 @@ using SequenceWPtr = std::weak_ptr<Sequence>;
 class Sequence : public project::ProjectItem {
 public:
 
-    Sequence();
+    Sequence() = default;
+    Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName);
     virtual ~Sequence() override;
     Sequence(const Sequence&& cpy) = delete;
     Sequence& operator=(const Sequence&) = delete;

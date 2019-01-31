@@ -311,6 +311,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
     QVector<MediaPtr> media_list;
     e_panel_timeline->importing_files = false;
 
+    // Dragging footage from the project-view window
     if ( (event->source() == e_panel_project->tree_view) || (event->source() == e_panel_project->icon_view) ) {
         auto items = e_panel_project->get_current_selected();
         media_list.resize(items.size());
@@ -320,6 +321,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
         import_init = true;
     }
 
+    // Dragging footage from the media-viewer window
     if (event->source() == e_panel_footage_viewer->viewer_widget) {
         auto proposed_seq = e_panel_footage_viewer->getSequence();
         if (proposed_seq != global::sequence) { // don't allow nesting the same sequence
@@ -376,12 +378,12 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
             // if no sequence, we're going to create a new one using the clips as a reference
             entry_point = 0;
 
-            self_created_sequence = create_sequence_from_media(media_list);
+            self_created_sequence = std::make_shared<Sequence>(media_list, e_panel_project->get_next_sequence_name());
             seq = self_created_sequence;
         } else {
             entry_point = e_panel_timeline->getTimelineFrameFromScreenPoint(event->pos().x());
             e_panel_timeline->drag_frame_start = entry_point + getFrameFromScreenPoint(e_panel_timeline->zoom, 50);
-            e_panel_timeline->drag_track_start = (bottom_align) ? -1 : 0;
+            e_panel_timeline->drag_track_start = bottom_align ? -1 : 0;
         }
 
         e_panel_timeline->create_ghosts_from_media(seq, entry_point, media_list);

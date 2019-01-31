@@ -77,11 +77,6 @@ QString recent_proj_file;
 namespace
 {
 const int       MAXIMUM_RECENT_PROJECTS             = 10;
-const int       SEQUENCE_DEFAULT_WIDTH              = 1920;
-const int       SEQUENCE_DEFAULT_HEIGHT             = 1080;
-const double    SEQUENCE_DEFAULT_FRAMERATE          = 29.97;
-const int       SEQUENCE_DEFAULT_AUDIO_FREQUENCY    = 48000;
-const int       SEQUENCE_DEFAULT_LAYOUT             = 3;
 
 const int       THROBBER_INTERVAL                   = 20; //ms
 const int       THROBBER_LIMIT                      = 20;
@@ -241,78 +236,6 @@ QString Project::get_next_sequence_name(QString start) {
     return name;
 }
 
-SequencePtr create_sequence_from_media(QVector<MediaPtr>& media_list) {
-    SequencePtr  s = std::make_shared<Sequence>();
-
-    s->setName(e_panel_project->get_next_sequence_name());
-
-    s->setWidth(SEQUENCE_DEFAULT_HEIGHT);
-    s->setHeight(SEQUENCE_DEFAULT_WIDTH);
-    s->setFrameRate(SEQUENCE_DEFAULT_FRAMERATE);
-    s->setAudioFrequency(SEQUENCE_DEFAULT_AUDIO_FREQUENCY);
-    s->setAudioLayout(SEQUENCE_DEFAULT_LAYOUT);
-
-    bool got_video_values = false;
-    bool got_audio_values = false;
-    for (MediaPtr mda: media_list){
-        if (mda == nullptr) {
-            qCritical() << "Null MediaPtr";
-            continue;
-        }
-        switch (mda->get_type()) {
-        case MediaType::FOOTAGE:
-        {
-            FootagePtr mediaFootage = mda->get_object<Footage>();
-            if (mediaFootage->ready) {
-                if (!got_video_values) {
-                    for (int j=0;j<mediaFootage->video_tracks.size();j++) {
-                        const FootageStream& ms = mediaFootage->video_tracks.at(j);
-                        s->setWidth(ms.video_width);
-                        s->setHeight(ms.video_height);
-                        if (!qFuzzyCompare(ms.video_frame_rate, 0.0)) {
-                            s->setFrameRate(ms.video_frame_rate * mediaFootage->speed);
-
-                            if (ms.video_interlacing != VIDEO_PROGRESSIVE) {
-                                s->setFrameRate(s->getFrameRate() * 2);
-                            }
-
-                            // only break with a decent frame rate, otherwise there may be a better candidate
-                            got_video_values = true;
-                            break;
-                        }
-                    }
-                }
-                if (!got_audio_values && mediaFootage->audio_tracks.size() > 0) {
-                    const FootageStream& ms = mediaFootage->audio_tracks.at(0);
-                    s->setAudioFrequency(ms.audio_frequency);
-                    got_audio_values = true;
-                }
-            }
-        }
-            break;
-        case MediaType::SEQUENCE:
-        {
-            SequencePtr  seq = mda->get_object<Sequence>();
-            if (seq != nullptr) {
-                s->setWidth(seq->getWidth());
-                s->setHeight(seq->getHeight());
-                s->setFrameRate(seq->getFrameRate());
-                s->setAudioFrequency(seq->getAudioFrequency());
-                s->setAudioLayout(seq->getAudioLayout());
-
-                got_video_values = true;
-                got_audio_values = true;
-            }
-        }
-            break;
-        default:
-            qWarning() << "Unknown media type" << static_cast<int>(mda->get_type());
-        }//switch
-        if (got_video_values && got_audio_values) break;
-    }
-
-    return s;
-}
 
 void Project::duplicate_selected() {
     QModelIndexList items = get_current_selected();
@@ -414,20 +337,26 @@ void Project::open_properties() {
 }
 
 MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaPtr parent) {
-    if (parent == nullptr) parent = project_model.root();
-    MediaPtr item = std::make_shared<Media>(parent);
+    if (parent == nullptr) {
+        parent = project_model.root();
+    }
+    auto item = std::make_shared<Media>(parent);
     item->set_sequence(s);
 
     if (ca != nullptr) {
         ca->append(new NewSequenceCommand(item, parent));
-        if (open) ca->append(new ChangeSequenceAction(s));
+        if (open) {
+            ca->append(new ChangeSequenceAction(s));
+        }
     } else {
         if (parent == project_model.root()) {
             project_model.appendChild(parent, item);
         } else {
             parent->appendChild(item);
         }
-        if (open) set_sequence(s);
+        if (open) {
+            set_sequence(s);
+        }
     }
     return item;
 }
@@ -1187,13 +1116,13 @@ void Project::update_view_type() {
 
     switch (e_config.project_view_type) {
     case ProjectView::TREE:
-        sources_common->view = tree_view;
+        sources_common->setCurrentView(tree_view);
         break;
     case ProjectView::ICON:
-        sources_common->view = icon_view;
+        sources_common->setCurrentView(icon_view);
         break;
     default:
-        //TODO:
+        qWarning() << "Unhandled Project View type" << static_cast<int>(e_config.project_view_type);
         break;
     }//switch
 }
@@ -1316,6 +1245,7 @@ void Project::list_all_sequences_worker(QVector<MediaPtr>& list, MediaPtr parent
     }//for
 }
 
+
 QVector<MediaPtr> Project::list_all_project_sequences() {
     QVector<MediaPtr> list;
     list_all_sequences_worker(list, nullptr);
@@ -1375,21 +1305,22 @@ void MediaThrobber::stop(const int icon_type, const bool replace) {
         icon.addFile(":/icons/error.png");
         break;
     default:
-        //TODO:
+        qWarning() << "Unknown icon type" << static_cast<int>(icon_type);
         break;
     }//switch
     project_model.set_icon(item,icon);
 
     // refresh all clips
-    QVector<MediaPtr> sequences = e_panel_project->list_all_project_sequences();
-    for (MediaPtr sqn : sequences) {
-        SequencePtr s = sqn->get_object<Sequence>();
-        for (ClipPtr clp: s->clips) {
-            if (clp != nullptr) {
-                clp->refresh();
+    auto sequences = e_panel_project->list_all_project_sequences();
+    for (auto sqn : sequences) {
+        if (auto s = sqn->get_object<Sequence>()) {
+            for (auto clp: s->clips) {
+                if (clp != nullptr) {
+                    clp->refresh();
+                }
             }
         }
-    }
+    }//for
 
     // redraw clips
     update_ui(replace);

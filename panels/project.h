@@ -26,6 +26,7 @@
 #include <QXmlStreamReader>
 #include <QFile>
 #include <QSortFilterProxyModel>
+#include <QAbstractItemView>
 
 #include "project/projectmodel.h"
 #include "project/sequence.h"
@@ -53,8 +54,6 @@ extern QStringList recent_projects;
 extern QString recent_proj_file;
 
 extern ProjectModel project_model;
-
-SequencePtr  create_sequence_from_media(QVector<MediaPtr > &media_list);
 
 QString get_channel_layout_name(int channels, uint64_t layout);
 QString get_interlacing_name(int interlacing);
@@ -85,6 +84,9 @@ public:
      */
     int getMediaSize() const;
 
+
+    QAbstractItemView* getCurrentView();
+
     void new_project();
     void load_project(bool autorecovery);
     void save_project(bool autorecovery);
@@ -109,6 +111,8 @@ public:
     void get_all_media_from_table(QVector<MediaPtr> &items, QVector<MediaPtr> &list, const MediaType type = MediaType::NONE);
 
     QWidget* toolbar_widget;
+
+
 public slots:
     void import_dialog();
     void delete_selected_media();

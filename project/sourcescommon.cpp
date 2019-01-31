@@ -36,6 +36,7 @@
 #include <QDesktopServices>
 
 SourcesCommon::SourcesCommon(Project* parent) :
+    QObject(parent),
     project_parent(parent),
     editing_item(nullptr)
 {
@@ -50,8 +51,8 @@ void SourcesCommon::create_seq_from_selected() {
             media_list.append(project_parent->item_to_media(selected_items.at(i)));
         }
 
-        ComboAction* ca = new ComboAction();
-        SequencePtr  s = create_sequence_from_media(media_list);
+        auto* const ca = new ComboAction();
+        auto  s = std::make_shared<Sequence>(media_list, e_panel_project->get_next_sequence_name());
 
         // add clips to it
         e_panel_timeline->create_ghosts_from_media(s, 0, media_list);
@@ -174,6 +175,12 @@ void SourcesCommon::item_click(MediaPtr m, const QModelIndex& index) {
     }
 }
 
+
+void SourcesCommon::setCurrentView(QAbstractItemView* currentView)
+{
+    view = currentView;
+}
+
 void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& selected_items) {
     stop_rename_timer();
     if (project_parent != nullptr) {
@@ -217,10 +224,10 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
                 paths.append(urls.at(i).toLocalFile());
             }
             bool replace = false;
-            if (urls.size() == 1
+            if ( (urls.size() == 1)
                     && drop_item.isValid()
-                    && m->get_type() == MediaType::FOOTAGE
-                    && !QFileInfo(paths.at(0)).isDir()
+                    && (m->get_type() == MediaType::FOOTAGE)
+                    && !QFileInfo(paths.front()).isDir()
                     && e_config.drop_on_media_to_replace
                     && QMessageBox::question(
                         parent,
@@ -228,18 +235,18 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
                         tr("You dropped a file onto '%1'. Would you like to replace it with the dropped file?").arg(m->get_name()),
                         QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
                 replace = true;
-                project_parent->replace_media(m, paths.at(0));
+                project_parent->replace_media(m, paths.front());
             }
             if (!replace) {
-                QModelIndex parent;
+                QModelIndex parentIndex;
                 if (drop_item.isValid()) {
                     if (m->get_type() == MediaType::FOLDER) {
-                        parent = drop_item;
+                        parentIndex = drop_item;
                     } else {
-                        parent = drop_item.parent();
+                        parentIndex = drop_item.parent();
                     }
                 }
-                project_parent->process_file_list(paths, false, nullptr, e_panel_project->item_to_media(parent));
+                project_parent->process_file_list(paths, false, nullptr, e_panel_project->item_to_media(parentIndex));
             }
         }
         event->acceptProposedAction();
@@ -260,14 +267,14 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
                         // if child belongs to a selected parent, assume the user is just moving the parent and ignore the child
                         QModelIndex par = parent;
                         while (par.isValid() && !ignore) {
-                            for (int j=0;j<items.size();j++) {
-                                if (par == items.at(j)) {
+                            for (auto item : items) {
+                                if (par == item) {
                                     ignore = true;
                                     break;
                                 }
-                            }
+                            }//for
                             par = par.parent();
-                        }
+                        }//while
                     }
                     if (!ignore) {
                         move_items.append(s);
@@ -285,8 +292,14 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 }
 
 void SourcesCommon::reveal_in_browser() {
-    MediaPtr media = project_parent->item_to_media(selected_items.at(0));
-    FootagePtr m = media->get_object<Footage>();
+    auto media = project_parent->item_to_media(selected_items.front());
+    if (!media) {
+        return;
+    }
+    auto ftg = media->get_object<Footage>();
+    if (!ftg) {
+        return;
+    }
 
 #if defined(Q_OS_WIN)
     QStringList args;
@@ -304,7 +317,7 @@ void SourcesCommon::reveal_in_browser() {
     args << "end tell";
     QProcess::startDetached("osascript", args);
 #else
-    QDesktopServices::openUrl(QUrl::fromLocalFile(m->url.left(m->url.lastIndexOf('/'))));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(ftg->url.left(ftg->url.lastIndexOf('/'))));
 #endif
 }
 
