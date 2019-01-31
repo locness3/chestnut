@@ -186,8 +186,7 @@ Project::Project(QWidget *parent) :
 
     icon_view_container_layout->addLayout(icon_view_controls);
 
-    icon_view = new SourceIconView(dockWidgetContents);
-    icon_view->project_parent = this;
+    icon_view = new SourceIconView(this, dockWidgetContents);
     icon_view->setModel(sorter);
     icon_view->setIconSize(QSize(100, 100));
     icon_view->setViewMode(QListView::IconMode);

@@ -24,12 +24,20 @@
 #include "project/sourcescommon.h"
 #include "debug.h"
 
-SourceIconView::SourceIconView(QWidget *parent) : QListView(parent) {
+SourceIconView::SourceIconView(Project *projParent, QWidget *parent)
+    : QListView(parent),
+      project_parent(projParent)
+{
     setSelectionMode(QAbstractItemView::ExtendedSelection);
     setResizeMode(QListView::Adjust);
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, SIGNAL(clicked(const QModelIndex&)), this, SLOT(item_click(const QModelIndex&)));
     connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu()));
+}
+
+SourceIconView::~SourceIconView()
+{
+    project_parent = NULL;
 }
 
 void SourceIconView::show_context_menu() {

@@ -25,8 +25,14 @@ class Project;
 class SourceIconView : public QListView {
     Q_OBJECT
 public:
-    SourceIconView(QWidget* parent = 0);
-    Project* project_parent;
+    SourceIconView(Project* projParent, QWidget* parent = 0);
+    virtual ~SourceIconView();
+
+    SourceIconView() = delete;
+    SourceIconView(const SourceIconView&) = delete;
+    SourceIconView(const SourceIconView&&) = delete;
+    SourceIconView& operator=(const SourceIconView&) = delete;
+    SourceIconView& operator=(const SourceIconView&&) = delete;
 
     void mousePressEvent(QMouseEvent* event);
     void mouseDoubleClickEvent(QMouseEvent *event);
@@ -38,6 +44,8 @@ signals:
 private slots:
     void show_context_menu();
     void item_click(const QModelIndex& index);
+private:
+    Project* project_parent;
 };
 
 #endif // SOURCEICONVIEW_H
