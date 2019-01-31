@@ -60,6 +60,7 @@ void ProjectModel::clear() {
     destroy_root();
     make_root();
     endResetModel();
+    project_items.clear();
 }
 
 MediaPtr ProjectModel::root() {
