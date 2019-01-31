@@ -856,10 +856,9 @@ void Project::clear() {
     // delete sequences first because it's important to close all the clips before deleting the media
     QVector<MediaPtr> sequences = list_all_project_sequences();
     //TODO: are we clearing the right things?
-    for (int i=0;i<sequences.size();i++) {
-        MediaPtr const tmp = sequences.at(i);
-        if (tmp != nullptr) {
-            tmp->clear_object();
+    for (auto mda : sequences) {
+        if (mda != nullptr) {
+            mda->clear_object();
         }
     }
 

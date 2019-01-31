@@ -132,7 +132,7 @@ private:
     QDir proj_dir;
     QWidget* icon_view_container;
     QPushButton* directory_up;
-    QVector<MediaPtr> last_imported_media; //TODO: feel a map is required so ProjectModel can use the key in QModelIndex
+    QVector<MediaPtr> last_imported_media;
 private slots:
     void update_view_type();
     void set_icon_view();
