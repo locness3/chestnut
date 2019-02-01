@@ -135,7 +135,7 @@ struct GLTextureCoords {
 qint16 mix_audio_sample(qint16 a, qint16 b);
 
 
-class Effect : public project::SequenceItem {
+class Effect : public QObject, public project::SequenceItem {
     Q_OBJECT
 public:
     Effect(ClipPtr c, const EffectMeta* em);
