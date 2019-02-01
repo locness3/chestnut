@@ -57,7 +57,7 @@ double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sam
 }
 
 Clip::Clip(SequencePtr s) :
-    QThread(nullptr),
+    SequenceItem(project::SequenceItemType::CLIP),
     sequence(s),
     opening_transition(-1),
     closing_transition(-1),
@@ -125,12 +125,6 @@ ClipPtr Clip::copy(SequencePtr s) {
 
     return copyClip;
 }
-
-
-project::SequenceItemType Clip::getType() const {
-    return project::SequenceItemType::CLIP;
-}
-
 
 bool Clip::isActive(const long playhead) {
     if (timeline_info.enabled) {

@@ -15,6 +15,7 @@ namespace project {
     {
     public:
         SequenceItem();
+        explicit SequenceItem(const SequenceItemType sequenceType);
         virtual ~SequenceItem();
         SequenceItem(const SequenceItem&) = delete;
         SequenceItem(const SequenceItem&&) = delete;
@@ -30,6 +31,7 @@ namespace project {
         friend class Clip;
         friend class Effect;
         QString name;
+        SequenceItemType type;
 
     };
     typedef std::shared_ptr<SequenceItem> SequenceItemPtr;

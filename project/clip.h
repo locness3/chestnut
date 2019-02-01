@@ -69,8 +69,6 @@ public:
     Clip& operator=(const Clip&) = delete;
     Clip& operator=(const Clip&&) = delete;
 
-    virtual project::SequenceItemType getType() const;
-
     bool isActive(const long playhead);
     /**
      * @brief Identify if the clip is being cached

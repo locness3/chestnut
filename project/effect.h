@@ -135,7 +135,7 @@ struct GLTextureCoords {
 qint16 mix_audio_sample(qint16 a, qint16 b);
 
 
-class Effect : public QObject, project::SequenceItem {
+class Effect : public project::SequenceItem {
     Q_OBJECT
 public:
     Effect(ClipPtr c, const EffectMeta* em);
@@ -145,9 +145,6 @@ public:
     Effect(const Effect&&) = delete;
     Effect& operator=(const Effect&) = delete;
     Effect& operator=(const Effect&&) = delete;
-
-    virtual project::SequenceItemType getType() const override;
-
 
     EffectRowPtr add_row(const QString &name, bool savable = true, bool keyframable = true);
     EffectRowPtr row(const int i);

@@ -283,6 +283,7 @@ void EffectInit::run() {
 
 //FIXME: congitive complexity of 322.....
 Effect::Effect(ClipPtr c, const EffectMeta *em) :
+    SequenceItem(project::SequenceItemType::CLIP),
     parent_clip(c),
     meta(em),
     enable_shader(false),
@@ -509,10 +510,6 @@ Effect::~Effect() {
     //delete container;
 }
 
-
-project::SequenceItemType Effect::getType() const {
-    return project::SequenceItemType::EFFECT;
-}
 
 void Effect::copy_field_keyframes(std::shared_ptr<Effect> e) {
     for (int i=0;i<rows.size();i++) {

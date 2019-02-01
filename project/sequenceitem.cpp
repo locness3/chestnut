@@ -3,11 +3,21 @@
 using project::SequenceItem;
 
 SequenceItem::SequenceItem()
+    : name(),
+      type(project::SequenceItemType::NONE)
 {
 
 }
 
 SequenceItem::~SequenceItem()
+{
+
+}
+
+
+SequenceItem::SequenceItem(const project::SequenceItemType sequenceType)
+    : name(),
+      type(sequenceType)
 {
 
 }
@@ -22,5 +32,5 @@ const QString& SequenceItem::getName() const {
 
 
 project::SequenceItemType SequenceItem::getType() const {
-    return project::SequenceItemType::NONE;
+    return type;
 }
