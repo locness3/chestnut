@@ -37,7 +37,7 @@
 #include "ui/timelineheader.h"
 #include "ui/resizablescrollbar.h"
 #include "ui/audiomonitor.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "debug.h"
 
 #include <QTime>

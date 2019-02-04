@@ -36,7 +36,7 @@
 #include "ui/labelslider.h"
 #include "ui/viewerwidget.h"
 #include "project/marker.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "io/clipboard.h"
 #include "project/media.h"
 #include "debug.h"

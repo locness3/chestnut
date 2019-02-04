@@ -17,7 +17,7 @@
  */
 #include "transition.h"
 
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "clip.h"
 #include "sequence.h"
 #include "debug.h"

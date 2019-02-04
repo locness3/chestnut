@@ -40,7 +40,7 @@
 #include "project/sequence.h"
 #include "io/exportthread.h"
 #include "playback/playback.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 extern "C" {
 #include <libavformat/avformat.h>

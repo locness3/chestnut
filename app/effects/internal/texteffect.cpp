@@ -38,7 +38,7 @@
 #include "ui/colorbutton.h"
 #include "ui/fontcombobox.h"
 #include "dialogs/texteditdialog.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
     Effect(c, em)

@@ -17,7 +17,7 @@
  */
 #include "timelineheader.h"
 
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "panels/panels.h"
 #include "panels/timeline.h"
 #include "project/sequence.h"

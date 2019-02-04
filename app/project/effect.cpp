@@ -31,7 +31,7 @@
 #include "ui/checkboxex.h"
 #include "debug.h"
 #include "io/path.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "io/math.h"
 #include "transition.h"
 

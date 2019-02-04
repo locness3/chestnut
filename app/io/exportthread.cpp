@@ -28,7 +28,7 @@
 #include "playback/playback.h"
 #include "playback/audio.h"
 #include "dialogs/exportdialog.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "debug.h"
 
 extern "C" {

@@ -24,6 +24,7 @@ SequenceItem::SequenceItem(const project::SequenceItemType sequenceType)
 
 
 void SequenceItem::setName(const QString& val) {
+    //TODO: input validation
     name = val;
 }
 const QString& SequenceItem::getName() const {

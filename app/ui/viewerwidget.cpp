@@ -40,7 +40,7 @@
 #include "ui/renderfunctions.h"
 #include "ui/renderthread.h"
 #include "ui/viewerwindow.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 #include <QPainter>
 #include <QAudioOutput>

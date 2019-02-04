@@ -17,7 +17,7 @@
  */
 #include "loadthread.h"
 
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "panels/panels.h"
 #include "panels/effectcontrols.h"
 #include "panels/project.h"

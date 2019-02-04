@@ -19,7 +19,7 @@
 
 #include "project/undo.h"
 #include "panels/project.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 #include <QUndoCommand>
 #include <QWheelEvent>

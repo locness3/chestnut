@@ -29,7 +29,7 @@
 #include "project/clip.h"
 #include "io/previewgenerator.h"
 #include "project/undo.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "io/config.h"
 #include "dialogs/replaceclipmediadialog.h"
 #include "panels/effectcontrols.h"

@@ -26,7 +26,7 @@
 #include "panels/viewer.h"
 #include "project/projectfilter.h"
 #include "io/config.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 #include <QProcess>
 #include <QMenu>

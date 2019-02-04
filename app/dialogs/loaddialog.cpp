@@ -28,7 +28,7 @@
 #include "io/loadthread.h"
 #include "playback/playback.h"
 #include "ui/sourcetable.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 LoadDialog::LoadDialog(QWidget *parent, bool autorecovery) : QDialog(parent) {
     setWindowTitle(tr("Loading..."));

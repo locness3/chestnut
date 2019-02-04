@@ -11,7 +11,7 @@
 #include <QXmlStreamWriter>
 
 #include "playback/audio.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "debug.h"
 
 #define BLOCK_SIZE 512

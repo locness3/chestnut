@@ -22,7 +22,7 @@
 #include <QMenuBar>
 #include <QLabel>
 
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 ActionSearch::ActionSearch(QWidget *parent) :
 	QDialog(parent)

@@ -25,7 +25,7 @@
 #include "playback/playback.h"
 #include "project/undo.h"
 #include "project/sequence.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 #include "io/config.h"
 #include "project/media.h"
 #include "project/sourcescommon.h"

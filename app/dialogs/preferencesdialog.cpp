@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  * 
@@ -18,7 +18,7 @@
 #include "preferencesdialog.h"
 
 #include "io/config.h"
-#include "mainwindow.h"
+#include "ui/mainwindow.h"
 
 #include <QMenuBar>
 #include <QAction>

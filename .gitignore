@@ -1,7 +1,8 @@
 *.pro.user*
 Makefile
 .qmake.stash
-build/*
+**/build/*
+bw-output/*
 snap/parts/*
 snap/prime/*
 snap/snap/*
@@ -13,3 +14,4 @@ snap/stage/*
 /olive.srctrldb
 /olive.srctrlprj
 /prepend.sh
+scan/*
