@@ -7,9 +7,10 @@
 
 class SequenceTest : public QObject
 {
+    Q_OBJECT
 public:
     SequenceTest();
-public slots:
+private slots:
     void testCaseDefaults();
 };
 
