@@ -23,7 +23,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-#TODO: make a libfile from app object files to link to instead of manually including each src file
 SOURCES += \
     main.cpp \
     ../app/project/UnitTest/sequenceitemtest.cpp \
@@ -37,7 +36,6 @@ HEADERS += \
     ../app/project/UnitTest/sequencetest.h
 
 INCLUDEPATH += ../app/
-#PRE_TARGETDEPS += ../app/$${DESTDIR}/oliveeditor.a
 LIBS += -L../app/$${DESTDIR}/ -loliveeditor
 
 
