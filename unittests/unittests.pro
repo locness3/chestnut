@@ -26,14 +26,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     ../app/project/UnitTest/sequenceitemtest.cpp \
-    ../app/project/UnitTest/sequencetest.cpp
+    ../app/project/UnitTest/sequencetest.cpp \
+    ../app/project/UnitTest/mediatest.cpp
 
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 HEADERS += \
     ../app/project/UnitTest/sequenceitemtest.h \
-    ../app/project/UnitTest/sequencetest.h
+    ../app/project/UnitTest/sequencetest.h \
+    ../app/project/UnitTest/mediatest.h
 
 INCLUDEPATH += ../app/
 LIBS += -L../app/$${DESTDIR}/ -loliveeditor

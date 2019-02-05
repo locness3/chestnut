@@ -12,6 +12,7 @@ public:
     SequenceTest();
 private slots:
     void testCaseDefaults();
+    void testCaseCopy();
 };
 
 #endif // SEQUENCETEST_H
