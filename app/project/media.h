@@ -99,13 +99,13 @@ public:
     void removeChild(int i);
 
     MediaThrobber* throbber;
-    bool root;
     int temp_id = 0;
     int temp_id2 = 0;
 
 protected:
     static int nextID;
 private:
+    bool root;
     MediaType type = MediaType::NONE;
     project::ProjectItemPtr object;
 

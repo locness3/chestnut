@@ -67,7 +67,8 @@ int Media::nextID = 0;
 
 Media::Media() : Media(nullptr)
 {
-
+    // If no parent, this instance is the root
+    root = true;
 }
 
 Media::Media(MediaPtr iparent) :
