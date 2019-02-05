@@ -35,6 +35,11 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+namespace
+{
+    const int COLUMN_COUNT = 3;
+}
+
 QString get_interlacing_name(int interlacing) {
     switch (interlacing) {
     case VIDEO_PROGRESSIVE: return QCoreApplication::translate("InterlacingName", "None (Progressive)");
@@ -103,7 +108,9 @@ void Media::set_sequence(SequencePtr sqn) {
     set_icon(QIcon(":/icons/sequence.png"));
     type = MediaType::SEQUENCE;
     object = sqn;
-    if (sqn != nullptr) update_tooltip();
+    if (sqn != nullptr) {
+        update_tooltip();
+    }
 }
 
 void Media::set_folder() {
@@ -194,23 +201,26 @@ void Media::update_tooltip(const QString& error) {
         break;
     case MediaType::SEQUENCE:
     {
-        SequencePtr s = get_object<Sequence>();
+        auto sqn = get_object<Sequence>();
 
         tooltip = QCoreApplication::translate("Media", "Name: %1"
                                                        "\nVideo Dimensions: %2x%3"
                                                        "\nFrame Rate: %4"
                                                        "\nAudio Frequency: %5"
                                                        "\nAudio Layout: %6").arg(
-                    s->getName(),
-                    QString::number(s->getWidth()),
-                    QString::number(s->getHeight()),
-                    QString::number(s->getFrameRate()),
-                    QString::number(s->getAudioFrequency()),
-                    get_channel_layout_name(av_get_channel_layout_nb_channels(s->getAudioLayout()), s->getAudioLayout())
+                    sqn->getName(),
+                    QString::number(sqn->getWidth()),
+                    QString::number(sqn->getHeight()),
+                    QString::number(sqn->getFrameRate()),
+                    QString::number(sqn->getAudioFrequency()),
+                    get_channel_layout_name(av_get_channel_layout_nb_channels(sqn->getAudioLayout()), sqn->getAudioLayout())
                     );
     }
         break;
-    }
+    default:
+        throw UnhandledMediaTypeException();
+        break;
+    }//switch
 
 }
 
@@ -238,7 +248,7 @@ void Media::set_name(const QString &name) {
         folder_name = name;
         break;
     default:
-        qWarning() << "Unknown media type" << static_cast<int>(type);
+        throw UnhandledMediaTypeException();
         break;
     }//switch
 }
@@ -264,7 +274,7 @@ double Media::get_frame_rate(const int stream) {
         }
         break;
     default:
-        qWarning() << "Unknown media type" << static_cast<int>(get_type());
+        throw UnhandledMediaTypeException();
         break;
     }//switch
 
@@ -292,7 +302,7 @@ int Media::get_sampling_rate(const int stream) {
         }
         break;
     default:
-        qWarning() << "Unknown media type" << static_cast<int>(get_type());
+        throw UnhandledMediaTypeException();
         break;
     }//switch
     return 0;
@@ -323,7 +333,7 @@ int Media::childCount() const {
 }
 
 int Media::columnCount() const {
-    return 3;
+    return COLUMN_COUNT;
 }
 
 QVariant Media::data(int column, int role) {

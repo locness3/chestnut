@@ -35,10 +35,18 @@ enum class MediaType {
     NONE
 };
 
+struct UnhandledMediaTypeException: public std::exception
+{
+    const char* what() const noexcept
+    {
+        return "Media type is unhandled";
+    }
+};
+
 class MediaThrobber;
-
-
 class Media;
+
+
 
 using MediaUPtr = std::unique_ptr<Media>;
 using MediaPtr = std::shared_ptr<Media>;

@@ -30,8 +30,9 @@ const int       DEFAULT_WIDTH              = 1920;
 const int       DEFAULT_HEIGHT             = 1080;
 const double    DEFAULT_FRAMERATE          = 29.97;
 const int       DEFAULT_AUDIO_FREQUENCY    = 48000;
-const int       DEFAULT_LAYOUT             = 3;
+const int       DEFAULT_LAYOUT             = 3; //TODO: what does this value mean?
 }
+
 
 
 Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName)
