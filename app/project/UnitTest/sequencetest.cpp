@@ -100,3 +100,24 @@ void SequenceTest::testCaseSetFrameRate()
     Sequence sqn;
     QCOMPARE(sqn.setFrameRate(rate), result);
 }
+
+
+void SequenceTest::testCaseSetFrequency_data()
+{
+    QTest::addColumn<int>("frequency");
+    QTest::addColumn<bool>("result");
+    QTest::newRow("negative") << -1 << false;
+    QTest::newRow("zero") << 0 << true;
+    QTest::newRow("typical") << 48000 << true;
+    QTest::newRow("maximum") << 192000 << true;
+    QTest::newRow("massive") << 1000000 << false;
+}
+
+void SequenceTest::testCaseSetFrequency()
+{
+    QFETCH(int, frequency);
+    QFETCH(bool, result);
+    Sequence sqn;
+    QCOMPARE(sqn.setAudioFrequency(frequency), result);
+
+}

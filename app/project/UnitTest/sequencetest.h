@@ -19,6 +19,8 @@ private slots:
     void testCaseSetHeights();
     void testCaseSetFrameRate_data();
     void testCaseSetFrameRate();
+    void testCaseSetFrequency_data();
+    void testCaseSetFrequency();
 };
 
 #endif // SEQUENCETEST_H

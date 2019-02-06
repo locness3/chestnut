@@ -28,6 +28,7 @@ namespace {
 const auto      RECURSION_LIMIT = 100;
 const int       MAXIMUM_WIDTH              = 4096;
 const int       MAXIMUM_HEIGHT             = 2160;
+const int       MAXIMUM_FREQUENCY          = 192000;
 const int       DEFAULT_WIDTH              = 1920;
 const int       DEFAULT_HEIGHT             = 1080;
 const double    DEFAULT_FRAMERATE          = 29.97;
@@ -246,8 +247,13 @@ bool Sequence::setFrameRate(const double frameRate)
 int Sequence::getAudioFrequency() const {
     return audio_frequency;
 }
-void Sequence::setAudioFrequency(const int frequency) {
-    audio_frequency = frequency;
+bool Sequence::setAudioFrequency(const int frequency)
+{
+    if ( (frequency >= 0) && (frequency <= MAXIMUM_FREQUENCY) ) {
+        audio_frequency = frequency;
+        return true;
+    }
+    return false;
 }
 
 

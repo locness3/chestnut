@@ -59,7 +59,7 @@ public:
     double getFrameRate() const;
     bool setFrameRate(const double frameRate);
     int getAudioFrequency() const;
-    void setAudioFrequency(const int frequency);
+    bool setAudioFrequency(const int frequency);
     int getAudioLayout() const;
     void setAudioLayout(const int layout);
 
