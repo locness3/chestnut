@@ -13,6 +13,10 @@ public:
 private slots:
     void testCaseDefaults();
     void testCaseCopy();
+    void testCaseSetWidths_data();
+    void testCaseSetWidths();
+    void testCaseSetHeights_data();
+    void testCaseSetHeights();
 };
 
 #endif // SEQUENCETEST_H

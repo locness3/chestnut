@@ -115,7 +115,9 @@ void Media::set_sequence(SequencePtr sqn) {
 }
 
 void Media::set_folder() {
-    if (folder_name.isEmpty()) folder_name = QCoreApplication::translate("Media", "New Folder");
+    if (folder_name.isEmpty()) {
+        folder_name = QCoreApplication::translate("Media", "New Folder");
+    }
     set_icon(QIcon(":/icons/folder.png"));
     type = MediaType::FOLDER;
     object = nullptr;
@@ -133,32 +135,34 @@ void Media::update_tooltip(const QString& error) {
     switch (type) {
     case MediaType::FOOTAGE:
     {
-        FootagePtr f = get_object<Footage>();
-        tooltip = QCoreApplication::translate("Media", "Name:") + " " + f->getName() + "\n" + QCoreApplication::translate("Media", "Filename:") + " " + f->url + "\n";
+        auto ftg = get_object<Footage>();
+        tooltip = QCoreApplication::translate("Media", "Name:") + " " + ftg->getName() + "\n"
+                + QCoreApplication::translate("Media", "Filename:") + " " + ftg->url + "\n";
 
         if (error.isEmpty()) {
-            if (f->video_tracks.size() > 0) {
+            if (ftg->video_tracks.size() > 0) {
                 tooltip += QCoreApplication::translate("Media", "Video Dimensions:") + " ";
-                for (int i=0;i<f->video_tracks.size();i++) {
+                for (int i=0;i<ftg->video_tracks.size();i++) {
                     if (i > 0) {
                         tooltip += ", ";
                     }
-                    tooltip += QString::number(f->video_tracks.at(i).video_width) + "x" + QString::number(f->video_tracks.at(i).video_height);
+                    tooltip += QString::number(ftg->video_tracks.at(i).video_width) + "x"
+                            + QString::number(ftg->video_tracks.at(i).video_height);
                 }
                 tooltip += "\n";
 
-                if (!f->video_tracks.at(0).infinite_length) {
+                if (!ftg->video_tracks.at(0).infinite_length) {
                     tooltip += QCoreApplication::translate("Media", "Frame Rate:") + " ";
-                    for (int i=0;i<f->video_tracks.size();i++) {
+                    for (int i=0;i<ftg->video_tracks.size();i++) {
                         if (i > 0) {
                             tooltip += ", ";
                         }
-                        if (f->video_tracks.at(i).video_interlacing == VIDEO_PROGRESSIVE) {
-                            tooltip += QString::number(f->video_tracks.at(i).video_frame_rate * f->speed);
+                        if (ftg->video_tracks.at(i).video_interlacing == VIDEO_PROGRESSIVE) {
+                            tooltip += QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed);
                         } else {
                             tooltip += QCoreApplication::translate("Media", "%1 fields (%2 frames)").arg(
-                                        QString::number(f->video_tracks.at(i).video_frame_rate * f->speed * 2),
-                                        QString::number(f->video_tracks.at(i).video_frame_rate * f->speed)
+                                        QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed * 2),
+                                        QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed)
                                         );
                         }
                     }
@@ -166,32 +170,33 @@ void Media::update_tooltip(const QString& error) {
                 }
 
                 tooltip += QCoreApplication::translate("Media", "Interlacing:") + " ";
-                for (int i=0;i<f->video_tracks.size();i++) {
+                for (int i=0;i<ftg->video_tracks.size();i++) {
                     if (i > 0) {
                         tooltip += ", ";
                     }
-                    tooltip += get_interlacing_name(f->video_tracks.at(i).video_interlacing);
+                    tooltip += get_interlacing_name(ftg->video_tracks.at(i).video_interlacing);
                 }
             }
 
-            if (f->audio_tracks.size() > 0) {
+            if (ftg->audio_tracks.size() > 0) {
                 tooltip += "\n";
 
                 tooltip += QCoreApplication::translate("Media", "Audio Frequency:") + " ";
-                for (int i=0;i<f->audio_tracks.size();i++) {
+                for (int i=0;i<ftg->audio_tracks.size();i++) {
                     if (i > 0) {
                         tooltip += ", ";
                     }
-                    tooltip += QString::number(f->audio_tracks.at(i).audio_frequency * f->speed);
+                    tooltip += QString::number(ftg->audio_tracks.at(i).audio_frequency * ftg->speed);
                 }
                 tooltip += "\n";
 
                 tooltip += QCoreApplication::translate("Media", "Audio Channels:") + " ";
-                for (int i=0;i<f->audio_tracks.size();i++) {
+                for (int i=0;i<ftg->audio_tracks.size();i++) {
                     if (i > 0) {
                         tooltip += ", ";
                     }
-                    tooltip += get_channel_layout_name(f->audio_tracks.at(i).audio_channels, f->audio_tracks.at(i).audio_layout);
+                    tooltip += get_channel_layout_name(ftg->audio_tracks.at(i).audio_channels,
+                                                       ftg->audio_tracks.at(i).audio_layout);
                 }
                 // tooltip += "\n";
             }

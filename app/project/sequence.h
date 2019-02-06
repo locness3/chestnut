@@ -52,9 +52,9 @@ public:
     long getEndFrame() const;
     void hard_delete_transition(ClipPtr& c, const int type);
 
-    void setWidth(const int val);
+    bool setWidth(const int val);
     int getWidth() const;
-    void setHeight(const int val);
+    bool setHeight(const int val);
     int getHeight() const;
     double getFrameRate() const;
     void setFrameRate(const double frameRate);
@@ -78,11 +78,11 @@ public:
     bool wrapper_sequence = false;
 
 private:
-    int width = 0;
-    int height = 0;
-    double frame_rate = 0.0;
-    int audio_frequency = 0;
-    int audio_layout = 0;
+    int width = -1;
+    int height = -1;
+    double frame_rate = -0.0;
+    int audio_frequency = -1;
+    int audio_layout = -1;
 };
 
 namespace global {

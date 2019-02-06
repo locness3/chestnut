@@ -40,3 +40,42 @@ void SequenceTest::testCaseCopy()
     QVERIFY(sqnOrigin.getWidth() == sqnCopy->getWidth());
     QVERIFY(sqnOrigin.clips.size() == sqnCopy->clips.size());
 }
+
+void SequenceTest::testCaseSetWidths_data()
+{
+    QTest::addColumn<int>("width");
+    QTest::addColumn<bool>("result");
+    QTest::newRow("negative") << -1 << false;
+    QTest::newRow("oddNumber") << 121 << false;
+    QTest::newRow("evenNumber") << 1920 << true;
+    QTest::newRow("tooLarge") << 4098 << false;
+    QTest::newRow("maximum") << 4096 << true;
+}
+
+void SequenceTest::testCaseSetWidths()
+{
+    QFETCH(int, width);
+    QFETCH(bool, result);
+    Sequence sqn;
+    QCOMPARE(sqn.setWidth(width), result);
+}
+
+
+void SequenceTest::testCaseSetHeights_data()
+{
+    QTest::addColumn<int>("height");
+    QTest::addColumn<bool>("result");
+    QTest::newRow("negative") << -1 << false;
+    QTest::newRow("oddNumber") << 121 << false;
+    QTest::newRow("evenNumber") << 1920 << true;
+    QTest::newRow("tooLarge") << 2162 << false;
+    QTest::newRow("maximum") << 2160 << true;
+}
+void SequenceTest::testCaseSetHeights()
+{
+
+    QFETCH(int, height);
+    QFETCH(bool, result);
+    Sequence sqn;
+    QCOMPARE(sqn.setHeight(height), result);
+}

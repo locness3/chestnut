@@ -26,6 +26,8 @@
 
 namespace {
 const auto      RECURSION_LIMIT = 100;
+const int       MAXIMUM_WIDTH              = 4096;
+const int       MAXIMUM_HEIGHT             = 2160;
 const int       DEFAULT_WIDTH              = 1920;
 const int       DEFAULT_HEIGHT             = 1080;
 const double    DEFAULT_FRAMERATE          = 29.97;
@@ -203,15 +205,25 @@ void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
 }
 
 
-void Sequence::setWidth(const int val) {
-    width = val;
+bool Sequence::setWidth(const int val)
+{
+    if ( (val % 2  == 0) && (val > 0) && (val <= MAXIMUM_WIDTH) ) {
+        width = val;
+        return true;
+    }
+    return false;
 }
 int Sequence::getWidth() const {
     return width;
 }
 
-void Sequence::setHeight(const int val) {
-    height = val;
+bool Sequence::setHeight(const int val)
+{
+    if ( (val % 2  == 0) && (val > 0) && (val <= MAXIMUM_HEIGHT) ) {
+        height = val;
+        return true;
+    }
+    return false;
 }
 int Sequence::getHeight() const {
     return height;

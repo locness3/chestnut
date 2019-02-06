@@ -15,6 +15,9 @@ signals:
 private slots:
     void testCaseConstructor();
     void testCaseConstructorWithParent();
+    void testCaseSetAsFootage();
+    void testCaseSetAsSequence();
+    void testCaseSetAsFolder();
 };
 
 #endif // MEDIATEST_H
