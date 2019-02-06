@@ -60,7 +60,15 @@ public:
     bool setFrameRate(const double frameRate);
     int getAudioFrequency() const;
     bool setAudioFrequency(const int frequency);
+    /**
+     * @brief getAudioLayout from ffmpeg libresample
+     * @return AV_CH_LAYOUT_*
+     */
     int getAudioLayout() const;
+    /**
+     * @brief setAudioLayout using ffmpeg libresample
+     * @param layout AV_CH_LAYOUT_* value from libavutil/channel_layout.h
+     */
     void setAudioLayout(const int layout);
 
     void closeActiveClips(const int depth=0);

@@ -256,10 +256,17 @@ bool Sequence::setAudioFrequency(const int frequency)
     return false;
 }
 
-
+/**
+ * @brief getAudioLayout from ffmpeg libresample
+ * @return AV_CH_LAYOUT_*
+ */
 int Sequence::getAudioLayout() const {
     return audio_layout;
 }
+/**
+ * @brief setAudioLayout using ffmpeg libresample
+ * @param layout AV_CH_LAYOUT_* value from libavutil/channel_layout.h
+ */
 void Sequence::setAudioLayout(const int layout) {
     audio_layout = layout;
 }
