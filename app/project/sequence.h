@@ -57,7 +57,7 @@ public:
     bool setHeight(const int val);
     int getHeight() const;
     double getFrameRate() const;
-    void setFrameRate(const double frameRate);
+    bool setFrameRate(const double frameRate);
     int getAudioFrequency() const;
     void setAudioFrequency(const int frequency);
     int getAudioLayout() const;

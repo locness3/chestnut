@@ -71,11 +71,32 @@ void SequenceTest::testCaseSetHeights_data()
     QTest::newRow("tooLarge") << 2162 << false;
     QTest::newRow("maximum") << 2160 << true;
 }
+
 void SequenceTest::testCaseSetHeights()
 {
-
     QFETCH(int, height);
     QFETCH(bool, result);
     Sequence sqn;
     QCOMPARE(sqn.setHeight(height), result);
+}
+
+
+void SequenceTest::testCaseSetFrameRate_data()
+{
+    QTest::addColumn<double>("rate");
+    QTest::addColumn<bool>("result");
+    QTest::newRow("negativeZero") << -0.0 << false;
+    QTest::newRow("negative") << -1.0 << false;
+    QTest::newRow("zero") << 0.0 << false;
+    QTest::newRow("positive") << 60.0 << true;
+    QTest::newRow("massivelyPositive") << 1000000.0 << true;
+
+}
+
+void SequenceTest::testCaseSetFrameRate()
+{
+    QFETCH(double, rate);
+    QFETCH(bool, result);
+    Sequence sqn;
+    QCOMPARE(sqn.setFrameRate(rate), result);
 }

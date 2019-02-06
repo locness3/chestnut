@@ -232,8 +232,14 @@ int Sequence::getHeight() const {
 double Sequence::getFrameRate() const {
     return frame_rate;
 }
-void Sequence::setFrameRate(const double frameRate) {
-    frame_rate = frameRate;
+
+bool Sequence::setFrameRate(const double frameRate)
+{
+    if (frameRate > 0.0) {
+        frame_rate = frameRate;
+        return true;
+    }
+    return false;
 }
 
 
