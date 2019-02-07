@@ -743,12 +743,12 @@ MediaRename::MediaRename(MediaPtr iitem, QString ito) :
 {}
 
 void MediaRename::undo() {
-    item->set_name(from);
+    item->setName(from);
     global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void MediaRename::redo() {
-    item->set_name(to);
+    item->setName(to);
     global::mainWindow->setWindowModified(true);
 }
 
@@ -1007,7 +1007,7 @@ void EditSequenceCommand::redo() {
 
 void EditSequenceCommand::update() {
     // update tooltip
-    item->set_sequence(seq);
+    item->setSequence(seq);
 
     for (int i=0;i<seq->clips.size();i++) {
         if (seq->clips.at(i) != nullptr) seq->clips.at(i)->refresh();
@@ -1069,7 +1069,7 @@ void UpdateFootageTooltip::undo() {
 }
 
 void UpdateFootageTooltip::redo() {
-    item->update_tooltip();
+    item->updateTooltip();
 }
 
 MoveEffectCommand::MoveEffectCommand() :

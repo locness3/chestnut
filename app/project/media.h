@@ -73,16 +73,16 @@ public:
      * @return id
      */
     int id() const;
-    void clear_object();
-    void set_footage(FootagePtr ftg);
-    void set_sequence(SequencePtr sqn);
-    void set_folder();
-    void set_icon(const QIcon &ico);
-    void set_parent(MediaWPtr p);
-    void update_tooltip(const QString& error = 0);
+    void clearObject();
+    void setFootage(FootagePtr ftg);
+    void setSequence(SequencePtr sqn);
+    void setFolder();
+    void setIcon(const QIcon &ico);
+    void setParent(MediaWPtr p);
+    void updateTooltip(const QString& error = 0);
     MediaType type() const;
     const QString& name();
-    void set_name(const QString& n);
+    void setName(const QString& n);
 
     double frameRate(const int stream = -1);
     int samplingRate(const int stream = -1);

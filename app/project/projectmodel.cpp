@@ -196,7 +196,7 @@ MediaPtr ProjectModel::getItem(const QModelIndex &index) const {
 void ProjectModel::set_icon(MediaPtr m, const QIcon &ico) {
     project_items.insert(m->id(), m);
     const auto index = create_index(m->row(), m);
-    m->set_icon(ico);
+    m->setIcon(ico);
     emit dataChanged(index, index);
 
 }

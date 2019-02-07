@@ -524,12 +524,12 @@ void PreviewGenerator::run() {
         }
 
         if (error) {
-            media->update_tooltip(errorStr);
+            media->updateTooltip(errorStr);
             emit set_icon(ICON_TYPE_ERROR, replace);
             ftg->invalid = true;
             ftg->ready_lock.unlock();
         } else {
-            media->update_tooltip();
+            media->updateTooltip();
         }
     }
 }

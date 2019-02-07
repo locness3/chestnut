@@ -199,7 +199,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                 if (attr.name() == "id") {
                                     folder->temp_id = attr.value().toInt();
                                 } else if (attr.name() == "name") {
-                                    folder->set_name(attr.value().toString());
+                                    folder->setName(attr.value().toString());
                                 } else if (attr.name() == "parent") {
                                     folder->temp_id2 = attr.value().toInt();
                                 }
@@ -260,7 +260,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                 }
                             }
 
-                            item->set_footage(ftg);
+                            item->setFootage(ftg);
 
                             if (folder == 0) {
                                 project_model.appendChild(nullptr, item);

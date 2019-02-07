@@ -38,7 +38,10 @@ void MediaTest::testCaseSetAsFootage()
 {
   Media mda;
   auto ftg = std::make_shared<Footage>();
-  mda.set_footage(ftg);
+  QVERIFY(mda.setFootage(ftg) == true);
+  QVERIFY(mda.setFootage(ftg) == false);
+  ftg.reset();
+  QVERIFY(mda.setFootage(ftg) == false);
   QVERIFY(mda.type() == MediaType::FOOTAGE);
   QVERIFY(mda.object<Footage>() != nullptr);
 }
@@ -47,7 +50,10 @@ void MediaTest::testCaseSetAsSequence()
 {
   Media mda;
   auto sqn = std::make_shared<Sequence>();
-  mda.set_sequence(sqn);
+  QVERIFY(mda.setSequence(sqn) == true);
+  QVERIFY(mda.setSequence(sqn) == false);
+  sqn.reset();
+  QVERIFY(mda.setSequence(sqn) == false);
   QVERIFY(mda.type() == MediaType::SEQUENCE);
   QVERIFY(mda.object<Sequence>() != nullptr);
 }
@@ -56,7 +62,7 @@ void MediaTest::testCaseSetAsSequence()
 void MediaTest::testCaseSetAsFolder()
 {
   Media mda;
-  mda.set_folder();
+  mda.setFolder();
   QVERIFY(mda.type() == MediaType::FOLDER);
   QVERIFY(!mda.name().isEmpty());
 }
@@ -65,8 +71,8 @@ void MediaTest::testCaseClear()
 {
   Media mda;
   auto ftg = std::make_shared<Footage>();
-  mda.set_footage(ftg);
-  mda.clear_object();
+  mda.setFootage(ftg);
+  mda.clearObject();
   QVERIFY(mda.type() == MediaType::NONE);
   QVERIFY(mda.object<Footage>() == nullptr);
 }

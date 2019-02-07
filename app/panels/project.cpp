@@ -340,7 +340,7 @@ MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaP
         parent = project_model.root();
     }
     auto item = std::make_shared<Media>(parent);
-    item->set_sequence(s);
+    item->setSequence(s);
 
     if (ca != nullptr) {
         ca->append(new NewSequenceCommand(item, parent));
@@ -381,8 +381,8 @@ bool Project::is_focused() {
 
 MediaPtr Project::new_folder(const QString &name) {
     MediaPtr item = std::make_shared<Media>();
-    item->set_folder();
-    item->set_name(name);
+    item->setFolder();
+    item->setName(name);
     return item;
 }
 
@@ -723,7 +723,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
                 ftg->url = fileName;
                 ftg->setName(get_file_name_from_path(fileName));
 
-                item->set_footage(ftg);
+                item->setFootage(ftg);
 
                 last_imported_media.append(item);
 
@@ -858,7 +858,7 @@ void Project::clear() {
     //TODO: are we clearing the right things?
     for (auto mda : sequences) {
         if (mda != nullptr) {
-            mda->clear_object();
+            mda->clearObject();
         }
     }
 

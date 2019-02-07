@@ -41,25 +41,25 @@ namespace
 }
 
 QString get_interlacing_name(int interlacing) {
-    switch (interlacing) {
+  switch (interlacing) {
     case VIDEO_PROGRESSIVE: return QCoreApplication::translate("InterlacingName", "None (Progressive)");
     case VIDEO_TOP_FIELD_FIRST: return QCoreApplication::translate("InterlacingName", "Top Field First");
     case VIDEO_BOTTOM_FIELD_FIRST: return QCoreApplication::translate("InterlacingName", "Bottom Field First");
     default: return QCoreApplication::translate("InterlacingName", "Invalid");
-    }
+  }
 }
 
 QString get_channel_layout_name(int channels, uint64_t layout) {
-    switch (channels) {
+  switch (channels) {
     case 0: return QCoreApplication::translate("ChannelLayoutName", "Invalid");
     case 1: return QCoreApplication::translate("ChannelLayoutName", "Mono");
     case 2: return QCoreApplication::translate("ChannelLayoutName", "Stereo");
     default: {
-        char buf[50];
-        av_get_channel_layout_string(buf, sizeof(buf), channels, layout);
-        return QString(buf);
+      char buf[50];
+      av_get_channel_layout_string(buf, sizeof(buf), channels, layout);
+      return QString(buf);
     }
-    }
+  }
 }
 
 int Media::nextID = 0;
@@ -67,24 +67,24 @@ int Media::nextID = 0;
 
 Media::Media() : Media(nullptr)
 {
-    // If no parent, this instance is the root
-    _root = true;
+  // If no parent, this instance is the root
+  _root = true;
 }
 
 Media::Media(MediaPtr iparent) :
-    throbber(nullptr),
-    _root(false),
-    _type(MediaType::NONE),
-    _parent(iparent),
-    _id(nextID++)
+  throbber(nullptr),
+  _root(false),
+  _type(MediaType::NONE),
+  _parent(iparent),
+  _id(nextID++)
 {
 
 }
 
 Media::~Media() {
-    if (throbber != nullptr) {
-        delete throbber;
-    }
+  if (throbber != nullptr) {
+    delete throbber;
+  }
 }
 
 
@@ -93,20 +93,20 @@ Media::~Media() {
  * @return id
  */
 int Media::id() const {
-    return _id;
+  return _id;
 }
 
-void Media::clear_object() {
-    _type = MediaType::NONE;
-    _object = nullptr;
+void Media::clearObject() {
+  _type = MediaType::NONE;
+  _object = nullptr;
 }
-void Media::set_footage(FootagePtr ftg) {
+void Media::setFootage(FootagePtr ftg) {
     _type = MediaType::FOOTAGE;
     _object = ftg;
 }
 
-void Media::set_sequence(SequencePtr sqn) {
-    set_icon(QIcon(":/icons/sequence.png"));
+void Media::setSequence(SequencePtr sqn) {
+    setIcon(QIcon(":/icons/sequence.png"));
     _type = MediaType::SEQUENCE;
     _object = sqn;
     if (sqn != nullptr) {
@@ -114,301 +114,301 @@ void Media::set_sequence(SequencePtr sqn) {
     }
 }
 
-void Media::set_folder() {
+void Media::setFolder() {
     if (_folderName.isEmpty()) {
         _folderName = QCoreApplication::translate("Media", "New Folder");
     }
-    set_icon(QIcon(":/icons/folder.png"));
+    setIcon(QIcon(":/icons/folder.png"));
     _type = MediaType::FOLDER;
     _object = nullptr;
 }
 
-void Media::set_icon(const QIcon &ico) {
-    _icon = ico;
+void Media::setIcon(const QIcon &ico) {
+  _icon = ico;
 }
 
-void Media::set_parent(MediaWPtr p) {
-    _parent = p;
+void Media::setParent(MediaWPtr p) {
+  _parent = p;
 }
 
-void Media::update_tooltip(const QString& error) {
-    switch (_type) {
+void Media::updateTooltip(const QString& error) {
+  switch (_type) {
     case MediaType::FOOTAGE:
     {
-        auto ftg = object<Footage>();
-        _toolTip = QCoreApplication::translate("Media", "Name:") + " " + ftg->getName() + "\n"
-                + QCoreApplication::translate("Media", "Filename:") + " " + ftg->url + "\n";
+      auto ftg = object<Footage>();
+      _toolTip = QCoreApplication::translate("Media", "Name:") + " " + ftg->getName() + "\n"
+                 + QCoreApplication::translate("Media", "Filename:") + " " + ftg->url + "\n";
 
-        if (error.isEmpty()) {
-            if (ftg->video_tracks.size() > 0) {
-                _toolTip += QCoreApplication::translate("Media", "Video Dimensions:") + " ";
-                for (int i=0;i<ftg->video_tracks.size();i++) {
-                    if (i > 0) {
-                        _toolTip += ", ";
-                    }
-                    _toolTip += QString::number(ftg->video_tracks.at(i).video_width) + "x"
-                            + QString::number(ftg->video_tracks.at(i).video_height);
-                }
-                _toolTip += "\n";
-
-                if (!ftg->video_tracks.at(0).infinite_length) {
-                    _toolTip += QCoreApplication::translate("Media", "Frame Rate:") + " ";
-                    for (int i=0;i<ftg->video_tracks.size();i++) {
-                        if (i > 0) {
-                            _toolTip += ", ";
-                        }
-                        if (ftg->video_tracks.at(i).video_interlacing == VIDEO_PROGRESSIVE) {
-                            _toolTip += QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed);
-                        } else {
-                            _toolTip += QCoreApplication::translate("Media", "%1 fields (%2 frames)").arg(
-                                        QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed * 2),
-                                        QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed)
-                                        );
-                        }
-                    }
-                    _toolTip += "\n";
-                }
-
-                _toolTip += QCoreApplication::translate("Media", "Interlacing:") + " ";
-                for (int i=0;i<ftg->video_tracks.size();i++) {
-                    if (i > 0) {
-                        _toolTip += ", ";
-                    }
-                    _toolTip += get_interlacing_name(ftg->video_tracks.at(i).video_interlacing);
-                }
+      if (error.isEmpty()) {
+        if (ftg->video_tracks.size() > 0) {
+          _toolTip += QCoreApplication::translate("Media", "Video Dimensions:") + " ";
+          for (int i=0;i<ftg->video_tracks.size();i++) {
+            if (i > 0) {
+              _toolTip += ", ";
             }
+            _toolTip += QString::number(ftg->video_tracks.at(i).video_width) + "x"
+                        + QString::number(ftg->video_tracks.at(i).video_height);
+          }
+          _toolTip += "\n";
 
-            if (ftg->audio_tracks.size() > 0) {
-                _toolTip += "\n";
-
-                _toolTip += QCoreApplication::translate("Media", "Audio Frequency:") + " ";
-                for (int i=0;i<ftg->audio_tracks.size();i++) {
-                    if (i > 0) {
-                        _toolTip += ", ";
-                    }
-                    _toolTip += QString::number(ftg->audio_tracks.at(i).audio_frequency * ftg->speed);
-                }
-                _toolTip += "\n";
-
-                _toolTip += QCoreApplication::translate("Media", "Audio Channels:") + " ";
-                for (int i=0;i<ftg->audio_tracks.size();i++) {
-                    if (i > 0) {
-                        _toolTip += ", ";
-                    }
-                    _toolTip += get_channel_layout_name(ftg->audio_tracks.at(i).audio_channels,
-                                                       ftg->audio_tracks.at(i).audio_layout);
-                }
-                // tooltip += "\n";
+          if (!ftg->video_tracks.at(0).infinite_length) {
+            _toolTip += QCoreApplication::translate("Media", "Frame Rate:") + " ";
+            for (int i=0;i<ftg->video_tracks.size();i++) {
+              if (i > 0) {
+                _toolTip += ", ";
+              }
+              if (ftg->video_tracks.at(i).video_interlacing == VIDEO_PROGRESSIVE) {
+                _toolTip += QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed);
+              } else {
+                _toolTip += QCoreApplication::translate("Media", "%1 fields (%2 frames)").arg(
+                              QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed * 2),
+                              QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed)
+                              );
+              }
             }
-        } else {
-            _toolTip += error;
+            _toolTip += "\n";
+          }
+
+          _toolTip += QCoreApplication::translate("Media", "Interlacing:") + " ";
+          for (int i=0;i<ftg->video_tracks.size();i++) {
+            if (i > 0) {
+              _toolTip += ", ";
+            }
+            _toolTip += get_interlacing_name(ftg->video_tracks.at(i).video_interlacing);
+          }
         }
+
+        if (ftg->audio_tracks.size() > 0) {
+          _toolTip += "\n";
+
+          _toolTip += QCoreApplication::translate("Media", "Audio Frequency:") + " ";
+          for (int i=0;i<ftg->audio_tracks.size();i++) {
+            if (i > 0) {
+              _toolTip += ", ";
+            }
+            _toolTip += QString::number(ftg->audio_tracks.at(i).audio_frequency * ftg->speed);
+          }
+          _toolTip += "\n";
+
+          _toolTip += QCoreApplication::translate("Media", "Audio Channels:") + " ";
+          for (int i=0;i<ftg->audio_tracks.size();i++) {
+            if (i > 0) {
+              _toolTip += ", ";
+            }
+            _toolTip += get_channel_layout_name(ftg->audio_tracks.at(i).audio_channels,
+                                                ftg->audio_tracks.at(i).audio_layout);
+          }
+          // tooltip += "\n";
+        }
+      } else {
+        _toolTip += error;
+      }
     }
-        break;
+      break;
     case MediaType::SEQUENCE:
     {
-        auto sqn = object<Sequence>();
+      auto sqn = object<Sequence>();
 
-        _toolTip = QCoreApplication::translate("Media", "Name: %1"
-                                                       "\nVideo Dimensions: %2x%3"
-                                                       "\nFrame Rate: %4"
-                                                       "\nAudio Frequency: %5"
-                                                       "\nAudio Layout: %6").arg(
-                    sqn->getName(),
-                    QString::number(sqn->getWidth()),
-                    QString::number(sqn->getHeight()),
-                    QString::number(sqn->getFrameRate()),
-                    QString::number(sqn->getAudioFrequency()),
-                    get_channel_layout_name(av_get_channel_layout_nb_channels(sqn->getAudioLayout()), sqn->getAudioLayout())
-                    );
+      _toolTip = QCoreApplication::translate("Media", "Name: %1"
+                                                      "\nVideo Dimensions: %2x%3"
+                                                      "\nFrame Rate: %4"
+                                                      "\nAudio Frequency: %5"
+                                                      "\nAudio Layout: %6").arg(
+                   sqn->getName(),
+                   QString::number(sqn->getWidth()),
+                   QString::number(sqn->getHeight()),
+                   QString::number(sqn->getFrameRate()),
+                   QString::number(sqn->getAudioFrequency()),
+                   get_channel_layout_name(av_get_channel_layout_nb_channels(sqn->getAudioLayout()), sqn->getAudioLayout())
+                   );
     }
-        break;
+      break;
     default:
-        throw UnhandledMediaTypeException();
-        break;
-    }//switch
+      throw UnhandledMediaTypeException();
+      break;
+  }//switch
 
 }
 
 MediaType Media::type() const {
-    return _type;
+  return _type;
 }
 
 const QString &Media::name() {
-    switch (_type) {
+  switch (_type) {
     case MediaType::FOOTAGE: return object<Footage>()->getName();
     case MediaType::SEQUENCE: return object<Sequence>()->getName();
     default: return _folderName;
-    }
+  }
 }
 
-void Media::set_name(const QString &name) {
-    switch (_type) {
+void Media::setName(const QString &name) {
+  switch (_type) {
     case MediaType::FOOTAGE:
-        object<Footage>()->setName(name);
-        break;
+      object<Footage>()->setName(name);
+      break;
     case MediaType::SEQUENCE:
-        object<Sequence>()->setName(name);
-        break;
+      object<Sequence>()->setName(name);
+      break;
     case MediaType::FOLDER:
-        _folderName = name;
-        break;
+      _folderName = name;
+      break;
     default:
-        throw UnhandledMediaTypeException();
-        break;
-    }//switch
+      throw UnhandledMediaTypeException();
+      break;
+  }//switch
 }
 
 double Media::frameRate(const int stream) {
-    switch (type()) {
+  switch (type()) {
     case MediaType::FOOTAGE:
     {
-        if (auto ftg = object<Footage>()) {
-            if ( (stream < 0) && !ftg->video_tracks.empty()) {
-                return ftg->video_tracks.at(0).video_frame_rate * ftg->speed;
-            }
-            FootageStream ms;
-            if (ftg->get_stream_from_file_index(true, stream, ms)) {
-                return ms.video_frame_rate * ftg->speed;
-            }
+      if (auto ftg = object<Footage>()) {
+        if ( (stream < 0) && !ftg->video_tracks.empty()) {
+          return ftg->video_tracks.at(0).video_frame_rate * ftg->speed;
         }
-        break;
+        FootageStream ms;
+        if (ftg->get_stream_from_file_index(true, stream, ms)) {
+          return ms.video_frame_rate * ftg->speed;
+        }
+      }
+      break;
     }
     case MediaType::SEQUENCE:
-        if (auto sqn = object<Sequence>()) {
-            return sqn->getFrameRate();
-        }
-        break;
+      if (auto sqn = object<Sequence>()) {
+        return sqn->getFrameRate();
+      }
+      break;
     default:
-        throw UnhandledMediaTypeException();
-        break;
-    }//switch
+      throw UnhandledMediaTypeException();
+      break;
+  }//switch
 
-    return 0.0;
+  return 0.0;
 }
 
 int Media::samplingRate(const int stream) {
-    switch (type()) {
+  switch (type()) {
     case MediaType::FOOTAGE:
     {
-        if (auto ftg = object<Footage>()) {
-            if (stream < 0) {
-                return ftg->audio_tracks.at(0).audio_frequency * ftg->speed;
-            }
-            FootageStream ms;
-            if (ftg->get_stream_from_file_index(false, stream, ms)) {
-                return ms.audio_frequency * ftg->speed;
-            }
+      if (auto ftg = object<Footage>()) {
+        if (stream < 0) {
+          return ftg->audio_tracks.at(0).audio_frequency * ftg->speed;
         }
-        break;
+        FootageStream ms;
+        if (ftg->get_stream_from_file_index(false, stream, ms)) {
+          return ms.audio_frequency * ftg->speed;
+        }
+      }
+      break;
     }
     case MediaType::SEQUENCE:
-        if (auto sqn = object<Sequence>()) {
-            return sqn->getAudioFrequency();
-        }
-        break;
+      if (auto sqn = object<Sequence>()) {
+        return sqn->getAudioFrequency();
+      }
+      break;
     default:
-        throw UnhandledMediaTypeException();
-        break;
-    }//switch
-    return 0;
+      throw UnhandledMediaTypeException();
+      break;
+  }//switch
+  return 0;
 }
 
 void Media::appendChild(MediaPtr child) {
-    child->set_parent(shared_from_this());
-    _children.append(child);
+  child->setParent(shared_from_this());
+  _children.append(child);
 }
 
 bool Media::setData(int col, const QVariant &value) {
-    if (col == 0) {
-        QString n = value.toString();
-        if (!n.isEmpty() && name() != n) {
-            e_undo_stack.push(new MediaRename(shared_from_this(), value.toString()));
-            return true;
-        }
+  if (col == 0) {
+    QString n = value.toString();
+    if (!n.isEmpty() && name() != n) {
+      e_undo_stack.push(new MediaRename(shared_from_this(), value.toString()));
+      return true;
     }
-    return false;
+  }
+  return false;
 }
 
 MediaPtr Media::child(const int row) {
-    return _children.value(row);
+  return _children.value(row);
 }
 
 int Media::childCount() const {
-    return _children.count();
+  return _children.count();
 }
 
 int Media::columnCount() const {
-    return COLUMN_COUNT;
+  return COLUMN_COUNT;
 }
 
 QVariant Media::data(int column, int role) {
-    switch (role) {
+  switch (role) {
     case Qt::DecorationRole:
-        if (column == 0) {
-            if (type() == MediaType::FOOTAGE) {
-                FootagePtr f = object<Footage>();
-                if (f->video_tracks.size() > 0
-                        && f->video_tracks.at(0).preview_done) {
-                    return f->video_tracks.at(0).video_preview_square;
-                }
-            }
-
-            return _icon;
+      if (column == 0) {
+        if (type() == MediaType::FOOTAGE) {
+          FootagePtr f = object<Footage>();
+          if (f->video_tracks.size() > 0
+              && f->video_tracks.at(0).preview_done) {
+            return f->video_tracks.at(0).video_preview_square;
+          }
         }
-        break;
+
+        return _icon;
+      }
+      break;
     case Qt::DisplayRole:
-        switch (column) {
+      switch (column) {
         case 0: return (_root) ? QCoreApplication::translate("Media", "Name") : name();
         case 1:
-            if (_root) return QCoreApplication::translate("Media", "Duration");
-            if (type() == MediaType::SEQUENCE) {
-                SequencePtr s = object<Sequence>();
-                return frame_to_timecode(s->getEndFrame(), e_config.timecode_view, s->getFrameRate());
-            }
-            if (type() == MediaType::FOOTAGE) {
-                FootagePtr f = object<Footage>();
-                double r = 30;
+          if (_root) return QCoreApplication::translate("Media", "Duration");
+          if (type() == MediaType::SEQUENCE) {
+            SequencePtr s = object<Sequence>();
+            return frame_to_timecode(s->getEndFrame(), e_config.timecode_view, s->getFrameRate());
+          }
+          if (type() == MediaType::FOOTAGE) {
+            FootagePtr f = object<Footage>();
+            double r = 30;
 
-                if (f->video_tracks.size() > 0 && !qIsNull(f->video_tracks.at(0).video_frame_rate))
-                    r = f->video_tracks.at(0).video_frame_rate * f->speed;
+            if (f->video_tracks.size() > 0 && !qIsNull(f->video_tracks.at(0).video_frame_rate))
+              r = f->video_tracks.at(0).video_frame_rate * f->speed;
 
-                long len = f->get_length_in_frames(r);
-                if (len > 0) return frame_to_timecode(len, e_config.timecode_view, r);
-            }
-            break;
+            long len = f->get_length_in_frames(r);
+            if (len > 0) return frame_to_timecode(len, e_config.timecode_view, r);
+          }
+          break;
         case 2:
-            if (_root) return QCoreApplication::translate("Media", "Rate");
-            if (type() == MediaType::SEQUENCE) return QString::number(frameRate()) + " FPS";
-            if (type() == MediaType::FOOTAGE) {
-                auto ftg = object<Footage>();
-                const double rate = frameRate();
-                if ( (ftg->video_tracks.size() > 0) && !qIsNull(rate)) {
-                    return QString::number(rate) + " FPS";
-                } else if (ftg->audio_tracks.size() > 0) {
-                    return QString::number(samplingRate()) + " Hz";
-                }
+          if (_root) return QCoreApplication::translate("Media", "Rate");
+          if (type() == MediaType::SEQUENCE) return QString::number(frameRate()) + " FPS";
+          if (type() == MediaType::FOOTAGE) {
+            auto ftg = object<Footage>();
+            const double rate = frameRate();
+            if ( (ftg->video_tracks.size() > 0) && !qIsNull(rate)) {
+              return QString::number(rate) + " FPS";
+            } else if (ftg->audio_tracks.size() > 0) {
+              return QString::number(samplingRate()) + " Hz";
             }
-            break;
-        }
-        break;
+          }
+          break;
+      }
+      break;
     case Qt::ToolTipRole:
-        return _toolTip;
-    }
-    return QVariant();
+      return _toolTip;
+  }
+  return QVariant();
 }
 
 int Media::row() {
-    if (auto parPtr = _parent.lock()) {
-        return parPtr->_children.indexOf(shared_from_this());
-    }
-    return 0;
+  if (auto parPtr = _parent.lock()) {
+    return parPtr->_children.indexOf(shared_from_this());
+  }
+  return 0;
 }
 
 MediaPtr Media::parentItem() {
-    return _parent.lock();
+  return _parent.lock();
 }
 
 void Media::removeChild(int i) {
-    _children.removeAt(i);
+  _children.removeAt(i);
 }
