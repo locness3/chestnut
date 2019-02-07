@@ -15,7 +15,7 @@ void MediaTest::testCaseConstructor()
   QVERIFY(mda.object<Footage>() == nullptr);
   QVERIFY(mda.object<Sequence>() == nullptr);
   QVERIFY(mda.type() == MediaType::NONE);
-  QVERIFY(mda.get_name().isEmpty());
+  QVERIFY(mda.name().isEmpty());
   QVERIFY(mda.childCount() == 0);
   QVERIFY(mda.child(0) == nullptr);
   QVERIFY(mda.columnCount() == 3);
@@ -58,7 +58,7 @@ void MediaTest::testCaseSetAsFolder()
   Media mda;
   mda.set_folder();
   QVERIFY(mda.type() == MediaType::FOLDER);
-  QVERIFY(!mda.get_name().isEmpty());
+  QVERIFY(!mda.name().isEmpty());
 }
 
 void MediaTest::testCaseClear()

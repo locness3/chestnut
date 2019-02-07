@@ -44,7 +44,7 @@ ReplaceClipMediaDialog::ReplaceClipMediaDialog(QWidget *parent, MediaPtr old_med
 	QDialog(parent),
 	media(old_media)
 {
-    setWindowTitle(tr("Replace clips using \"%1\"").arg(old_media->get_name()));
+    setWindowTitle(tr("Replace clips using \"%1\"").arg(old_media->name()));
 
     resize(DIALOG_WIDTH, DIALOG_HEIGHT);
 

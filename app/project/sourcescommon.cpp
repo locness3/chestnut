@@ -232,7 +232,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
                     && QMessageBox::question(
                         parent,
                         tr("Replace Media"),
-                        tr("You dropped a file onto '%1'. Would you like to replace it with the dropped file?").arg(m->get_name()),
+                        tr("You dropped a file onto '%1'. Would you like to replace it with the dropped file?").arg(m->name()),
                         QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
                 replace = true;
                 project_parent->replace_media(m, paths.front());

@@ -737,7 +737,7 @@ void MediaMove::redo() {
 
 MediaRename::MediaRename(MediaPtr iitem, QString ito) :
     item(iitem),
-    from(iitem->get_name()),
+    from(iitem->name()),
     to(ito),
     old_project_changed(global::mainWindow->isWindowModified())
 {}

@@ -81,7 +81,7 @@ public:
     void set_parent(MediaWPtr p);
     void update_tooltip(const QString& error = 0);
     MediaType type() const;
-    const QString& get_name();
+    const QString& name();
     void set_name(const QString& n);
 
     double frameRate(const int stream = -1);

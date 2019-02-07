@@ -31,7 +31,7 @@ class QDoubleSpinBox;
 class MediaPropertiesDialog : public QDialog {
 	Q_OBJECT
 public:
-    MediaPropertiesDialog(QWidget *parent, MediaPtr i);
+    MediaPropertiesDialog(QWidget *parent, MediaPtr mda);
 private:
 	QComboBox* interlacing_box;
 	QLineEdit* name_box;

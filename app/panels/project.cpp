@@ -225,7 +225,7 @@ QString Project::get_next_sequence_name(QString start) {
         }
         name += QString::number(n);
         for (int i=0;i<project_model.childCount();i++) {
-            if (QString::compare(project_model.child(i)->get_name(), name, Qt::CaseInsensitive) == 0) {
+            if (QString::compare(project_model.child(i)->name(), name, Qt::CaseInsensitive) == 0) {
                 found = true;
                 n++;
                 break;
@@ -268,7 +268,7 @@ void Project::replace_media(MediaPtr item, QString filename) {
     if (filename.isEmpty()) {
         filename = QFileDialog::getOpenFileName(
                     this,
-                    tr("Replace '%1'").arg(item->get_name()),
+                    tr("Replace '%1'").arg(item->name()),
                     "",
                     tr("All Files") + " (*)");
     }
@@ -322,10 +322,10 @@ void Project::open_properties() {
         {
             // fall back to renaming
             QString new_name = QInputDialog::getText(this,
-                                                     tr("Rename '%1'").arg(item->get_name()),
+                                                     tr("Rename '%1'").arg(item->name()),
                                                      tr("Enter new name:"),
                                                      QLineEdit::Normal,
-                                                     item->get_name());
+                                                     item->name());
             if (!new_name.isEmpty()) {
                 MediaRename* mr = new MediaRename(item, new_name);
                 e_undo_stack.push(mr);
@@ -898,7 +898,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                 } else {
                     // if we're saving folders, save the folder
                     stream.writeStartElement("folder");
-                    stream.writeAttribute("name", mda->get_name());
+                    stream.writeAttribute("name", mda->name());
                     stream.writeAttribute("id", QString::number(mda->temp_id));
                     if (!item.parent().isValid()) {
                         stream.writeAttribute("parent", "0");

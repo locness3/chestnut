@@ -234,7 +234,7 @@ MediaType Media::type() const {
     return _type;
 }
 
-const QString &Media::get_name() {
+const QString &Media::name() {
     switch (_type) {
     case MediaType::FOOTAGE: return object<Footage>()->getName();
     case MediaType::SEQUENCE: return object<Sequence>()->getName();
@@ -322,7 +322,7 @@ void Media::appendChild(MediaPtr child) {
 bool Media::setData(int col, const QVariant &value) {
     if (col == 0) {
         QString n = value.toString();
-        if (!n.isEmpty() && get_name() != n) {
+        if (!n.isEmpty() && name() != n) {
             e_undo_stack.push(new MediaRename(shared_from_this(), value.toString()));
             return true;
         }
@@ -359,7 +359,7 @@ QVariant Media::data(int column, int role) {
         break;
     case Qt::DisplayRole:
         switch (column) {
-        case 0: return (_root) ? QCoreApplication::translate("Media", "Name") : get_name();
+        case 0: return (_root) ? QCoreApplication::translate("Media", "Name") : name();
         case 1:
             if (_root) return QCoreApplication::translate("Media", "Duration");
             if (type() == MediaType::SEQUENCE) {
