@@ -1,9 +1,3 @@
-# Olive Video Editor
+This is a fork of Olive-Editor which can be found at: https://www.olivevideoeditor.org/
 
-Olive is a free non-linear video editor for Windows, macOS, and Linux.
-
-Discover more and download binaries at: https://www.olivevideoeditor.org/
-
-Compiling instructions for Windows, macOS, and Linux are [here](https://olivevideoeditor.org/compile.php).
-
-If you like Olive, please consider helping keep it alive by supporting it on [Patreon](https://www.patreon.com/olivevideoeditor).
+The sole intent of this project is a personal project into assuring some level of quality, testing and stability, not features.
