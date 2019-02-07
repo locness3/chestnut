@@ -47,7 +47,7 @@ NewSequenceDialog::NewSequenceDialog(QWidget *parent, MediaPtr existing) :
 	setup_ui();
 
 	if (existing != nullptr) {
-        existing_sequence = existing->get_object<Sequence>();
+        existing_sequence = existing->object<Sequence>();
 		setWindowTitle(tr("Editing \"%1\"").arg(existing_sequence->getName()));
 
         width_numeric->setValue(existing_sequence->getWidth());

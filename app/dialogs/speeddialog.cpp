@@ -104,7 +104,7 @@ void SpeedDialog::run() {
         if (c->timeline_info.track < 0) {
             bool process_video = true;
             if (c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MediaType::FOOTAGE) {
-                FootagePtr  m = c->timeline_info.media->get_object<Footage>();
+                FootagePtr  m = c->timeline_info.media->object<Footage>();
                 FootageStream ms;
                 if (m->get_stream_from_file_index(true, c->timeline_info.media_stream, ms)) {
                     process_video = !ms.infinite_length;

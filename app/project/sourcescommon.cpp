@@ -195,7 +195,7 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& 
                     e_panel_footage_viewer->setFocus();
                     break;
                 case MediaType::SEQUENCE:
-                    e_undo_stack.push(new ChangeSequenceAction(item->get_object<Sequence>()));
+                    e_undo_stack.push(new ChangeSequenceAction(item->object<Sequence>()));
                     break;
                 default:
                     qWarning() << "Unknown media type" << static_cast<int>(item->get_type());
@@ -296,7 +296,7 @@ void SourcesCommon::reveal_in_browser() {
     if (!media) {
         return;
     }
-    auto ftg = media->get_object<Footage>();
+    auto ftg = media->object<Footage>();
     if (!ftg) {
         return;
     }

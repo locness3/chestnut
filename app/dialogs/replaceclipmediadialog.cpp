@@ -108,7 +108,7 @@ void ReplaceClipMediaDialog::replace() {
                         QMessageBox::Ok
                     );
 		} else {
-            if (new_item->get_type() == MediaType::SEQUENCE && global::sequence == new_item->get_object<Sequence>()) {
+            if (new_item->get_type() == MediaType::SEQUENCE && global::sequence == new_item->object<Sequence>()) {
                 QMessageBox::critical(
                             this,
                             tr("Active sequence selected"),

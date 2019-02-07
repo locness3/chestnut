@@ -205,7 +205,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
 
         switch (mda->get_type()) {
         case MediaType::FOOTAGE:
-            if (ftg = mda->get_object<Footage>()) {
+            if (ftg = mda->object<Footage>()) {
                 can_import = ftg->ready;
                 if (ftg->using_inout) {
                     auto source_fr = 30.0;
@@ -218,7 +218,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
             }
             break;
         case MediaType::SEQUENCE:
-            lcl_seq = mda->get_object<Sequence>();
+            lcl_seq = mda->object<Sequence>();
             sequence_length = lcl_seq->getEndFrame();
             if (lcl_seq != nullptr) {
                 sequence_length = refactor_frame_number(sequence_length, lcl_seq->getFrameRate(), seq->getFrameRate());
@@ -323,7 +323,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
         clp->timeline_info.clip_in = g.clip_in;
         clp->timeline_info.track = g.track;
         if (clp->timeline_info.media->get_type() == MediaType::FOOTAGE) {
-            auto ftg = clp->timeline_info.media->get_object<Footage>();
+            auto ftg = clp->timeline_info.media->object<Footage>();
             if (ftg->video_tracks.size() == 0) {
                 // audio only (greenish)
                 clp->timeline_info.color = AUDIO_ONLY_COLOR;
@@ -339,7 +339,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
             // sequence (red?ish?)
             clp->timeline_info.color = SEQUENCE_COLOR;
 
-            SequencePtr media = clp->timeline_info.media->get_object<Sequence>();
+            SequencePtr media = clp->timeline_info.media->object<Sequence>();
             clp->timeline_info.name = media->getName();
         }
         clp->recalculateMaxLength();

@@ -292,7 +292,7 @@ void TimelineWidget::open_sequence_properties() {
     }
     e_panel_project->get_all_media_from_table(all_top_level_items, sequence_items, MediaType::SEQUENCE); // find all sequences in project
     for (int i=0;i<sequence_items.size();i++) {
-        if (sequence_items.at(i)->get_object<Sequence>() == global::sequence) {
+        if (sequence_items.at(i)->object<Sequence>() == global::sequence) {
             NewSequenceDialog nsd(this, sequence_items.at(i));
             nsd.exec();
             return;
@@ -344,7 +344,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
                 // waits for media to have a duration
                 // TODO would be much nicer if this was multithreaded
                 if (auto mda = e_panel_project->getImportedMedia(i)) {
-                    if (auto ftg = mda->get_object<Footage>()) {
+                    if (auto ftg = mda->object<Footage>()) {
                         ftg->ready_lock.lock();
                         ftg->ready_lock.unlock();
 
@@ -1324,7 +1324,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
         FootageStream ms;
         bool found = false;
         if (g.clip != -1 && c->timeline_info.media != nullptr && c->timeline_info.media->get_type() == MediaType::FOOTAGE) {
-            auto ftg = c->timeline_info.media->get_object<Footage>();
+            auto ftg = c->timeline_info.media->object<Footage>();
             if (ftg) {
                 found = ftg->get_stream_from_file_index(c->timeline_info.track < 0, c->timeline_info.media_stream, ms);
             }
@@ -2345,7 +2345,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                             clip->timeline_info.media->get_type() == MediaType::FOOTAGE) {
                         bool draw_checkerboard = false;
                         QRect checkerboard_rect(clip_rect);
-                        auto ftg = clip->timeline_info.media->get_object<Footage>();
+                        auto ftg = clip->timeline_info.media->object<Footage>();
                         FootageStream ms;
                         if (!ftg->get_stream_from_file_index(clip->timeline_info.track < 0,
                                                              clip->timeline_info.media_stream,

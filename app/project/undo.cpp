@@ -230,7 +230,7 @@ void SetTimelineInOutCommand::undo() {
 
     // footage viewer functions
     if (seq->wrapper_sequence) {
-        FootagePtr  m = seq->clips.at(0)->timeline_info.media->get_object<Footage>();
+        FootagePtr  m = seq->clips.at(0)->timeline_info.media->object<Footage>();
         m->using_inout = old_enabled;
         m->in = old_in;
         m->out = old_out;
@@ -252,7 +252,7 @@ void SetTimelineInOutCommand::redo() {
 
     // footage viewer functions
     if (seq->wrapper_sequence) {
-        FootagePtr  m = seq->clips.at(0)->timeline_info.media->get_object<Footage>();
+        FootagePtr  m = seq->clips.at(0)->timeline_info.media->object<Footage>();
         m->using_inout = new_enabled;
         m->in = new_in;
         m->out = new_out;
@@ -591,14 +591,14 @@ ReplaceMediaCommand::ReplaceMediaCommand(MediaPtr i, QString s) :
     new_filename(s),
     old_project_changed(global::mainWindow->isWindowModified())
 {
-    old_filename = item->get_object<Footage>()->url;
+    old_filename = item->object<Footage>()->url;
 }
 
 void ReplaceMediaCommand::replace(QString& filename) {
     // close any clips currently using this media
     QVector<MediaPtr> all_sequences = e_panel_project->list_all_project_sequences();
     for (int i=0;i<all_sequences.size();i++) {
-        SequencePtr s = all_sequences.at(i)->get_object<Sequence>();
+        SequencePtr s = all_sequences.at(i)->object<Sequence>();
         for (int j=0;j<s->clips.size();j++) {
             ClipPtr   c = s->clips.at(j);
             if (c != nullptr && c->timeline_info.media == item && c->is_open) {
@@ -611,7 +611,7 @@ void ReplaceMediaCommand::replace(QString& filename) {
     // replace media
     QStringList files;
     files.append(filename);
-    item->get_object<Footage>()->ready_lock.lock();
+    item->object<Footage>()->ready_lock.lock();
     e_panel_project->process_file_list(files, false, item, nullptr);
 }
 
@@ -1272,7 +1272,7 @@ void RefreshClips::redo() {
     // close any clips currently using this media
     QVector<MediaPtr> all_sequences = e_panel_project->list_all_project_sequences();
     for (int i=0;i<all_sequences.size();i++) {
-        SequencePtr s = all_sequences.at(i)->get_object<Sequence>();
+        SequencePtr s = all_sequences.at(i)->object<Sequence>();
         for (int j=0;j<s->clips.size();j++) {
             ClipPtr   c = s->clips.at(j);
             if (c != nullptr && c->timeline_info.media == media) {

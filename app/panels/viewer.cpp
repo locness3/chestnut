@@ -411,7 +411,7 @@ void Viewer::pause() {
             // add it to the sequence
             auto clp = std::make_shared<Clip>(seq);
             auto mda = e_panel_project->getImportedMedia(0);
-            auto ftg = mda->get_object<Footage>();
+            auto ftg = mda->object<Footage>();
 
             ftg->ready_lock.lock();
 
@@ -686,7 +686,7 @@ void Viewer::set_media(MediaPtr m) {
         switch (media->get_type()) {
         case MediaType::FOOTAGE:
         {
-            auto ftg = media->get_object<Footage>();
+            auto ftg = media->object<Footage>();
 
             seq = std::make_shared<Sequence>();
             created_sequence = true;
@@ -754,7 +754,7 @@ void Viewer::set_media(MediaPtr m) {
         }
             break;
         case MediaType::SEQUENCE:
-            seq = media->get_object<Sequence>();
+            seq = media->object<Sequence>();
             break;
         default:
             qWarning() << "Unhandled media type" << static_cast<int>(media->get_type());

@@ -98,17 +98,17 @@ int Media::getId() const {
 
 void Media::clear_object() {
     type = MediaType::NONE;
-    object = nullptr;
+    heldObject = nullptr;
 }
 void Media::set_footage(FootagePtr ftg) {
     type = MediaType::FOOTAGE;
-    object = ftg;
+    heldObject = ftg;
 }
 
 void Media::set_sequence(SequencePtr sqn) {
     set_icon(QIcon(":/icons/sequence.png"));
     type = MediaType::SEQUENCE;
-    object = sqn;
+    heldObject = sqn;
     if (sqn != nullptr) {
         update_tooltip();
     }
@@ -120,7 +120,7 @@ void Media::set_folder() {
     }
     set_icon(QIcon(":/icons/folder.png"));
     type = MediaType::FOLDER;
-    object = nullptr;
+    heldObject = nullptr;
 }
 
 void Media::set_icon(const QIcon &ico) {
@@ -135,7 +135,7 @@ void Media::update_tooltip(const QString& error) {
     switch (type) {
     case MediaType::FOOTAGE:
     {
-        auto ftg = get_object<Footage>();
+        auto ftg = object<Footage>();
         tooltip = QCoreApplication::translate("Media", "Name:") + " " + ftg->getName() + "\n"
                 + QCoreApplication::translate("Media", "Filename:") + " " + ftg->url + "\n";
 
@@ -207,7 +207,7 @@ void Media::update_tooltip(const QString& error) {
         break;
     case MediaType::SEQUENCE:
     {
-        auto sqn = get_object<Sequence>();
+        auto sqn = object<Sequence>();
 
         tooltip = QCoreApplication::translate("Media", "Name: %1"
                                                        "\nVideo Dimensions: %2x%3"
@@ -236,8 +236,8 @@ MediaType Media::get_type() const {
 
 const QString &Media::get_name() {
     switch (type) {
-    case MediaType::FOOTAGE: return get_object<Footage>()->getName();
-    case MediaType::SEQUENCE: return get_object<Sequence>()->getName();
+    case MediaType::FOOTAGE: return object<Footage>()->getName();
+    case MediaType::SEQUENCE: return object<Sequence>()->getName();
     default: return folder_name;
     }
 }
@@ -245,10 +245,10 @@ const QString &Media::get_name() {
 void Media::set_name(const QString &name) {
     switch (type) {
     case MediaType::FOOTAGE:
-        get_object<Footage>()->setName(name);
+        object<Footage>()->setName(name);
         break;
     case MediaType::SEQUENCE:
-        get_object<Sequence>()->setName(name);
+        object<Sequence>()->setName(name);
         break;
     case MediaType::FOLDER:
         folder_name = name;
@@ -263,7 +263,7 @@ double Media::get_frame_rate(const int stream) {
     switch (get_type()) {
     case MediaType::FOOTAGE:
     {
-        if (auto ftg = get_object<Footage>()) {
+        if (auto ftg = object<Footage>()) {
             if ( (stream < 0) && !ftg->video_tracks.empty()) {
                 return ftg->video_tracks.at(0).video_frame_rate * ftg->speed;
             }
@@ -275,7 +275,7 @@ double Media::get_frame_rate(const int stream) {
         break;
     }
     case MediaType::SEQUENCE:
-        if (auto sqn = get_object<Sequence>()) {
+        if (auto sqn = object<Sequence>()) {
             return sqn->getFrameRate();
         }
         break;
@@ -291,7 +291,7 @@ int Media::get_sampling_rate(const int stream) {
     switch (get_type()) {
     case MediaType::FOOTAGE:
     {
-        if (auto ftg = get_object<Footage>()) {
+        if (auto ftg = object<Footage>()) {
             if (stream < 0) {
                 return ftg->audio_tracks.at(0).audio_frequency * ftg->speed;
             }
@@ -303,7 +303,7 @@ int Media::get_sampling_rate(const int stream) {
         break;
     }
     case MediaType::SEQUENCE:
-        if (auto sqn = get_object<Sequence>()) {
+        if (auto sqn = object<Sequence>()) {
             return sqn->getAudioFrequency();
         }
         break;
@@ -347,7 +347,7 @@ QVariant Media::data(int column, int role) {
     case Qt::DecorationRole:
         if (column == 0) {
             if (get_type() == MediaType::FOOTAGE) {
-                FootagePtr f = get_object<Footage>();
+                FootagePtr f = object<Footage>();
                 if (f->video_tracks.size() > 0
                         && f->video_tracks.at(0).preview_done) {
                     return f->video_tracks.at(0).video_preview_square;
@@ -363,11 +363,11 @@ QVariant Media::data(int column, int role) {
         case 1:
             if (root) return QCoreApplication::translate("Media", "Duration");
             if (get_type() == MediaType::SEQUENCE) {
-                SequencePtr s = get_object<Sequence>();
+                SequencePtr s = object<Sequence>();
                 return frame_to_timecode(s->getEndFrame(), e_config.timecode_view, s->getFrameRate());
             }
             if (get_type() == MediaType::FOOTAGE) {
-                FootagePtr f = get_object<Footage>();
+                FootagePtr f = object<Footage>();
                 double r = 30;
 
                 if (f->video_tracks.size() > 0 && !qIsNull(f->video_tracks.at(0).video_frame_rate))
@@ -381,7 +381,7 @@ QVariant Media::data(int column, int role) {
             if (root) return QCoreApplication::translate("Media", "Rate");
             if (get_type() == MediaType::SEQUENCE) return QString::number(get_frame_rate()) + " FPS";
             if (get_type() == MediaType::FOOTAGE) {
-                auto ftg = get_object<Footage>();
+                auto ftg = object<Footage>();
                 const double rate = get_frame_rate();
                 if ( (ftg->video_tracks.size() > 0) && !qIsNull(rate)) {
                     return QString::number(rate) + " FPS";

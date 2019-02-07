@@ -405,7 +405,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                                     if (media_type == static_cast<int>(MediaType::FOOTAGE)) {
                                         if (media_id >= 0) {
                                             for (int j=0;j<loaded_media_items.size();j++) {
-                                                auto  ftg = loaded_media_items.at(j)->get_object<Footage>();
+                                                auto  ftg = loaded_media_items.at(j)->object<Footage>();
                                                 if (ftg->save_id == media_id) {
                                                     clp->timeline_info.media = loaded_media_items.at(j);
                                                     clp->timeline_info.media_stream = stream_id;
@@ -630,7 +630,7 @@ void LoadThread::run() {
             for (int i=0;i<loaded_clips.size();i++) {
                 for (int j=0;j<loaded_sequences.size();j++) {
                     if ( (loaded_clips.at(i)->timeline_info.media == nullptr)
-                         && (loaded_clips.at(i)->timeline_info.media_stream == loaded_sequences.at(j)->get_object<Sequence>()->save_id) ) {
+                         && (loaded_clips.at(i)->timeline_info.media_stream == loaded_sequences.at(j)->object<Sequence>()->save_id) ) {
                         loaded_clips.at(i)->timeline_info.media = loaded_sequences.at(j);
                         loaded_clips.at(i)->refresh();
                         break;

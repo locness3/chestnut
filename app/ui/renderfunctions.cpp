@@ -129,7 +129,7 @@ GLuint compose_sequence(Viewer* viewer,
 
     if (!nests.isEmpty()) {
         for(auto nest_clip : nests) {
-            lcl_seq = nest_clip->timeline_info.media->get_object<Sequence>();
+            lcl_seq = nest_clip->timeline_info.media->object<Sequence>();
             playhead += nest_clip->timeline_info.clip_in - nest_clip->get_timeline_in_with_transition();
             playhead = refactor_frame_number(playhead, nest_clip->sequence->getFrameRate(), lcl_seq->getFrameRate());
         }
@@ -154,7 +154,7 @@ GLuint compose_sequence(Viewer* viewer,
                 auto clip_is_active = false;
 
                 if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->get_type() == MediaType::FOOTAGE) ) {
-                    auto ftg = clp->timeline_info.media->get_object<Footage>();
+                    auto ftg = clp->timeline_info.media->object<Footage>();
                     if (!ftg->invalid && !( (clp->timeline_info.track >= 0) && !is_audio_device_set())) {
                         if (ftg->ready) {
                             FootageStream ms;

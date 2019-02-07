@@ -243,7 +243,7 @@ void Project::duplicate_selected() {
     for (int j=0;j<items.size();j++) {
         MediaPtr i = item_to_media(items.at(j));
         if (i->get_type() == MediaType::SEQUENCE) {
-            new_sequence(ca, SequencePtr(i->get_object<Sequence>()->copy()), false, item_to_media(items.at(j).parent()));
+            new_sequence(ca, SequencePtr(i->object<Sequence>()->copy()), false, item_to_media(items.at(j).parent()));
             duped = true;
         }
     }
@@ -288,7 +288,7 @@ void Project::replace_clip_media() {
         QModelIndexList selected_items = get_current_selected();
         if (selected_items.size() == 1) {
             MediaPtr item = item_to_media(selected_items.at(0));
-            if (item->get_type() == MediaType::SEQUENCE && global::sequence == item->get_object<Sequence>()) {
+            if (item->get_type() == MediaType::SEQUENCE && global::sequence == item->object<Sequence>()) {
                 QMessageBox::critical(this,
                                       tr("Active sequence selected"),
                                       tr("You cannot insert a sequence into itself, so no clips of this media would be in this sequence."),
@@ -456,12 +456,12 @@ void Project::delete_selected_media() {
             bool confirm_delete = false;
             auto skip = false;
             for (auto j=0; j<sequence_items.size() && (!abort) && (!skip); ++j) {
-                auto seq = sequence_items.at(j)->get_object<Sequence>();
+                auto seq = sequence_items.at(j)->object<Sequence>();
                 for (auto k=0; (k<seq->clips.size()) && (!abort) && (!skip); ++k) {
                     auto c = seq->clips.at(k);
                     if ( (c != nullptr) && (c->timeline_info.media == item) ) {
                         if (!confirm_delete) {
-                            auto ftg = item->get_object<Footage>();
+                            auto ftg = item->object<Footage>();
                             // we found a reference, so we know we'll need to ask if the user wants to delete it
                             QMessageBox confirm(this);
                             confirm.setWindowTitle(tr("Delete media in use?"));
@@ -546,7 +546,7 @@ void Project::delete_selected_media() {
             if (item->get_type() == MediaType::SEQUENCE) {
                 redraw = true;
 
-                auto s = item->get_object<Sequence>();
+                auto s = item->object<Sequence>();
 
                 if (s == global::sequence) {
                     ca->append(new ChangeSequenceAction(nullptr));
@@ -587,10 +587,10 @@ void Project::start_preview_generator(MediaPtr item, const bool replacing) {
     item->throbber = throbber;
     QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);
 
-    const auto pg = new PreviewGenerator(item, item->get_object<Footage>(), replacing, this);
+    const auto pg = new PreviewGenerator(item, item->object<Footage>(), replacing, this);
     connect(pg, SIGNAL(set_icon(int, bool)), throbber, SLOT(stop(int, bool)));
     pg->start(QThread::LowPriority);
-    item->get_object<Footage>()->preview_gen = pg;
+    item->object<Footage>()->preview_gen = pg;
 }
 
 void Project::process_file_list(QStringList& files, bool recursive, MediaPtr replace, MediaPtr parent) {
@@ -712,7 +712,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
 
                 if (replace != nullptr) {
                     item = replace;
-                    ftg = replace->get_object<Footage>();
+                    ftg = replace->object<Footage>();
                     ftg->reset();
                 } else {
                     item = std::make_shared<Media>(parent);
@@ -916,7 +916,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                     folder = 0;
                 }
                 if (type == MediaType::FOOTAGE) {
-                    auto f = mda->get_object<Footage>();
+                    auto f = mda->object<Footage>();
                     f->save_id = media_id;
                     stream.writeStartElement("footage");
                     stream.writeAttribute("id", QString::number(media_id));
@@ -950,7 +950,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                     stream.writeEndElement();
                     media_id++;
                 } else if (type == MediaType::SEQUENCE) {
-                    SequencePtr  s = mda->get_object<Sequence>();
+                    SequencePtr  s = mda->object<Sequence>();
                     if (set_ids_only) {
                         s->save_id = sequence_id;
                         sequence_id++;
@@ -1010,11 +1010,11 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                                     stream.writeAttribute("type", QString::number(static_cast<int>(c->timeline_info.media->get_type())));
                                     switch (c->timeline_info.media->get_type()) {
                                     case MediaType::FOOTAGE:
-                                        stream.writeAttribute("media", QString::number(c->timeline_info.media->get_object<Footage>()->save_id));
+                                        stream.writeAttribute("media", QString::number(c->timeline_info.media->object<Footage>()->save_id));
                                         stream.writeAttribute("stream", QString::number(c->timeline_info.media_stream));
                                         break;
                                     case MediaType::SEQUENCE:
-                                        stream.writeAttribute("sequence", QString::number(c->timeline_info.media->get_object<Sequence>()->save_id));
+                                        stream.writeAttribute("sequence", QString::number(c->timeline_info.media->object<Sequence>()->save_id));
                                         break;
 
                                     default:
@@ -1311,7 +1311,7 @@ void MediaThrobber::stop(const int icon_type, const bool replace) {
     // refresh all clips
     auto sequences = e_panel_project->list_all_project_sequences();
     for (auto sqn : sequences) {
-        if (auto s = sqn->get_object<Sequence>()) {
+        if (auto s = sqn->object<Sequence>()) {
             for (auto clp: s->clips) {
                 if (clp != nullptr) {
                     clp->refresh();

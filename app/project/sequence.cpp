@@ -56,7 +56,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
         switch (mda->get_type()) {
         case MediaType::FOOTAGE:
         {
-            auto ftg = mda->get_object<Footage>();
+            auto ftg = mda->object<Footage>();
             if (!ftg->ready || got_video_values) {
                 break;
             }
@@ -84,7 +84,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
             break;
         case MediaType::SEQUENCE:
         {
-            if (auto seq = mda->get_object<Sequence>()) {
+            if (auto seq = mda->object<Sequence>()) {
                 width = seq->getWidth();
                 height  = seq->getHeight();
                 frame_rate = seq->getFrameRate();
@@ -281,7 +281,7 @@ void Sequence::closeActiveClips(const int depth)
             continue;
         }
         if (c->timeline_info.media && (c->timeline_info.media->get_type() == MediaType::SEQUENCE) ) {
-            if (auto seq = c->timeline_info.media->get_object<Sequence>()) {
+            if (auto seq = c->timeline_info.media->object<Sequence>()) {
                 seq->closeActiveClips(depth + 1);
             }
         }

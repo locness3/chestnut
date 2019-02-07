@@ -65,8 +65,8 @@ public:
     const Media& operator=(const Media& rhs) = delete;
 
     template<typename T>
-    auto get_object() {
-        return std::dynamic_pointer_cast<T>(object);
+    auto object() {
+        return std::dynamic_pointer_cast<T>(heldObject);
     }
     /**
      * @brief Obtain this instance unique-id
@@ -107,7 +107,7 @@ protected:
 private:
     bool root;
     MediaType type = MediaType::NONE;
-    project::ProjectItemPtr object;
+    project::ProjectItemPtr heldObject;
 
     // item functions
     QVector<MediaPtr> children;

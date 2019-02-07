@@ -44,7 +44,7 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr i) :
 
 	int row = 0;
 
-    FootagePtr  f = item->get_object<Footage>();
+    FootagePtr  f = item->object<Footage>();
 
     grid->addWidget(new QLabel(tr("Tracks:")), row, 0, 1, 2);
 	row++;
@@ -131,7 +131,7 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr i) :
 }
 
 void MediaPropertiesDialog::accept() {
-    FootagePtr f = item->get_object<Footage>();
+    FootagePtr f = item->object<Footage>();
 
 	ComboAction* ca = new ComboAction();
 
