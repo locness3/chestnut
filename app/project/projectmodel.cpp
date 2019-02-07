@@ -106,7 +106,7 @@ QModelIndex ProjectModel::index(int row, int column, const QModelIndex &parent) 
 
 
 QModelIndex ProjectModel::create_index(const int row, const int col, const MediaPtr& mda) const {
-    return createIndex(row, col, static_cast<quintptr>(mda->getId()));
+    return createIndex(row, col, static_cast<quintptr>(mda->id()));
 }
 
 
@@ -194,7 +194,7 @@ MediaPtr ProjectModel::getItem(const QModelIndex &index) const {
 }
 
 void ProjectModel::set_icon(MediaPtr m, const QIcon &ico) {
-    project_items.insert(m->getId(), m);
+    project_items.insert(m->id(), m);
     const auto index = create_index(m->row(), m);
     m->set_icon(ico);
     emit dataChanged(index, index);
@@ -202,7 +202,7 @@ void ProjectModel::set_icon(MediaPtr m, const QIcon &ico) {
 }
 
 QModelIndex ProjectModel::add(MediaPtr mda) {
-    project_items.insert(mda->getId(), mda);
+    project_items.insert(mda->id(), mda);
     return create_index(mda->row(), mda);
 }
 

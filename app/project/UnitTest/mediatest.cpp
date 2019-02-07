@@ -11,7 +11,7 @@ MediaTest::MediaTest()
 void MediaTest::testCaseConstructor()
 {
   Media mda;
-  QVERIFY(mda.getId() == 1);
+  QVERIFY(mda.id() == 1);
   QVERIFY(mda.object<Footage>() == nullptr);
   QVERIFY(mda.object<Sequence>() == nullptr);
   QVERIFY(mda.get_type() == MediaType::NONE);

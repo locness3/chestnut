@@ -76,7 +76,7 @@ Media::Media(MediaPtr iparent) :
     root(false),
     type(MediaType::NONE),
     parent(iparent),
-    id(nextID++)
+    instanceId(nextID++)
 {
 
 }
@@ -92,8 +92,8 @@ Media::~Media() {
  * @brief Obtain this instance unique-id
  * @return id
  */
-int Media::getId() const {
-    return id;
+int Media::id() const {
+    return instanceId;
 }
 
 void Media::clear_object() {

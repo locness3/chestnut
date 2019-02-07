@@ -72,7 +72,7 @@ public:
      * @brief Obtain this instance unique-id
      * @return id
      */
-    int getId() const;
+    int id() const;
     void clear_object();
     void set_footage(FootagePtr ftg);
     void set_sequence(SequencePtr sqn);
@@ -115,7 +115,7 @@ private:
     QString folder_name;
     QString tooltip;
     QIcon icon;
-    int id;
+    int instanceId;
 
 };
 
