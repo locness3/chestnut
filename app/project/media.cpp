@@ -287,7 +287,7 @@ double Media::frameRate(const int stream) {
     return 0.0;
 }
 
-int Media::get_sampling_rate(const int stream) {
+int Media::samplingRate(const int stream) {
     switch (get_type()) {
     case MediaType::FOOTAGE:
     {
@@ -386,7 +386,7 @@ QVariant Media::data(int column, int role) {
                 if ( (ftg->video_tracks.size() > 0) && !qIsNull(rate)) {
                     return QString::number(rate) + " FPS";
                 } else if (ftg->audio_tracks.size() > 0) {
-                    return QString::number(get_sampling_rate()) + " Hz";
+                    return QString::number(samplingRate()) + " Hz";
                 }
             }
             break;

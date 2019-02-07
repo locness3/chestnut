@@ -85,7 +85,7 @@ public:
     void set_name(const QString& n);
 
     double frameRate(const int stream = -1);
-    int get_sampling_rate(const int stream = -1);
+    int samplingRate(const int stream = -1);
 
     // item functions
     void appendChild(MediaPtr child);
