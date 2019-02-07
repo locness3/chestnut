@@ -874,10 +874,14 @@ long Clip::getLength() {
 double Clip::getMediaFrameRate() {
     Q_ASSERT(timeline_info.track < 0);
     if (timeline_info.media != nullptr) {
-        double rate = timeline_info.media->get_frame_rate(timeline_info.media_stream);
-        if (!qIsNaN(rate)) return rate;
+        double rate = timeline_info.media->frameRate(timeline_info.media_stream);
+        if (!qIsNaN(rate)) {
+          return rate;
+        }
     }
-    if (sequence != nullptr) return sequence->getFrameRate();
+    if (sequence != nullptr) {
+      return sequence->getFrameRate();
+    }
     return qSNaN();
 }
 

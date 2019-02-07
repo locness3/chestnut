@@ -84,7 +84,7 @@ public:
     const QString& get_name();
     void set_name(const QString& n);
 
-    double get_frame_rate(const int stream = -1);
+    double frameRate(const int stream = -1);
     int get_sampling_rate(const int stream = -1);
 
     // item functions

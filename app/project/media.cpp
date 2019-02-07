@@ -259,7 +259,7 @@ void Media::set_name(const QString &name) {
     }//switch
 }
 
-double Media::get_frame_rate(const int stream) {
+double Media::frameRate(const int stream) {
     switch (get_type()) {
     case MediaType::FOOTAGE:
     {
@@ -379,10 +379,10 @@ QVariant Media::data(int column, int role) {
             break;
         case 2:
             if (root) return QCoreApplication::translate("Media", "Rate");
-            if (get_type() == MediaType::SEQUENCE) return QString::number(get_frame_rate()) + " FPS";
+            if (get_type() == MediaType::SEQUENCE) return QString::number(frameRate()) + " FPS";
             if (get_type() == MediaType::FOOTAGE) {
                 auto ftg = object<Footage>();
-                const double rate = get_frame_rate();
+                const double rate = frameRate();
                 if ( (ftg->video_tracks.size() > 0) && !qIsNull(rate)) {
                     return QString::number(rate) + " FPS";
                 } else if (ftg->audio_tracks.size() > 0) {
