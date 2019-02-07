@@ -22,8 +22,8 @@ bool ProjectFilter::filterAcceptsRow(int source_row, const QModelIndex &source_p
 	if (!show_sequences) {
 		// hide sequences if show_sequences is false
 		QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
-		Media* media = static_cast<Media*>(index.internalPointer());
-		if (media != nullptr && media->get_type() == MediaType::SEQUENCE) {
+    Media* media = static_cast<Media*>(index.internalPointer()); //FIXME: do not use internalPointer
+    if (media != nullptr && media->type() == MediaType::SEQUENCE) {
 			return false;
 		}
 	}

@@ -683,7 +683,7 @@ void Viewer::set_media(MediaPtr m) {
     media = m;
     clean_created_seq();
     if (media != nullptr) {
-        switch (media->get_type()) {
+        switch (media->type()) {
         case MediaType::FOOTAGE:
         {
             auto ftg = media->object<Footage>();
@@ -757,7 +757,7 @@ void Viewer::set_media(MediaPtr m) {
             seq = media->object<Sequence>();
             break;
         default:
-            qWarning() << "Unhandled media type" << static_cast<int>(media->get_type());
+            qWarning() << "Unhandled media type" << static_cast<int>(media->type());
             break;
         }//switch
     }

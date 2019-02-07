@@ -147,7 +147,7 @@ bool Clip::isActive(const long playhead) {
  */
 bool Clip::uses_cacher() const {
     if (( (timeline_info.media == nullptr) && (timeline_info.track >= 0) )
-            || ( (timeline_info.media != nullptr) && (timeline_info.media->get_type() == MediaType::FOOTAGE))) {
+            || ( (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE))) {
         return true;
     }
     return false;
@@ -172,7 +172,7 @@ bool Clip::open_worker() {
             }
             audio_playback.reset = true;
         }
-    } else if (timeline_info.media->get_type() == MediaType::FOOTAGE) {
+    } else if (timeline_info.media->type() == MediaType::FOOTAGE) {
         // opens file resource for FFmpeg and prepares Clip struct for playback
         auto ftg = timeline_info.media->object<Footage>();
         const char* const filename = ftg->url.toUtf8().data();
@@ -420,7 +420,7 @@ bool Clip::open_worker() {
 void Clip::close_worker() {
     finished_opening = false;
 
-    if (timeline_info.media != nullptr && timeline_info.media->get_type() == MediaType::FOOTAGE) {
+    if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
         queue_clear();
         // clear resources allocated via libav
         avfilter_graph_free(&filter_graph);
@@ -505,7 +505,7 @@ void Clip::close(const bool wait) {
                 close_worker();
             }
         } else {
-            if (timeline_info.media && (timeline_info.media->get_type() == MediaType::SEQUENCE)) {
+            if (timeline_info.media && (timeline_info.media->type() == MediaType::SEQUENCE)) {
                 if (auto seq = timeline_info.media->object<Sequence>()) {
                     seq->closeActiveClips();
                 }
@@ -576,11 +576,11 @@ void Clip::reset() {
 }
 
 void Clip::reset_audio() {
-    if (timeline_info.media == nullptr || timeline_info.media->get_type() == MediaType::FOOTAGE) {
+    if (timeline_info.media == nullptr || timeline_info.media->type() == MediaType::FOOTAGE) {
         audio_playback.reset = true;
         audio_playback.frame_sample_index = -1;
         audio_playback.buffer_write = 0;
-    } else if (timeline_info.media->get_type() == MediaType::SEQUENCE) {
+    } else if (timeline_info.media->type() == MediaType::SEQUENCE) {
         SequencePtr nested_sequence = timeline_info.media->object<Sequence>();
         for (int i=0;i<nested_sequence->clips.size();i++) {
             ClipPtr c(nested_sequence->clips.at(i));
@@ -591,7 +591,7 @@ void Clip::reset_audio() {
 
 void Clip::refresh() {
     // validates media if it was replaced
-    if (replaced && timeline_info.media != nullptr && timeline_info.media->get_type() == MediaType::FOOTAGE) {
+    if (replaced && timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
         FootagePtr m = timeline_info.media->object<Footage>();
 
         if (timeline_info.track < 0 && m->video_tracks.size() > 0)  {
@@ -895,7 +895,7 @@ void Clip::recalculateMaxLength() {
         media_handling.calculated_length = LONG_MAX;
 
         if (timeline_info.media != nullptr) {
-            switch (timeline_info.media->get_type()) {
+            switch (timeline_info.media->type()) {
             case MediaType::FOOTAGE:
             {
                 auto m = timeline_info.media->object<Footage>();
@@ -935,7 +935,7 @@ int Clip::getWidth() {
         return sequence->getWidth();
     }
 
-    switch (timeline_info.media->get_type()) {
+    switch (timeline_info.media->type()) {
     case MediaType::FOOTAGE:
     {
         auto ftg = timeline_info.media->object<Footage>();
@@ -968,7 +968,7 @@ int Clip::getHeight() {
         return sequence->getHeight();
     }
 
-    switch (timeline_info.media->get_type()) {
+    switch (timeline_info.media->type()) {
     case MediaType::FOOTAGE:
     {
         auto ftg = timeline_info.media->object<Footage>();
@@ -992,7 +992,7 @@ int Clip::getHeight() {
         break;
     }
     default:
-        qWarning() << "Unknown Media type" << static_cast<int>(timeline_info.media->get_type());
+        qWarning() << "Unknown Media type" << static_cast<int>(timeline_info.media->type());
         break;
     }//switch
     return 0;
@@ -1079,7 +1079,7 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
         }
     }
     if (get_opening_transition() != nullptr) {
-        if (timeline_info.media != nullptr && timeline_info.media->get_type() == MediaType::FOOTAGE) {
+        if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
             const double transition_start = (get_clip_in_with_transition() / sequence->getFrameRate());
             const double transition_end = (get_clip_in_with_transition() + get_opening_transition()->get_length()) / sequence->getFrameRate();
             if (timecode_end < transition_end) {
@@ -1091,7 +1091,7 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
         }
     }
     if (get_closing_transition() != nullptr) {
-        if (timeline_info.media != nullptr && timeline_info.media->get_type() == MediaType::FOOTAGE) {
+        if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
             const long length_with_transitions = get_timeline_out_with_transition() - get_timeline_in_with_transition();
             const double transition_start = (get_clip_in_with_transition() + length_with_transitions - get_closing_transition()->get_length()) / sequence->getFrameRate();
             const double transition_end = (get_clip_in_with_transition() + length_with_transitions) / sequence->getFrameRate();
@@ -1180,7 +1180,7 @@ double Clip::playhead_to_seconds(const long playhead) {
         clip_frame = getMaximumLength() - clip_frame - 1;
     }
     double secs = (static_cast<double>(clip_frame)/sequence->getFrameRate()) * timeline_info.speed;
-    if (timeline_info.media != nullptr && timeline_info.media->get_type() == MediaType::FOOTAGE) {
+    if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
         secs *= timeline_info.media->object<Footage>()->speed;
     }
     return secs;
@@ -1244,7 +1244,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
                     audio_playback.frame_sample_index += offset;
                 }
             }
-        } else if (timeline_info.media->get_type() == MediaType::FOOTAGE) {
+        } else if (timeline_info.media->type() == MediaType::FOOTAGE) {
             double timebase = av_q2d(media_handling.stream->time_base);
 
             av_frame = queue.at(0);
@@ -1593,7 +1593,7 @@ void Clip::cache_worker(const long playhead, const bool reset, const bool scrubb
         if (timeline_info.track >= 0) {
             cache_audio_worker(scrubbing, nests);
         }
-    } else if (timeline_info.media->get_type() == MediaType::FOOTAGE) {
+    } else if (timeline_info.media->type() == MediaType::FOOTAGE) {
         if (media_handling.stream != nullptr) {
             if (media_handling.stream->codecpar != nullptr) {
                 if (media_handling.stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {

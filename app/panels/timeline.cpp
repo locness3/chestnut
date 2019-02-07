@@ -203,7 +203,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
         auto default_clip_in = 0L;
         auto default_clip_out = 0L;
 
-        switch (mda->get_type()) {
+        switch (mda->type()) {
         case MediaType::FOOTAGE:
             if (ftg = mda->object<Footage>()) {
                 can_import = ftg->ready;
@@ -246,7 +246,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
         g.in = entry;
         g.transition = nullptr;
 
-        switch (mda->get_type()) {
+        switch (mda->type()) {
         case MediaType::FOOTAGE:
             // is video source a still image?
             if (ftg->video_tracks.size() > 0 && ftg->video_tracks.at(0).infinite_length && ftg->audio_tracks.size() == 0) {
@@ -292,7 +292,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
             audio_ghosts = true;
             break;
         default:
-            qWarning() << "Unhandled Media Type" << static_cast<int>(mda->get_type());
+            qWarning() << "Unhandled Media Type" << static_cast<int>(mda->type());
             break;
         }//switch
 
@@ -322,7 +322,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
         clp->timeline_info.out = g.out;
         clp->timeline_info.clip_in = g.clip_in;
         clp->timeline_info.track = g.track;
-        if (clp->timeline_info.media->get_type() == MediaType::FOOTAGE) {
+        if (clp->timeline_info.media->type() == MediaType::FOOTAGE) {
             auto ftg = clp->timeline_info.media->object<Footage>();
             if (ftg->video_tracks.size() == 0) {
                 // audio only (greenish)
@@ -335,7 +335,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
                 clp->timeline_info.color = AUDIO_VIDEO_COLOR;
             }
             clp->timeline_info.name = ftg->getName();
-        } else if (clp->timeline_info.media->get_type() == MediaType::SEQUENCE) {
+        } else if (clp->timeline_info.media->type() == MediaType::SEQUENCE) {
             // sequence (red?ish?)
             clp->timeline_info.color = SEQUENCE_COLOR;
 

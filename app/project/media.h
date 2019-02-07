@@ -66,7 +66,7 @@ public:
 
     template<typename T>
     auto object() {
-        return std::dynamic_pointer_cast<T>(heldObject);
+        return std::dynamic_pointer_cast<T>(_object);
     }
     /**
      * @brief Obtain this instance unique-id
@@ -80,7 +80,7 @@ public:
     void set_icon(const QIcon &ico);
     void set_parent(MediaWPtr p);
     void update_tooltip(const QString& error = 0);
-    MediaType get_type() const;
+    MediaType type() const;
     const QString& get_name();
     void set_name(const QString& n);
 
@@ -105,17 +105,17 @@ public:
 protected:
     static int nextID;
 private:
-    bool root;
-    MediaType type = MediaType::NONE;
-    project::ProjectItemPtr heldObject;
+    bool _root;
+    MediaType _type = MediaType::NONE;
+    project::ProjectItemPtr _object;
 
     // item functions
-    QVector<MediaPtr> children;
-    MediaWPtr parent;
-    QString folder_name;
-    QString tooltip;
-    QIcon icon;
-    int instanceId;
+    QVector<MediaPtr> _children;
+    MediaWPtr _parent;
+    QString _folderName;
+    QString _toolTip;
+    QIcon _icon;
+    int _id;
 
 };
 

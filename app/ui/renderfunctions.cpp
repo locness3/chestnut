@@ -153,7 +153,7 @@ GLuint compose_sequence(Viewer* viewer,
             if ((clp->timeline_info.track < 0) == video) {
                 auto clip_is_active = false;
 
-                if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->get_type() == MediaType::FOOTAGE) ) {
+                if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
                     auto ftg = clp->timeline_info.media->object<Footage>();
                     if (!ftg->invalid && !( (clp->timeline_info.track >= 0) && !is_audio_device_set())) {
                         if (ftg->ready) {
@@ -219,7 +219,7 @@ GLuint compose_sequence(Viewer* viewer,
         auto clp = current_clips.at(i);
 
         if ( (clp->timeline_info.media != nullptr)
-             && (clp->timeline_info.media->get_type() == MediaType::FOOTAGE)
+             && (clp->timeline_info.media->type() == MediaType::FOOTAGE)
              && !clp->finished_opening) {
             qWarning() << "Tried to display clip" << i << "but it's closed";
             texture_failed = true;
@@ -233,7 +233,7 @@ GLuint compose_sequence(Viewer* viewer,
                 int video_height = clp->getHeight();
 
                 if (clp->timeline_info.media != nullptr) {
-                    switch (clp->timeline_info.media->get_type()) {
+                    switch (clp->timeline_info.media->type()) {
                     case MediaType::FOOTAGE:
                         // set up opengl texture
                         if (clp->texture == nullptr) {
@@ -252,7 +252,7 @@ GLuint compose_sequence(Viewer* viewer,
                         textureID = -1;
                         break;
                     default:
-                        qWarning() << "Unhandled sequence type" << static_cast<int>(clp->timeline_info.media->get_type());
+                        qWarning() << "Unhandled sequence type" << static_cast<int>(clp->timeline_info.media->type());
                         break;
                     }
                 }
@@ -292,7 +292,7 @@ GLuint compose_sequence(Viewer* viewer,
                         composite_texture = clp->fbo[fbo_switcher]->texture();
                     } else {
                         // for nested sequences
-                        if (clp->timeline_info.media->get_type()== MediaType::SEQUENCE) {
+                        if (clp->timeline_info.media->type()== MediaType::SEQUENCE) {
                             nests.append(clp);
                             textureID = compose_sequence(viewer, ctx, seq, nests, video, render_audio, gizmos, texture_failed, rendering);
                             nests.removeLast();
@@ -476,7 +476,7 @@ GLuint compose_sequence(Viewer* viewer,
                 }
             } else {
                 if (render_audio || (e_config.enable_audio_scrubbing && audio_scrub)) {
-                    if (clp->timeline_info.media != nullptr && clp->timeline_info.media->get_type() == MediaType::SEQUENCE) {
+                    if (clp->timeline_info.media != nullptr && clp->timeline_info.media->type() == MediaType::SEQUENCE) {
                         nests.append(clp);
                         compose_sequence(viewer, ctx, seq, nests, video, render_audio, gizmos, texture_failed, rendering);
                         nests.removeLast();

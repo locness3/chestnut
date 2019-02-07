@@ -242,7 +242,7 @@ void Project::duplicate_selected() {
     ComboAction* ca = new ComboAction();
     for (int j=0;j<items.size();j++) {
         MediaPtr i = item_to_media(items.at(j));
-        if (i->get_type() == MediaType::SEQUENCE) {
+        if (i->type() == MediaType::SEQUENCE) {
             new_sequence(ca, SequencePtr(i->object<Sequence>()->copy()), false, item_to_media(items.at(j).parent()));
             duped = true;
         }
@@ -258,7 +258,7 @@ void Project::replace_selected_file() {
     QModelIndexList selected_items = get_current_selected();
     if (selected_items.size() == 1) {
         MediaPtr item = item_to_media(selected_items.at(0));
-        if (item->get_type() == MediaType::FOOTAGE) {
+        if (item->type() == MediaType::FOOTAGE) {
             replace_media(item, nullptr);
         }
     }
@@ -288,7 +288,7 @@ void Project::replace_clip_media() {
         QModelIndexList selected_items = get_current_selected();
         if (selected_items.size() == 1) {
             MediaPtr item = item_to_media(selected_items.at(0));
-            if (item->get_type() == MediaType::SEQUENCE && global::sequence == item->object<Sequence>()) {
+            if (item->type() == MediaType::SEQUENCE && global::sequence == item->object<Sequence>()) {
                 QMessageBox::critical(this,
                                       tr("Active sequence selected"),
                                       tr("You cannot insert a sequence into itself, so no clips of this media would be in this sequence."),
@@ -305,7 +305,7 @@ void Project::open_properties() {
     QModelIndexList selected_items = get_current_selected();
     if (selected_items.size() == 1) {
         MediaPtr item = item_to_media(selected_items.at(0));
-        switch (item->get_type()) {
+        switch (item->type()) {
         case MediaType::FOOTAGE:
         {
             MediaPropertiesDialog mpd(this, item);
@@ -398,13 +398,13 @@ MediaPtr Project::item_to_media(const QModelIndex &index) {
 void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPtr>& list, const MediaType search_type) {
     for (int i=0;i<items.size();i++) {
         MediaPtr item = items.at(i);
-        if (item->get_type() == MediaType::FOLDER) {
+        if (item->type() == MediaType::FOLDER) {
             QVector<MediaPtr> children;
             for (int j=0;j<item->childCount();j++) {
                 children.append(item->child(j));
             }
             get_all_media_from_table(children, list, search_type);
-        } else if (search_type == item->get_type() || search_type == MediaType::NONE) {
+        } else if (search_type == item->type() || search_type == MediaType::NONE) {
             list.append(item);
         }
     }
@@ -543,7 +543,7 @@ void Project::delete_selected_media() {
             }
             ca->append(new DeleteMediaCommand(item));
 
-            if (item->get_type() == MediaType::SEQUENCE) {
+            if (item->type() == MediaType::SEQUENCE) {
                 redraw = true;
 
                 auto s = item->object<Sequence>();
@@ -555,7 +555,7 @@ void Project::delete_selected_media() {
                 if (s == e_panel_footage_viewer->getSequence()) {
                     e_panel_footage_viewer->set_media(nullptr);
                 }
-            } else if (item->get_type() == MediaType::FOOTAGE) {
+            } else if (item->type() == MediaType::FOOTAGE) {
                 if (e_panel_footage_viewer->getSequence()) {
                     for (auto clp : e_panel_footage_viewer->getSequence()->clips) {
                         if (clp) {
@@ -760,7 +760,7 @@ MediaPtr Project::get_selected_folder() {
     if (selected_items.size() == 1) {
         MediaPtr m = item_to_media(selected_items.front());
         if (m != nullptr) {
-            if (m->get_type() == MediaType::FOLDER) {
+            if (m->type() == MediaType::FOLDER) {
                 return m;
             }
         } else {
@@ -775,7 +775,7 @@ bool Project::reveal_media(MediaPtr media, QModelIndex parent) {
         const QModelIndex& item = project_model.index(i, 0, parent);
         MediaPtr m = project_model.getItem(item);
 
-        if (m->get_type() == MediaType::FOLDER) {
+        if (m->type() == MediaType::FOLDER) {
             if (reveal_media(media, item)) return true;
         } else if (m == media) {
             // expand all folders leading to this media
@@ -890,8 +890,8 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
             continue;
         }
 
-        if (type == mda->get_type()) {
-            if (mda->get_type() == MediaType::FOLDER) {
+        if (type == mda->type()) {
+            if (mda->type() == MediaType::FOLDER) {
                 if (set_ids_only) {
                     mda->temp_id = folder_id; // saves a temporary ID for matching in the project file
                     folder_id++;
@@ -1007,8 +1007,8 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                                 stream.writeAttribute("reverse", QString::number(c->timeline_info.reverse));
 
                                 if (c->timeline_info.media != nullptr) {
-                                    stream.writeAttribute("type", QString::number(static_cast<int>(c->timeline_info.media->get_type())));
-                                    switch (c->timeline_info.media->get_type()) {
+                                    stream.writeAttribute("type", QString::number(static_cast<int>(c->timeline_info.media->type())));
+                                    switch (c->timeline_info.media->type()) {
                                     case MediaType::FOOTAGE:
                                         stream.writeAttribute("media", QString::number(c->timeline_info.media->object<Footage>()->save_id));
                                         stream.writeAttribute("stream", QString::number(c->timeline_info.media_stream));
@@ -1018,7 +1018,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                                         break;
 
                                     default:
-                                        qWarning() << "Unhandled Media Type" << static_cast<int>(c->timeline_info.media->get_type());
+                                        qWarning() << "Unhandled Media Type" << static_cast<int>(c->timeline_info.media->type());
                                         break;
                                     }
                                 }
@@ -1052,7 +1052,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
             }
         }
 
-        if (mda->get_type() == MediaType::FOLDER) {
+        if (mda->type() == MediaType::FOLDER) {
             save_folder(stream, type, set_ids_only, item);
         }
     }
@@ -1223,7 +1223,7 @@ int Project::getMediaSize() const {
 void Project::list_all_sequences_worker(QVector<MediaPtr>& list, MediaPtr parent) {
     for (int i=0; i<project_model.childCount(parent); ++i) {
         if (auto item = project_model.child(i, parent)) {
-            switch (item->get_type()) {
+            switch (item->type()) {
             case MediaType::SEQUENCE:
                 list.append(item);
                 break;
@@ -1234,7 +1234,7 @@ void Project::list_all_sequences_worker(QVector<MediaPtr>& list, MediaPtr parent
                 // Ignore
                 break;
             default:
-                qWarning() << "Unknown media type" << static_cast<int>(item->get_type());
+                qWarning() << "Unknown media type" << static_cast<int>(item->type());
                 break;
             }
         } else {

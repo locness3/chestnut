@@ -86,7 +86,7 @@ void SourceIconView::mouseDoubleClickEvent(QMouseEvent *event) {
     bool default_behavior = true;
     if (selectedIndexes().size() == 1) {
         if (auto m = project_parent->item_to_media(selectedIndexes().front())) {
-            if (m->get_type() == MediaType::FOLDER) {
+            if (m->type() == MediaType::FOLDER) {
                 default_behavior = false;
                 setRootIndex(selectedIndexes().at(0));
                 emit changed_root();

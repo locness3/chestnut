@@ -78,7 +78,7 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
         if (auto mda = project_parent->item_to_media(items.front())) {
             if (items.size() == 1) {
                 // replace footage
-                const auto type = mda->get_type();
+                const auto type = mda->type();
                 if (type == MediaType::FOOTAGE) {
                     QAction* replace_action = menu.addAction(tr("Replace/Relink Media"));
                     QObject::connect(replace_action, SIGNAL(triggered(bool)), project_parent, SLOT(replace_selected_file()));
@@ -103,10 +103,10 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
             bool all_sequences = true;
             bool all_footage = true;
             for (int i=0;i<items.size();i++) {
-                if (mda->get_type() != MediaType::SEQUENCE) {
+                if (mda->type() != MediaType::SEQUENCE) {
                     all_sequences = false;
                 }
-                if (mda->get_type() != MediaType::FOOTAGE) {
+                if (mda->type() != MediaType::FOOTAGE) {
                     all_footage = false;
                 }
             }
@@ -189,7 +189,7 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& 
         } else if (selected_items.size() == 1) {
             MediaPtr item = project_parent->item_to_media(selected_items.at(0));
             if (item != nullptr) {
-                switch (item->get_type()) {
+                switch (item->type()) {
                 case MediaType::FOOTAGE:
                     e_panel_footage_viewer->set_media(item);
                     e_panel_footage_viewer->setFocus();
@@ -198,7 +198,7 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& 
                     e_undo_stack.push(new ChangeSequenceAction(item->object<Sequence>()));
                     break;
                 default:
-                    qWarning() << "Unknown media type" << static_cast<int>(item->get_type());
+                    qWarning() << "Unknown media type" << static_cast<int>(item->type());
                     break;
                 }//switch
             }
@@ -226,7 +226,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
             bool replace = false;
             if ( (urls.size() == 1)
                     && drop_item.isValid()
-                    && (m->get_type() == MediaType::FOOTAGE)
+                    && (m->type() == MediaType::FOOTAGE)
                     && !QFileInfo(paths.front()).isDir()
                     && e_config.drop_on_media_to_replace
                     && QMessageBox::question(
@@ -240,7 +240,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
             if (!replace) {
                 QModelIndex parentIndex;
                 if (drop_item.isValid()) {
-                    if (m->get_type() == MediaType::FOLDER) {
+                    if (m->type() == MediaType::FOLDER) {
                         parentIndex = drop_item;
                     } else {
                         parentIndex = drop_item.parent();
@@ -255,7 +255,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
 
         // dragging files within project
         // if we dragged to the root OR dragged to a folder
-        if (!drop_item.isValid() ||  m->get_type() == MediaType::FOLDER) {
+        if (!drop_item.isValid() ||  m->type() == MediaType::FOLDER) {
             QVector<MediaPtr> move_items;
             for (int i=0;i<items.size();i++) {
                 const QModelIndex& item = items.at(i);

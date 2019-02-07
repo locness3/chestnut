@@ -100,7 +100,7 @@ void ReplaceClipMediaDialog::replace() {
                         tr("You selected the same media that you're replacing. Please select a different one or click 'Cancel'."),
                         QMessageBox::Ok
                     );
-		} else if (new_item->get_type() == MediaType::FOLDER) {
+    } else if (new_item->type() == MediaType::FOLDER) {
             QMessageBox::critical(
                         this,
                         tr("Folder selected"),
@@ -108,7 +108,7 @@ void ReplaceClipMediaDialog::replace() {
                         QMessageBox::Ok
                     );
 		} else {
-            if (new_item->get_type() == MediaType::SEQUENCE && global::sequence == new_item->object<Sequence>()) {
+            if (new_item->type() == MediaType::SEQUENCE && global::sequence == new_item->object<Sequence>()) {
                 QMessageBox::critical(
                             this,
                             tr("Active sequence selected"),

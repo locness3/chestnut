@@ -53,7 +53,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
             qCritical() << "Null MediaPtr";
             continue;
         }
-        switch (mda->get_type()) {
+        switch (mda->type()) {
         case MediaType::FOOTAGE:
         {
             auto ftg = mda->object<Footage>();
@@ -97,7 +97,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
         }
             break;
         default:
-            qWarning() << "Unknown media type" << static_cast<int>(mda->get_type());
+            qWarning() << "Unknown media type" << static_cast<int>(mda->type());
         }//switch
         if (got_video_values && got_audio_values) break;
     } //for
@@ -280,7 +280,7 @@ void Sequence::closeActiveClips(const int depth)
             qWarning() << "Null Clip ptr";
             continue;
         }
-        if (c->timeline_info.media && (c->timeline_info.media->get_type() == MediaType::SEQUENCE) ) {
+        if (c->timeline_info.media && (c->timeline_info.media->type() == MediaType::SEQUENCE) ) {
             if (auto seq = c->timeline_info.media->object<Sequence>()) {
                 seq->closeActiveClips(depth + 1);
             }
