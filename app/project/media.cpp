@@ -37,7 +37,9 @@ extern "C" {
 
 namespace
 {
-    const int COLUMN_COUNT = 3;
+  const int COLUMN_COUNT = 3;
+  const char* const FOLDER_ICON = ":/icons/folder.png";
+  const char* const SEQUENCE_ICON = ":/icons/sequence.png";
 }
 
 QString get_interlacing_name(int interlacing) {
@@ -100,27 +102,33 @@ void Media::clearObject() {
   _type = MediaType::NONE;
   _object = nullptr;
 }
-void Media::setFootage(FootagePtr ftg) {
+bool Media::setFootage(FootagePtr ftg) {
+  if ((ftg != nullptr) && (ftg != _object)) {
     _type = MediaType::FOOTAGE;
     _object = ftg;
+    return true;
+  }
+  return false;
 }
 
-void Media::setSequence(SequencePtr sqn) {
-    setIcon(QIcon(":/icons/sequence.png"));
+bool Media::setSequence(SequencePtr sqn) {
+  if ( (sqn != nullptr) && (sqn != _object) ) {
+    setIcon(QIcon(SEQUENCE_ICON));
     _type = MediaType::SEQUENCE;
     _object = sqn;
-    if (sqn != nullptr) {
-        update_tooltip();
-    }
+    updateTooltip();
+    return true;
+  }
+  return false;
 }
 
 void Media::setFolder() {
-    if (_folderName.isEmpty()) {
-        _folderName = QCoreApplication::translate("Media", "New Folder");
-    }
-    setIcon(QIcon(":/icons/folder.png"));
-    _type = MediaType::FOLDER;
-    _object = nullptr;
+  if (_folderName.isEmpty()) {
+    _folderName = QCoreApplication::translate("Media", "New Folder");
+  }
+  setIcon(QIcon(FOLDER_ICON));
+  _type = MediaType::FOLDER;
+  _object = nullptr;
 }
 
 void Media::setIcon(const QIcon &ico) {

@@ -74,8 +74,8 @@ public:
      */
     int id() const;
     void clearObject();
-    void setFootage(FootagePtr ftg);
-    void setSequence(SequencePtr sqn);
+    bool setFootage(FootagePtr ftg);
+    bool setSequence(SequencePtr sqn);
     void setFolder();
     void setIcon(const QIcon &ico);
     void setParent(MediaWPtr p);
