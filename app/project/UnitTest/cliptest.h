@@ -17,6 +17,10 @@ class ClipTest : public QObject
      /**
       * @brief Test caching is not used with an empty, unused clip
       */
+     void testCaseUsesCacherDefault();
+     /**
+      * @brief Test caching used with a Media item assigned of type footage only
+      */
      void testCaseUsesCacher();
 };
 

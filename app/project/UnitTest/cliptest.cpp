@@ -22,9 +22,24 @@ void ClipTest::testCaseConstructor()
 }
 
 
+void ClipTest::testCaseUsesCacherDefault()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  QVERIFY(clp.uses_cacher() == false);
+}
+
+
 void ClipTest::testCaseUsesCacher()
 {
   auto seq = std::make_shared<Sequence>();
   Clip clp(seq);
+  auto mda =  std::make_shared<Media>();
+  mda->setFootage(std::make_shared<Footage>());
+  clp.timeline_info.media = mda;
+  QVERIFY(clp.uses_cacher() == true);
+  mda = std::make_shared<Media>();
+  mda->setSequence(std::make_shared<Sequence>());
+  clp.timeline_info.media = mda;
   QVERIFY(clp.uses_cacher() == false);
 }
