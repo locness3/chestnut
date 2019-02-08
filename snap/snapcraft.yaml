@@ -27,7 +27,8 @@ apps:
 parts:
   olive:
     plugin: qmake
-    source: .
+    source: https://github.com/jonno85uk/olive.git
+    source-type: git
     build-packages:
       - qt5-default
       - qtmultimedia5-dev 
@@ -41,7 +42,7 @@ parts:
       - libslang2
       - libglu1-mesa
     override-build: |
-      qmake olive.pro
+      qmake olive-editor.pro
       make
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin/effects
       cp olive-editor $SNAPCRAFT_PART_INSTALL/bin
