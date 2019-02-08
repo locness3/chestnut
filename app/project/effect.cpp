@@ -922,7 +922,7 @@ EffectPtr Effect::copy(ClipPtr c) {
 }
 
 void Effect::process_shader(double timecode, GLTextureCoords&) {
-    glslProgram->setUniformValue("resolution", parent_clip->getWidth(), parent_clip->getHeight());
+    glslProgram->setUniformValue("resolution", parent_clip->width(), parent_clip->height());
     glslProgram->setUniformValue("time", GLfloat(timecode));
 
     for (int i=0;i<rows.size();i++) {
@@ -964,8 +964,8 @@ void Effect::process_coords(double, GLTextureCoords&, int data) {}
 
 GLuint Effect::process_superimpose(double timecode) {
     bool recreate_texture = false;
-    int width = parent_clip->getWidth();
-    int height = parent_clip->getHeight();
+    int width = parent_clip->width();
+    int height = parent_clip->height();
 
     if (width != img.width() || height != img.height()) {
         img = QImage(width, height, QImage::Format_RGBA8888);
@@ -1054,7 +1054,7 @@ void Effect::redraw(double) {
     painter_wrapper.painter = &p;
 
     jsEngine.globalObject().setProperty("painter", wrapper_obj);
-    jsEngine.globalObject().setProperty("width", parent_clip->getWidth());
+    jsEngine.globalObject().setProperty("width", parent_clip->width());
     jsEngine.globalObject().setProperty("height", parent_clip->getHeight());
 
     for (int i=0;i<rows.size();i++) {

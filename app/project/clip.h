@@ -74,16 +74,16 @@ public:
      * @brief Identify if the clip is being cached
      * @return true==caching used
      */
-    bool uses_cacher() const;
+    bool usesCacher() const;
     /**
      * @brief open_worker
      * @return true==success
      */
-    bool open_worker();
+    bool openWorker();
     /**
      * @brief Free resources made via libav
      */
-    void close_worker();
+    void closeWorker();
     /**
      * @brief Open clip and allocate necessary resources
      * @param open_multithreaded
@@ -98,7 +98,7 @@ public:
     /**
      * @brief Close this clip and free up resources whilst waiting
      */
-    void close_with_wait();
+    void closeWithWait();
     /**
      * @brief Cache the clip at a certain point
      * @param playhead
@@ -110,23 +110,23 @@ public:
     bool cache(const long playhead, const bool do_reset, const bool scrubbing, QVector<ClipPtr>& nests);
 
 
-    void reset_audio();
+    void resetAudio();
     void reset();
     void refresh();
-    long get_clip_in_with_transition();
-    long get_timeline_in_with_transition();
-    long get_timeline_out_with_transition();
-    long getLength();
-    double getMediaFrameRate();
-    long getMaximumLength();
+    long clipInWithTransition();
+    long timelineInWithTransition();
+    long timelineOutWithTransition();
+    long length();
+    double mediaFrameRate();
+    long maximumLength();
     void recalculateMaxLength();
-    int getWidth();
-    int getHeight();
-    void refactor_frame_rate(ComboAction* ca, double multiplier, bool change_timeline_points);
+    int width();
+    int height();
+    void refactorFrameRate(ComboAction* ca, double multiplier, bool change_timeline_points);
 
     // queue functions
-    void queue_clear();
-    void queue_remove_earliest();
+    void clearQueue();
+    void removeEarliestFromQueue();
 
 
     TransitionPtr get_opening_transition();

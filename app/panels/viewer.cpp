@@ -140,7 +140,7 @@ void Viewer::reset_all_audio() {
         for (int i=0;i<seq->clips.size();i++) {
             ClipPtr c = seq->clips.at(i);
             if (c != nullptr) {
-                c->reset_audio();
+                c->resetAudio();
             }
         }
     }

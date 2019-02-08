@@ -112,7 +112,7 @@ void SpeedDialog::run() {
             }
 
             if (process_video) {
-                double media_frame_rate = c->getMediaFrameRate();
+                double media_frame_rate = c->mediaFrameRate();
 
                 // get "default" frame rate"
                 if (enable_frame_rate) {
@@ -150,13 +150,13 @@ void SpeedDialog::run() {
         }
 
         // get default length
-        long clip_default_length = qRound(c->getLength() * clip_percent);
+        long clip_default_length = qRound(c->length() * clip_percent);
         if (i == 0) {
-            current_length = c->getLength();
+            current_length = c->length();
             default_length = clip_default_length;
             current_percent = clip_percent;
         } else {
-            if (current_length != -1 && c->getLength() != current_length) {
+            if (current_length != -1 && c->length() != current_length) {
                 current_length = -1;
             }
             if (default_length != -1 && clip_default_length != default_length) {
@@ -192,7 +192,7 @@ void SpeedDialog::percent_update() {
 
         // get frame rate
         if (frame_rate->isEnabled() && c->timeline_info.track < 0) {
-            double clip_fr = c->getMediaFrameRate() * percent->value();
+            double clip_fr = c->mediaFrameRate() * percent->value();
             if (got_fr) {
                 if (!qIsNaN(fr_val) && !qFuzzyCompare(fr_val, clip_fr)) {
                     fr_val = qSNaN();
@@ -204,7 +204,7 @@ void SpeedDialog::percent_update() {
         }
 
         // get duration
-        long clip_default_length = qRound(c->getLength() * c->timeline_info.speed);
+        long clip_default_length = qRound(c->length() * c->timeline_info.speed);
         long new_clip_length = qRound(clip_default_length / percent->value());
         if (i == 0) {
             len_val = new_clip_length;
@@ -226,7 +226,7 @@ void SpeedDialog::duration_update() {
         ClipPtr c = clips.at(i);
 
         // get percent
-        long clip_default_length = qRound(c->getLength() * c->timeline_info.speed);
+        long clip_default_length = qRound(c->length() * c->timeline_info.speed);
         double clip_pc = clip_default_length / duration->value();
         if (i == 0) {
             pc_val = clip_pc;
@@ -236,7 +236,7 @@ void SpeedDialog::duration_update() {
 
         // get frame rate
         if (frame_rate->isEnabled() && c->timeline_info.track < 0) {
-            double clip_fr = c->getMediaFrameRate() * clip_pc;
+            double clip_fr = c->mediaFrameRate() * clip_pc;
             if (got_fr) {
                 if (!qIsNaN(fr_val) && !qFuzzyCompare(fr_val, clip_fr)) {
                     fr_val = qSNaN();
@@ -277,7 +277,7 @@ void SpeedDialog::frame_rate_update() {
 
         if (c->timeline_info.track < 0) {
             // what would the new speed be based on this frame rate
-            double new_clip_speed = frame_rate->value() / c->getMediaFrameRate();
+            double new_clip_speed = frame_rate->value() / c->mediaFrameRate();
             if (!got_pc_val) {
                 pc_val = new_clip_speed;
                 got_pc_val = true;
@@ -286,7 +286,7 @@ void SpeedDialog::frame_rate_update() {
             }
 
             // what would be the new length based on this speed
-            long new_clip_len = (c->getLength() * c->timeline_info.speed) / new_clip_speed;
+            long new_clip_len = (c->length() * c->timeline_info.speed) / new_clip_speed;
             if (!got_len_val) {
                 len_val = new_clip_len;
                 got_len_val = true;
@@ -301,7 +301,7 @@ void SpeedDialog::frame_rate_update() {
         ClipPtr c = clips.at(i);
 
         if (c->timeline_info.track >= 0) {
-            long new_clip_len = (qIsNaN(old_pc_val) || qIsNaN(pc_val)) ? c->getLength() : ((c->getLength() * c->timeline_info.speed) / pc_val);
+            long new_clip_len = (qIsNaN(old_pc_val) || qIsNaN(pc_val)) ? c->length() : ((c->length() * c->timeline_info.speed) / pc_val);
             if (len_val > -1 && new_clip_len != len_val) {
                 len_val = -1;
                 break;
@@ -318,7 +318,7 @@ void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, long& ep, 
 
     long proposed_out = c->timeline_info.out; //FIXME: this is never used
     double multiplier = (c->timeline_info.speed / speed);
-    proposed_out = c->timeline_info.in + (c->getLength() * multiplier);
+    proposed_out = c->timeline_info.in + (c->length() * multiplier);
     ca->append(new SetSpeedAction(c, speed));
     if (!ripple && proposed_out > c->timeline_info.out) {
         for (int i=0;i<c->sequence->clips.size();i++) {
@@ -334,7 +334,7 @@ void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, long& ep, 
     lr = qMax(lr, proposed_out - c->timeline_info.out);
     move_clip(ca, c, c->timeline_info.in, proposed_out, c->timeline_info.clip_in * multiplier, c->timeline_info.track);
 
-    c->refactor_frame_rate(ca, multiplier, false);
+    c->refactorFrameRate(ca, multiplier, false);
 
     Selection sel;
     sel.in = c->timeline_info.in;
@@ -363,7 +363,7 @@ void SpeedDialog::accept() {
         }
 
         if (reverse->checkState() != Qt::PartiallyChecked && c->timeline_info.reverse != reverse->isChecked()) {
-            long new_clip_in = (c->getMaximumLength() - (c->getLength() + c->timeline_info.clip_in));
+            long new_clip_in = (c->maximumLength() - (c->length() + c->timeline_info.clip_in));
             move_clip(ca, c, c->timeline_info.in, c->timeline_info.out, new_clip_in, c->timeline_info.track);
             c->timeline_info.clip_in = new_clip_in;
             ca->append(new SetBool(&c->timeline_info.reverse, reverse->isChecked()));
@@ -391,8 +391,8 @@ void SpeedDialog::accept() {
             }
             if (c->timeline_info.track < 0) {
                 if (qIsNaN(cached_fr)) {
-                    cached_fr = c->getMediaFrameRate();
-                } else if (!qFuzzyCompare(cached_fr, c->getMediaFrameRate())) {
+                    cached_fr = c->mediaFrameRate();
+                } else if (!qFuzzyCompare(cached_fr, c->mediaFrameRate())) {
                     can_change_all = false;
                     break;
                 }
@@ -403,7 +403,7 @@ void SpeedDialog::accept() {
         for (int i=0;i<clips.size();i++) {
             ClipPtr c = clips.at(i);
             if (c->timeline_info.track < 0) {
-                set_speed(ca, c, frame_rate->value() / c->getMediaFrameRate(), ripple->isChecked(), earliest_point, longest_ripple);
+                set_speed(ca, c, frame_rate->value() / c->mediaFrameRate(), ripple->isChecked(), earliest_point, longest_ripple);
             } else if (can_change_all) {
                 set_speed(ca, c, frame_rate->value() / cached_fr, ripple->isChecked(), earliest_point, longest_ripple);
             }
@@ -412,7 +412,7 @@ void SpeedDialog::accept() {
         // simply set duration
         for (int i=0;i<clips.size();i++) {
             ClipPtr c = clips.at(i);
-            set_speed(ca, c, (c->getLength() * c->timeline_info.speed) / duration->value(), ripple->isChecked(), earliest_point, longest_ripple);
+            set_speed(ca, c, (c->length() * c->timeline_info.speed) / duration->value(), ripple->isChecked(), earliest_point, longest_ripple);
         }
     }
 

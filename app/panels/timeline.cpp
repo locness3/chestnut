@@ -699,7 +699,7 @@ ClipPtr Timeline::split_clip(ComboAction* ca, int p, long frame, long post_in) {
             ca->append(new DeleteTransitionCommand(pre->sequence, pre->closing_transition));
             if (pre->get_closing_transition()->secondary_clip.expired()) {
                 post->get_closing_transition()->set_length(qMin((long) post->get_closing_transition()->get_true_length(),
-                                                                post->getLength()));
+                                                                post->length()));
             }
         }
 

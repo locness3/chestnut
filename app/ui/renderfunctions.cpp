@@ -130,7 +130,7 @@ GLuint compose_sequence(Viewer* viewer,
     if (!nests.isEmpty()) {
         for(auto nest_clip : nests) {
             lcl_seq = nest_clip->timeline_info.media->object<Sequence>();
-            playhead += nest_clip->timeline_info.clip_in - nest_clip->get_timeline_in_with_transition();
+            playhead += nest_clip->timeline_info.clip_in - nest_clip->timelineInWithTransition();
             playhead = refactor_frame_number(playhead, nest_clip->sequence->getFrameRate(), lcl_seq->getFrameRate());
         }
 
@@ -229,8 +229,8 @@ GLuint compose_sequence(Viewer* viewer,
                 glColor4f(1.0, 1.0, 1.0, 1.0);
 
                 GLuint textureID = 0;
-                int video_width = clp->getWidth();
-                int video_height = clp->getHeight();
+                int video_width = clp->width();
+                int video_height = clp->height();
 
                 if (clp->timeline_info.media != nullptr) {
                     switch (clp->timeline_info.media->type()) {
@@ -260,7 +260,7 @@ GLuint compose_sequence(Viewer* viewer,
                 if ( (textureID == 0) && (clp->timeline_info.media != nullptr) ) {
                     qWarning() << "Texture hasn't been created yet";
                     texture_failed = true;
-                } else if (playhead >= clp->get_timeline_in_with_transition()) {
+                } else if (playhead >= clp->timelineInWithTransition()) {
                     glPushMatrix();
 
                     // start preparing cache
@@ -355,7 +355,7 @@ GLuint compose_sequence(Viewer* viewer,
                     }
 
                     if (clp->get_opening_transition() != nullptr) {
-                        int transition_progress = playhead - clp->get_timeline_in_with_transition();
+                        int transition_progress = playhead - clp->timelineInWithTransition();
                         if (transition_progress < clp->get_opening_transition()->get_length()) {
                             EffectPtr trans(clp->get_opening_transition());
                             process_effect(ctx, clp, trans,
@@ -365,7 +365,7 @@ GLuint compose_sequence(Viewer* viewer,
                     }
 
                     if (clp->get_closing_transition() != nullptr) {
-                        int transition_progress = playhead - (clp->get_timeline_out_with_transition() - clp->get_closing_transition()->get_length());
+                        int transition_progress = playhead - (clp->timelineOutWithTransition() - clp->get_closing_transition()->get_length());
                         if (transition_progress >= 0 && transition_progress < clp->get_closing_transition()->get_length()) {
                             EffectPtr trans(clp->get_closing_transition());
                             process_effect(ctx, clp, trans,
@@ -491,7 +491,7 @@ GLuint compose_sequence(Viewer* viewer,
 
                 // visually update all the keyframe values
                 if (clp->sequence == seq) { // only if you can currently see them
-                    double ts = (playhead - clp->get_timeline_in_with_transition() + clp->get_clip_in_with_transition())/lcl_seq->getFrameRate();
+                    double ts = (playhead - clp->timelineInWithTransition() + clp->clipInWithTransition())/lcl_seq->getFrameRate();
                     for (int i=0; i<clp->effects.size(); i++) {
                         EffectPtr e = clp->effects.at(i);
                         for (int j=0;j<e->row_count();j++) {
