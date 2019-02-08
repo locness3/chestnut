@@ -27,18 +27,12 @@ extern "C" {
 }
 
 int main(int argc, char *argv[]) {
-    QString appName = "Olive (January 2019 | Alpha";
-#ifdef GITHASH
-    appName += " | ";
-    appName += GITHASH;
-#endif
-    appName += ")";
+    QString appName = "Chestnut";
 
     auto launch_fullscreen = false;
     QString load_proj;
 
     auto use_internal_logger = true;
-
     if (argc > 1) {
         for (int i=1;i<argc;i++) {
             if (argv[i][0] == '-') {

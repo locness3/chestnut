@@ -44,7 +44,7 @@ enum class ProjectView {
   ICON = 1
 };
 
-//FIXME; oh,wow
+//FIXME; oh,wow. use QSettings?
 struct Config {
     Config();
     bool saved_layout;

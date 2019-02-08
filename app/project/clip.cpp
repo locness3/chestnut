@@ -145,7 +145,8 @@ bool Clip::isActive(const long playhead) {
  * @brief Identify if the clip is being cached
  * @return true==caching used
  */
-bool Clip::usesCacher() const {
+bool Clip::usesCacher() const
+{
   if (( (timeline_info.media == nullptr) && (timeline_info.track >= 0) )
       || ( (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE))) {
     return true;

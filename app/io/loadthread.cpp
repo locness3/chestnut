@@ -175,7 +175,8 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                     if (QMessageBox::warning(
                                 global::mainWindow,
                                 tr("Version Mismatch"),
-                                tr("This project was saved in a different version of Olive and may not be fully compatible with this version. Would you like to attempt loading it anyway?"),
+                                tr("This project was saved in a different version of Chestnut and may not be fully "
+                                   "compatible with this version. Would you like to attempt loading it anyway?"),
                                 QMessageBox::Yes,
                                 QMessageBox::No) == QMessageBox::No) {
                         show_err = false;

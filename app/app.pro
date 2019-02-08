@@ -9,7 +9,7 @@ include(../project-settings.pri)
 
 TEMPLATE = lib
 CONFIG += staticlib
-TARGET = oliveeditor
+TARGET = chestnut
 
 
 SOURCES += \
@@ -49,7 +49,6 @@ SOURCES += \
     ui/checkboxex.cpp \
     ui/keyframeview.cpp \
     ui/texteditex.cpp \
-    dialogs/demonotice.cpp \
     project/marker.cpp \
     dialogs/speeddialog.cpp \
     dialogs/mediapropertiesdialog.cpp \
@@ -145,7 +144,6 @@ HEADERS += \
     ui/checkboxex.h \
     ui/keyframeview.h \
     ui/texteditex.h \
-    dialogs/demonotice.h \
     project/marker.h \
     project/selection.h \
     dialogs/speeddialog.h \

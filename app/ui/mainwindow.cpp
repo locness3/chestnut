@@ -44,7 +44,6 @@
 #include "dialogs/newsequencedialog.h"
 #include "dialogs/exportdialog.h"
 #include "dialogs/preferencesdialog.h"
-#include "dialogs/demonotice.h"
 #include "dialogs/speeddialog.h"
 #include "dialogs/actionsearch.h"
 #include "dialogs/debugdialog.h"
@@ -92,7 +91,6 @@ const qint64 AUTORECOVERY_INTERVAL_MILLIS = 60000;
 
 QTimer autorecovery_timer;
 QString config_fn;
-bool demoNoticeShown = false;
 }
 
 
@@ -252,7 +250,10 @@ MainWindow::MainWindow(QWidget *parent, const QString &an) :
         // detect auto-recovery file
         autorecovery_filename = data_dir + "/" + FILE_AUTORECOVERY;
         if (QFile::exists(autorecovery_filename)) {
-            if (QMessageBox::question(nullptr, tr("Auto-recovery"), tr("Olive didn't close properly and an autorecovery file was detected. Would you like to open it?"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+            if (QMessageBox::question(nullptr,
+                                      tr("Auto-recovery"),
+                                      tr("Chestnut didn't close properly and an autorecovery file was detected. Would you like to open it?"),
+                                      QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
                 enable_launch_with_project = false;
                 open_project_worker(autorecovery_filename, true);
             }
@@ -275,7 +276,6 @@ MainWindow::~MainWindow() {
 void MainWindow::launch_with_project(const QString& s) {
     project_url = s;
     enable_launch_with_project = true;
-    demoNoticeShown = true;
 }
 
 void MainWindow::make_new_menu(QMenu *parent) {
@@ -1059,13 +1059,6 @@ void MainWindow::paintEvent(QPaintEvent *event) {
         QTimer::singleShot(10, this, SLOT(load_with_launch()));
         enable_launch_with_project = false;
     }
-#ifndef QT_DEBUG
-    if (!demoNoticeShown) {
-        DemoNotice* d = new DemoNotice(this);
-        d->open();
-        demoNoticeShown = true;
-    }
-#endif
 }
 
 void MainWindow::clear_undo_stack() {

@@ -9,7 +9,7 @@ include(../project-settings.pri)
 QT       += testlib
 
 
-TARGET = oliveeditor_ut
+TARGET = chestnut_ut
 
 
 # The following define makes your compiler emit warnings if you use
@@ -42,6 +42,6 @@ HEADERS += \
     ../app/io/UnitTest/configtest.h
 
 INCLUDEPATH += ../app/
-LIBS += -L../app/$${DESTDIR}/ -loliveeditor
+LIBS += -L../app/$${DESTDIR}/ -lchestnut
 
 
