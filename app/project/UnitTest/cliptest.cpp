@@ -20,3 +20,11 @@ void ClipTest::testCaseConstructor()
   QVERIFY(clp.isActive(0) == false);
   QVERIFY(clp.is_selected(false) == false);
 }
+
+
+void ClipTest::testCaseUsesCacher()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  QVERIFY(clp.uses_cacher() == false);
+}

@@ -14,6 +14,10 @@ class ClipTest : public QObject
 
   private slots:
      void testCaseConstructor();
+     /**
+      * @brief Test caching is not used with an empty, unused clip
+      */
+     void testCaseUsesCacher();
 };
 
 #endif // CLIPTEST_H

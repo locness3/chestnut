@@ -159,7 +159,7 @@ public:
         long clip_in = 0;
         long in = 0;
         long out = 0;
-        int track = 0;
+        int track = -1;
         QString name = "";
         QColor color = {0,0,0};
         MediaPtr media = nullptr;
