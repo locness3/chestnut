@@ -45,10 +45,10 @@ parts:
       qmake olive-editor.pro
       make
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin/effects
-      cp olive-editor $SNAPCRAFT_PART_INSTALL/bin
-      cp effects/*.xml $SNAPCRAFT_PART_INSTALL/bin/effects
-      cp effects/*.frag $SNAPCRAFT_PART_INSTALL/bin/effects
-      cp effects/*.vert $SNAPCRAFT_PART_INSTALL/bin/effects
+      cp app/main/build/release/olive-editor $SNAPCRAFT_PART_INSTALL/bin
+      cp app/effects/*.xml $SNAPCRAFT_PART_INSTALL/bin/effects
+      cp app/effects/*.frag $SNAPCRAFT_PART_INSTALL/bin/effects
+      cp app/effects/*.vert $SNAPCRAFT_PART_INSTALL/bin/effects
       snapcraftctl set-version $(git rev-parse --short HEAD)
   desktop-qt5:
     build-packages:
