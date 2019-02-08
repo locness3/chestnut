@@ -28,7 +28,8 @@ SOURCES += \
     ../app/project/UnitTest/sequenceitemtest.cpp \
     ../app/project/UnitTest/sequencetest.cpp \
     ../app/project/UnitTest/mediatest.cpp \
-    ../app/project/UnitTest/cliptest.cpp
+    ../app/project/UnitTest/cliptest.cpp \
+    ../app/io/UnitTest/configtest.cpp
 
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
@@ -37,7 +38,8 @@ HEADERS += \
     ../app/project/UnitTest/sequenceitemtest.h \
     ../app/project/UnitTest/sequencetest.h \
     ../app/project/UnitTest/mediatest.h \
-    ../app/project/UnitTest/cliptest.h
+    ../app/project/UnitTest/cliptest.h \
+    ../app/io/UnitTest/configtest.h
 
 INCLUDEPATH += ../app/
 LIBS += -L../app/$${DESTDIR}/ -loliveeditor

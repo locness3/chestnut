@@ -4,17 +4,28 @@
 #include "project/UnitTest/sequencetest.h"
 #include "project/UnitTest/mediatest.h"
 #include "project/UnitTest/cliptest.h"
+#include "io/UnitTest/configtest.h"
+
+namespace
+{
+  int     argCount;
+  char**  argVals;
+}
+template <typename T>
+int runTest()
+{
+  T testItem;
+  return QTest::qExec(&testItem, argCount, argVals);
+}
 
 int main(int argc, char** argv)
 {
-    int status = 0;
-    SequenceItemTest sit;
-    status |= QTest::qExec(&sit, argc, argv);
-    SequenceTest st;
-    status |= QTest::qExec(&st, argc, argv);
-    MediaTest mt;
-    status |= QTest::qExec(&mt, argc, argv);
-    ClipTest ct;
-    status |= QTest::qExec(&ct, argc, argv);
-    return 0;
+  argCount = argc;
+  argVals = argv;
+  int status = runTest<ConfigTest>();
+  status |= runTest<SequenceItemTest>();
+  status |= runTest<SequenceTest>();
+  status |= runTest<MediaTest>();
+  status |= runTest<ClipTest>();
+  return status;
 }

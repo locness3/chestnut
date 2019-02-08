@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -40,53 +40,53 @@
 #define FRAME_QUEUE_TYPE_SECONDS 1
 
 enum class ProjectView {
-    TREE = 0,
-    ICON = 1
+  TREE = 0,
+  ICON = 1
 };
 
 //FIXME; oh,wow
 struct Config {
-	Config();
-	bool saved_layout;
-	bool show_track_lines;
-	bool scroll_zooms;
-	bool edit_tool_selects_links;
-	bool edit_tool_also_seeks;
-	bool select_also_seeks;
-	bool paste_seeks;
-	QString img_seq_formats;
-	bool rectified_waveforms;
-	int default_transition_length;
-	int timecode_view;
-	bool show_title_safe_area;
-	bool use_custom_title_safe_ratio;
-	double custom_title_safe_ratio;
-	bool enable_drag_files_to_timeline;
-	bool autoscale_by_default;
-	int recording_mode;
-	bool enable_seek_to_import;
-	bool enable_audio_scrubbing;
-	bool drop_on_media_to_replace;
-	int autoscroll;
-	int audio_rate;
-	bool fast_seeking;
-	bool hover_focus;
+    Config();
+    bool saved_layout;
+    bool show_track_lines;
+    bool scroll_zooms;
+    bool edit_tool_selects_links;
+    bool edit_tool_also_seeks;
+    bool select_also_seeks;
+    bool paste_seeks;
+    QString img_seq_formats;
+    bool rectified_waveforms;
+    int default_transition_length;
+    int timecode_view;
+    bool show_title_safe_area;
+    bool use_custom_title_safe_ratio;
+    double custom_title_safe_ratio;
+    bool enable_drag_files_to_timeline;
+    bool autoscale_by_default;
+    int recording_mode;
+    bool enable_seek_to_import;
+    bool enable_audio_scrubbing;
+    bool drop_on_media_to_replace;
+    int autoscroll;
+    int audio_rate;
+    bool fast_seeking;
+    bool hover_focus;
     ProjectView project_view_type;
-	bool set_name_with_marker;
-	bool show_project_toolbar;
-	bool disable_multithreading_for_images;
-	double previous_queue_size;
-	int previous_queue_type;
-	double upcoming_queue_size;
-	int upcoming_queue_type;
+    bool set_name_with_marker;
+    bool show_project_toolbar;
+    bool disable_multithreading_for_images;
+    double previous_queue_size;
+    int previous_queue_type;
+    double upcoming_queue_size;
+    int upcoming_queue_type;
     bool loop;
     bool pause_at_out_point;
     bool seek_also_selects;
     QString css_path;
-	int effect_textbox_lines;
+    int effect_textbox_lines;
 
-	void load(QString path);
-	void save(QString path);
+    void load(QString path);
+    void save(QString path);
 };
 
 extern Config e_config;
