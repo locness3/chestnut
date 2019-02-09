@@ -24,7 +24,7 @@
 class ComboBoxEx : public QComboBox {
     Q_OBJECT
 public:
-    ComboBoxEx(QWidget* parent = 0);
+    ComboBoxEx(QWidget* parent = nullptr);
 	void setCurrentIndexEx(int i);
 	void setCurrentTextEx(const QString &text);
 	int getPreviousIndex();

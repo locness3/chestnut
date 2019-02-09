@@ -24,7 +24,7 @@ class CheckboxEx : public QCheckBox
 {
 	Q_OBJECT
 public:
-	CheckboxEx(QWidget* parent = 0);
+	CheckboxEx(QWidget* parent = nullptr);
 private slots:
 	void checkbox_command();
 };

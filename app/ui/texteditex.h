@@ -23,7 +23,7 @@
 class TextEditEx : public QTextEdit {
 	Q_OBJECT
 public:
-    TextEditEx(QWidget* parent = 0);
+    TextEditEx(QWidget* parent = nullptr);
 	void setPlainTextEx(const QString &text);
 	const QString& getPreviousValue();
 	const QString& getPlainTextEx();

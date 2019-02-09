@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -30,49 +30,53 @@ class QGroupBox;
 
 class ExportDialog : public QDialog
 {
-	Q_OBJECT
-public:
-	explicit ExportDialog(QWidget *parent = 0);
-	~ExportDialog();
-	QString export_error;
+    Q_OBJECT
+  public:
+    explicit ExportDialog(QWidget *parent = nullptr);
+    virtual ~ExportDialog();
 
-private slots:
-	void format_changed(int index);
-	void export_action();
-	void update_progress_bar(int value, qint64 remaining_ms);
-	void cancel_render();
-	void render_thread_finished();
-	void vcodec_changed(int index);
-	void comp_type_changed(int index);
+    ExportDialog(const ExportDialog& ) = delete;
+    ExportDialog& operator=(const ExportDialog&) = delete;
 
-private:
-	QVector<QString> format_strings;
-	QVector<int> format_vcodecs;
-	QVector<int> format_acodecs;
-	void setup_ui();
+    QString export_error;
 
-	ExportThread* et;
-	void prep_ui_for_render(bool r);
-	bool cancelled;
+  private slots:
+    void format_changed(int index);
+    void export_action();
+    void update_progress_bar(int value, qint64 remaining_ms);
+    void cancel_render();
+    void render_thread_finished();
+    void vcodec_changed(int index);
+    void comp_type_changed(int index);
 
-	QComboBox* rangeCombobox;
-	QSpinBox* widthSpinbox;
-	QDoubleSpinBox* videobitrateSpinbox;
-	QLabel* videoBitrateLabel;
-	QDoubleSpinBox* framerateSpinbox;
-	QComboBox* vcodecCombobox;
-	QComboBox* acodecCombobox;
-	QSpinBox* samplingRateSpinbox;
-	QSpinBox* audiobitrateSpinbox;
-	QProgressBar* progressBar;
-	QComboBox* formatCombobox;
-	QSpinBox* heightSpinbox;
-	QPushButton* export_button;
-	QPushButton* cancel_button;
-	QPushButton* renderCancel;
-	QGroupBox* videoGroupbox;
-	QGroupBox* audioGroupbox;
-	QComboBox* compressionTypeCombobox;
+  private:
+    QVector<QString> format_strings;
+    QVector<int> format_vcodecs;
+    QVector<int> format_acodecs;
+    void setup_ui();
+
+    ExportThread* et;
+    void prep_ui_for_render(bool r);
+    bool cancelled;
+
+    QComboBox* rangeCombobox;
+    QSpinBox* widthSpinbox;
+    QDoubleSpinBox* videobitrateSpinbox;
+    QLabel* videoBitrateLabel;
+    QDoubleSpinBox* framerateSpinbox;
+    QComboBox* vcodecCombobox;
+    QComboBox* acodecCombobox;
+    QSpinBox* samplingRateSpinbox;
+    QSpinBox* audiobitrateSpinbox;
+    QProgressBar* progressBar;
+    QComboBox* formatCombobox;
+    QSpinBox* heightSpinbox;
+    QPushButton* export_button;
+    QPushButton* cancel_button;
+    QPushButton* renderCancel;
+    QGroupBox* videoGroupbox;
+    QGroupBox* audioGroupbox;
+    QComboBox* compressionTypeCombobox;
 };
 
 #endif // EXPORTDIALOG_H

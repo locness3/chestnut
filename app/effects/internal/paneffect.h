@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,9 +21,14 @@
 #include "project/effect.h"
 
 class PanEffect : public Effect {
-public:
+  public:
     PanEffect(ClipPtr c, const EffectMeta* em);
-	void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
+
+    PanEffect(const PanEffect& ) = delete;
+    PanEffect& operator=(const PanEffect&) = delete;
+
+    void process_audio(double timecode_start, double timecode_end,
+                       quint8* samples, int nb_bytes, int channel_count) override;
 
     EffectField* pan_val;
 };

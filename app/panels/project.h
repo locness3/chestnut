@@ -61,8 +61,12 @@ QString get_interlacing_name(int interlacing);
 class Project : public QDockWidget {
     Q_OBJECT
 public:
-    explicit Project(QWidget *parent = 0);
+    explicit Project(QWidget *parent = nullptr);
     virtual ~Project();
+
+    Project(const Project& ) = delete;
+    Project& operator=(const Project&) = delete;
+
     bool is_focused();
     void clear();
     MediaPtr new_sequence(ComboAction *ca, SequencePtr  s, bool open, MediaPtr parent);

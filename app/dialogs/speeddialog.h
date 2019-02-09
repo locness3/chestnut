@@ -1,7 +1,7 @@
 /*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -27,31 +27,36 @@ class QCheckBox;
 
 class SpeedDialog : public QDialog
 {
-	Q_OBJECT
-public:
-	SpeedDialog(QWidget* parent = 0);
-    QVector<ClipPtr> clips;
+    Q_OBJECT
+  public:
+    explicit SpeedDialog(QWidget* parent = nullptr);
+
+    SpeedDialog(const SpeedDialog& ) = delete;
+    SpeedDialog& operator=(const SpeedDialog&) = delete;
 
     void run();
-private slots:
-	void percent_update();
-	void duration_update();
-	void frame_rate_update();
-	void accept();
-private:
-	LabelSlider* percent;
-	LabelSlider* duration;
-	LabelSlider* frame_rate;
 
-	QCheckBox* reverse;
-	QCheckBox* maintain_pitch;
-	QCheckBox* ripple;
+    QVector<ClipPtr> clips;
 
-	double default_frame_rate;
-	double current_frame_rate;
-	double current_percent;
-	long default_length;
-	long current_length;
+  private slots:
+    void percent_update();
+    void duration_update();
+    void frame_rate_update();
+    void accept();
+  private:
+    LabelSlider* percent;
+    LabelSlider* duration;
+    LabelSlider* frame_rate;
+
+    QCheckBox* reverse;
+    QCheckBox* maintain_pitch;
+    QCheckBox* ripple;
+
+    double default_frame_rate;
+    double current_frame_rate;
+    double current_percent;
+    long default_length;
+    long current_length;
 };
 
 #endif // SPEEDDIALOG_H

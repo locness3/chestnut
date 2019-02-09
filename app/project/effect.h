@@ -197,6 +197,7 @@ public:
     virtual void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
 
     virtual void gizmo_draw(double timecode, GLTextureCoords& coords);
+
     void gizmo_move(EffectGizmoPtr& sender, const int x_movement, const int y_movement, const double timecode, const bool done);
     void gizmo_world_to_screen();
     bool are_gizmos_enabled() const;
@@ -215,6 +216,8 @@ private slots:
     void move_up();
     void move_down();
 protected:
+    // superimpose functions
+    virtual void redraw(double timecode);
     /**
      * @brief Create a new EffectGizmo (virtual+protected to aid in testing)
      * @param type  Type for EffectGizmo to be
@@ -244,8 +247,6 @@ private:
     QWidget* ui;
     bool bound;
 
-    // superimpose functions
-    virtual void redraw(double timecode);
     bool valueHasChanged(double timecode);
     QVector<QVariant> cachedValues;
     void delete_texture();

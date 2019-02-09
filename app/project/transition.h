@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -39,18 +39,22 @@ int create_transition(ClipPtr c, ClipPtr s, const EffectMeta* em, long length = 
 
 
 class Transition : public Effect {
-	Q_OBJECT
-public:
+    Q_OBJECT
+  public:
     Transition(ClipPtr c, ClipPtr s, const EffectMeta* em);
+
+    Transition(const Transition& ) = delete;
+    Transition& operator=(const Transition&) = delete;
+
     int copy(ClipPtr c, ClipPtr s);
     ClipWPtr secondary_clip;
     void set_length(const long value);
     long get_true_length() const;
     long get_length() const;
-private slots:
-	void set_length_from_slider();
-private:
-	long length; // used only for transitions
+  private slots:
+    void set_length_from_slider();
+  private:
+    long length; // used only for transitions
     EffectField* length_field;
 };
 

@@ -31,7 +31,11 @@ class StabilizerDialog : public QDialog
 {
     Q_OBJECT
 public:
-    StabilizerDialog(QWidget* parent = 0);
+    explicit StabilizerDialog(QWidget* parent = nullptr);
+
+    StabilizerDialog(const StabilizerDialog& ) = delete;
+    StabilizerDialog& operator=(const StabilizerDialog&) = delete;
+
 private slots:
     void set_all_enabled(bool e);
 private:

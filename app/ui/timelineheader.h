@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -28,36 +28,39 @@ bool center_scroll_to_playhead(QScrollBar* bar, double zoom, long playhead);
 class TimelineHeader : public QWidget
 {
     Q_OBJECT
-public:
-	explicit TimelineHeader(QWidget *parent = 0);
+  public:
+    explicit TimelineHeader(QWidget *parent = nullptr);
+
+    TimelineHeader(const TimelineHeader& ) = delete;
+    TimelineHeader& operator=(const TimelineHeader&) = delete;
+
     void set_in_point(long p);
     void set_out_point(long p);
 
-	Viewer* viewer;
-
-	bool snapping;
-
-	void show_text(bool enable);
+    void show_text(bool enable);
     double get_zoom();
-	void delete_markers();
+    void delete_markers();
     void set_scrollbar_max(QScrollBar* bar, long sequence_end_frame, int offset);
 
-public slots:
-	void update_zoom(double z);
-	void set_scroll(int);
-	void set_visible_in(long i);
+    Viewer* viewer;
+    bool snapping;
+
+  public slots:
+    void update_zoom(double z);
+    void set_scroll(int);
+    void set_visible_in(long i);
     void show_context_menu(const QPoint &pos);
     void resized_scroll_listener(double d);
 
-protected:
-	void paintEvent(QPaintEvent*);
-	void mousePressEvent(QMouseEvent*);
-	void mouseMoveEvent(QMouseEvent*);
-	void mouseReleaseEvent(QMouseEvent*);
-	void focusOutEvent(QFocusEvent*);
+  protected:
+    void paintEvent(QPaintEvent*);
+    void mousePressEvent(QMouseEvent*);
+    void mouseMoveEvent(QMouseEvent*);
+    void mouseReleaseEvent(QMouseEvent*);
+    void focusOutEvent(QFocusEvent*);
 
-private:
-	void update_parents();
+  private:
+    void update_parents();
 
     bool dragging;
 
@@ -67,28 +70,28 @@ private:
     long temp_workarea_out;
     long sequence_end;
 
-	double zoom;
+    double zoom;
 
     long in_visible;
 
-	void set_playhead(int mouse_x);
+    void set_playhead(int mouse_x);
 
     QFontMetrics fm;
 
-	int drag_start;
-	bool dragging_markers;
-	QVector<int> selected_markers;
-	QVector<long> selected_marker_original_times;
+    int drag_start;
+    bool dragging_markers;
+    QVector<int> selected_markers;
+    QVector<long> selected_marker_original_times;
 
-	long getHeaderFrameFromScreenPoint(int x);
-	int getHeaderScreenPointFromFrame(long frame);
+    long getHeaderFrameFromScreenPoint(int x);
+    int getHeaderScreenPointFromFrame(long frame);
 
-	int scroll;
+    int scroll;
 
-	int height_actual;
-	bool text_enabled;
+    int height_actual;
+    bool text_enabled;
 
-signals:
+  signals:
 };
 
 #endif // TIMELINEHEADER_H

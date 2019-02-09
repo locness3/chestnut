@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,10 +25,14 @@
 class QOpenGLTexture;
 
 class TextEffect : public Effect {
-	Q_OBJECT
-public:
+    Q_OBJECT
+  public:
     TextEffect(ClipPtr c, const EffectMeta *em);
-	void redraw(double timecode);
+
+    TextEffect(const TextEffect& ) = delete;
+    TextEffect& operator=(const TextEffect&) = delete;
+
+    void redraw(double timecode);
 
     EffectField* text_val;
     EffectField* size_val;
@@ -47,12 +51,12 @@ public:
     EffectField* shadow_color;
     EffectField* shadow_softness;
     EffectField* shadow_opacity;
-private slots:
-	void outline_enable(bool);
-	void shadow_enable(bool);
-	void text_edit_menu();
-	void open_text_edit();
-private:
+  private slots:
+    void outline_enable(bool);
+    void shadow_enable(bool);
+    void text_edit_menu();
+    void open_text_edit();
+  private:
     QFont font;
 };
 

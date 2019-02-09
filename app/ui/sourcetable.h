@@ -29,7 +29,11 @@ class SourceTable : public QTreeView
 {
     Q_OBJECT
 public:
-    SourceTable(QWidget* parent = 0);
+    SourceTable(QWidget* parent = nullptr);
+
+    SourceTable(const SourceTable& ) = delete;
+    SourceTable& operator=(const SourceTable&) = delete;
+
     Project* project_parent;
 protected:
     void mousePressEvent(QMouseEvent*);

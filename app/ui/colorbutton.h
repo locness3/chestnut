@@ -25,7 +25,7 @@
 class ColorButton : public QPushButton {
     Q_OBJECT
 public:
-    ColorButton(QWidget* parent = 0);
+    ColorButton(QWidget* parent = nullptr);
     QColor get_color();
     void set_color(QColor c);
 	const QColor& getPreviousValue();
@@ -41,9 +41,13 @@ private slots:
 
 class ColorCommand : public QUndoCommand {
 public:
-    ColorCommand(ColorButton* s, QColor o, QColor n);
-    void undo();
-    void redo();
+    ColorCommand(ColorButton* s, const QColor o, const QColor n);
+
+    ColorCommand(const ColorCommand& ) = delete;
+    ColorCommand& operator=(const ColorCommand&) = delete;
+
+    void undo() override;
+    void redo() override;
 private:
     ColorButton* sender;
     QColor old_color;

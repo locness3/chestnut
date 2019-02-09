@@ -24,7 +24,7 @@ class AudioMonitor : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AudioMonitor(QWidget *parent = 0);
+    explicit AudioMonitor(QWidget *parent = nullptr);
     QVector<qint16> sample_cache;
     long sample_cache_offset;
     void reset();

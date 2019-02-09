@@ -46,7 +46,11 @@ struct TransitionData {
     ClipPtr  ctc;
 };
 
-LoadThread::LoadThread(LoadDialog* l, bool a) : ld(l), autorecovery(a), cancelled(false) {
+LoadThread::LoadThread(LoadDialog* l, const bool a)
+  : ld(l),
+    autorecovery(a),
+    cancelled(false)
+{
     qRegisterMetaType<ClipPtr>("ClipPtr");
     connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
     connect(this, SIGNAL(success()), this, SLOT(success_func()));

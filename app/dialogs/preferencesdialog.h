@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -32,56 +32,63 @@ class QDoubleSpinBox;
 class QSpinBox;
 
 class KeySequenceEditor : public QKeySequenceEdit {
-	Q_OBJECT
-public:
-	KeySequenceEditor(QWidget *parent, QAction* a);
-	void set_action_shortcut();
-	void reset_to_default();
-	QString action_name();
-	QString export_shortcut();
-private:
-	QAction* action;
+    Q_OBJECT
+  public:
+    KeySequenceEditor(QWidget *parent, QAction* a);
+
+    KeySequenceEditor(const KeySequenceEditor& ) = delete;
+    KeySequenceEditor& operator=(const KeySequenceEditor&) = delete;
+
+    void set_action_shortcut();
+    void reset_to_default();
+    QString action_name();
+    QString export_shortcut();
+  private:
+    QAction* action;
 };
 
 class PreferencesDialog : public QDialog
 {
-	Q_OBJECT
+    Q_OBJECT
 
-public:
-	explicit PreferencesDialog(QWidget *parent = 0);
-	~PreferencesDialog();
+  public:
+    explicit PreferencesDialog(QWidget *parent = nullptr);
+    virtual ~PreferencesDialog();
 
-	void setup_kbd_shortcuts(QMenuBar* menu);
+    PreferencesDialog(const PreferencesDialog& ) = delete;
+    PreferencesDialog& operator=(const PreferencesDialog&) = delete;
 
-private slots:
-	void save();
-	void reset_default_shortcut();
-	void reset_all_shortcuts();
-	bool refine_shortcut_list(const QString &, QTreeWidgetItem* parent = nullptr);
-	void load_shortcut_file();
-	void save_shortcut_file();
-	void browse_css_file();
+    void setup_kbd_shortcuts(QMenuBar* menu);
 
-private:
-	void setup_ui();
-	void setup_kbd_shortcut_worker(QMenu* menu, QTreeWidgetItem* parent);
+  private slots:
+    void save();
+    void reset_default_shortcut();
+    void reset_all_shortcuts();
+    bool refine_shortcut_list(const QString &, QTreeWidgetItem* parent = nullptr);
+    void load_shortcut_file();
+    void save_shortcut_file();
+    void browse_css_file();
 
-	QLineEdit* custom_css_fn;
-	QLineEdit* imgSeqFormatEdit;
-	QComboBox* recordingComboBox;
-	QRadioButton* accurateSeekButton;
-	QRadioButton* fastSeekButton;
-	QTreeWidget* keyboard_tree;
-	QCheckBox* disable_img_multithread;
-	QDoubleSpinBox* upcoming_queue_spinbox;
-	QComboBox* upcoming_queue_type;
-	QDoubleSpinBox* previous_queue_spinbox;
-	QComboBox* previous_queue_type;
-	QSpinBox* effect_textbox_lines_field;
+  private:
+    void setup_ui();
+    void setup_kbd_shortcut_worker(QMenu* menu, QTreeWidgetItem* parent);
 
-	QVector<QAction*> key_shortcut_actions;
-	QVector<QTreeWidgetItem*> key_shortcut_items;
-	QVector<KeySequenceEditor*> key_shortcut_fields;
+    QLineEdit* custom_css_fn;
+    QLineEdit* imgSeqFormatEdit;
+    QComboBox* recordingComboBox;
+    QRadioButton* accurateSeekButton;
+    QRadioButton* fastSeekButton;
+    QTreeWidget* keyboard_tree;
+    QCheckBox* disable_img_multithread;
+    QDoubleSpinBox* upcoming_queue_spinbox;
+    QComboBox* upcoming_queue_type;
+    QDoubleSpinBox* previous_queue_spinbox;
+    QComboBox* previous_queue_type;
+    QSpinBox* effect_textbox_lines_field;
+
+    QVector<QAction*> key_shortcut_actions;
+    QVector<QTreeWidgetItem*> key_shortcut_items;
+    QVector<KeySequenceEditor*> key_shortcut_fields;
 };
 
 #endif // PREFERENCESDIALOG_H

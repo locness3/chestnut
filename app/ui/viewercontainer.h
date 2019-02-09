@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,29 +24,31 @@ class ViewerWidget;
 
 class ViewerContainer : public QScrollArea
 {
-	Q_OBJECT
-public:
-    explicit ViewerContainer(QWidget *parent = 0);
-    ~ViewerContainer();
+    Q_OBJECT
+  public:
+    explicit ViewerContainer(QWidget *parent = nullptr);
+    virtual ~ViewerContainer();
 
-    bool fit;
-    double zoom;
+    ViewerContainer(const ViewerContainer& ) = delete;
+    ViewerContainer& operator=(const ViewerContainer&) = delete;
 
     void dragScrollPress(const QPoint&);
     void dragScrollMove(const QPoint&);
+    void adjust();
 
+    bool fit;
+    double zoom;
     Viewer* viewer;
     ViewerWidget* child;
-	void adjust();
 
-protected:
-	void resizeEvent(QResizeEvent *event);
+  protected:
+    void resizeEvent(QResizeEvent *event) override;
 
-signals:
+  signals:
 
-public slots:
+  public slots:
 
-private:
+  private:
     QWidget* area;
     int drag_start_x;
     int drag_start_y;

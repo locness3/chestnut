@@ -32,6 +32,10 @@ class MediaPropertiesDialog : public QDialog {
     Q_OBJECT
   public:
     MediaPropertiesDialog(QWidget *parent, MediaPtr mda);
+
+    MediaPropertiesDialog(const MediaPropertiesDialog& ) = delete;
+    MediaPropertiesDialog& operator=(const MediaPropertiesDialog&) = delete;
+
   private:
     QComboBox* interlacing_box;
     QLineEdit* name_box;

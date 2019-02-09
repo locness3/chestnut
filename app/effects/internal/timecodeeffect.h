@@ -28,7 +28,10 @@ class TimecodeEffect : public Effect {
 	Q_OBJECT
 public:
     TimecodeEffect(ClipPtr c, const EffectMeta *em);
-    void redraw(double timecode);
+
+    TimecodeEffect(const TimecodeEffect& ) = delete;
+    TimecodeEffect& operator=(const TimecodeEffect&) = delete;
+
     EffectField* scale_val;
     EffectField* color_val;
     EffectField* color_bg_val;
@@ -37,6 +40,8 @@ public:
     EffectField* offset_y_val;
     EffectField* prepend_text;
     EffectField* tc_select;
+  protected:
+    void redraw(double timecode);
 
 private:
     QFont font;

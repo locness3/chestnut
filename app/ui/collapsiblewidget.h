@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -29,47 +29,51 @@ class CheckboxEx;
 
 class CollapsibleWidgetHeader : public QWidget {
     Q_OBJECT
-public:
-    CollapsibleWidgetHeader(QWidget* parent = 0);
+  public:
+    CollapsibleWidgetHeader(QWidget* parent = nullptr);
     bool selected;
-protected:
+  protected:
     void mousePressEvent(QMouseEvent* event);
-	void paintEvent(QPaintEvent *event);
-signals:
+    void paintEvent(QPaintEvent *event);
+  signals:
     void select(bool, bool);
 };
 
 class CollapsibleWidget : public QWidget
 {
-	Q_OBJECT
-public:
-	CollapsibleWidget(QWidget* parent = 0);
-	void setContents(QWidget* c);
-	void setText(const QString &);
-    bool is_focused();
-	bool is_expanded();
+    Q_OBJECT
+  public:
+    CollapsibleWidget(QWidget* parent = nullptr);
 
-	CheckboxEx* enabled_check;
+    CollapsibleWidget(const CollapsibleWidget& ) = delete;
+    CollapsibleWidget& operator=(const CollapsibleWidget&) = delete;
+
+    void setContents(QWidget* c);
+    void setText(const QString &);
+    bool is_focused();
+    bool is_expanded();
+
+    CheckboxEx* enabled_check;
     bool selected;
-	QWidget* contents;
-	CollapsibleWidgetHeader* title_bar;
-private:
-	QLabel* header;
-	QVBoxLayout* layout;
-	QPushButton* collapse_button;
-	QFrame* line;
+    QWidget* contents;
+    CollapsibleWidgetHeader* title_bar;
+  private:
+    QLabel* header;
+    QVBoxLayout* layout;
+    QPushButton* collapse_button;
+    QFrame* line;
     QHBoxLayout* title_bar_layout;
     void set_button_icon(bool open);
 
-signals:
+  signals:
     void deselect_others(QWidget*);
-	void visibleChanged();
+    void visibleChanged();
 
-private slots:
-	void on_enabled_change(bool b);
-	void on_visible_change();
+  private slots:
+    void on_enabled_change(bool b);
+    void on_visible_change();
 
-public slots:
+  public slots:
     void header_click(bool s, bool deselect);
 };
 

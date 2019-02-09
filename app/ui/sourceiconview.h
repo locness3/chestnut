@@ -25,7 +25,7 @@ class Project;
 class SourceIconView : public QListView {
     Q_OBJECT
 public:
-    SourceIconView(Project* projParent, QWidget* parent = 0);
+    SourceIconView(Project* projParent, QWidget* parent = nullptr);
     virtual ~SourceIconView();
 
     SourceIconView() = delete;

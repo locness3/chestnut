@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -30,31 +30,34 @@ class Project;
 
 class NewSequenceDialog : public QDialog
 {
-	Q_OBJECT
+    Q_OBJECT
 
-public:
-    explicit NewSequenceDialog(QWidget *parent = nullptr, MediaPtr existing = nullptr);
+  public:
+    NewSequenceDialog(QWidget *parent = nullptr, MediaPtr existing = nullptr);
     virtual ~NewSequenceDialog();
 
-	void set_sequence_name(const QString& s);
+    NewSequenceDialog(const NewSequenceDialog& ) = delete;
+    NewSequenceDialog& operator=(const NewSequenceDialog&) = delete;
 
-private slots:
-	void create();
-	void preset_changed(int index);
+    void set_sequence_name(const QString& s);
 
-private:
+  private slots:
+    void create();
+    void preset_changed(int index);
+
+  private:
     SequencePtr existing_sequence;
     MediaPtr existing_item;
 
-	void setup_ui();
+    void setup_ui();
 
-	QComboBox* preset_combobox;
-	QSpinBox* height_numeric;
-	QSpinBox* width_numeric;
-	QComboBox* par_combobox;
-	QComboBox* interlacing_combobox;
-	QComboBox* frame_rate_combobox;
-	QComboBox* audio_frequency_combobox;
+    QComboBox* preset_combobox;
+    QSpinBox* height_numeric;
+    QSpinBox* width_numeric;
+    QComboBox* par_combobox;
+    QComboBox* interlacing_combobox;
+    QComboBox* frame_rate_combobox;
+    QComboBox* audio_frequency_combobox;
     QLineEdit* sequence_name_edit;
 };
 

@@ -23,7 +23,7 @@
 class FontCombobox : public ComboBoxEx {
 	Q_OBJECT
 public:
-	FontCombobox(QWidget* parent = 0);
+	FontCombobox(QWidget* parent = nullptr);
 	const QString &getPreviousValue();
 private slots:
 	void updateInternals();

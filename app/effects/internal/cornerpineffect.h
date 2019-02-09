@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,12 +22,16 @@
 
 class CornerPinEffect : public Effect {
     Q_OBJECT
-public:
+  public:
     CornerPinEffect(ClipPtr c, const EffectMeta* em);
-    void process_coords(double timecode, GLTextureCoords& coords, int data);
-	void process_shader(double timecode, GLTextureCoords& coords);
-    void gizmo_draw(double timecode, GLTextureCoords& coords);
-private:
+
+    CornerPinEffect(const CornerPinEffect& ) = delete;
+    CornerPinEffect& operator=(const CornerPinEffect&) = delete;
+
+    void process_coords(double timecode, GLTextureCoords& coords, int data) override;
+    void process_shader(double timecode, GLTextureCoords& coords) override;
+    void gizmo_draw(double timecode, GLTextureCoords& coords) override;
+  private:
     EffectField* top_left_x;
     EffectField* top_left_y;
     EffectField* top_right_x;

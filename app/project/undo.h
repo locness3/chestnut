@@ -85,6 +85,10 @@ private:
 class RippleAction : public QUndoCommand {
 public:
     RippleAction(SequencePtr is, const long ipoint, const long ilength, const QVector<int>& iignore);
+
+    RippleAction(const RippleAction& ) = delete;
+    RippleAction& operator=(const RippleAction&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -128,6 +132,10 @@ private:
 class AddEffectCommand : public QUndoCommand {
 public:
     AddEffectCommand(ClipPtr c, EffectPtr e, const EffectMeta* m, const int insert_pos = -1);
+
+    AddEffectCommand(const AddEffectCommand& ) = delete;
+    AddEffectCommand& operator=(const AddEffectCommand&) = delete;
+
     virtual ~AddEffectCommand();
     virtual void undo();
     virtual void redo();
@@ -142,7 +150,12 @@ private:
 
 class AddTransitionCommand : public QUndoCommand {
 public:
-    AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const EffectMeta* itransition, const int itype, const int ilength);
+    AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const EffectMeta* itransition,
+                         const int itype, const int ilength);
+
+    AddTransitionCommand(const AddTransitionCommand& ) = delete;
+    AddTransitionCommand& operator=(const AddTransitionCommand&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -275,6 +288,10 @@ class CheckboxCommand : public QUndoCommand {
 public:
     CheckboxCommand(QCheckBox* b);
     virtual ~CheckboxCommand();
+
+    CheckboxCommand(const CheckboxCommand& ) = delete;
+    CheckboxCommand& operator=(const CheckboxCommand&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -353,6 +370,10 @@ private:
 class KeyframeDelete : public QUndoCommand {
 public:
     KeyframeDelete(EffectField* ifield, const int iindex);
+
+    KeyframeDelete(const KeyframeDelete& ) = delete;
+    KeyframeDelete& operator=(const KeyframeDelete&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -368,6 +389,10 @@ private:
 class KeyframeFieldSet : public QUndoCommand {
 public:
     KeyframeFieldSet(EffectField* ifield, const int ii);
+
+    KeyframeFieldSet(const KeyframeFieldSet& ) = delete;
+    KeyframeFieldSet& operator=(const KeyframeFieldSet&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -381,6 +406,10 @@ private:
 class EffectFieldUndo : public QUndoCommand {
 public:
     EffectFieldUndo(EffectField* field);
+
+    EffectFieldUndo(const EffectFieldUndo& ) = delete;
+    EffectFieldUndo& operator=(const EffectFieldUndo&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -418,6 +447,10 @@ private:
 class MoveMarkerAction : public QUndoCommand {
 public:
     MoveMarkerAction(Marker* m, const long o, const long n);
+
+    MoveMarkerAction(const MoveMarkerAction& ) = delete;
+    MoveMarkerAction& operator=(const MoveMarkerAction&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -455,6 +488,10 @@ private:
 class SetBool : public QUndoCommand {
 public:
     SetBool(bool* b, const bool setting);
+
+    SetBool(const SetBool& ) = delete;
+    SetBool& operator=(const SetBool&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -519,6 +556,10 @@ private:
 class SetInt : public QUndoCommand {
 public:
     SetInt(int* pointer, const int new_value);
+
+    SetInt(const SetInt& ) = delete;
+    SetInt& operator=(const SetInt&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -531,6 +572,10 @@ private:
 class SetLong : public QUndoCommand {
 public:
     SetLong(long* pointer, const long old_value, const long new_value);
+
+    SetLong(const SetLong& ) = delete;
+    SetLong& operator=(const SetLong&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -543,6 +588,10 @@ private:
 class SetDouble : public QUndoCommand {
 public:
     SetDouble(double* pointer, double old_value, double new_value);
+
+    SetDouble(const SetDouble& ) = delete;
+    SetDouble& operator=(const SetDouble&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -555,6 +604,10 @@ private:
 class SetString : public QUndoCommand {
 public:
     SetString(QString* pointer, QString new_value);
+
+    SetString(const SetString& ) = delete;
+    SetString& operator=(const SetString&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -619,6 +672,10 @@ private:
 class SetPointer : public QUndoCommand {
 public:
     SetPointer(void** pointer, void* data);
+
+    SetPointer(const SetPointer& ) = delete;
+    SetPointer& operator=(const SetPointer&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -637,6 +694,10 @@ public:
 class SetQVariant : public QUndoCommand {
 public:
     SetQVariant(QVariant* itarget, const QVariant& iold, const QVariant& inew);
+
+    SetQVariant(const SetQVariant& ) = delete;
+    SetQVariant& operator=(const SetQVariant&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:
@@ -648,6 +709,10 @@ private:
 class SetKeyframing : public QUndoCommand {
 public:
     SetKeyframing(EffectRow* irow, const bool ib);
+
+    SetKeyframing(const SetKeyframing& ) = delete;
+    SetKeyframing& operator=(const SetKeyframing&) = delete;
+
     virtual void undo();
     virtual void redo();
 private:

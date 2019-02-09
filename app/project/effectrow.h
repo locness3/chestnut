@@ -35,6 +35,10 @@ class EffectRow : public QObject {
 public:
     EffectRow(Effect* parent, const bool save, QGridLayout* uilayout, const QString& n, const int row, const bool keyframable = true);
     virtual ~EffectRow();
+
+    EffectRow(const EffectRow& ) = delete;
+    EffectRow& operator=(const EffectRow&) = delete;
+
     EffectField* add_field(const EffectFieldType type, const QString &id, int colspan = 1);
     void add_widget(QWidget *w);
     EffectField* field(const int index);

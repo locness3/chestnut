@@ -30,13 +30,10 @@ QColor get_curve_color(int index, int length);
 class GraphView : public QWidget {
     Q_OBJECT
   public:
-    GraphView(QWidget* parent = 0);
+    explicit GraphView(QWidget* parent = nullptr);
 
-    void paintEvent(QPaintEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent *event);
+    GraphView(const GraphView& ) = delete;
+    GraphView& operator=(const GraphView&) = delete;
 
     void set_row(EffectRow* r);
 
@@ -45,6 +42,13 @@ class GraphView : public QWidget {
 
     void delete_selected_keys();
     void select_all();
+  protected:
+    void paintEvent(QPaintEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+
   signals:
     void x_scroll_changed(int);
     void y_scroll_changed(int);

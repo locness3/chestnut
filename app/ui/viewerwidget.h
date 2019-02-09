@@ -45,7 +45,7 @@ class ViewerWidget : public QOpenGLWidget, QOpenGLFunctions
 {
     Q_OBJECT
 public:
-    explicit ViewerWidget(QWidget *parent = 0);
+    explicit ViewerWidget(QWidget *parent = nullptr);
     virtual ~ViewerWidget();
     ViewerWidget() = delete;
     ViewerWidget(const ViewerWidget&) = delete;

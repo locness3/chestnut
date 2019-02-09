@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -37,78 +37,86 @@ class QScrollBar;
 class QHBoxLayout;
 
 class EffectsArea : public QWidget {
-public:
-	EffectsArea(QWidget* parent = 0);
-	void resizeEvent(QResizeEvent *event);
-	QScrollArea* parent_widget;
-	KeyframeView* keyframe_area;
-	TimelineHeader* header;
+  public:
+    EffectsArea(QWidget* parent = nullptr);
+
+    EffectsArea(const EffectsArea& ) = delete;
+    EffectsArea& operator=(const EffectsArea&) = delete;
+
+    void resizeEvent(QResizeEvent *event);
+    QScrollArea* parent_widget;
+    KeyframeView* keyframe_area;
+    TimelineHeader* header;
 };
 
 class EffectControls : public QDockWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 
-public:
-	explicit EffectControls(QWidget *parent = 0);
-	~EffectControls();
-	void set_clips(QVector<int>& clips, int mode);
-	void clear_effects(bool clear_cache);
-	void delete_effects();
-	bool is_focused();
-	void reload_clips();
-	void set_zoom(bool in);
-	bool keyframe_focus();
-	void delete_selected_keyframes();
-	void copy(bool del);
-	bool multiple;
-	void scroll_to_frame(long frame);
+  public:
+    explicit EffectControls(QWidget *parent = nullptr);
+    virtual ~EffectControls();
 
-	QVector<int> selected_clips;
+    EffectControls(const EffectControls& ) = delete;
+    EffectControls& operator=(const EffectControls&) = delete;
 
-	double zoom;
+    void set_clips(QVector<int>& clips, int mode);
+    void clear_effects(bool clear_cache);
+    void delete_effects();
+    bool is_focused();
+    void reload_clips();
+    void set_zoom(bool in);
+    bool keyframe_focus();
+    void delete_selected_keyframes();
+    void copy(bool del);
+    bool multiple;
+    void scroll_to_frame(long frame);
 
-	ResizableScrollBar* horizontalScrollBar;
-	QScrollBar* verticalScrollBar;
+    QVector<int> selected_clips;
+
+    double zoom;
+
+    ResizableScrollBar* horizontalScrollBar;
+    QScrollBar* verticalScrollBar;
 
     QMutex effects_loaded;
 
 
-public slots:
-	void update_keyframes();
-private slots:
-	void menu_select(QAction* q);
+  public slots:
+    void update_keyframes();
+  private slots:
+    void menu_select(QAction* q);
 
-	void video_effect_click();
-	void audio_effect_click();
-	void video_transition_click();
-	void audio_transition_click();
+    void video_effect_click();
+    void audio_effect_click();
+    void video_transition_click();
+    void audio_transition_click();
 
-	void deselect_all_effects(QWidget*);
-protected:
-	void resizeEvent(QResizeEvent *event);
-private:
-	void show_effect_menu(int type, int subtype);
-	void load_effects();
-	void load_keyframes();
+    void deselect_all_effects(QWidget*);
+  protected:
+    void resizeEvent(QResizeEvent *event);
+  private:
+    void show_effect_menu(int type, int subtype);
+    void load_effects();
+    void load_keyframes();
     void open_effect(QVBoxLayout* hlayout, EffectPtr e);
 
-	void setup_ui();
+    void setup_ui();
 
-	int effect_menu_type;
-	int effect_menu_subtype;
-	QString panel_name;
-	int mode;
+    int effect_menu_type;
+    int effect_menu_subtype;
+    QString panel_name;
+    int mode;
 
-	TimelineHeader* headers;
-	EffectsArea* effects_area;
-	QScrollArea* scrollArea;
-	QLabel* lblMultipleClipsSelected;
-	KeyframeView* keyframeView;
-	QWidget* video_effect_area;
-	QWidget* audio_effect_area;
-	QWidget* vcontainer;
-	QWidget* acontainer;
+    TimelineHeader* headers;
+    EffectsArea* effects_area;
+    QScrollArea* scrollArea;
+    QLabel* lblMultipleClipsSelected;
+    KeyframeView* keyframeView;
+    QWidget* video_effect_area;
+    QWidget* audio_effect_area;
+    QWidget* vcontainer;
+    QWidget* acontainer;
 };
 
 #endif // EFFECTCONTROLS_H

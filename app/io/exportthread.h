@@ -46,7 +46,9 @@ class ExportThread : public QThread {
     Q_OBJECT
 public:
     ExportThread();
-    void run();
+
+    ExportThread(const ExportThread& ) = delete;
+    ExportThread& operator=(const ExportThread&) = delete;
 
     // export parameters
     QString filename;
@@ -69,12 +71,15 @@ public:
     ExportDialog* ed;
 
     bool continueEncode = true;
+  protected:
+    void run() override;
 signals:
     void progress_changed(int value, qint64 remaining_ms);
 public slots:
     void wake();
 private:
-    bool encode(AVFormatContext* ofmt_ctx, AVCodecContext* codec_ctx, AVFrame* frame, AVPacket* packet, AVStream* stream, bool rescale);
+    bool encode(AVFormatContext* ofmt_ctx, AVCodecContext* codec_ctx, AVFrame* frame,
+                AVPacket* packet, AVStream* stream, bool rescale);
     bool setupVideo();
     bool setupAudio();
     bool setupContainer();

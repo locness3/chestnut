@@ -32,6 +32,10 @@ class SourcesCommon : public QObject {
     Q_OBJECT
 public:
     explicit SourcesCommon(Project *parent);
+
+    SourcesCommon(const SourcesCommon& ) = delete;
+    SourcesCommon& operator=(const SourcesCommon&) = delete;
+
     void show_context_menu(QWidget* parent, const QModelIndexList &items);
 
     void mousePressEvent(QMouseEvent* e);

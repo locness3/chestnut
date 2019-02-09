@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,13 +24,17 @@ class QOpenGLTexture;
 #include <QImage>
 
 class SolidEffect : public Effect {
-	Q_OBJECT
-public:
+    Q_OBJECT
+  public:
     SolidEffect(ClipPtr c, const EffectMeta *em);
-	void redraw(double timecode);
-private slots:
+
+    SolidEffect(const SolidEffect& ) = delete;
+    SolidEffect& operator=(const SolidEffect&) = delete;
+
+    void redraw(double timecode);
+  private slots:
     void ui_update(int);
-private:
+  private:
     EffectField* solid_type;
     EffectField* solid_color_field;
     EffectField* opacity_field;

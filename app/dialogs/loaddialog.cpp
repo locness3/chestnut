@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -30,49 +30,51 @@
 #include "ui/sourcetable.h"
 #include "ui/mainwindow.h"
 
-LoadDialog::LoadDialog(QWidget *parent, bool autorecovery) : QDialog(parent) {
-    setWindowTitle(tr("Loading..."));
-	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+LoadDialog::LoadDialog(QWidget *parent, const bool autorecovery)
+  : QDialog(parent)
+{
+  setWindowTitle(tr("Loading..."));
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-	QVBoxLayout* layout = new QVBoxLayout();
-	setLayout(layout);
+  QVBoxLayout* layout = new QVBoxLayout();
+  setLayout(layout);
 
-    layout->addWidget(new QLabel(tr("Loading '%1'...").arg(project_url.mid(project_url.lastIndexOf('/')+1))));
+  layout->addWidget(new QLabel(tr("Loading '%1'...").arg(project_url.mid(project_url.lastIndexOf('/')+1))));
 
-	bar = new QProgressBar();
-	bar->setValue(0);
-	layout->addWidget(bar);
+  bar = new QProgressBar();
+  bar->setValue(0);
+  layout->addWidget(bar);
 
-    cancel_button = new QPushButton(tr("Cancel"));
-	connect(cancel_button, SIGNAL(clicked(bool)), this, SLOT(cancel()));
+  cancel_button = new QPushButton(tr("Cancel"));
+  connect(cancel_button, SIGNAL(clicked(bool)), this, SLOT(cancel()));
 
-	hboxLayout = new QHBoxLayout();
-	hboxLayout->addStretch();
-	hboxLayout->addWidget(cancel_button);
-	hboxLayout->addStretch();
+  hboxLayout = new QHBoxLayout();
+  hboxLayout->addStretch();
+  hboxLayout->addWidget(cancel_button);
+  hboxLayout->addStretch();
 
-	layout->addLayout(hboxLayout);
+  layout->addLayout(hboxLayout);
 
-	update();
+  update();
 
-	lt = new LoadThread(this, autorecovery);
-	QObject::connect(lt, SIGNAL(success()), this, SLOT(thread_done()));
-	QObject::connect(lt, SIGNAL(error()), this, SLOT(die()));
-	QObject::connect(lt, SIGNAL(report_progress(int)), bar, SLOT(setValue(int)));
-	lt->start();
+  lt = new LoadThread(this, autorecovery);
+  QObject::connect(lt, SIGNAL(success()), this, SLOT(thread_done()));
+  QObject::connect(lt, SIGNAL(error()), this, SLOT(die()));
+  QObject::connect(lt, SIGNAL(report_progress(int)), bar, SLOT(setValue(int)));
+  lt->start();
 }
 
 void LoadDialog::cancel() {
-	lt->cancel();
-	lt->wait();
-	die();
+  lt->cancel();
+  lt->wait();
+  die();
 }
 
 void LoadDialog::die() {
-    global::mainWindow->new_project();
-	reject();
+  global::mainWindow->new_project();
+  reject();
 }
 
 void LoadDialog::thread_done() {
-	accept();
+  accept();
 }

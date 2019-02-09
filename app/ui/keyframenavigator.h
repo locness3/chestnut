@@ -27,7 +27,7 @@ class KeyframeNavigator : public QWidget
 {
 	Q_OBJECT
 public:
-	KeyframeNavigator(QWidget* parent = 0);
+	KeyframeNavigator(QWidget* parent = nullptr);
 	~KeyframeNavigator();
 	void enable_keyframes(bool);
 	void enable_keyframe_toggle(bool);

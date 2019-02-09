@@ -15,17 +15,22 @@ class RenderThread : public QThread {
     Q_OBJECT
   public:
     RenderThread();
-    ~RenderThread();
-    void run();
+    virtual ~RenderThread();
+
+    RenderThread(const RenderThread& ) = delete;
+    RenderThread& operator=(const RenderThread&) = delete;
+
     QMutex mutex;
     GLuint frameBuffer;
     GLuint texColorBuffer;
     EffectPtr gizmos;
     void paint();
-    void start_render(QOpenGLContext* share, SequenceWPtr s, const QString &save = nullptr, GLvoid *pixels = nullptr, int idivider = 0);
+    void start_render(QOpenGLContext* share, SequenceWPtr s, const QString &save = nullptr,
+                      GLvoid *pixels = nullptr, int idivider = 0);
     bool did_texture_fail();
     void cancel();
-
+  protected:
+    void run() override;
   public slots:
     // cleanup functions
     void delete_ctx();

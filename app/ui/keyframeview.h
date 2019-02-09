@@ -31,7 +31,10 @@ class TimelineHeader;
 class KeyframeView : public QWidget {
     Q_OBJECT
   public:
-    KeyframeView(QWidget* parent = 0);
+    explicit KeyframeView(QWidget* parent = nullptr);
+
+    KeyframeView(const KeyframeView& ) = delete;
+    KeyframeView& operator=(const KeyframeView&) = delete;
 
     void delete_selected_keyframes();
 
