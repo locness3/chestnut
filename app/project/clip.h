@@ -129,26 +129,26 @@ public:
     void removeEarliestFromQueue();
 
 
-    TransitionPtr get_opening_transition();
-    TransitionPtr get_closing_transition();
+    TransitionPtr openingTransition();
+    TransitionPtr closingTransition();
 
     /**
-     * @brief get_frame
+     * @brief set frame cache to a position
      * @param playhead
      */
-    void get_frame(const long playhead, bool& texture_failed);
+    void frame(const long playhead, bool& texture_failed);
     /**
      * @brief get_timecode
      * @param playhead
      * @return
      */
-    double get_timecode(const long playhead);
+    double timecode(const long playhead);
     /**
      * @brief Identify if this clip is selected in the project's current sequence
      * @param containing
      * @return true==is selected
      */
-    bool is_selected(const bool containing);
+    bool isSelected(const bool containing);
 
     //FIXME: all the class members
     SequencePtr sequence;

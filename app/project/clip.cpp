@@ -115,11 +115,11 @@ ClipPtr Clip::copy(SequencePtr s) {
 
   copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->getFrameRate();
 
-  if (get_opening_transition() != nullptr && !get_opening_transition()->secondary_clip.expired()) {
-    copyClip->opening_transition = get_opening_transition()->copy(copyClip, nullptr);
+  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
+    copyClip->opening_transition = openingTransition()->copy(copyClip, nullptr);
   }
-  if (get_closing_transition() != nullptr && !get_closing_transition()->secondary_clip.expired()) {
-    copyClip->closing_transition = get_closing_transition()->copy(copyClip, nullptr);
+  if (closingTransition() != nullptr && !closingTransition()->secondary_clip.expired()) {
+    copyClip->closing_transition = closingTransition()->copy(copyClip, nullptr);
   }
   copyClip->recalculateMaxLength();
 
@@ -632,7 +632,7 @@ void Clip::removeEarliestFromQueue() {
   queue.removeAt(earliest_frame);
 }
 
-TransitionPtr Clip::get_opening_transition() {
+TransitionPtr Clip::openingTransition() {
   if (opening_transition > -1) {
     if (this->sequence == nullptr) {
       return e_clipboard_transitions.at(opening_transition);
@@ -643,7 +643,7 @@ TransitionPtr Clip::get_opening_transition() {
   return nullptr;
 }
 
-TransitionPtr Clip::get_closing_transition() {
+TransitionPtr Clip::closingTransition() {
   if (closing_transition > -1) {
     if (this->sequence == nullptr) {
       return e_clipboard_transitions.at(closing_transition);
@@ -655,10 +655,10 @@ TransitionPtr Clip::get_closing_transition() {
 }
 
 /**
- * @brief get_frame
+ * @brief set frame cache to a position
  * @param playhead
  */
-void Clip::get_frame(const long playhead, bool& texture_failed) {
+void Clip::frame(const long playhead, bool& texture_failed) {
   if (finished_opening) {
     auto ftg = timeline_info.media->object<Footage>();
     if (!ftg) return;
@@ -795,7 +795,7 @@ void Clip::get_frame(const long playhead, bool& texture_failed) {
             memcpy(data, target_frame->data[0], frame_size);
             copied = true;
           }
-          e->process_image(get_timecode(playhead), data, frame_size);
+          e->process_image(timecode(playhead), data, frame_size);
         }
       }
 
@@ -821,7 +821,7 @@ void Clip::get_frame(const long playhead, bool& texture_failed) {
 }
 
 
-double Clip::get_timecode(const long playhead) {
+double Clip::timecode(const long playhead) {
   return (static_cast<double>(playhead - timelineInWithTransition() + clipInWithTransition())
           / static_cast<double>(sequence->getFrameRate()) );
 }
@@ -831,7 +831,7 @@ double Clip::get_timecode(const long playhead) {
  * @param containing
  * @return true==is selected
  */
-bool Clip::is_selected(const bool containing)
+bool Clip::isSelected(const bool containing)
 {
   for (int i=0; i < sequence->selections.size(); i++) {
     const Selection& s = sequence->selections.at(i);
@@ -845,25 +845,25 @@ bool Clip::is_selected(const bool containing)
 }
 
 long Clip::clipInWithTransition() {
-  if (get_opening_transition() != nullptr && !get_opening_transition()->secondary_clip.expired()) {
+  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
     // we must be the secondary clip, so return (timeline in - length)
-    return timeline_info.clip_in - get_opening_transition()->get_true_length();
+    return timeline_info.clip_in - openingTransition()->get_true_length();
   }
   return timeline_info.clip_in;
 }
 
 long Clip::timelineInWithTransition() {
-  if (get_opening_transition() != nullptr && !get_opening_transition()->secondary_clip.expired()) {
+  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
     // we must be the secondary clip, so return (timeline in - length)
-    return timeline_info.in - get_opening_transition()->get_true_length();
+    return timeline_info.in - openingTransition()->get_true_length();
   }
   return timeline_info.in;
 }
 
 long Clip::timelineOutWithTransition() {
-  if (get_closing_transition() != nullptr && !get_closing_transition()->secondary_clip.expired()) {
+  if (closingTransition() != nullptr && !closingTransition()->secondary_clip.expired()) {
     // we must be the primary clip, so return (timeline out + length2)
-    return timeline_info.out + get_closing_transition()->get_true_length();
+    return timeline_info.out + closingTransition()->get_true_length();
   } else {
     return timeline_info.out;
   }
@@ -1081,28 +1081,28 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
       e->process_audio(timecode_start, timecode_end, frame->data[0], nb_bytes, 2);
     }
   }
-  if (get_opening_transition() != nullptr) {
+  if (openingTransition() != nullptr) {
     if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
       const double transition_start = (clipInWithTransition() / sequence->getFrameRate());
-      const double transition_end = (clipInWithTransition() + get_opening_transition()->get_length()) / sequence->getFrameRate();
+      const double transition_end = (clipInWithTransition() + openingTransition()->get_length()) / sequence->getFrameRate();
       if (timecode_end < transition_end) {
         const double adjustment = transition_end - transition_start;
         const double adjusted_range_start = (timecode_start - transition_start) / adjustment;
         const double adjusted_range_end = (timecode_end - transition_start) / adjustment;
-        get_opening_transition()->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_OPENING_TRANSITION);
+        openingTransition()->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_OPENING_TRANSITION);
       }
     }
   }
-  if (get_closing_transition() != nullptr) {
+  if (closingTransition() != nullptr) {
     if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
       const long length_with_transitions = timelineOutWithTransition() - timelineInWithTransition();
-      const double transition_start = (clipInWithTransition() + length_with_transitions - get_closing_transition()->get_length()) / sequence->getFrameRate();
+      const double transition_start = (clipInWithTransition() + length_with_transitions - closingTransition()->get_length()) / sequence->getFrameRate();
       const double transition_end = (clipInWithTransition() + length_with_transitions) / sequence->getFrameRate();
       if (timecode_start > transition_start) {
         const double adjustment = transition_end - transition_start;
         const double adjusted_range_start = (timecode_start - transition_start) / adjustment;
         const double adjusted_range_end = (timecode_end - transition_start) / adjustment;
-        get_closing_transition()->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_CLOSING_TRANSITION);
+        closingTransition()->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_CLOSING_TRANSITION);
       }
     }
   }
@@ -1700,21 +1700,21 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
   ca.append(new MoveClipAction(ClipPtr(shared_from_this()), iin, iout, iclip_in, itrack, relative));
 
   if (verify_transitions) {
-    if ( (get_opening_transition() != nullptr) &&
-         (!get_opening_transition()->secondary_clip.expired()) &&
-         (get_opening_transition()->secondary_clip.lock()->timeline_info.out != iin) ) {
+    if ( (openingTransition() != nullptr) &&
+         (!openingTransition()->secondary_clip.expired()) &&
+         (openingTransition()->secondary_clip.lock()->timeline_info.out != iin) ) {
       // separate transition
-      //            ca.append(new SetPointer((void**) &get_opening_transition()->secondary_clip, nullptr)); //FIXME:
-      ca.append(new AddTransitionCommand(get_opening_transition()->secondary_clip.lock(), nullptr,
-                                         get_opening_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
+      //            ca.append(new SetPointer((void**) &openingTransition()->secondary_clip, nullptr)); //FIXME:
+      ca.append(new AddTransitionCommand(openingTransition()->secondary_clip.lock(), nullptr,
+                                         openingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
     }
 
-    if ( (get_closing_transition() != nullptr) &&
-         (!get_closing_transition()->secondary_clip.expired()) &&
-         (get_closing_transition()->parent_clip->timeline_info.in != iout) ) {
+    if ( (closingTransition() != nullptr) &&
+         (!closingTransition()->secondary_clip.expired()) &&
+         (closingTransition()->parent_clip->timeline_info.in != iout) ) {
       // separate transition
-      //            ca.append(new SetPointer((void**) &get_closing_transition()->secondary_clip, nullptr)); //FIXME:
-      ca.append(new AddTransitionCommand(ClipPtr(shared_from_this()), nullptr, get_closing_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
+      //            ca.append(new SetPointer((void**) &closingTransition()->secondary_clip, nullptr)); //FIXME:
+      ca.append(new AddTransitionCommand(ClipPtr(shared_from_this()), nullptr, closingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
     }
   }
 }

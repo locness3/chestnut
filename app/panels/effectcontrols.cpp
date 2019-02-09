@@ -95,10 +95,10 @@ void EffectControls::menu_select(QAction* q) {
         if ((c->timeline_info.track < 0) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
             const EffectMeta* meta = reinterpret_cast<const EffectMeta*>(q->data().value<quintptr>());
             if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
-                if (c->get_opening_transition() == nullptr) {
+                if (c->openingTransition() == nullptr) {
                     ca->append(new AddTransitionCommand(c, nullptr, nullptr, meta, TA_OPENING_TRANSITION, 30));
                 }
-                if (c->get_closing_transition() == nullptr) {
+                if (c->closingTransition() == nullptr) {
                     ca->append(new AddTransitionCommand(c, nullptr, nullptr, meta, TA_CLOSING_TRANSITION, 30));
                 }
             } else {
@@ -477,10 +477,10 @@ void EffectControls::load_effects() {
                 for (int j=0;j<c->effects.size();j++) {
                     open_effect(layout, c->effects.at(j));
                 }
-            } else if (mode == TA_OPENING_TRANSITION && c->get_opening_transition() != nullptr) {
-                //				open_effect(layout, c->get_opening_transition()); //FIXME:
-            } else if (mode == TA_CLOSING_TRANSITION && c->get_closing_transition() != nullptr) {
-                //				open_effect(layout, c->get_closing_transition()); //FIXME:
+            } else if (mode == TA_OPENING_TRANSITION && c->openingTransition() != nullptr) {
+                //				open_effect(layout, c->openingTransition()); //FIXME:
+            } else if (mode == TA_CLOSING_TRANSITION && c->closingTransition() != nullptr) {
+                //				open_effect(layout, c->closingTransition()); //FIXME:
             }
         }
         if (selected_clips.size() > 0) {

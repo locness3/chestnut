@@ -389,11 +389,11 @@ void Timeline::add_transition() {
     for (int i=0;i<global::sequence->clips.size();i++) {
         ClipPtr c = global::sequence->clips.at(i);
         if (c != nullptr && is_clip_selected(c, true)) {
-            if (c->get_opening_transition() == nullptr) {
+            if (c->openingTransition() == nullptr) {
                 ca->append(new AddTransitionCommand(c, nullptr, nullptr, get_internal_meta(TRANSITION_INTERNAL_LINEARFADE, EFFECT_TYPE_TRANSITION), TA_OPENING_TRANSITION, 30));
                 adding = true;
             }
-            if (c->get_closing_transition() == nullptr) {
+            if (c->closingTransition() == nullptr) {
                 ca->append(new AddTransitionCommand(c, nullptr, nullptr, get_internal_meta(TRANSITION_INTERNAL_LINEARFADE, EFFECT_TYPE_TRANSITION), TA_OPENING_TRANSITION, 30));
                 adding = true;
             }
@@ -682,23 +682,23 @@ ClipPtr Timeline::split_clip(ComboAction* ca, int p, long frame, long post_in) {
 
         move_clip(ca, pre, pre->timeline_info.in, frame, pre->timeline_info.clip_in, pre->timeline_info.track);
 
-        if (pre->get_opening_transition() != nullptr) {
-            /*if (frame < pre->timeline_info.in + pre->get_opening_transition()->length && pre->get_opening_transition()->secondary_clip != nullptr) {
+        if (pre->openingTransition() != nullptr) {
+            /*if (frame < pre->timeline_info.in + pre->openingTransition()->length && pre->openingTransition()->secondary_clip != nullptr) {
                 // separate shared transition
-                ca->append(new SetPointer((void**) &pre->get_opening_transition()->secondary_clip, nullptr));
-                pre->get_opening_transition()->secondary_clip->closing_transition = pre->get_opening_transition()->copy(pre->get_opening_transition()->secondary_clip, nullptr);
+                ca->append(new SetPointer((void**) &pre->openingTransition()->secondary_clip, nullptr));
+                pre->openingTransition()->secondary_clip->closing_transition = pre->openingTransition()->copy(pre->openingTransition()->secondary_clip, nullptr);
             }*/
 
-            if (pre->get_opening_transition()->get_true_length() > new_clip_length) {
+            if (pre->openingTransition()->get_true_length() > new_clip_length) {
                 ca->append(new ModifyTransitionCommand(pre, TA_OPENING_TRANSITION, new_clip_length));
             }
 
             post->sequence->hard_delete_transition(post, TA_OPENING_TRANSITION);
         }
-        if (pre->get_closing_transition() != nullptr) {
+        if (pre->closingTransition() != nullptr) {
             ca->append(new DeleteTransitionCommand(pre->sequence, pre->closing_transition));
-            if (pre->get_closing_transition()->secondary_clip.expired()) {
-                post->get_closing_transition()->set_length(qMin((long) post->get_closing_transition()->get_true_length(),
+            if (pre->closingTransition()->secondary_clip.expired()) {
+                post->closingTransition()->set_length(qMin((long) post->closingTransition()->get_true_length(),
                                                                 post->length()));
             }
         }
@@ -800,15 +800,15 @@ void Timeline::clean_up_selections(QVector<Selection>& areas) {
 bool selection_contains_transition(const Selection& s, ClipPtr c, int type) {
     //FIXME: christ almighty
     if (type == TA_OPENING_TRANSITION) {
-        return c->get_opening_transition() != nullptr
-                && s.out == c->timeline_info.in + c->get_opening_transition()->get_true_length()
-                && ((c->get_opening_transition()->secondary_clip.expired() && s.in == c->timeline_info.in)
-                    || (!c->get_opening_transition()->secondary_clip.expired() && s.in == c->timeline_info.in - c->get_opening_transition()->get_true_length()));
+        return c->openingTransition() != nullptr
+                && s.out == c->timeline_info.in + c->openingTransition()->get_true_length()
+                && ((c->openingTransition()->secondary_clip.expired() && s.in == c->timeline_info.in)
+                    || (!c->openingTransition()->secondary_clip.expired() && s.in == c->timeline_info.in - c->openingTransition()->get_true_length()));
     } else {
-        return c->get_closing_transition() != nullptr
-                && s.in == c->timeline_info.out - c->get_closing_transition()->get_true_length()
-                && ((c->get_closing_transition()->secondary_clip.expired() && s.out == c->timeline_info.out)
-                    || (!c->get_closing_transition()->secondary_clip.expired() && s.out == c->timeline_info.out + c->get_closing_transition()->get_true_length()));
+        return c->closingTransition() != nullptr
+                && s.in == c->timeline_info.out - c->closingTransition()->get_true_length()
+                && ((c->closingTransition()->secondary_clip.expired() && s.out == c->timeline_info.out)
+                    || (!c->closingTransition()->secondary_clip.expired() && s.out == c->timeline_info.out + c->closingTransition()->get_true_length()));
     }
 }
 
@@ -844,22 +844,22 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
                     // only out point is in deletion area
                     move_clip(ca, c, c->timeline_info.in, s.in, c->timeline_info.clip_in, c->timeline_info.track);
 
-                    if (c->get_closing_transition() != nullptr) {
-                        if (s.in < c->timeline_info.out - c->get_closing_transition()->get_true_length()) {
+                    if (c->closingTransition() != nullptr) {
+                        if (s.in < c->timeline_info.out - c->closingTransition()->get_true_length()) {
                             ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
                         } else {
-                            ca->append(new ModifyTransitionCommand(c, TA_CLOSING_TRANSITION, c->get_closing_transition()->get_true_length() - (c->timeline_info.out - s.in)));
+                            ca->append(new ModifyTransitionCommand(c, TA_CLOSING_TRANSITION, c->closingTransition()->get_true_length() - (c->timeline_info.out - s.in)));
                         }
                     }
                 } else if (c->timeline_info.in < s.out && c->timeline_info.out > s.out) {
                     // only in point is in deletion area
                     move_clip(ca, c, s.out, c->timeline_info.out, c->timeline_info.clip_in + (s.out - c->timeline_info.in), c->timeline_info.track);
 
-                    if (c->get_opening_transition() != nullptr) {
-                        if (s.out > c->timeline_info.in + c->get_opening_transition()->get_true_length()) {
+                    if (c->openingTransition() != nullptr) {
+                        if (s.out > c->timeline_info.in + c->openingTransition()->get_true_length()) {
                             ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
                         } else {
-                            ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION, c->get_opening_transition()->get_true_length() - (s.out - c->timeline_info.in)));
+                            ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION, c->openingTransition()->get_true_length() - (s.out - c->timeline_info.in)));
                         }
                     }
                 }
@@ -1231,12 +1231,12 @@ bool Timeline::split_selection(ComboAction* ca) {
                         split_B->timeline_info.in = s.out;
                         secondary_post_splits.append(split_B);
 
-                        if (clip->get_opening_transition() != nullptr) {
+                        if (clip->openingTransition() != nullptr) {
                             split_B->sequence->hard_delete_transition(split_B, TA_OPENING_TRANSITION);
                             split_A->sequence->hard_delete_transition(split_A, TA_OPENING_TRANSITION);
                         }
 
-                        if (clip->get_closing_transition() != nullptr) {
+                        if (clip->closingTransition() != nullptr) {
                             ca->append(new DeleteTransitionCommand(clip->sequence, clip->closing_transition));
 
                             split_A->sequence->hard_delete_transition(split_A, TA_CLOSING_TRANSITION);
@@ -1407,11 +1407,11 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
                     return true;
                 } else if (snap_to_point(c->timeline_info.out, l)) {
                     return true;
-                } else if (c->get_opening_transition() != nullptr
-                           && snap_to_point(c->timeline_info.in + c->get_opening_transition()->get_true_length(), l)) {
+                } else if (c->openingTransition() != nullptr
+                           && snap_to_point(c->timeline_info.in + c->openingTransition()->get_true_length(), l)) {
                     return true;
-                } else if (c->get_closing_transition() != nullptr
-                           && snap_to_point(c->timeline_info.out - c->get_closing_transition()->get_true_length(), l)) {
+                } else if (c->closingTransition() != nullptr
+                           && snap_to_point(c->timeline_info.out - c->closingTransition()->get_true_length(), l)) {
                     return true;
                 }
             }
@@ -1861,19 +1861,19 @@ void move_clip(ComboAction* ca, ClipPtr c, long iin, long iout, long iclip_in, i
     ca->append(new MoveClipAction(c, iin, iout, iclip_in, itrack, relative));
 
     if (verify_transitions) {
-        if (c->get_opening_transition() != nullptr && !c->get_opening_transition()->secondary_clip.expired()
-                && c->get_opening_transition()->secondary_clip.lock()->timeline_info.out != iin) {
+        if (c->openingTransition() != nullptr && !c->openingTransition()->secondary_clip.expired()
+                && c->openingTransition()->secondary_clip.lock()->timeline_info.out != iin) {
             // separate transition
-            ca->append(new SetPointer(reinterpret_cast<void**>(&c->get_opening_transition()->secondary_clip), nullptr)); //TODO: casting
-            ca->append(new AddTransitionCommand(c->get_opening_transition()->secondary_clip.lock(), nullptr,
-                                                c->get_opening_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
+            ca->append(new SetPointer(reinterpret_cast<void**>(&c->openingTransition()->secondary_clip), nullptr)); //TODO: casting
+            ca->append(new AddTransitionCommand(c->openingTransition()->secondary_clip.lock(), nullptr,
+                                                c->openingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
         }
 
-        if (c->get_closing_transition() != nullptr && !c->get_closing_transition()->secondary_clip.expired()
-                && c->get_closing_transition()->parent_clip->timeline_info.in != iout) {
+        if (c->closingTransition() != nullptr && !c->closingTransition()->secondary_clip.expired()
+                && c->closingTransition()->parent_clip->timeline_info.in != iout) {
             // separate transition
-            ca->append(new SetPointer(reinterpret_cast<void**>(&c->get_closing_transition()->secondary_clip), nullptr)); //TODO: casting
-            ca->append(new AddTransitionCommand(c, nullptr, c->get_closing_transition(), nullptr, TA_CLOSING_TRANSITION, 0));
+            ca->append(new SetPointer(reinterpret_cast<void**>(&c->closingTransition()->secondary_clip), nullptr)); //TODO: casting
+            ca->append(new AddTransitionCommand(c, nullptr, c->closingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
         }
     }
 }

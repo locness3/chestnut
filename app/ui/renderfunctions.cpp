@@ -245,7 +245,7 @@ GLuint compose_sequence(Viewer* viewer,
                             clp->texture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
                             clp->texture->allocateStorage(get_gl_pix_fmt_from_av(clp->pix_fmt), QOpenGLTexture::UInt8);
                         }
-                        clp->get_frame(playhead, texture_failed);
+                        clp->frame(playhead, texture_failed);
                         textureID = clp->texture->textureId();
                         break;
                     case MediaType::SEQUENCE:
@@ -325,7 +325,7 @@ GLuint compose_sequence(Viewer* viewer,
                     }
 
                     // EFFECT CODE START
-                    double timecode = clp->get_timecode(playhead);
+                    double timecode = clp->timecode(playhead);
 
                     EffectPtr first_gizmo_effect = nullptr;
                     EffectPtr selected_effect = nullptr;
@@ -349,27 +349,27 @@ GLuint compose_sequence(Viewer* viewer,
                     if (selected_effect != nullptr) {
                         gizmos = selected_effect;
                         //						(*gizmos) = selected_effect;
-                    } else if (clp->is_selected(true)) {
+                    } else if (clp->isSelected(true)) {
                         gizmos = first_gizmo_effect;
                         //						(*gizmos) = first_gizmo_effect;
                     }
 
-                    if (clp->get_opening_transition() != nullptr) {
+                    if (clp->openingTransition() != nullptr) {
                         int transition_progress = playhead - clp->timelineInWithTransition();
-                        if (transition_progress < clp->get_opening_transition()->get_length()) {
-                            EffectPtr trans(clp->get_opening_transition());
+                        if (transition_progress < clp->openingTransition()->get_length()) {
+                            EffectPtr trans(clp->openingTransition());
                             process_effect(ctx, clp, trans,
-                                           (double)transition_progress/(double)clp->get_opening_transition()->get_length(),
+                                           (double)transition_progress/(double)clp->openingTransition()->get_length(),
                                            coords, composite_texture, fbo_switcher, texture_failed, TA_OPENING_TRANSITION);
                         }
                     }
 
-                    if (clp->get_closing_transition() != nullptr) {
-                        int transition_progress = playhead - (clp->timelineOutWithTransition() - clp->get_closing_transition()->get_length());
-                        if (transition_progress >= 0 && transition_progress < clp->get_closing_transition()->get_length()) {
-                            EffectPtr trans(clp->get_closing_transition());
+                    if (clp->closingTransition() != nullptr) {
+                        int transition_progress = playhead - (clp->timelineOutWithTransition() - clp->closingTransition()->get_length());
+                        if (transition_progress >= 0 && transition_progress < clp->closingTransition()->get_length()) {
+                            EffectPtr trans(clp->closingTransition());
                             process_effect(ctx, clp, trans,
-                                           (double)transition_progress/(double)clp->get_closing_transition()->get_length(),
+                                           (double)transition_progress/(double)clp->closingTransition()->get_length(),
                                            coords, composite_texture, fbo_switcher, texture_failed, TA_CLOSING_TRANSITION);
                         }
                     }

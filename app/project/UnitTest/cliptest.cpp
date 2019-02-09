@@ -12,13 +12,13 @@ void ClipTest::testCaseConstructor()
   auto seq = std::make_shared<Sequence>();
   Clip clp(seq);
   QVERIFY(clp.sequence == seq);
-  QVERIFY(clp.get_closing_transition() == nullptr);
-  QVERIFY(clp.get_opening_transition() == nullptr);
+  QVERIFY(clp.closingTransition() == nullptr);
+  QVERIFY(clp.openingTransition() == nullptr);
   QVERIFY(clp.height() == -1);
   QVERIFY(clp.width() == -1);
   QVERIFY(clp.maximumLength() == -1);
   QVERIFY(clp.isActive(0) == false);
-  QVERIFY(clp.is_selected(false) == false);
+  QVERIFY(clp.isSelected(false) == false);
 }
 
 
