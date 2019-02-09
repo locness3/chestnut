@@ -40,73 +40,73 @@
 #include "debug.h"
 
 EffectField::EffectField(EffectRow *parent, const EffectFieldType t, const QString &i) :
-    QObject(parent),
-    parent_row(parent),
-    type(t),
-    id(i)
+  QObject(parent),
+  parent_row(parent),
+  type(t),
+  id(i)
 {
-    switch (t) {
+  switch (t) {
     case EffectFieldType::DOUBLE:
     {
-        LabelSlider* ls = new LabelSlider();
-        ui_element = ls;
-        connect(ls, SIGNAL(valueChanged()), this, SLOT(ui_element_change()));
-        connect(ls, SIGNAL(clicked()), this, SIGNAL(clicked()));
+      LabelSlider* ls = new LabelSlider();
+      ui_element = ls;
+      connect(ls, SIGNAL(valueChanged()), this, SLOT(ui_element_change()));
+      connect(ls, SIGNAL(clicked()), this, SIGNAL(clicked()));
     }
-        break;
+      break;
     case EffectFieldType::COLOR:
     {
-        ColorButton* cb = new ColorButton();
-        ui_element = cb;
-        connect(cb, SIGNAL(color_changed()), this, SLOT(ui_element_change()));
+      ColorButton* cb = new ColorButton();
+      ui_element = cb;
+      connect(cb, SIGNAL(color_changed()), this, SLOT(ui_element_change()));
     }
-        break;
+      break;
     case EffectFieldType::STRING:
     {
-        TextEditEx* edit = new TextEditEx();
-        edit->setFixedHeight(edit->fontMetrics().lineSpacing()* e_config.effect_textbox_lines);
-        edit->setUndoRedoEnabled(true);
-        ui_element = edit;
-        connect(edit, SIGNAL(textChanged()), this, SLOT(ui_element_change()));
+      TextEditEx* edit = new TextEditEx();
+      edit->setFixedHeight(edit->fontMetrics().lineSpacing()* e_config.effect_textbox_lines);
+      edit->setUndoRedoEnabled(true);
+      ui_element = edit;
+      connect(edit, SIGNAL(textChanged()), this, SLOT(ui_element_change()));
     }
-        break;
+      break;
     case EffectFieldType::BOOL:
     {
-        CheckboxEx* cb = new CheckboxEx();
-        ui_element = cb;
-        connect(cb, SIGNAL(clicked(bool)), this, SLOT(ui_element_change()));
-        connect(cb, SIGNAL(toggled(bool)), this, SIGNAL(toggled(bool)));
+      CheckboxEx* cb = new CheckboxEx();
+      ui_element = cb;
+      connect(cb, SIGNAL(clicked(bool)), this, SLOT(ui_element_change()));
+      connect(cb, SIGNAL(toggled(bool)), this, SIGNAL(toggled(bool)));
     }
-        break;
+      break;
     case EffectFieldType::COMBO:
     {
-        ComboBoxEx* cb = new ComboBoxEx();
-        ui_element = cb;
-        connect(cb, SIGNAL(activated(int)), this, SLOT(ui_element_change()));
+      ComboBoxEx* cb = new ComboBoxEx();
+      ui_element = cb;
+      connect(cb, SIGNAL(activated(int)), this, SLOT(ui_element_change()));
     }
-        break;
+      break;
     case EffectFieldType::FONT:
     {
-        FontCombobox* fcb = new FontCombobox();
-        ui_element = fcb;
-        connect(fcb, SIGNAL(activated(int)), this, SLOT(ui_element_change()));
+      FontCombobox* fcb = new FontCombobox();
+      ui_element = fcb;
+      connect(fcb, SIGNAL(activated(int)), this, SLOT(ui_element_change()));
     }
-        break;
+      break;
     case EffectFieldType::FILE_T:
     {
-        EmbeddedFileChooser* efc = new EmbeddedFileChooser();
-        ui_element = efc;
-        connect(efc, SIGNAL(changed()), this, SLOT(ui_element_change()));
+      EmbeddedFileChooser* efc = new EmbeddedFileChooser();
+      ui_element = efc;
+      connect(efc, SIGNAL(changed()), this, SLOT(ui_element_change()));
     }
-        break;
+      break;
     default:
-        qWarning() << "Unknown Effect Field Type" << static_cast<int>(t);
-        break;
-    }//switch
+      qWarning() << "Unknown Effect Field Type" << static_cast<int>(t);
+      break;
+  }//switch
 }
 
 QVariant EffectField::get_previous_data() {
-    switch (type) {
+  switch (type) {
     case EffectFieldType::DOUBLE: return static_cast<LabelSlider*>(ui_element)->getPreviousValue();
     case EffectFieldType::COLOR: return static_cast<ColorButton*>(ui_element)->getPreviousValue();
     case EffectFieldType::STRING: return static_cast<TextEditEx*>(ui_element)->getPreviousValue();
@@ -114,12 +114,15 @@ QVariant EffectField::get_previous_data() {
     case EffectFieldType::COMBO: return static_cast<ComboBoxEx*>(ui_element)->getPreviousIndex();
     case EffectFieldType::FONT: return static_cast<FontCombobox*>(ui_element)->getPreviousValue();
     case EffectFieldType::FILE_T: return static_cast<EmbeddedFileChooser*>(ui_element)->getPreviousValue();
-    }
-    return QVariant();
+    default:
+      qWarning() << "Unknown Effect Field Type" << static_cast<int>(type);
+      break;
+  }
+  return QVariant();
 }
 
 QVariant EffectField::get_current_data() {
-    switch (type) {
+  switch (type) {
     case EffectFieldType::DOUBLE: return static_cast<LabelSlider*>(ui_element)->value();
     case EffectFieldType::COLOR: return static_cast<ColorButton*>(ui_element)->get_color();
     case EffectFieldType::STRING: return static_cast<TextEditEx*>(ui_element)->getPlainTextEx();
@@ -127,20 +130,23 @@ QVariant EffectField::get_current_data() {
     case EffectFieldType::COMBO: return static_cast<ComboBoxEx*>(ui_element)->currentIndex();
     case EffectFieldType::FONT: return static_cast<FontCombobox*>(ui_element)->currentText();
     case EffectFieldType::FILE_T: return static_cast<EmbeddedFileChooser*>(ui_element)->getFilename();
-    }
-    return QVariant();
+    default:
+      qWarning() << "Unknown Effect Field Type" << static_cast<int>(type);
+      break;
+  }
+  return QVariant();
 }
 
-double EffectField::frameToTimecode(long frame) {
-    return ((double) frame / parent_row->parent_effect->parent_clip->sequence->getFrameRate());
+double EffectField::frameToTimecode(const long frame) {
+  return (static_cast<double>(frame) / parent_row->parent_effect->parent_clip->sequence->getFrameRate());
 }
 
 long EffectField::timecodeToFrame(double timecode) {
-    return qRound(timecode * parent_row->parent_effect->parent_clip->sequence->getFrameRate());
+  return qRound(timecode * parent_row->parent_effect->parent_clip->sequence->getFrameRate());
 }
 
 void EffectField::set_current_data(const QVariant& data) {
-    switch (type) {
+  switch (type) {
     case EffectFieldType::DOUBLE: return static_cast<LabelSlider*>(ui_element)->set_value(data.toDouble(), false);
     case EffectFieldType::COLOR: return static_cast<ColorButton*>(ui_element)->set_color(data.value<QColor>());
     case EffectFieldType::STRING: return static_cast<TextEditEx*>(ui_element)->setPlainTextEx(data.toString());
@@ -148,297 +154,300 @@ void EffectField::set_current_data(const QVariant& data) {
     case EffectFieldType::COMBO: return static_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(data.toInt());
     case EffectFieldType::FONT: return static_cast<FontCombobox*>(ui_element)->setCurrentTextEx(data.toString());
     case EffectFieldType::FILE_T: return static_cast<EmbeddedFileChooser*>(ui_element)->setFilename(data.toString());
-    }
+    default:
+        qWarning() << "Unknown Effect Field Type" << static_cast<int>(type);
+        break;
+  }
 }
 
 void EffectField::get_keyframe_data(double timecode, int &before, int &after, double &progress) {
-    int before_keyframe_index = -1;
-    int after_keyframe_index = -1;
-    long before_keyframe_time = LONG_MIN;
-    long after_keyframe_time = LONG_MAX;
-    long frame = timecodeToFrame(timecode);
+  int before_keyframe_index = -1;
+  int after_keyframe_index = -1;
+  long before_keyframe_time = LONG_MIN;
+  long after_keyframe_time = LONG_MAX;
+  long frame = timecodeToFrame(timecode);
 
-    for (int i=0;i<keyframes.size();i++) {
-        long eval_keyframe_time = keyframes.at(i).time;
-        if (eval_keyframe_time == frame) {
-            before = i;
-            after = i;
-            return;
-        } else if (eval_keyframe_time < frame && eval_keyframe_time > before_keyframe_time) {
-            before_keyframe_index = i;
-            before_keyframe_time = eval_keyframe_time;
-        } else if (eval_keyframe_time > frame && eval_keyframe_time < after_keyframe_time) {
-            after_keyframe_index = i;
-            after_keyframe_time = eval_keyframe_time;
-        }
+  for (int i=0;i<keyframes.size();i++) {
+    long eval_keyframe_time = keyframes.at(i).time;
+    if (eval_keyframe_time == frame) {
+      before = i;
+      after = i;
+      return;
+    } else if (eval_keyframe_time < frame && eval_keyframe_time > before_keyframe_time) {
+      before_keyframe_index = i;
+      before_keyframe_time = eval_keyframe_time;
+    } else if (eval_keyframe_time > frame && eval_keyframe_time < after_keyframe_time) {
+      after_keyframe_index = i;
+      after_keyframe_time = eval_keyframe_time;
     }
+  }
 
-    if ((type == EffectFieldType::DOUBLE || type == EffectFieldType::COLOR) && (before_keyframe_index > -1 && after_keyframe_index > -1)) {
-        // interpolate
-        before = before_keyframe_index;
-        after = after_keyframe_index;
-        progress = (timecode-frameToTimecode(before_keyframe_time))/(frameToTimecode(after_keyframe_time)-frameToTimecode(before_keyframe_time));
-    } else if (before_keyframe_index > -1) {
-        before = before_keyframe_index;
-        after = before_keyframe_index;
-    } else {
-        before = after_keyframe_index;
-        after = after_keyframe_index;
-    }
+  if ((type == EffectFieldType::DOUBLE || type == EffectFieldType::COLOR) && (before_keyframe_index > -1 && after_keyframe_index > -1)) {
+    // interpolate
+    before = before_keyframe_index;
+    after = after_keyframe_index;
+    progress = (timecode-frameToTimecode(before_keyframe_time))/(frameToTimecode(after_keyframe_time)-frameToTimecode(before_keyframe_time));
+  } else if (before_keyframe_index > -1) {
+    before = before_keyframe_index;
+    after = before_keyframe_index;
+  } else {
+    before = after_keyframe_index;
+    after = after_keyframe_index;
+  }
 }
 
 bool EffectField::hasKeyframes() {
-    return (parent_row->isKeyframing() && keyframes.size() > 0);
+  return (parent_row->isKeyframing() && keyframes.size() > 0);
 }
 
 QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
-    if (hasKeyframes()) {
-        int before_keyframe;
-        int after_keyframe;
-        double progress;
-        get_keyframe_data(timecode, before_keyframe, after_keyframe, progress);
+  if (hasKeyframes()) {
+    int before_keyframe;
+    int after_keyframe;
+    double progress;
+    get_keyframe_data(timecode, before_keyframe, after_keyframe, progress);
 
-        const QVariant& before_data = keyframes.at(before_keyframe).data;
-        switch (type) {
-        case EffectFieldType::DOUBLE:
-        {
-            double value;
-            if (before_keyframe == after_keyframe) {
-                value = keyframes.at(before_keyframe).data.toDouble();
+    const QVariant& before_data = keyframes.at(before_keyframe).data;
+    switch (type) {
+      case EffectFieldType::DOUBLE:
+      {
+        double value;
+        if (before_keyframe == after_keyframe) {
+          value = keyframes.at(before_keyframe).data.toDouble();
+        } else {
+          const EffectKeyframe& before_key = keyframes.at(before_keyframe);
+          const EffectKeyframe& after_key = keyframes.at(after_keyframe);
+
+          double before_dbl = before_key.data.toDouble();
+          double after_dbl = after_key.data.toDouble();
+
+          if (before_key.type == KEYFRAME_TYPE_HOLD) {
+            // hold
+            value = before_dbl;
+          } else if (before_key.type == KEYFRAME_TYPE_BEZIER || after_key.type == KEYFRAME_TYPE_BEZIER) {
+            // bezier interpolation
+            if (before_key.type == KEYFRAME_TYPE_BEZIER && after_key.type == KEYFRAME_TYPE_BEZIER) {
+              // cubic bezier
+              double t = cubic_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(),
+                                        before_key.time, before_key.time+before_key.post_handle_x,
+                                        after_key.time+after_key.pre_handle_x, after_key.time);
+              value = cubic_from_t(before_dbl, before_dbl+before_key.post_handle_y,
+                                   after_dbl+after_key.pre_handle_y, after_dbl, t);
+            } else if (after_key.type == KEYFRAME_TYPE_LINEAR) { // quadratic bezier
+              // last keyframe is the bezier one
+              double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(),
+                                       before_key.time, before_key.time+before_key.post_handle_x, after_key.time);
+              value = quad_from_t(before_dbl, before_dbl+before_key.post_handle_y, after_dbl, t);
             } else {
-                const EffectKeyframe& before_key = keyframes.at(before_keyframe);
-                const EffectKeyframe& after_key = keyframes.at(after_keyframe);
-
-                double before_dbl = before_key.data.toDouble();
-                double after_dbl = after_key.data.toDouble();
-
-                if (before_key.type == KEYFRAME_TYPE_HOLD) {
-                    // hold
-                    value = before_dbl;
-                } else if (before_key.type == KEYFRAME_TYPE_BEZIER || after_key.type == KEYFRAME_TYPE_BEZIER) {
-                    // bezier interpolation
-                    if (before_key.type == KEYFRAME_TYPE_BEZIER && after_key.type == KEYFRAME_TYPE_BEZIER) {
-                        // cubic bezier
-                        double t = cubic_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(),
-                                                  before_key.time, before_key.time+before_key.post_handle_x,
-                                                  after_key.time+after_key.pre_handle_x, after_key.time);
-                        value = cubic_from_t(before_dbl, before_dbl+before_key.post_handle_y,
-                                             after_dbl+after_key.pre_handle_y, after_dbl, t);
-                    } else if (after_key.type == KEYFRAME_TYPE_LINEAR) { // quadratic bezier
-                        // last keyframe is the bezier one
-                        double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(),
-                                                 before_key.time, before_key.time+before_key.post_handle_x, after_key.time);
-                        value = quad_from_t(before_dbl, before_dbl+before_key.post_handle_y, after_dbl, t);
-                    } else {
-                        // this keyframe is the bezier one
-                        double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(),
-                                                 before_key.time, after_key.time+after_key.pre_handle_x, after_key.time);
-                        value = quad_from_t(before_dbl, after_dbl+after_key.pre_handle_y, after_dbl, t);
-                    }
-                } else {
-                    // linear
-                    value = double_lerp(before_dbl, after_dbl, progress);
-                }
+              // this keyframe is the bezier one
+              double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(),
+                                       before_key.time, after_key.time+after_key.pre_handle_x, after_key.time);
+              value = quad_from_t(before_dbl, after_dbl+after_key.pre_handle_y, after_dbl, t);
             }
-            if (async) {
-                return value;
-            }
-            static_cast<LabelSlider*>(ui_element)->set_value(value, false);
+          } else {
+            // linear
+            value = double_lerp(before_dbl, after_dbl, progress);
+          }
         }
-            break;
-        case EffectFieldType::COLOR:
-        {
-            QColor value;
-            if (before_keyframe == after_keyframe) {
-                value = keyframes.at(before_keyframe).data.value<QColor>();
-            } else {
-                const auto before_color = keyframes.at(before_keyframe).data.value<QColor>();
-                const auto after_color = keyframes.at(after_keyframe).data.value<QColor>();
-                value = QColor(lerp(before_color.red(), after_color.red(), progress),
-                               lerp(before_color.green(), after_color.green(), progress),
-                               lerp(before_color.blue(), after_color.blue(), progress));
-            }
-            if (async) {
-                return value;
-            }
-            static_cast<ColorButton*>(ui_element)->set_color(value);
+        if (async) {
+          return value;
         }
-            break;
-        case EffectFieldType::STRING:
-            if (async) {
-                return before_data;
-            }
-            static_cast<TextEditEx*>(ui_element)->setPlainTextEx(before_data.toString());
-            break;
-        case EffectFieldType::BOOL:
-            if (async) {
-                return before_data;
-            }
-            static_cast<QCheckBox*>(ui_element)->setChecked(before_data.toBool());
-            break;
-        case EffectFieldType::COMBO:
-            if (async) {
-                return before_data;
-            }
-            static_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(before_data.toInt());
-            break;
-        case EffectFieldType::FONT:
-            if (async) {
-                return before_data;
-            }
-            static_cast<FontCombobox*>(ui_element)->setCurrentTextEx(before_data.toString());
-            break;
-        case EffectFieldType::FILE_T:
-            if (async) {
-                return before_data;
-            }
-            static_cast<EmbeddedFileChooser*>(ui_element)->setFilename(before_data.toString());
-            break;
-        default:
-            qWarning() << "Unhandled Effect Field" << static_cast<int>(type);
-            break;
-        }//switch
-    }
-    return QVariant();
+        static_cast<LabelSlider*>(ui_element)->set_value(value, false);
+      }
+        break;
+      case EffectFieldType::COLOR:
+      {
+        QColor value;
+        if (before_keyframe == after_keyframe) {
+          value = keyframes.at(before_keyframe).data.value<QColor>();
+        } else {
+          const auto before_color = keyframes.at(before_keyframe).data.value<QColor>();
+          const auto after_color = keyframes.at(after_keyframe).data.value<QColor>();
+          value = QColor(lerp(before_color.red(), after_color.red(), progress),
+                         lerp(before_color.green(), after_color.green(), progress),
+                         lerp(before_color.blue(), after_color.blue(), progress));
+        }
+        if (async) {
+          return value;
+        }
+        static_cast<ColorButton*>(ui_element)->set_color(value);
+      }
+        break;
+      case EffectFieldType::STRING:
+        if (async) {
+          return before_data;
+        }
+        static_cast<TextEditEx*>(ui_element)->setPlainTextEx(before_data.toString());
+        break;
+      case EffectFieldType::BOOL:
+        if (async) {
+          return before_data;
+        }
+        static_cast<QCheckBox*>(ui_element)->setChecked(before_data.toBool());
+        break;
+      case EffectFieldType::COMBO:
+        if (async) {
+          return before_data;
+        }
+        static_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(before_data.toInt());
+        break;
+      case EffectFieldType::FONT:
+        if (async) {
+          return before_data;
+        }
+        static_cast<FontCombobox*>(ui_element)->setCurrentTextEx(before_data.toString());
+        break;
+      case EffectFieldType::FILE_T:
+        if (async) {
+          return before_data;
+        }
+        static_cast<EmbeddedFileChooser*>(ui_element)->setFilename(before_data.toString());
+        break;
+      default:
+        qWarning() << "Unhandled Effect Field" << static_cast<int>(type);
+        break;
+    }//switch
+  }
+  return QVariant();
 }
 
 void EffectField::ui_element_change() {
-    bool dragging_double = (type == EffectFieldType::DOUBLE && static_cast<LabelSlider*>(ui_element)->is_dragging());
-    const auto ca = dragging_double ? nullptr : new ComboAction();
-    make_key_from_change(ca);
-    if (!dragging_double) {
-        e_undo_stack.push(ca);
-    }
-    emit changed();
+  bool dragging_double = (type == EffectFieldType::DOUBLE && static_cast<LabelSlider*>(ui_element)->is_dragging());
+  const auto ca = dragging_double ? nullptr : new ComboAction();
+  make_key_from_change(ca);
+  if (!dragging_double) {
+    e_undo_stack.push(ca);
+  }
+  emit changed();
 }
 
 void EffectField::make_key_from_change(ComboAction* ca) {
-    if (parent_row->isKeyframing()) {
-        parent_row->set_keyframe_now(ca);
-    } else if (ca != nullptr) {
-        // set undo
-        ca->append(new EffectFieldUndo(this));
-    }
+  if (parent_row->isKeyframing()) {
+    parent_row->set_keyframe_now(ca);
+  } else if (ca != nullptr) {
+    // set undo
+    ca->append(new EffectFieldUndo(this));
+  }
 }
 
 QWidget* EffectField::get_ui_element() {
-    return ui_element;
+  return ui_element;
 }
 
 void EffectField::set_enabled(bool e) {
-    ui_element->setEnabled(e);
+  ui_element->setEnabled(e);
 }
 
 double EffectField::get_double_value(double timecode, bool async) {
-    if (async && hasKeyframes()) {
-        return validate_keyframe_data(timecode, true).toDouble();
-    }
-    validate_keyframe_data(timecode);
-    return static_cast<LabelSlider*>(ui_element)->value();
+  if (async && hasKeyframes()) {
+    return validate_keyframe_data(timecode, true).toDouble();
+  }
+  validate_keyframe_data(timecode);
+  return static_cast<LabelSlider*>(ui_element)->value();
 }
 
 void EffectField::set_double_value(double v) {
-    static_cast<LabelSlider*>(ui_element)->set_value(v, false);
+  static_cast<LabelSlider*>(ui_element)->set_value(v, false);
 }
 
 void EffectField::set_double_default_value(double v) {
-    static_cast<LabelSlider*>(ui_element)->set_default_value(v);
+  static_cast<LabelSlider*>(ui_element)->set_default_value(v);
 }
 
 void EffectField::set_double_minimum_value(double v) {
-    static_cast<LabelSlider*>(ui_element)->set_minimum_value(v);
+  static_cast<LabelSlider*>(ui_element)->set_minimum_value(v);
 }
 
 void EffectField::set_double_maximum_value(double v) {
-    static_cast<LabelSlider*>(ui_element)->set_maximum_value(v);
+  static_cast<LabelSlider*>(ui_element)->set_maximum_value(v);
 }
 
 void EffectField::add_combo_item(const QString& name, const QVariant& data) {
-    static_cast<ComboBoxEx*>(ui_element)->addItem(name, data);
+  static_cast<ComboBoxEx*>(ui_element)->addItem(name, data);
 }
 
 int EffectField::get_combo_index(double timecode, bool async) {
-    if (async && hasKeyframes()) {
-        return validate_keyframe_data(timecode, true).toInt();
-    }
-    validate_keyframe_data(timecode);
-    return static_cast<ComboBoxEx*>(ui_element)->currentIndex();
+  if (async && hasKeyframes()) {
+    return validate_keyframe_data(timecode, true).toInt();
+  }
+  validate_keyframe_data(timecode);
+  return static_cast<ComboBoxEx*>(ui_element)->currentIndex();
 }
 
 QVariant EffectField::get_combo_data(double timecode) {
-    validate_keyframe_data(timecode);
-    return static_cast<ComboBoxEx*>(ui_element)->currentData();
+  validate_keyframe_data(timecode);
+  return static_cast<ComboBoxEx*>(ui_element)->currentData();
 }
 
 QString EffectField::get_combo_string(double timecode) {
-    validate_keyframe_data(timecode);
-    return static_cast<ComboBoxEx*>(ui_element)->currentText();
+  validate_keyframe_data(timecode);
+  return static_cast<ComboBoxEx*>(ui_element)->currentText();
 }
 
 void EffectField::set_combo_index(int index) {
-    static_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(index);
+  static_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(index);
 }
 
 void EffectField::set_combo_string(const QString& s) {
-    static_cast<ComboBoxEx*>(ui_element)->setCurrentTextEx(s);
+  static_cast<ComboBoxEx*>(ui_element)->setCurrentTextEx(s);
 }
 
 bool EffectField::get_bool_value(double timecode, bool async) {
-    if (async && hasKeyframes()) {
-        return validate_keyframe_data(timecode, true).toBool();
-    }
-    validate_keyframe_data(timecode);
-    return static_cast<QCheckBox*>(ui_element)->isChecked();
+  if (async && hasKeyframes()) {
+    return validate_keyframe_data(timecode, true).toBool();
+  }
+  validate_keyframe_data(timecode);
+  return static_cast<QCheckBox*>(ui_element)->isChecked();
 }
 
 void EffectField::set_bool_value(bool b) {
-    static_cast<QCheckBox*>(ui_element)->setChecked(b);
+  static_cast<QCheckBox*>(ui_element)->setChecked(b);
 }
 
 QString EffectField::get_string_value(double timecode, bool async) {
-    if (async && hasKeyframes()) {
-        return validate_keyframe_data(timecode, true).toString();
-    }
-    validate_keyframe_data(timecode);
-    return static_cast<TextEditEx*>(ui_element)->getPlainTextEx();
+  if (async && hasKeyframes()) {
+    return validate_keyframe_data(timecode, true).toString();
+  }
+  validate_keyframe_data(timecode);
+  return static_cast<TextEditEx*>(ui_element)->getPlainTextEx();
 }
 
 void EffectField::set_string_value(const QString& s) {
-    static_cast<TextEditEx*>(ui_element)->setPlainTextEx(s);
+  static_cast<TextEditEx*>(ui_element)->setPlainTextEx(s);
 }
 
 QString EffectField::get_font_name(double timecode, bool async) {
-    if (async && hasKeyframes()) {
-        return validate_keyframe_data(timecode, true).toString();
-    }
-    validate_keyframe_data(timecode);
-    return static_cast<FontCombobox*>(ui_element)->currentText();
+  if (async && hasKeyframes()) {
+    return validate_keyframe_data(timecode, true).toString();
+  }
+  validate_keyframe_data(timecode);
+  return static_cast<FontCombobox*>(ui_element)->currentText();
 }
 
 void EffectField::set_font_name(const QString& s) {
-    static_cast<FontCombobox*>(ui_element)->setCurrentText(s);
+  static_cast<FontCombobox*>(ui_element)->setCurrentText(s);
 }
 
 QColor EffectField::get_color_value(double timecode, bool async) {
-    if (async && hasKeyframes()) {
-        return validate_keyframe_data(timecode, true).value<QColor>();
-    }
-    validate_keyframe_data(timecode);
-    return static_cast<ColorButton*>(ui_element)->get_color();
+  if (async && hasKeyframes()) {
+    return validate_keyframe_data(timecode, true).value<QColor>();
+  }
+  validate_keyframe_data(timecode);
+  return static_cast<ColorButton*>(ui_element)->get_color();
 }
 
 void EffectField::set_color_value(QColor color) {
-    static_cast<ColorButton*>(ui_element)->set_color(color);
+  static_cast<ColorButton*>(ui_element)->set_color(color);
 }
 
 QString EffectField::get_filename(double timecode, bool async) {
-    if (async && hasKeyframes()) {
-        return validate_keyframe_data(timecode, true).toString();
-    }
-    validate_keyframe_data(timecode);
-    return static_cast<EmbeddedFileChooser*>(ui_element)->getFilename();
+  if (async && hasKeyframes()) {
+    return validate_keyframe_data(timecode, true).toString();
+  }
+  validate_keyframe_data(timecode);
+  return static_cast<EmbeddedFileChooser*>(ui_element)->getFilename();
 }
 
 void EffectField::set_filename(const QString &s) {
-    static_cast<EmbeddedFileChooser*>(ui_element)->setFilename(s);
+  static_cast<EmbeddedFileChooser*>(ui_element)->setFilename(s);
 }

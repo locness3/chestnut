@@ -1207,8 +1207,8 @@ void MainWindow::viewMenu_About_To_Be_Shown() {
 
     title_safe_off->setChecked(!e_config.show_title_safe_area);
     title_safe_default->setChecked(e_config.show_title_safe_area && !e_config.use_custom_title_safe_ratio);
-    title_safe_43->setChecked(e_config.show_title_safe_area && e_config.use_custom_title_safe_ratio && e_config.custom_title_safe_ratio == 4.0/3.0);
-    title_safe_169->setChecked(e_config.show_title_safe_area && e_config.use_custom_title_safe_ratio && e_config.custom_title_safe_ratio == 16.0/9.0);
+    title_safe_43->setChecked(e_config.show_title_safe_area && e_config.use_custom_title_safe_ratio && qFuzzyCompare(e_config.custom_title_safe_ratio, 4.0/3.0));
+    title_safe_169->setChecked(e_config.show_title_safe_area && e_config.use_custom_title_safe_ratio && qFuzzyCompare(e_config.custom_title_safe_ratio, 16.0/9.0));
     title_safe_custom->setChecked(e_config.show_title_safe_area && e_config.use_custom_title_safe_ratio && !title_safe_43->isChecked() && !title_safe_169->isChecked());
 
     full_screen->setChecked(windowState() == Qt::WindowFullScreen);

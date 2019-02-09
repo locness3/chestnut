@@ -51,8 +51,8 @@ private:
     QModelIndex editing_index;
     QModelIndexList selected_items;
     Project* project_parent;
-    void stop_rename_timer();
     QTimer rename_timer;
+    void stop_rename_timer();
 };
 
 #endif // SOURCESCOMMON_H

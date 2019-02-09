@@ -146,7 +146,7 @@ public:
     Effect& operator=(const Effect&) = delete;
     Effect& operator=(const Effect&&) = delete;
 
-    EffectRowPtr add_row(const QString &name, bool savable = true, bool keyframable = true);
+    EffectRowPtr add_row(const QString &_name, bool savable = true, bool keyframable = true);
     EffectRowPtr row(const int i);
     const QVector<EffectRowPtr>& getRows() const;
 
@@ -156,7 +156,7 @@ public:
      * @param type  Type for new Gizmo
      * @return the newly created EffectGizmo
      */
-    EffectGizmoPtr add_gizmo(const GizmoType_E type);
+    EffectGizmoPtr add_gizmo(const GizmoType_E _type);
     EffectGizmoPtr gizmo(const int index);
     int gizmo_count();
 
@@ -204,7 +204,7 @@ public:
     ClipPtr parent_clip; //TODO: make weak
     const EffectMeta* meta;
     int id;
-    QString name;
+    QString _name;
     CollapsibleWidget* container = nullptr;
 
 public slots:
@@ -220,7 +220,7 @@ protected:
      * @param type  Type for EffectGizmo to be
      * @return EffectGizmo shared_ptr
      */
-    virtual EffectGizmoPtr newEffectGizmo(const GizmoType_E type);
+    virtual EffectGizmoPtr newEffectGizmo(const GizmoType_E _type);
 
     // glsl effect
     QOpenGLShaderProgram* glslProgram;

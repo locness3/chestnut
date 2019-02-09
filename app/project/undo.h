@@ -340,7 +340,7 @@ private:
 
 class MediaRename : public QUndoCommand {
 public:
-    MediaRename(MediaPtr iitem, QString to);
+    MediaRename(MediaPtr iitem, const QString& ito);
     virtual void undo();
     virtual void redo();
 private:

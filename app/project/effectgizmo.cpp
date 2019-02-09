@@ -29,7 +29,7 @@ EffectGizmo::EffectGizmo(const GizmoType_E type) :
     x_field_multi2(1.0),
     y_field2(nullptr),
     y_field_multi2(1.0),
-    type(type),
+    _type(type),
     cursor(-1)
 {
     int point_count = (type == GIZMO_TYPE_POLY) ? 4 : 1;
@@ -37,6 +37,16 @@ EffectGizmo::EffectGizmo(const GizmoType_E type) :
     screen_pos.resize(point_count);
 
     color = Qt::white;
+}
+
+
+EffectGizmo::~EffectGizmo()
+{
+  // Managed elsewhere
+  x_field1 = nullptr;
+  y_field1 = nullptr;
+  x_field2 = nullptr;
+  y_field2 = nullptr;
 }
 
 void EffectGizmo::set_previous_value() {
@@ -51,7 +61,7 @@ int EffectGizmo::get_point_count() {
 }
 
 GizmoType_E EffectGizmo::get_type() const {
-    return type;
+    return _type;
 }
 
 int EffectGizmo::get_cursor() const {

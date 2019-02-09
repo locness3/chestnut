@@ -12,43 +12,43 @@
 #include "project/effect.h"
 
 class RenderThread : public QThread {
-	Q_OBJECT
-public:
-	RenderThread();
-	~RenderThread();
-	void run();
-	QMutex mutex;
-	GLuint frameBuffer;
-	GLuint texColorBuffer;
+    Q_OBJECT
+  public:
+    RenderThread();
+    ~RenderThread();
+    void run();
+    QMutex mutex;
+    GLuint frameBuffer;
+    GLuint texColorBuffer;
     EffectPtr gizmos;
-	void paint();
+    void paint();
     void start_render(QOpenGLContext* share, SequenceWPtr s, const QString &save = nullptr, GLvoid *pixels = nullptr, int idivider = 0);
-	bool did_texture_fail();
-	void cancel();
+    bool did_texture_fail();
+    void cancel();
 
-public slots:
-	// cleanup functions
-	void delete_ctx();
-signals:
-	void ready();
-private:
-	// cleanup functions
-	void delete_texture();
-	void delete_fbo();
+  public slots:
+    // cleanup functions
+    void delete_ctx();
+  signals:
+    void ready();
+  private:
+    // cleanup functions
+    void delete_texture();
+    void delete_fbo();
 
-	QWaitCondition waitCond;
-	QOffscreenSurface surface;
-	QOpenGLContext* share_ctx;
-	QOpenGLContext* ctx;
+    QWaitCondition waitCond;
+    QOffscreenSurface surface;
+    QOpenGLContext* share_ctx;
+    QOpenGLContext* ctx;
     SequenceWPtr seq;
-	int divider;
-	int tex_width;
-	int tex_height;
-	bool queued;
-	bool texture_failed;
-	bool running;
-	QString save_fn;
-	GLvoid *pixel_buffer;
+    int divider;
+    int tex_width;
+    int tex_height;
+    bool queued;
+    bool texture_failed;
+    bool running;
+    QString save_fn;
+    GLvoid *pixel_buffer;
 };
 
 #endif // RENDERTHREAD_H

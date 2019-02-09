@@ -27,7 +27,7 @@ apps:
 parts:
   olive:
     plugin: qmake
-    source: https://github.com/jonno85uk/olive.git
+    source: https://github.com/jonno85uk/chestnut.git
     source-type: git
     build-packages:
       - qt5-default

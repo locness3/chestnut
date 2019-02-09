@@ -73,8 +73,8 @@ Viewer::Viewer(QWidget *parent) :
     QDockWidget(parent),
     playing(false),
     just_played(false),
-    media(nullptr),
     seq(nullptr),
+    media(nullptr),
     created_sequence(false),
     minimum_zoom(1.0),
     cue_recording_internal(false)

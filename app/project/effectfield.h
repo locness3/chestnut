@@ -64,7 +64,7 @@ public:
 
     QVariant get_previous_data();
     QVariant get_current_data();
-    double frameToTimecode(long frame);
+    double frameToTimecode(const long frame);
     long timecodeToFrame(double timecode);
     void set_current_data(const QVariant&);
     void get_keyframe_data(double timecode, int& before, int& after, double& d);

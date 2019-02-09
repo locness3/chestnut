@@ -44,52 +44,52 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
 
   int row = 0;
 
-  FootagePtr  f = item->object<Footage>();
+  auto ftg = item->object<Footage>();
 
   grid->addWidget(new QLabel(tr("Tracks:")), row, 0, 1, 2);
   row++;
 
   track_list = new QListWidget();
-  for (int i=0;i<f->video_tracks.size();i++) {
-    const FootageStream& fs = f->video_tracks.at(i);
+  for (int i=0;i<ftg->video_tracks.size();i++) {
+    const auto& fs = ftg->video_tracks.at(i);
 
-    QListWidgetItem* item = new QListWidgetItem(
-                              tr("Video %1: %2x%3 %4FPS").arg(
-                                QString::number(fs.file_index),
-                                QString::number(fs.video_width),
-                                QString::number(fs.video_height),
-                                QString::number(fs.video_frame_rate)
-                                )
-                              );
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(fs.enabled ? Qt::Checked : Qt::Unchecked);
-    item->setData(Qt::UserRole+1, fs.file_index);
-    track_list->addItem(item);
+    auto trackItem = new QListWidgetItem(
+                       tr("Video %1: %2x%3 %4FPS").arg(
+                         QString::number(fs.file_index),
+                         QString::number(fs.video_width),
+                         QString::number(fs.video_height),
+                         QString::number(fs.video_frame_rate)
+                         )
+                       );
+    trackItem->setFlags(trackItem->flags() | Qt::ItemIsUserCheckable);
+    trackItem->setCheckState(fs.enabled ? Qt::Checked : Qt::Unchecked);
+    trackItem->setData(Qt::UserRole+1, fs.file_index);
+    track_list->addItem(trackItem);
   }
-  for (int i=0;i<f->audio_tracks.size();i++) {
-    const FootageStream& fs = f->audio_tracks.at(i);
-    QListWidgetItem* item = new QListWidgetItem(
-                              tr("Audio %1: %2Hz %3 channels").arg(
-                                QString::number(fs.file_index),
-                                QString::number(fs.audio_frequency),
-                                QString::number(fs.audio_channels)
-                                )
-                              );
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(fs.enabled ? Qt::Checked : Qt::Unchecked);
-    item->setData(Qt::UserRole+1, fs.file_index);
-    track_list->addItem(item);
+  for (int i=0;i<ftg->audio_tracks.size();i++) {
+    const auto& fs = ftg->audio_tracks.at(i);
+    auto trackItem = new QListWidgetItem(
+                       tr("Audio %1: %2Hz %3 channels").arg(
+                         QString::number(fs.file_index),
+                         QString::number(fs.audio_frequency),
+                         QString::number(fs.audio_channels)
+                         )
+                       );
+    trackItem->setFlags(trackItem->flags() | Qt::ItemIsUserCheckable);
+    trackItem->setCheckState(fs.enabled ? Qt::Checked : Qt::Unchecked);
+    trackItem->setData(Qt::UserRole+1, fs.file_index);
+    track_list->addItem(trackItem);
   }
   grid->addWidget(track_list, row, 0, 1, 2);
   row++;
 
-  if (f->video_tracks.size() > 0) {
+  if (ftg->video_tracks.size() > 0) {
     // frame conforming
-    if (!f->video_tracks.at(0).infinite_length) {
+    if (!ftg->video_tracks.at(0).infinite_length) {
       grid->addWidget(new QLabel(tr("Conform to Frame Rate:")), row, 0);
       conform_fr = new QDoubleSpinBox();
       conform_fr->setMinimum(0.01);
-      conform_fr->setValue(f->video_tracks.at(0).video_frame_rate * f->speed);
+      conform_fr->setValue(ftg->video_tracks.at(0).video_frame_rate * ftg->speed);
       grid->addWidget(conform_fr, row, 1);
     }
 
@@ -99,7 +99,7 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
     interlacing_box = new QComboBox();
     interlacing_box->addItem(
           tr("Auto (%1)").arg(
-            get_interlacing_name(f->video_tracks.at(0).video_auto_interlacing)
+            get_interlacing_name(ftg->video_tracks.at(0).video_auto_interlacing)
             )
           );
     interlacing_box->addItem(get_interlacing_name(VIDEO_PROGRESSIVE));
@@ -107,9 +107,9 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
     interlacing_box->addItem(get_interlacing_name(VIDEO_BOTTOM_FIELD_FIRST));
 
     interlacing_box->setCurrentIndex(
-          (f->video_tracks.at(0).video_auto_interlacing == f->video_tracks.at(0).video_interlacing)
+          (ftg->video_tracks.at(0).video_auto_interlacing == ftg->video_tracks.at(0).video_interlacing)
           ? 0
-          : f->video_tracks.at(0).video_interlacing + 1);
+          : ftg->video_tracks.at(0).video_interlacing + 1);
 
     grid->addWidget(new QLabel(tr("Interlacing:")), row, 0);
     grid->addWidget(interlacing_box, row, 1);
@@ -136,29 +136,30 @@ void MediaPropertiesDialog::accept() {
   ComboAction* ca = new ComboAction();
 
   // set track enable
-  for (int i=0;i<track_list->count();i++) {
-    QListWidgetItem* item = track_list->item(i);
-    const QVariant& data = item->data(Qt::UserRole+1);
-    if (!data.isNull()) {
-      int index = data.toInt();
-      bool found = false;
-      for (int j=0;j<f->video_tracks.size();j++) {
-        if (f->video_tracks.at(j).file_index == index) {
-          f->video_tracks[j].enabled = (item->checkState() == Qt::Checked);
-          found = true;
+  for (int i=0; i<track_list->count(); ++i) {
+    QListWidgetItem* trackItem = track_list->item(i);
+    const QVariant& trackData = trackItem->data(Qt::UserRole+1);
+    if (trackData.isNull()) {
+      continue;
+    }
+    int index = trackData.toInt();
+    bool found = false;
+    for (int j=0; j<f->video_tracks.size(); ++j) {
+      if (f->video_tracks.at(j).file_index == index) {
+        f->video_tracks[j].enabled = (trackItem->checkState() == Qt::Checked);
+        found = true;
+        break;
+      }
+    }//for
+    if (!found) {
+      for (int j=0;j<f->audio_tracks.size(); ++j) {
+        if (f->audio_tracks.at(j).file_index == index) {
+          f->audio_tracks[j].enabled = (trackItem->checkState() == Qt::Checked);
           break;
         }
       }
-      if (!found) {
-        for (int j=0;j<f->audio_tracks.size();j++) {
-          if (f->audio_tracks.at(j).file_index == index) {
-            f->audio_tracks[j].enabled = (item->checkState() == Qt::Checked);
-            break;
-          }
-        }
-      }
     }
-  }
+  }//for
 
   bool refresh_clips = false;
 

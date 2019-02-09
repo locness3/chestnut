@@ -284,12 +284,12 @@ void EffectInit::run() {
 //FIXME: congitive complexity of 322.....
 Effect::Effect(ClipPtr c, const EffectMeta *em) :
     SequenceItem(project::SequenceItemType::CLIP),
-    parent_clip(c),
-    meta(em),
     enable_shader(false),
     enable_coords(false),
     enable_superimpose(false),
     enable_image(false),
+    parent_clip(c),
+    meta(em),
     glslProgram(nullptr),
     texture(nullptr),
     enable_always_update(false),
@@ -316,11 +316,11 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
             QFile effect_file(em->filename);
             if (effect_file.open(QFile::ReadOnly)) {
                 QXmlStreamReader reader(&effect_file);
+                const QXmlStreamAttributes& attributes = reader.attributes();
 
                 while (!reader.atEnd()) {
                     if (reader.name() == "row" && reader.isStartElement()) {
                         QString row_name;
-                        const QXmlStreamAttributes& attributes = reader.attributes();
                         for (int i=0;i<attributes.size();i++) {
                             const QXmlStreamAttribute& attr = attributes.at(i);
                             if (attr.name() == "name") {
@@ -333,14 +333,12 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                                 reader.readNext();
                                 if (reader.name() == "field" && reader.isStartElement()) {
                                     auto fieldType = EffectFieldType::UNKNOWN;
-                                    QString id;
+                                    QString attrId;
 
                                     // get field type
-                                    const QXmlStreamAttributes& attributes = reader.attributes();
-                                    for (int i=0;i<attributes.size();i++) {
-                                        const QXmlStreamAttribute& attr = attributes.at(i);
-                                        if (attr.name() == "type") {
-                                            QString comp = attr.value().toString().toUpper();
+                                    for (const auto& readerAttr : attributes) {
+                                        if (readerAttr.name() == "type") {
+                                            QString comp = readerAttr.value().toString().toUpper();
                                             if (comp == "DOUBLE") {
                                                 fieldType = EffectFieldType::DOUBLE;
                                             } else if (comp == "BOOL") {
@@ -356,15 +354,15 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                                             } else if (comp == "FILE") {
                                                 fieldType = EffectFieldType::FILE_T;
                                             }
-                                        } else if (attr.name() == "id") {
-                                            id = attr.value().toString();
+                                        } else if (readerAttr.name() == "id") {
+                                            attrId = readerAttr.value().toString();
                                         }
                                     }
 
-                                    if (id.isEmpty()) {
+                                    if (attrId.isEmpty()) {
                                         qCritical() << "Couldn't load field from" << em->filename << "- ID cannot be empty.";
                                     } else if (fieldType != EffectFieldType::UNKNOWN) {
-                                        EffectField* field = row->add_field(fieldType, id);
+                                        EffectField* field = row->add_field(fieldType, attrId);
                                         connect(field, SIGNAL(changed()), this, SLOT(field_changed()));
                                         switch (fieldType) {
                                         case EffectFieldType::DOUBLE:
@@ -461,11 +459,10 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                                         }//switch
                                     }
                                 }
-                            }
+                            }//while
                         }
                     } else if (reader.name() == "shader" && reader.isStartElement()) {
                         enable_shader = true;
-                        const QXmlStreamAttributes& attributes = reader.attributes();
                         for (int i=0;i<attributes.size();i++) {
                             const QXmlStreamAttribute& attr = attributes.at(i);
                             if (attr.name() == "vert") {
@@ -492,7 +489,7 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
                         }
                     }*/
                     reader.readNext();
-                }
+                }//while
 
                 effect_file.close();
             } else {
@@ -666,6 +663,9 @@ QVariant load_data_from_string(const EffectFieldType type, const QString& string
     case EffectFieldType::FONT:
     case EffectFieldType::FILE_T:
         return string;
+      default:
+        qWarning() << "Effect type not handled" << static_cast<int>(type);
+        break;
     }
     return QVariant();
 }
@@ -777,7 +777,10 @@ void Effect::load(QXmlStreamReader& stream) {
     }
 }
 
-void Effect::custom_load(QXmlStreamReader &stream) {}
+void Effect::custom_load(QXmlStreamReader& /*stream*/)
+{
+
+}
 
 void Effect::save(QXmlStreamWriter& stream) {
     stream.writeAttribute("name", meta->name);
@@ -960,7 +963,10 @@ void Effect::process_shader(double timecode, GLTextureCoords&) {
     }//for
 }
 
-void Effect::process_coords(double, GLTextureCoords&, int data) {}
+void Effect::process_coords(double, GLTextureCoords&, int /*data*/)
+{
+
+}
 
 GLuint Effect::process_superimpose(double timecode) {
     bool recreate_texture = false;

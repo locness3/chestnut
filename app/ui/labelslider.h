@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -28,31 +28,31 @@
 class LabelSlider : public QLabel
 {
     Q_OBJECT
-public:
+  public:
     LabelSlider(QWidget* parent = 0);
-	void set_frame_rate(double d);
-	void set_display_type(int type);
-	void set_value(double v, bool userSet);
+    void set_frame_rate(double d);
+    void set_display_type(int type);
+    void set_value(const double val, const bool userSet);
     void set_default_value(double v);
     void set_minimum_value(double v);
     void set_maximum_value(double v);
     double value();
     bool is_set();
-	bool is_dragging();
-	QString valueToString(double v);
-	double getPreviousValue();
+    bool is_dragging();
+    QString valueToString(double v);
+    double getPreviousValue();
     void set_previous_value();
-	void set_color(QString c = 0);
-	int decimal_places;
-protected:
+    void set_color(QString c = 0);
+    int decimal_places;
+  protected:
     void mousePressEvent(QMouseEvent *ev);
     void mouseMoveEvent(QMouseEvent *ev);
     void mouseReleaseEvent(QMouseEvent *ev);
-private:
+  private:
     double default_value;
     double internal_value;
     double drag_start_value;
-	double previous_value;
+    double previous_value;
 
     bool min_enabled;
     double min_value;
@@ -66,12 +66,12 @@ private:
 
     bool set;
 
-	int display_type;
+    int display_type;
 
-	double frame_rate;
-signals:
-	void valueChanged();
-	void clicked();
+    double frame_rate;
+  signals:
+    void valueChanged();
+    void clicked();
 };
 
 #endif // LABELSLIDER_H

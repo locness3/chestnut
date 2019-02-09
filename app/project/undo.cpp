@@ -735,12 +735,14 @@ void MediaMove::redo() {
   global::mainWindow->setWindowModified(true);
 }
 
-MediaRename::MediaRename(MediaPtr iitem, QString ito) :
+MediaRename::MediaRename(MediaPtr iitem, const QString& ito) :
+  old_project_changed(global::mainWindow->isWindowModified()),
   item(iitem),
   from(iitem->name()),
-  to(ito),
-  old_project_changed(global::mainWindow->isWindowModified())
-{}
+  to(ito)
+{
+
+}
 
 void MediaRename::undo() {
   item->setName(from);
@@ -1126,10 +1128,12 @@ void RenameClipCommand::redo() {
 }
 
 SetPointer::SetPointer(void **pointer, void *data) :
+  old_changed(global::mainWindow->isWindowModified()),
   p(pointer),
-  new_data(data),
-  old_changed(global::mainWindow->isWindowModified())
-{}
+  new_data(data)
+{
+
+}
 
 void SetPointer::undo() {
   *p = old_data;

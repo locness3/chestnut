@@ -74,11 +74,11 @@ const double DEFAULT_WAVEFORM_ZOOM = 1.0;
 ViewerWidget::ViewerWidget(QWidget *parent) :
     QOpenGLWidget(parent),
     waveform(false),
+    waveform_zoom(DEFAULT_WAVEFORM_ZOOM),
+    waveform_scroll(0),
     dragging(false),
     gizmos(nullptr),
     selected_gizmo(nullptr),
-    waveform_zoom(DEFAULT_WAVEFORM_ZOOM),
-    waveform_scroll(0),
     window(nullptr)
 {
     setMouseTracking(true);
@@ -222,10 +222,10 @@ void ViewerWidget::set_custom_zoom() {
 }
 
 void ViewerWidget::set_menu_zoom(QAction* action) {
-    const QVariant& data = action->data();
-    if (!data.isNull()) {
+    const QVariant& actionData = action->data();
+    if (!actionData.isNull()) {
         container->fit = false;
-        container->zoom = data.toDouble();
+        container->zoom = actionData.toDouble();
         container->adjust();
     }
 }

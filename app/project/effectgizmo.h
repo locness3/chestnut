@@ -41,7 +41,8 @@ enum GizmoType_E {
 class EffectGizmo
 {
 public:
-    EffectGizmo(const GizmoType_E type);
+    explicit EffectGizmo(const GizmoType_E type);
+    ~EffectGizmo();
 
     QVector<QPoint> world_pos;
     QVector<QPoint> screen_pos;
@@ -65,7 +66,7 @@ public:
     int get_cursor() const;
     void set_cursor(const int value);
 private:
-    GizmoType_E type;
+    GizmoType_E _type;
     int cursor;
 };
 

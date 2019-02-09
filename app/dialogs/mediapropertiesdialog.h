@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -29,17 +29,17 @@ class QListWidget;
 class QDoubleSpinBox;
 
 class MediaPropertiesDialog : public QDialog {
-	Q_OBJECT
-public:
+    Q_OBJECT
+  public:
     MediaPropertiesDialog(QWidget *parent, MediaPtr mda);
-private:
-	QComboBox* interlacing_box;
-	QLineEdit* name_box;
+  private:
+    QComboBox* interlacing_box;
+    QLineEdit* name_box;
     MediaPtr item;
-	QListWidget* track_list;
-	QDoubleSpinBox* conform_fr;
-private slots:
-	void accept();
+    QListWidget* track_list;
+    QDoubleSpinBox* conform_fr;
+  private slots:
+    void accept();
 };
 
 #endif // MEDIAPROPERTIESDIALOG_H

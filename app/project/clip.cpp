@@ -59,17 +59,17 @@ double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sam
 Clip::Clip(SequencePtr s) :
   SequenceItem(project::SequenceItemType::CLIP),
   sequence(s),
+  timeline_info(),
+  effects(),
   opening_transition(-1),
   closing_transition(-1),
+  media_handling(),
   undeletable(false),
   replaced(false),
   ignore_reverse(false),
   use_existing_frame(false),
   filter_graph(nullptr),
-  fbo(nullptr),
-  timeline_info(),
-  effects(),
-  media_handling()
+  fbo(nullptr)
 {
   media_handling.pkt = av_packet_alloc();
   timeline_info.autoscale = e_config.autoscale_by_default;
@@ -1309,7 +1309,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
                 if (ret != AVERROR_EOF) {
                   if (loop == 2) {
                     rev_frame->nb_samples = 0;
-                    rev_frame->pts = media_handling.frame->pkt_pts;
+                    rev_frame->pts = media_handling.frame->pts;
                   }
                   int offset = rev_frame->nb_samples * av_get_bytes_per_sample(static_cast<AVSampleFormat>(rev_frame->format)) * rev_frame->channels;
                   memcpy(

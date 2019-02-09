@@ -30,8 +30,8 @@ namespace project {
     private:
         friend class Clip;
         friend class Effect;
-        QString name;
-        SequenceItemType type;
+        QString _name;
+        SequenceItemType _type;
 
     };
     typedef std::shared_ptr<SequenceItem> SequenceItemPtr;

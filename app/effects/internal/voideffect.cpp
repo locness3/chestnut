@@ -8,7 +8,7 @@
 #include "debug.h"
 
 VoidEffect::VoidEffect(ClipPtr c, const QString& n) : Effect(c, nullptr) {
-	name = n;
+	_name = n;
 	QString display_name;
 	if (n.isEmpty()) {
         display_name = tr("(unknown)");
@@ -45,8 +45,8 @@ void VoidEffect::load(QXmlStreamReader &stream) {
 }
 
 void VoidEffect::save(QXmlStreamWriter &stream) {
-	if (!name.isEmpty()) {
-		stream.writeAttribute("name", name);
+	if (!_name.isEmpty()) {
+		stream.writeAttribute("name", _name);
 		stream.writeAttribute("enabled", QString::number(is_enabled()));
 
 		// force xml writer to expand <effect> tag, ignored when loading
