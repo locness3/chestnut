@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,26 +25,30 @@ class QPushButton;
 
 class KeyframeNavigator : public QWidget
 {
-	Q_OBJECT
-public:
-	KeyframeNavigator(QWidget* parent = nullptr);
-	~KeyframeNavigator();
-	void enable_keyframes(bool);
-	void enable_keyframe_toggle(bool);
-signals:
-	void goto_previous_key();
-	void toggle_key();
-	void goto_next_key();
-	void keyframe_enabled_changed(bool);
-	void clicked();
-private slots:
-	void keyframe_ui_enabled(bool);
-private:
-	QHBoxLayout* key_controls;
-	QPushButton* left_key_nav;
-	QPushButton* key_addremove;
-	QPushButton* right_key_nav;
-	QPushButton* keyframe_enable;
+    Q_OBJECT
+  public:
+    KeyframeNavigator(QWidget* parent = nullptr);
+
+    KeyframeNavigator(const KeyframeNavigator&) = delete;
+    KeyframeNavigator operator=(const KeyframeNavigator&) = delete;
+
+    virtual ~KeyframeNavigator();
+    void enable_keyframes(bool);
+    void enable_keyframe_toggle(bool);
+  signals:
+    void goto_previous_key();
+    void toggle_key();
+    void goto_next_key();
+    void keyframe_enabled_changed(bool);
+    void clicked();
+  private slots:
+    void keyframe_ui_enabled(bool);
+  private:
+    QHBoxLayout* key_controls;
+    QPushButton* left_key_nav;
+    QPushButton* key_addremove;
+    QPushButton* right_key_nav;
+    QPushButton* keyframe_enable;
 };
 
 #endif // KEYFRAMENAVIGATOR_H

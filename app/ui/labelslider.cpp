@@ -82,6 +82,9 @@ QString LabelSlider::valueToString(double v) {
     switch (display_type) {
       case LABELSLIDER_FRAMENUMBER: return frame_to_timecode(v, e_config.timecode_view, frame_rate);
       case LABELSLIDER_PERCENT: return QString::number((v*100), 'f', decimal_places) + "%";
+      default:
+        qWarning() << "Unhandled label slider type" << display_type;
+        break;
     }
     return QString::number(v, 'f', decimal_places);
   }

@@ -579,205 +579,213 @@ bool isLiveEditing() {
 }
 
 void TimelineWidget::mousePressEvent(QMouseEvent *event) {
-  if (global::sequence != nullptr) {
-    int tool = e_panel_timeline->tool;
-    if (event->button() == Qt::MiddleButton) {
-      tool = TIMELINE_TOOL_HAND;
-      e_panel_timeline->creating = false;
-    } else if (event->button() == Qt::RightButton) {
-      tool = TIMELINE_TOOL_MENU;
-      e_panel_timeline->creating = false;
+  if (global::sequence == nullptr) {
+    return;
+  }
+
+  int tool = e_panel_timeline->tool;
+  if (event->button() == Qt::MiddleButton) {
+    tool = TIMELINE_TOOL_HAND;
+    e_panel_timeline->creating = false;
+  } else if (event->button() == Qt::RightButton) {
+    tool = TIMELINE_TOOL_MENU;
+    e_panel_timeline->creating = false;
+  }
+
+  QPoint pos = event->pos();
+  if (isLiveEditing()) {
+    e_panel_timeline->drag_frame_start = e_panel_timeline->cursor_frame;
+    e_panel_timeline->drag_track_start = e_panel_timeline->cursor_track;
+  } else {
+    e_panel_timeline->drag_frame_start = e_panel_timeline->getTimelineFrameFromScreenPoint(pos.x());
+    e_panel_timeline->drag_track_start = getTrackFromScreenPoint(pos.y());
+  }
+
+  int clip_index = e_panel_timeline->trim_target;
+  if (clip_index == -1) clip_index = getClipIndexFromCoords(e_panel_timeline->drag_frame_start, e_panel_timeline->drag_track_start);
+
+  bool shift = (event->modifiers() & Qt::ShiftModifier);
+  bool alt = (event->modifiers() & Qt::AltModifier);
+
+  if (shift) {
+    e_panel_timeline->selection_offset = global::sequence->selections.size();
+  } else {
+    e_panel_timeline->selection_offset = 0;
+  }
+
+  if (e_panel_timeline->creating) {
+    int comp = 0;
+    switch (e_panel_timeline->creating_object) {
+      case ADD_OBJ_TITLE:
+      case ADD_OBJ_SOLID:
+      case ADD_OBJ_BARS:
+        comp = -1;
+        break;
+      case ADD_OBJ_TONE:
+      case ADD_OBJ_NOISE:
+      case ADD_OBJ_AUDIO:
+        comp = 1;
+        break;
+      default:
+        qWarning() << "Unhandled object add type" << e_panel_timeline->creating_object;
+        break;
     }
 
-    QPoint pos = event->pos();
-    if (isLiveEditing()) {
-      e_panel_timeline->drag_frame_start = e_panel_timeline->cursor_frame;
-      e_panel_timeline->drag_track_start = e_panel_timeline->cursor_track;
-    } else {
-      e_panel_timeline->drag_frame_start = e_panel_timeline->getTimelineFrameFromScreenPoint(pos.x());
-      e_panel_timeline->drag_track_start = getTrackFromScreenPoint(pos.y());
+    if ((e_panel_timeline->drag_track_start < 0) == (comp < 0)) {
+      Ghost g;
+      g.in = g.old_in = g.out = g.old_out = e_panel_timeline->drag_frame_start;
+      g.track = g.old_track = e_panel_timeline->drag_track_start;
+      g.transition = nullptr;
+      g.clip = -1;
+      g.trimming = true;
+      g.trim_in = false;
+      e_panel_timeline->ghosts.append(g);
+
+      e_panel_timeline->moving_init = true;
+      e_panel_timeline->moving_proc = true;
     }
+  } else {
+    switch (tool) {
+      case TIMELINE_TOOL_POINTER:
+      case TIMELINE_TOOL_RIPPLE:
+      case TIMELINE_TOOL_SLIP:
+      case TIMELINE_TOOL_ROLLING:
+      case TIMELINE_TOOL_SLIDE:
+      case TIMELINE_TOOL_MENU:
+      {
+        if (track_resizing && tool != TIMELINE_TOOL_MENU) {
+          track_resize_mouse_cache = event->pos().y();
+          e_panel_timeline->moving_init = true;
+        } else {
+          if (clip_index >= 0) {
+            ClipPtr clip = global::sequence->clips.at(clip_index);
+            if (clip != nullptr) {
+              if (clip->isSelected(true)) {
+                if (shift) {
+                  e_panel_timeline->deselect_area(clip->timeline_info.in, clip->timeline_info.out, clip->timeline_info.track);
 
-    int clip_index = e_panel_timeline->trim_target;
-    if (clip_index == -1) clip_index = getClipIndexFromCoords(e_panel_timeline->drag_frame_start, e_panel_timeline->drag_track_start);
-
-    bool shift = (event->modifiers() & Qt::ShiftModifier);
-    bool alt = (event->modifiers() & Qt::AltModifier);
-
-    if (shift) {
-      e_panel_timeline->selection_offset = global::sequence->selections.size();
-    } else {
-      e_panel_timeline->selection_offset = 0;
-    }
-
-    if (e_panel_timeline->creating) {
-      int comp = 0;
-      switch (e_panel_timeline->creating_object) {
-        case ADD_OBJ_TITLE:
-        case ADD_OBJ_SOLID:
-        case ADD_OBJ_BARS:
-          comp = -1;
-          break;
-        case ADD_OBJ_TONE:
-        case ADD_OBJ_NOISE:
-        case ADD_OBJ_AUDIO:
-          comp = 1;
-          break;
-      }
-
-      if ((e_panel_timeline->drag_track_start < 0) == (comp < 0)) {
-        Ghost g;
-        g.in = g.old_in = g.out = g.old_out = e_panel_timeline->drag_frame_start;
-        g.track = g.old_track = e_panel_timeline->drag_track_start;
-        g.transition = nullptr;
-        g.clip = -1;
-        g.trimming = true;
-        g.trim_in = false;
-        e_panel_timeline->ghosts.append(g);
-
-        e_panel_timeline->moving_init = true;
-        e_panel_timeline->moving_proc = true;
-      }
-    } else {
-      switch (tool) {
-        case TIMELINE_TOOL_POINTER:
-        case TIMELINE_TOOL_RIPPLE:
-        case TIMELINE_TOOL_SLIP:
-        case TIMELINE_TOOL_ROLLING:
-        case TIMELINE_TOOL_SLIDE:
-        case TIMELINE_TOOL_MENU:
-        {
-          if (track_resizing && tool != TIMELINE_TOOL_MENU) {
-            track_resize_mouse_cache = event->pos().y();
-            e_panel_timeline->moving_init = true;
-          } else {
-            if (clip_index >= 0) {
-              ClipPtr clip = global::sequence->clips.at(clip_index);
-              if (clip != nullptr) {
-                if (clip->isSelected(true)) {
-                  if (shift) {
-                    e_panel_timeline->deselect_area(clip->timeline_info.in, clip->timeline_info.out, clip->timeline_info.track);
-
-                    if (!alt) {
-                      for (int i=0;i<clip->linked.size();i++) {
-                        ClipPtr link = global::sequence->clips.at(clip->linked.at(i));
-                        e_panel_timeline->deselect_area(link->timeline_info.in, link->timeline_info.out, link->timeline_info.track);
-                      }
-                    }
-                  } else if (e_panel_timeline->tool == TIMELINE_TOOL_POINTER && e_panel_timeline->transition_select != TA_NO_TRANSITION) {
-                    e_panel_timeline->deselect_area(clip->timeline_info.in, clip->timeline_info.out, clip->timeline_info.track);
-
+                  if (!alt) {
                     for (int i=0;i<clip->linked.size();i++) {
                       ClipPtr link = global::sequence->clips.at(clip->linked.at(i));
                       e_panel_timeline->deselect_area(link->timeline_info.in, link->timeline_info.out, link->timeline_info.track);
                     }
-
-                    Selection s;
-                    s.track = clip->timeline_info.track;
-
-                    if (e_panel_timeline->transition_select == TA_OPENING_TRANSITION && clip->openingTransition() != nullptr) {
-                      s.in = clip->timeline_info.in;
-                      if (!clip->openingTransition()->secondary_clip.expired()) {
-                        s.in -= clip->openingTransition()->get_true_length();
-                      }
-                      s.out = clip->timeline_info.in + clip->openingTransition()->get_true_length();
-                    } else if (e_panel_timeline->transition_select == TA_CLOSING_TRANSITION && clip->closingTransition() != nullptr) {
-                      s.in = clip->timeline_info.out - clip->closingTransition()->get_true_length();
-                      s.out = clip->timeline_info.out;
-                      if (!clip->closingTransition()->secondary_clip.expired()) {
-                        s.out += clip->closingTransition()->get_true_length();
-                      }
-                    }
-                    global::sequence->selections.append(s);
                   }
-                } else {
-                  // if "shift" is not down
-                  if (!shift) {
-                    global::sequence->selections.clear();
+                } else if (e_panel_timeline->tool == TIMELINE_TOOL_POINTER && e_panel_timeline->transition_select != TA_NO_TRANSITION) {
+                  e_panel_timeline->deselect_area(clip->timeline_info.in, clip->timeline_info.out, clip->timeline_info.track);
+
+                  for (int i=0;i<clip->linked.size();i++) {
+                    ClipPtr link = global::sequence->clips.at(clip->linked.at(i));
+                    e_panel_timeline->deselect_area(link->timeline_info.in, link->timeline_info.out, link->timeline_info.track);
                   }
 
                   Selection s;
-
-                  s.in = clip->timeline_info.in;
-                  s.out = clip->timeline_info.out;
-
-                  if (e_panel_timeline->tool == TIMELINE_TOOL_POINTER) {
-                    if (e_panel_timeline->transition_select == TA_OPENING_TRANSITION) {
-                      s.out = clip->timeline_info.in + clip->openingTransition()->get_true_length();
-                      if (!clip->openingTransition()->secondary_clip.expired()) {
-                        s.in -= clip->openingTransition()->get_true_length();
-                      }
-                    }
-
-                    if (e_panel_timeline->transition_select == TA_CLOSING_TRANSITION) {
-                      s.in = clip->timeline_info.out - clip->closingTransition()->get_true_length();
-                      if (!clip->closingTransition()->secondary_clip.expired()) {
-                        s.out += clip->closingTransition()->get_true_length();
-                      }
-                    }
-                  }
-
                   s.track = clip->timeline_info.track;
-                  global::sequence->selections.append(s);
 
-                  if (e_config.select_also_seeks) {
-                    e_panel_sequence_viewer->seek(clip->timeline_info.in);
+                  if (e_panel_timeline->transition_select == TA_OPENING_TRANSITION && clip->openingTransition() != nullptr) {
+                    s.in = clip->timeline_info.in;
+                    if (!clip->openingTransition()->secondary_clip.expired()) {
+                      s.in -= clip->openingTransition()->get_true_length();
+                    }
+                    s.out = clip->timeline_info.in + clip->openingTransition()->get_true_length();
+                  } else if (e_panel_timeline->transition_select == TA_CLOSING_TRANSITION && clip->closingTransition() != nullptr) {
+                    s.in = clip->timeline_info.out - clip->closingTransition()->get_true_length();
+                    s.out = clip->timeline_info.out;
+                    if (!clip->closingTransition()->secondary_clip.expired()) {
+                      s.out += clip->closingTransition()->get_true_length();
+                    }
+                  }
+                  global::sequence->selections.append(s);
+                }
+              } else {
+                // if "shift" is not down
+                if (!shift) {
+                  global::sequence->selections.clear();
+                }
+
+                Selection s;
+
+                s.in = clip->timeline_info.in;
+                s.out = clip->timeline_info.out;
+
+                if (e_panel_timeline->tool == TIMELINE_TOOL_POINTER) {
+                  if (e_panel_timeline->transition_select == TA_OPENING_TRANSITION) {
+                    s.out = clip->timeline_info.in + clip->openingTransition()->get_true_length();
+                    if (!clip->openingTransition()->secondary_clip.expired()) {
+                      s.in -= clip->openingTransition()->get_true_length();
+                    }
                   }
 
-                  // if alt is not down, select links
-                  if (!alt && e_panel_timeline->transition_select == TA_NO_TRANSITION) {
-                    for (int i=0;i<clip->linked.size();i++) {
-                      ClipPtr link = global::sequence->clips.at(clip->linked.at(i));
-                      if (!link->isSelected(true)) {
-                        Selection ss;
-                        ss.in = link->timeline_info.in;
-                        ss.out = link->timeline_info.out;
-                        ss.track = link->timeline_info.track;
-                        global::sequence->selections.append(ss);
-                      }
+                  if (e_panel_timeline->transition_select == TA_CLOSING_TRANSITION) {
+                    s.in = clip->timeline_info.out - clip->closingTransition()->get_true_length();
+                    if (!clip->closingTransition()->secondary_clip.expired()) {
+                      s.out += clip->closingTransition()->get_true_length();
+                    }
+                  }
+                }
+
+                s.track = clip->timeline_info.track;
+                global::sequence->selections.append(s);
+
+                if (e_config.select_also_seeks) {
+                  e_panel_sequence_viewer->seek(clip->timeline_info.in);
+                }
+
+                // if alt is not down, select links
+                if (!alt && e_panel_timeline->transition_select == TA_NO_TRANSITION) {
+                  for (int i=0;i<clip->linked.size();i++) {
+                    ClipPtr link = global::sequence->clips.at(clip->linked.at(i));
+                    if (!link->isSelected(true)) {
+                      Selection ss;
+                      ss.in = link->timeline_info.in;
+                      ss.out = link->timeline_info.out;
+                      ss.track = link->timeline_info.track;
+                      global::sequence->selections.append(ss);
                     }
                   }
                 }
               }
-
-              if (tool != TIMELINE_TOOL_MENU) e_panel_timeline->moving_init = true;
-            } else {
-              // if "shift" is not down
-              if (!shift) {
-                global::sequence->selections.clear();
-              }
-
-              e_panel_timeline->rect_select_init = true;
             }
-            update_ui(false);
+
+            if (tool != TIMELINE_TOOL_MENU) e_panel_timeline->moving_init = true;
+          } else {
+            // if "shift" is not down
+            if (!shift) {
+              global::sequence->selections.clear();
+            }
+
+            e_panel_timeline->rect_select_init = true;
           }
-        }
-          break;
-        case TIMELINE_TOOL_HAND:
-          e_panel_timeline->hand_moving = true;
-          e_panel_timeline->drag_x_start = pos.x();
-          e_panel_timeline->drag_y_start = pos.y();
-          break;
-        case TIMELINE_TOOL_EDIT:
-          if (e_config.edit_tool_also_seeks) e_panel_sequence_viewer->seek(e_panel_timeline->drag_frame_start);
-          e_panel_timeline->selecting = true;
-          break;
-        case TIMELINE_TOOL_RAZOR:
-        {
-          e_panel_timeline->splitting = true;
-          e_panel_timeline->split_tracks.append(e_panel_timeline->drag_track_start);
           update_ui(false);
         }
-          break;
-        case TIMELINE_TOOL_TRANSITION:
-        {
-          if (e_panel_timeline->transition_tool_pre_clip > -1) {
-            e_panel_timeline->transition_tool_init = true;
-          }
-        }
-          break;
       }
-    }
+        break;
+      case TIMELINE_TOOL_HAND:
+        e_panel_timeline->hand_moving = true;
+        e_panel_timeline->drag_x_start = pos.x();
+        e_panel_timeline->drag_y_start = pos.y();
+        break;
+      case TIMELINE_TOOL_EDIT:
+        if (e_config.edit_tool_also_seeks) e_panel_sequence_viewer->seek(e_panel_timeline->drag_frame_start);
+        e_panel_timeline->selecting = true;
+        break;
+      case TIMELINE_TOOL_RAZOR:
+      {
+        e_panel_timeline->splitting = true;
+        e_panel_timeline->split_tracks.append(e_panel_timeline->drag_track_start);
+        update_ui(false);
+      }
+        break;
+      case TIMELINE_TOOL_TRANSITION:
+      {
+        if (e_panel_timeline->transition_tool_pre_clip > -1) {
+          e_panel_timeline->transition_tool_init = true;
+        }
+      }
+        break;
+      default:
+        qWarning() << "Unhandled timeline tool" << tool;
+        break;
+    }//switch
   }
 }
 
@@ -882,6 +890,9 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
               case ADD_OBJ_NOISE:
                 c->setName(tr("Noise"));
                 c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_NOISE, EFFECT_TYPE_EFFECT)));
+                break;
+              default:
+                qWarning() << "Unhandled object add type" << e_panel_timeline->creating_object;
                 break;
             }
 
@@ -1645,7 +1656,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
             }
           } else {
             if (same_sign(moveableSelection.track, e_panel_timeline->drag_track_start)) {
-             moveableSelection.track += track_diff;
+              moveableSelection.track += track_diff;
             }
           }
         }//for

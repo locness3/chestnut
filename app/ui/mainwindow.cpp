@@ -1294,7 +1294,9 @@ void MainWindow::fileMenu_About_To_Be_Shown() {
     }
 }
 
-void MainWindow::fileMenu_About_To_Hide() {
+void MainWindow::fileMenu_About_To_Hide()
+{
+  qInfo() << "Method does nothing";
 }
 
 void MainWindow::load_recent_project() {

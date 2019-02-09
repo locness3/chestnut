@@ -37,18 +37,20 @@
 
 #include "debug.h"
 
-#define GRAPH_ZOOM_SPEED 0.05
-#define GRAPH_SIZE 100
-#define BEZIER_HANDLE_SIZE 3
-#define BEZIER_LINE_SIZE 2
+namespace {
+  const auto GRAPH_ZOOM_SPEED = 0.05;
+  const auto GRAPH_SIZE = 100;
+  const auto BEZIER_HANDLE_SIZE = 3;
+  const auto BEZIER_LINE_SIZE = 2;
 
-#define BEZIER_HANDLE_NONE 1
-#define BEZIER_HANDLE_PRE 2
-#define BEZIER_HANDLE_POST 3
+  const auto BEZIER_HANDLE_NONE = 1;
+  const auto BEZIER_HANDLE_PRE = 2;
+  const auto BEZIER_HANDLE_POST = 3;
+}
 
 QColor get_curve_color(int index, int length) {
   QColor c;
-  int hue = qRound((double(index)/double(length))*255);
+  int hue = qRound((static_cast<double>(index)/static_cast<double>(length))*255);
   c.setHsv(hue, 255, 255);
   return c;
 }
@@ -546,7 +548,10 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
           update_ui(false);
         }
           break;
-      }
+        default:
+          qWarning() << "Unhandled bezier handle" << current_handle;
+          break;
+      }//switch
     }
   } else if (row != nullptr) {
     // clicking on the curve
@@ -705,6 +710,9 @@ void GraphView::mouseReleaseEvent(QMouseEvent *) {
         ca->append(new SetDouble(&key.post_handle_x, old_post_handle_x, key.post_handle_x));
         ca->append(new SetDouble(&key.post_handle_y, old_post_handle_y, key.post_handle_y));
       }
+        break;
+      default:
+        qWarning() << "Unhandled bezier handle" << current_handle;
         break;
     }
     e_undo_stack.push(ca);

@@ -546,7 +546,7 @@ int Effect::row_count() {
  * @param type  Type for new Gizmo
  * @return the newly created EffectGizmo
  */
-EffectGizmoPtr Effect::add_gizmo(const GizmoType_E type) {
+EffectGizmoPtr Effect::add_gizmo(const GizmoType type) {
     EffectGizmoPtr gizmo = this->newEffectGizmo(type);
     gizmos.append(gizmo);
     return gizmo;
@@ -625,7 +625,7 @@ void Effect::move_down() {
  * @param type  Type for EffectGizmo to be
  * @return EffectGizmo shared_ptr
  */
-EffectGizmoPtr Effect::newEffectGizmo(const GizmoType_E type) {
+EffectGizmoPtr Effect::newEffectGizmo(const GizmoType type) {
     return std::make_shared<EffectGizmo>(type);
 }
 
@@ -779,7 +779,7 @@ void Effect::load(QXmlStreamReader& stream) {
 
 void Effect::custom_load(QXmlStreamReader& /*stream*/)
 {
-
+  // Does nothing
 }
 
 void Effect::save(QXmlStreamWriter& stream) {
@@ -914,9 +914,13 @@ void Effect::endEffect() {
     bound = false;
 }
 
-void Effect::process_image(double, uint8_t *, int) {}
+void Effect::process_image(double, uint8_t *, int)
+{
+  // Does nothing
+}
 
-EffectPtr Effect::copy(ClipPtr c) {
+EffectPtr Effect::copy(ClipPtr c)
+{
     // FIXME: leak and not the way to do it
     EffectPtr copy = create_effect(c, meta);
     copy->set_enabled(is_enabled());
@@ -965,7 +969,7 @@ void Effect::process_shader(double timecode, GLTextureCoords&) {
 
 void Effect::process_coords(double, GLTextureCoords&, int /*data*/)
 {
-
+  qInfo() << "Method does nothing";
 }
 
 GLuint Effect::process_superimpose(double timecode) {
@@ -995,9 +999,15 @@ GLuint Effect::process_superimpose(double timecode) {
     return 0;
 }
 
-void Effect::process_audio(double, double, quint8*, int, int) {}
+void Effect::process_audio(double, double, quint8*, int, int)
+{
+  qInfo() << "Method does nothing";
+}
 
-void Effect::gizmo_draw(double, GLTextureCoords &) {}
+void Effect::gizmo_draw(double, GLTextureCoords &)
+{
+  qInfo() << "Method does nothing";
+}
 
 void Effect::gizmo_move(EffectGizmoPtr &gizmo, const int x_movement, const int y_movement, const double timecode, const bool done) {
     for (int i=0;i<gizmos.size();i++) {
@@ -1052,48 +1062,9 @@ bool Effect::are_gizmos_enabled() const {
     return (gizmos.size() > 0);
 }
 
-void Effect::redraw(double) {
-    /*
-    // run javascript
-    QPainter p(&img);
-    painter_wrapper.img = &img;
-    painter_wrapper.painter = &p;
-
-    jsEngine.globalObject().setProperty("painter", wrapper_obj);
-    jsEngine.globalObject().setProperty("width", parent_clip->width());
-    jsEngine.globalObject().setProperty("height", parent_clip->getHeight());
-
-    for (int i=0;i<rows.size();i++) {
-        EffectRow* row = rows.at(i);
-        for (int j=0;j<row->fieldCount();j++) {
-            EffectField* field = row->field(j);
-            if (!field->id.isEmpty()) {
-                switch (field->type) {
-                case EffectFieldType::DOUBLE:
-                    jsEngine.globalObject().setProperty(field->id, field->get_double_value(timecode));
-                    break;
-                case EffectFieldType::COLOR:
-                    jsEngine.globalObject().setProperty(field->id, field->get_color_value(timecode).name());
-                    break;
-                case EffectFieldType::STRING:
-                    jsEngine.globalObject().setProperty(field->id, field->get_string_value(timecode));
-                    break;
-                case EffectFieldType::BOOL:
-                    jsEngine.globalObject().setProperty(field->id, field->get_bool_value(timecode));
-                    break;
-                case EffectFieldType::COMBO:
-                    jsEngine.globalObject().setProperty(field->id, field->get_combo_index(timecode));
-                    break;
-                case EffectFieldType::FONT:
-                    jsEngine.globalObject().setProperty(field->id, field->get_font_name(timecode));
-                    break;
-                }
-            }
-        }
-    }
-
-    jsEngine.evaluate(script);
-    */
+void Effect::redraw(double)
+{
+  qInfo() << "Method does nothing";
 }
 
 bool Effect::valueHasChanged(double timecode) {

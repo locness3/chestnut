@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,21 +22,24 @@
 LogarithmicFadeTransition::LogarithmicFadeTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Transition(c, s, em) {}
 
 void LogarithmicFadeTransition::process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int type) {
-	double interval = (timecode_end-timecode_start)/nb_bytes;
+  const auto interval = (timecode_end - timecode_start) / nb_bytes;
 
-	for (int i=0;i<nb_bytes;i+=2) {
-		qint16 samp = (qint16) (((samples[i+1] & 0xFF) << 8) | (samples[i] & 0xFF));
+  for (int i=0; i<nb_bytes; i+=2) {
+    qint16 samp = static_cast<qint16> (((samples[i+1] & 0xFF) << 8) | (samples[i] & 0xFF));
 
-		switch (type) {
-        case TA_OPENING_TRANSITION:
-			samp *= qSqrt(timecode_start + (interval * i));
-			break;
-        case TA_CLOSING_TRANSITION:
-			samp *= qSqrt(1 - (timecode_start + (interval * i)));
-			break;
-		}
+    switch (type) {
+      case TA_OPENING_TRANSITION:
+        samp *= qSqrt(timecode_start + (interval * i));
+        break;
+      case TA_CLOSING_TRANSITION:
+        samp *= qSqrt(1 - (timecode_start + (interval * i)));
+        break;
+      default:
+        qWarning() << "Unhandled transition type" << type;
+        break;
+    }
 
-		samples[i+1] = (quint8) (samp >> 8);
-		samples[i] = (quint8) samp;
-	}
+    samples[i+1] = static_cast<quint8>(samp >> 8);
+    samples[i] = static_cast<quint8>(samp);
+  }
 }

@@ -585,8 +585,6 @@ void ExportDialog::vcodec_changed(int index) {
     if ((format_vcodecs.size() > 0 && format_vcodecs.at(index) == AV_CODEC_ID_H264)) {
         compressionTypeCombobox->setEnabled(true);
         compressionTypeCombobox->addItem(tr("Quality-based (Constant Rate Factor)"), COMPRESSION_TYPE_CFR);
-        //		compressionTypeCombobox->addItem("File size-based (Two-Pass)", COMPRESSION_TYPE_TARGETSIZE);
-        //		compressionTypeCombobox->addItem("Average bitrate (Two-Pass)", COMPRESSION_TYPE_TARGETBR);
     } else {
         compressionTypeCombobox->addItem(tr("Constant Bitrate"), COMPRESSION_TYPE_CBR);
         compressionTypeCombobox->setCurrentIndex(0);
@@ -598,23 +596,28 @@ void ExportDialog::comp_type_changed(int) {
     videobitrateSpinbox->setToolTip("");
     videobitrateSpinbox->setMinimum(0);
     videobitrateSpinbox->setMaximum(99.99);
-    switch (compressionTypeCombobox->currentData().toInt()) {
+    const auto compressionType = compressionTypeCombobox->currentData().toInt();
+    switch (compressionType) {
     case COMPRESSION_TYPE_CBR:
     case COMPRESSION_TYPE_TARGETBR:
         videoBitrateLabel->setText(tr("Bitrate (Mbps):"));
-        videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * global::sequence->getHeight()) - 4.5)));
+        videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * global::sequence->getHeight()) - 4.5))); // FIXME: magic numbers
         break;
     case COMPRESSION_TYPE_CFR:
         videoBitrateLabel->setText(tr("Quality (CRF):"));
         videobitrateSpinbox->setValue(36);
         videobitrateSpinbox->setMaximum(51);
-        videobitrateSpinbox->setToolTip(tr("Quality Factor:\n\n0 = lossless\n17-18 = visually lossless (compressed, but unnoticeable)\n23 = high quality\n51 = lowest quality possible"));
+        videobitrateSpinbox->setToolTip(tr("Quality Factor:\n\n0 = lossless\n17-18 = visually lossless "
+                                           "(compressed, but unnoticeable)\n23 = high quality\n51 = lowest quality possible"));
         break;
     case COMPRESSION_TYPE_TARGETSIZE:
         videoBitrateLabel->setText(tr("Target File Size (MB):"));
         videobitrateSpinbox->setValue(100);
         break;
-    }
+      default:
+        qWarning() << "Unhandled selected Compression type" << compressionType;
+        break;
+    }//switch
 }
 
 void ExportDialog::setup_ui() {

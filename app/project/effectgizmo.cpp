@@ -20,7 +20,7 @@
 #include "ui/labelslider.h"
 #include "effectfield.h"
 
-EffectGizmo::EffectGizmo(const GizmoType_E type) :
+EffectGizmo::EffectGizmo(const GizmoType type) :
     x_field1(nullptr),
     x_field_multi1(1.0),
     y_field1(nullptr),
@@ -32,7 +32,7 @@ EffectGizmo::EffectGizmo(const GizmoType_E type) :
     _type(type),
     cursor(-1)
 {
-    int point_count = (type == GIZMO_TYPE_POLY) ? 4 : 1;
+    int point_count = (type == GizmoType::POLY) ? 4 : 1;
     world_pos.resize(point_count);
     screen_pos.resize(point_count);
 
@@ -60,7 +60,7 @@ int EffectGizmo::get_point_count() {
     return world_pos.size();
 }
 
-GizmoType_E EffectGizmo::get_type() const {
+GizmoType EffectGizmo::get_type() const {
     return _type;
 }
 

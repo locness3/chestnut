@@ -156,7 +156,7 @@ public:
      * @param type  Type for new Gizmo
      * @return the newly created EffectGizmo
      */
-    EffectGizmoPtr add_gizmo(const GizmoType_E _type);
+    EffectGizmoPtr add_gizmo(const GizmoType _type);
     EffectGizmoPtr gizmo(const int index);
     int gizmo_count();
 
@@ -223,7 +223,7 @@ protected:
      * @param type  Type for EffectGizmo to be
      * @return EffectGizmo shared_ptr
      */
-    virtual EffectGizmoPtr newEffectGizmo(const GizmoType_E _type);
+    virtual EffectGizmoPtr newEffectGizmo(const GizmoType _type);
 
     // glsl effect
     QOpenGLShaderProgram* glslProgram;

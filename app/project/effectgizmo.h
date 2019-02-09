@@ -32,16 +32,16 @@
 #include "project/effectfield.h"
 
 
-enum GizmoType_E {
-    GIZMO_TYPE_DOT = 0,
-    GIZMO_TYPE_POLY = 1,
-    GIZMO_TYPE_TARGET = 2
+enum class GizmoType {
+    DOT = 0,
+    POLY = 1,
+    TARGET = 2
 };
 
 class EffectGizmo
 {
 public:
-    explicit EffectGizmo(const GizmoType_E type);
+    explicit EffectGizmo(const GizmoType type);
     ~EffectGizmo();
 
     EffectGizmo(const EffectGizmo& ) = delete;
@@ -64,12 +64,12 @@ public:
     QColor color;
     int get_point_count();
 
-    GizmoType_E get_type() const;
+    GizmoType get_type() const;
 
     int get_cursor() const;
     void set_cursor(const int value);
 private:
-    GizmoType_E _type;
+    GizmoType _type;
     int cursor;
 };
 

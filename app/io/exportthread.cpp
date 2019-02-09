@@ -125,15 +125,12 @@ bool ExportThread::setupVideo() {
     }
 
     if (vcodec_ctx->codec_id == AV_CODEC_ID_H264) {
-        /*char buffer[50];
-        itoa(vcodec_ctx, buffer, 10);*/
-
-        //av_opt_set(vcodec_ctx->priv_data, "preset", "fast", AV_OPT_SEARCH_CHILDREN);
-        //av_opt_set(vcodec_ctx->priv_data, "x264opts", "opencl", AV_OPT_SEARCH_CHILDREN);
-
         switch (video_compression_type) {
         case COMPRESSION_TYPE_CFR:
             av_opt_set(vcodec_ctx->priv_data, "crf", QString::number(static_cast<int>(video_bitrate)).toUtf8(), AV_OPT_SEARCH_CHILDREN);
+            break;
+          default:
+            qWarning() << "Unhandled compression type" << video_compression_type;
             break;
         }
     }

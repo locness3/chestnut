@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,17 +23,21 @@
 class QPainter;
 
 class QPainterWrapper : public QObject {
-	Q_OBJECT
-public:
-	QPainterWrapper();
-	QImage* img;
-	QPainter* painter;
-public slots:
-	void fill(const QString& color);
-	void fillRect(int x, int y, int width, int height, const QString& brush);
-	void drawRect(int x, int y, int width, int height);
-	void setPen(const QString& pen);
-	void setBrush(const QString& brush);
+    Q_OBJECT
+  public:
+    QPainterWrapper();
+
+    QPainterWrapper(const QPainterWrapper&) = delete;
+    QPainterWrapper operator=(const QPainterWrapper&) = delete;
+
+    QImage* img;
+    QPainter* painter;
+  public slots:
+    void fill(const QString& color);
+    void fillRect(int x, int y, int width, int height, const QString& brush);
+    void drawRect(int x, int y, int width, int height);
+    void setPen(const QString& pen);
+    void setBrush(const QString& brush);
 };
 
 extern QPainterWrapper painter_wrapper;

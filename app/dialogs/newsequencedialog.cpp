@@ -163,7 +163,10 @@ void NewSequenceDialog::preset_changed(int index)
       width_numeric->setValue(720);
       height_numeric->setValue(576);
       break;
-  }
+    default:
+      qWarning() << "Unhandled sequence preset" << index;
+      break;
+  }//switch
 }
 
 void NewSequenceDialog::setup_ui() {

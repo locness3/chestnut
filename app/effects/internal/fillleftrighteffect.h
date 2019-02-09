@@ -6,7 +6,11 @@
 class FillLeftRightEffect : public Effect {
 public:
     FillLeftRightEffect(ClipPtr c, const EffectMeta* em);
-	void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
+
+    FillLeftRightEffect(const FillLeftRightEffect&) = delete;
+    FillLeftRightEffect operator=(const FillLeftRightEffect&) = delete;
+
+  void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count) override;
 private:
     EffectField* fill_type;
 };

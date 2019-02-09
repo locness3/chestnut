@@ -44,19 +44,19 @@ CornerPinEffect::CornerPinEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em
     perspective = add_row(tr("Perspective"))->add_field(EffectFieldType::BOOL, "perspective");
 	perspective->set_bool_value(true);
 
-	top_left_gizmo = add_gizmo(GIZMO_TYPE_DOT);
+  top_left_gizmo = add_gizmo(GizmoType::DOT);
 	top_left_gizmo->x_field1 = top_left_x;
 	top_left_gizmo->y_field1 = top_left_y;
 
-	top_right_gizmo = add_gizmo(GIZMO_TYPE_DOT);
+  top_right_gizmo = add_gizmo(GizmoType::DOT);
 	top_right_gizmo->x_field1 = top_right_x;
 	top_right_gizmo->y_field1 = top_right_y;
 
-	bottom_left_gizmo = add_gizmo(GIZMO_TYPE_DOT);
+  bottom_left_gizmo = add_gizmo(GizmoType::DOT);
 	bottom_left_gizmo->x_field1 = bottom_left_x;
 	bottom_left_gizmo->y_field1 = bottom_left_y;
 
-	bottom_right_gizmo = add_gizmo(GIZMO_TYPE_DOT);
+  bottom_right_gizmo = add_gizmo(GizmoType::DOT);
 	bottom_right_gizmo->x_field1 = bottom_right_x;
 	bottom_right_gizmo->y_field1 = bottom_right_y;
 

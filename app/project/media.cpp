@@ -398,11 +398,17 @@ QVariant Media::data(int column, int role) {
             }
           }
           break;
-      }
+        default:
+          // There's only 3 columns
+          break;
+      }//switch
       break;
     case Qt::ToolTipRole:
       return _toolTip;
-  }
+    default:
+      qWarning() << "Unhandled role" << role;
+      break;
+  }//switch
   return QVariant();
 }
 
