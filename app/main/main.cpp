@@ -65,10 +65,11 @@ int main(int argc, char *argv[]) {
         qInstallMessageHandler(debug_message_handler);
     }
 
-
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
     // init ffmpeg subsystem
     av_register_all();
     avfilter_register_all();
+#endif
 
     QApplication a(argc, argv);
     a.setWindowIcon(QIcon(":/icons/olive64.png"));
