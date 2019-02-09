@@ -54,9 +54,12 @@ void debug_message_handler(QtMsgType type, const QMessageLogContext &context, co
 {
   debug_mutex.lock();
   QByteArray localMsg = msg.toLocal8Bit();
+  QDateTime now = QDateTime::currentDateTime();
+  QByteArray timeRepr(now.toString(Qt::ISODate).toLocal8Bit());
   switch (type) {
     case QtDebugMsg:
-      fprintf(stderr, "[DEBUG] %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+      fprintf(stderr, "%s [DEBUG] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
+              context.file, context.line, context.function);
       if (debug_file.isOpen()) {
         debug_stream << QString("[DEBUG] %1 (%2:%3, %4)\n")
                         .arg(localMsg.constData(), context.file, QString::number(context.line), context.function);
@@ -66,7 +69,8 @@ void debug_message_handler(QtMsgType type, const QMessageLogContext &context, co
       fflush(stderr);
       break;
     case QtInfoMsg:
-      fprintf(stderr, "[INFO] %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+      fprintf(stderr, "%s [INFO] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
+              context.file, context.line, context.function);
       if (debug_file.isOpen()) {
         debug_stream << QString("[INFO] %1 (%2:%3, %4)\n")
                         .arg(localMsg.constData(), context.file, QString::number(context.line), context.function);
@@ -76,7 +80,8 @@ void debug_message_handler(QtMsgType type, const QMessageLogContext &context, co
       fflush(stderr);
       break;
     case QtWarningMsg:
-      fprintf(stderr, "[WARNING] %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+      fprintf(stderr, "%s [WARNING] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
+              context.file, context.line, context.function);
       if (debug_file.isOpen()) {
         debug_stream << QString("[WARNING] %1 (%2:%3, %4)\n")
                         .arg(localMsg.constData(), context.file,QString::number(context.line), context.function);
@@ -86,7 +91,8 @@ void debug_message_handler(QtMsgType type, const QMessageLogContext &context, co
       fflush(stderr);
       break;
     case QtCriticalMsg:
-      fprintf(stderr, "[ERROR] %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+      fprintf(stderr, "%s [ERROR] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
+              context.file, context.line, context.function);
       if (debug_file.isOpen()) {
         debug_stream << QString("[ERROR] %1 (%2:%3, %4)\n")
                         .arg(localMsg.constData(), context.file, QString::number(context.line), context.function);
@@ -96,7 +102,8 @@ void debug_message_handler(QtMsgType type, const QMessageLogContext &context, co
       fflush(stderr);
       break;
     case QtFatalMsg:
-      fprintf(stderr, "[FATAL] %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+      fprintf(stderr, "%s [FATAL] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
+              context.file, context.line, context.function);
       if (debug_file.isOpen()) {
         debug_stream << QString("[FATAL] %1 (%2:%3, %4)\n")
                         .arg(localMsg.constData(), context.file, QString::number(context.line), context.function);
