@@ -34,6 +34,8 @@
 #include <QFile>
 #include <QDir>
 #include <QDateTime>
+#include <QMimeType>
+#include <QMimeDatabase>
 
 
 extern "C" {
@@ -43,10 +45,15 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 namespace {
+  const auto IMAGE_FRAMERATE = 0;
   const auto PREVIEW_HEIGHT = 120;
   const auto PREVIEW_CHANNELS = 4;
   const auto WAVEFORM_RESOLUTION = 64;
   QSemaphore sem(5); // only 5 preview generators can run at one time
+
+  const auto MIME_VIDEO_PREFIX = "video";
+  const auto MIME_AUDIO_PREFIX = "audio";
+  const auto MIME_IMAGE_PREFIX = "image";
 }
 
 
@@ -220,18 +227,6 @@ void PreviewGenerator::finalize_media() {
       } else {
         emit set_icon(ICON_TYPE_VIDEO, replace);
       }
-
-      /*if (!contains_still_image || media->audio_tracks.size() > 0) {
-                double frame_rate = 30;
-                if (!contains_still_image && media->video_tracks.size() > 0) frame_rate = media->video_tracks.at(0)->video_frame_rate;
-                item->setText(1, frame_to_timecode(media->get_length_in_frames(frame_rate), config.timecode_view, frame_rate));
-
-                if (media->video_tracks.size() > 0) {
-                    item->setText(2, QString::number(frame_rate) + " FPS");
-                } else {
-                    item->setText(2, QString::number(media->audio_tracks.at(0)->audio_frequency) + " Hz");
-                }
-            }*/
     }
   }
 }
@@ -467,6 +462,33 @@ void PreviewGenerator::run() {
   Q_ASSERT(media != nullptr);
 
   if (auto ftg = footage.lock()) {
+    QFileInfo fNow(ftg->url);
+    if (fNow.isFile() && fNow.isReadable()) {
+      QMimeType mimeType = QMimeDatabase().mimeTypeForFile(fNow, QMimeDatabase::MatchContent);
+      if (mimeType.isValid()) {
+        qDebug() << mimeType.name();
+        if (mimeType.name().startsWith(MIME_AUDIO_PREFIX)) {
+          // audio function
+        } else if (mimeType.name().startsWith(MIME_IMAGE_PREFIX)) {
+          // image function
+          sem.acquire();
+          if (generate_image_thumbnail(ftg)) {
+            ftg->ready_lock.unlock();
+            ftg->ready = true;
+            emit set_icon(ICON_TYPE_IMAGE, replace);
+            return;
+          } else {
+            qWarning() << "Failed to generate thumbnail for image. path=" << ftg->url;
+          }
+          sem.release();
+          return;
+        } else if (mimeType.name().startsWith(MIME_VIDEO_PREFIX)) {
+          // video function
+        }
+      }
+    }
+
+    // video/audio waveform generation
     const char* const filename = ftg->url.toUtf8().data();
 
     QString errorStr;
@@ -530,6 +552,28 @@ void PreviewGenerator::run() {
       media->updateTooltip();
     }
   }
+}
+
+bool PreviewGenerator::generate_image_thumbnail(FootagePtr ftg) const
+{
+  bool success = true;
+
+  // address image sequences. current implementation has false positives
+  const QImage img(ftg->url);
+  FootageStreamPtr ms = std::make_shared<FootageStream>();
+  ms->enabled           = true;
+  ms->file_index        = 0;
+  ms->video_preview     = img.scaledToHeight(PREVIEW_HEIGHT);
+  ms->make_square_thumb();
+  ms->preview_done      = true;
+  ms->video_height      = img.height();
+  ms->video_width       = img.width();
+  ms->infinite_length   = true;
+  ms->video_frame_rate  = IMAGE_FRAMERATE;
+  ms->video_auto_interlacing  = VIDEO_PROGRESSIVE; // TODO: is this needed
+  ms->video_interlacing       = VIDEO_PROGRESSIVE; // TODO: is this needed
+  ftg->video_tracks.append(ms);
+  return success;
 }
 
 void PreviewGenerator::cancel() {

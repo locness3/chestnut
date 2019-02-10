@@ -30,6 +30,7 @@
 #define ICON_TYPE_IMAGE 2
 #define ICON_TYPE_ERROR 3
 
+
 struct FootageStream;
 struct AVFormatContext;
 
@@ -71,6 +72,8 @@ private:
     QString data_path;
     QString get_thumbnail_path(const QString &hash, FootageStreamPtr& ms);
     QString get_waveform_path(const QString& hash, FootageStreamPtr& ms);
+
+    bool generate_image_thumbnail(FootagePtr ftg) const;
 };
 
 using PreviewGeneratorPtr = std::shared_ptr<PreviewGenerator>;
