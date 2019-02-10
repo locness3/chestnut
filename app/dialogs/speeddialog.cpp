@@ -95,24 +95,23 @@ void SpeedDialog::run() {
     current_length = -1;
 
     for (int i=0;i<clips.size();i++) {
-        ClipPtr c = clips.at(i);
+        auto clp = clips.at(i);
 
         double clip_percent;
 
         // get default frame rate/percentage
-        clip_percent = c->timeline_info.speed;
-        if (c->timeline_info.track < 0) {
+        clip_percent = clp->timeline_info.speed;
+        if (clp->timeline_info.track < 0) {
             bool process_video = true;
-            if (c->timeline_info.media != nullptr && c->timeline_info.media->type() == MediaType::FOOTAGE) {
-                FootagePtr  m = c->timeline_info.media->object<Footage>();
-                FootageStream ms;
-                if (m->get_stream_from_file_index(true, c->timeline_info.media_stream, ms)) {
-                    process_video = !ms.infinite_length;
+            if (clp->timeline_info.media != nullptr && clp->timeline_info.media->type() == MediaType::FOOTAGE) {
+                FootagePtr ftg = clp->timeline_info.media->object<Footage>();
+                if (auto stream = ftg->video_stream_from_file_index(clp->timeline_info.media_stream)) {
+                    process_video = !stream->infinite_length;
                 }
             }
 
             if (process_video) {
-                double media_frame_rate = c->mediaFrameRate();
+                double media_frame_rate = clp->mediaFrameRate();
 
                 // get "default" frame rate"
                 if (enable_frame_rate) {
@@ -120,12 +119,12 @@ void SpeedDialog::run() {
                     if (!qIsNaN(default_frame_rate) && !qFuzzyCompare(media_frame_rate, default_frame_rate)) {
                         default_frame_rate = qSNaN();
                     }
-                    if (!qIsNaN(current_frame_rate) && !qFuzzyCompare(media_frame_rate*c->timeline_info.speed, current_frame_rate)) {
+                    if (!qIsNaN(current_frame_rate) && !qFuzzyCompare(media_frame_rate*clp->timeline_info.speed, current_frame_rate)) {
                         current_frame_rate = qSNaN();
                     }
                 } else {
                     default_frame_rate = media_frame_rate;
-                    current_frame_rate = media_frame_rate*c->timeline_info.speed;
+                    current_frame_rate = media_frame_rate*clp->timeline_info.speed;
                 }
 
                 enable_frame_rate = true;
@@ -134,29 +133,29 @@ void SpeedDialog::run() {
             maintain_pitch->setEnabled(true);
 
             if (!multiple_audio) {
-                maintain_pitch->setChecked(c->timeline_info.maintain_audio_pitch);
+                maintain_pitch->setChecked(clp->timeline_info.maintain_audio_pitch);
                 multiple_audio = true;
-            } else if (!maintain_pitch->isTristate() && maintain_pitch->isChecked() != c->timeline_info.maintain_audio_pitch) {
+            } else if (!maintain_pitch->isTristate() && maintain_pitch->isChecked() != clp->timeline_info.maintain_audio_pitch) {
                 maintain_pitch->setCheckState(Qt::PartiallyChecked);
                 maintain_pitch->setTristate(true);
             }
         }
 
         if (i == 0) {
-            reverse->setChecked(c->timeline_info.reverse);
-        } else if (c->timeline_info.reverse != reverse->isChecked()) {
+            reverse->setChecked(clp->timeline_info.reverse);
+        } else if (clp->timeline_info.reverse != reverse->isChecked()) {
             reverse->setTristate(true);
             reverse->setCheckState(Qt::PartiallyChecked);
         }
 
         // get default length
-        long clip_default_length = qRound(c->length() * clip_percent);
+        long clip_default_length = qRound(clp->length() * clip_percent);
         if (i == 0) {
-            current_length = c->length();
+            current_length = clp->length();
             default_length = clip_default_length;
             current_percent = clip_percent;
         } else {
-            if (current_length != -1 && c->length() != current_length) {
+            if (current_length != -1 && clp->length() != current_length) {
                 current_length = -1;
             }
             if (default_length != -1 && clip_default_length != default_length) {

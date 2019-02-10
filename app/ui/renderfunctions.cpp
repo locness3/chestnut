@@ -157,10 +157,8 @@ GLuint compose_sequence(Viewer* viewer,
           auto ftg = clp->timeline_info.media->object<Footage>();
           if (!ftg->invalid && !( (clp->timeline_info.track >= 0) && !is_audio_device_set())) {
             if (ftg->ready) {
-              FootageStream ms;
-              const auto found = ftg->get_stream_from_file_index(clp->timeline_info.track < 0,
-                                                                 clp->timeline_info.media_stream,
-                                                                 ms);
+              const auto found = ftg->has_stream_from_file_index(clp->timeline_info.media_stream);
+
               if (found && clp->isActive(playhead)) {
                 // if thread is already working, we don't want to touch this,
                 // but we also don't want to hang the UI thread

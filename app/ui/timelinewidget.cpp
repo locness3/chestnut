@@ -1335,12 +1335,17 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
     ClipPtr c = nullptr;
     if (g.clip != -1) c = global::sequence->clips.at(g.clip);
 
-    FootageStream ms;
+    FootageStreamPtr ms;
     bool found = false;
     if (g.clip != -1 && c->timeline_info.media != nullptr && c->timeline_info.media->type() == MediaType::FOOTAGE) {
       auto ftg = c->timeline_info.media->object<Footage>();
       if (ftg) {
-        found = ftg->get_stream_from_file_index(c->timeline_info.track < 0, c->timeline_info.media_stream, ms);
+        if (c->timeline_info.track < 0) {
+          ms = ftg->video_stream_from_file_index(c->timeline_info.media_stream);
+        } else {
+          ms = ftg->audio_stream_from_file_index(c->timeline_info.media_stream);
+        }
+        found = ms != nullptr;
       }
     }
 
@@ -1349,7 +1354,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
       // i feel like we might need something here but we haven't so far?
     } else if (effective_tool == TIMELINE_TOOL_SLIP) {
       if ((c->timeline_info.media != nullptr && c->timeline_info.media->type() == MediaType::SEQUENCE)
-          || (found && !ms.infinite_length)) {
+          || (found && !ms->infinite_length)) {
         // prevent slip moving a clip below 0 clip_in
         validator = g.old_clip_in - frame_diff;
         if (validator < 0) {
@@ -1380,7 +1385,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
 
         // prevent clip_in from going below 0
         if ((c->timeline_info.media != nullptr && c->timeline_info.media->type() == MediaType::SEQUENCE)
-            || (found && !ms.infinite_length)) {
+            || (found && !ms->infinite_length)) {
           validator = g.old_clip_in + frame_diff;
           if (validator < 0) {
             frame_diff -= validator;
@@ -1395,7 +1400,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
 
         // prevent clip length exceeding media length
         if ((c->timeline_info.media != nullptr && c->timeline_info.media->type() == MediaType::SEQUENCE)
-            || (found && !ms.infinite_length)) {
+            || (found && !ms->infinite_length)) {
           validator = g.old_clip_in + g.ghost_length + frame_diff;
           if (validator > g.media_length) {
             frame_diff -= validator - g.media_length;
@@ -1501,7 +1506,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
         } else {
           // prevent clip_in from going below 0
           if (c->timeline_info.media->type() == MediaType::SEQUENCE
-              || (found && !ms.infinite_length)) {
+              || (found && !ms->infinite_length)) {
             validator = g.old_clip_in + frame_diff;
             if (validator < 0) {
               frame_diff -= validator;
@@ -1510,7 +1515,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
 
           // prevent clip length exceeding media length
           if (c->timeline_info.media->type() == MediaType::SEQUENCE
-              || (found && !ms.infinite_length)) {
+              || (found && !ms->infinite_length)) {
             validator = g.old_clip_in + g.ghost_length + frame_diff;
             if (validator > g.media_length) {
               frame_diff -= validator - g.media_length;
@@ -2265,27 +2270,27 @@ int color_brightness(const QColor& color) {
 }
 
 //TODO: logarithmic or linear option? Currently seems to be linear
-void draw_waveform(ClipPtr& clip, const FootageStream& ms, const long media_length, QPainter &p, const QRect& clip_rect,
+void draw_waveform(ClipPtr& clip, const FootageStreamPtr& ms, const long media_length, QPainter &p, const QRect& clip_rect,
                    const int waveform_start, const int waveform_limit, const double zoom)
 {
   //FIXME: magic numbers in function
-  auto divider = ms.audio_channels*2;
-  auto channel_height = clip_rect.height()/ms.audio_channels;
+  auto divider = ms->audio_channels*2;
+  auto channel_height = clip_rect.height()/ms->audio_channels;
 
   for (auto i=waveform_start; i<waveform_limit; ++i) {
-    auto waveform_index = qFloor((((clip->timeline_info.clip_in + (static_cast<double>(i)/zoom))/media_length) * ms.audio_preview.size())/divider)*divider;
+    auto waveform_index = qFloor((((clip->timeline_info.clip_in + (static_cast<double>(i)/zoom))/media_length) * ms->audio_preview.size())/divider)*divider;
 
     if (clip->timeline_info.reverse) {
-      waveform_index = ms.audio_preview.size() - waveform_index - (ms.audio_channels * 2);
+      waveform_index = ms->audio_preview.size() - waveform_index - (ms->audio_channels * 2);
     }
 
-    for (auto j=0; j<ms.audio_channels; ++j) {
+    for (auto j=0; j<ms->audio_channels; ++j) {
       auto mid = (e_config.rectified_waveforms) ? clip_rect.top()+channel_height*(j+1) : clip_rect.top()+channel_height*j+(channel_height/2);
       auto offset = waveform_index+(j*2);
 
-      if ((offset + 1) < ms.audio_preview.size()) {
-        const auto min = static_cast<double>(ms.audio_preview.at(offset)) / 128.0 * (channel_height/2);
-        const auto max = static_cast<double>(ms.audio_preview.at(offset+1)) / 128.0 * (channel_height/2);
+      if ((offset + 1) < ms->audio_preview.size()) {
+        const auto min = static_cast<double>(ms->audio_preview.at(offset)) / 128.0 * (channel_height/2);
+        const auto max = static_cast<double>(ms->audio_preview.at(offset+1)) / 128.0 * (channel_height/2);
 
         if (e_config.rectified_waveforms)  {
           p.drawLine(clip_rect.left()+i, mid, clip_rect.left()+i, mid - (max - min));
@@ -2385,14 +2390,29 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
     for (int i=0;i<global::sequence->clips.size();i++) {
       ClipPtr clip = global::sequence->clips.at(i);
       if (clip != nullptr && is_track_visible(clip->timeline_info.track)) {
-        QRect clip_rect(e_panel_timeline->getTimelineScreenPointFromFrame(clip->timeline_info.in), getScreenPointFromTrack(clip->timeline_info.track), getScreenPointFromFrame(e_panel_timeline->zoom, clip->length()), e_panel_timeline->calculate_track_height(clip->timeline_info.track, -1));
-        QRect text_rect(clip_rect.left() + CLIP_TEXT_PADDING, clip_rect.top() + CLIP_TEXT_PADDING, clip_rect.width() - CLIP_TEXT_PADDING - 1, clip_rect.height() - CLIP_TEXT_PADDING - 1);
+        QRect clip_rect(e_panel_timeline->getTimelineScreenPointFromFrame(clip->timeline_info.in),
+                        getScreenPointFromTrack(clip->timeline_info.track),
+                        getScreenPointFromFrame(e_panel_timeline->zoom, clip->length()),
+                        e_panel_timeline->calculate_track_height(clip->timeline_info.track, -1));
+        QRect text_rect(clip_rect.left() + CLIP_TEXT_PADDING,
+                        clip_rect.top() + CLIP_TEXT_PADDING,
+                        clip_rect.width() - CLIP_TEXT_PADDING - 1,
+                        clip_rect.height() - CLIP_TEXT_PADDING - 1);
+
         if (clip_rect.left() < width() && clip_rect.right() >= 0 && clip_rect.top() < height() && clip_rect.bottom() >= 0) {
           QRect actual_clip_rect = clip_rect;
-          if (actual_clip_rect.x() < 0) actual_clip_rect.setX(0);
-          if (actual_clip_rect.right() > width()) actual_clip_rect.setRight(width());
-          if (actual_clip_rect.y() < 0) actual_clip_rect.setY(0);
-          if (actual_clip_rect.bottom() > height()) actual_clip_rect.setBottom(height());
+          if (actual_clip_rect.x() < 0) {
+            actual_clip_rect.setX(0);
+          }
+          if (actual_clip_rect.right() > width()) {
+            actual_clip_rect.setRight(width());
+          }
+          if (actual_clip_rect.y() < 0) {
+            actual_clip_rect.setY(0);
+          }
+          if (actual_clip_rect.bottom() > height()) {
+            actual_clip_rect.setBottom(height());
+          }
           p.fillRect(actual_clip_rect, (clip->timeline_info.enabled) ? clip->timeline_info.color : QColor(96, 96, 96));
 
           int thumb_x = clip_rect.x() + 1;
@@ -2402,15 +2422,19 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
             bool draw_checkerboard = false;
             QRect checkerboard_rect(clip_rect);
             auto ftg = clip->timeline_info.media->object<Footage>();
-            FootageStream ms;
-            if (!ftg->get_stream_from_file_index(clip->timeline_info.track < 0,
-                                                 clip->timeline_info.media_stream,
-                                                 ms) ) {
+            FootageStreamPtr ms;
+            if (clip->timeline_info.track < 0) {
+              ms = ftg->video_stream_from_file_index(clip->timeline_info.media_stream);
+            } else {
+              ms = ftg->audio_stream_from_file_index(clip->timeline_info.media_stream);
+            }
+
+            if (ms == nullptr) {
               draw_checkerboard = true;
-            } else if (ms.preview_done) {
+            } else if (ms->preview_done) {
               // draw top and tail triangles
               int triangle_size = TRACK_MIN_HEIGHT >> 2;
-              if (!ms.infinite_length && clip_rect.width() > triangle_size) {
+              if (!ms->infinite_length && clip_rect.width() > triangle_size) {
                 p.setPen(Qt::NoPen);
                 p.setBrush(QColor(80, 80, 80));
                 if (clip->timeline_info.clip_in == 0
@@ -2460,15 +2484,15 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                     space_for_thumb -= getScreenPointFromFrame(e_panel_timeline->zoom, clip->closingTransition()->get_true_length());
                   }
                   int thumb_height = clip_rect.height()-thumb_y;
-                  int thumb_width = (thumb_height*((double)ms.video_preview.width()/(double)ms.video_preview.height()));
+                  int thumb_width = (thumb_height*((double)ms->video_preview.width()/(double)ms->video_preview.height()));
                   if (thumb_x + thumb_width >= 0
                       && thumb_height > thumb_y
                       && thumb_y + thumb_height >= 0
                       && space_for_thumb > MAX_TEXT_WIDTH) {
                     int thumb_clip_width = qMin(thumb_width, space_for_thumb);
                     p.drawImage(QRect(thumb_x, clip_rect.y()+thumb_y, thumb_clip_width, thumb_height),
-                                ms.video_preview,
-                                QRect(0, 0, thumb_clip_width*((double)ms.video_preview.width()/(double)thumb_width), ms.video_preview.height()));
+                                ms->video_preview,
+                                QRect(0, 0, thumb_clip_width*((double)ms->video_preview.width()/(double)thumb_width), ms->video_preview.height()));
                   }
                 }
                 if (clip->timeline_info.out - clip->timeline_info.in + clip->timeline_info.clip_in > clip->maximumLength()) {

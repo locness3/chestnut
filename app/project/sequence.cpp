@@ -60,13 +60,13 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
             if (!ftg->ready || got_video_values) {
                 break;
             }
-            for (const auto& ms : ftg->video_tracks) {
-                width = ms.video_width;
-                height = ms.video_height;
-                if (!qFuzzyCompare(ms.video_frame_rate, 0.0)) {
-                    frame_rate = ms.video_frame_rate * ftg->speed;
+            for (const auto ms : ftg->video_tracks) {
+                width = ms->video_width;
+                height = ms->video_height;
+                if (!qFuzzyCompare(ms->video_frame_rate, 0.0)) {
+                    frame_rate = ms->video_frame_rate * ftg->speed;
 
-                    if (ms.video_interlacing != VIDEO_PROGRESSIVE) {
+                    if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
                         frame_rate *= 2;
                     }
 
@@ -76,8 +76,8 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
                 }
             }//for
             if (!got_audio_values && !ftg->audio_tracks.empty()) {
-                const auto& ms = ftg->audio_tracks.front();
-                audio_frequency = ms.audio_frequency;
+                const auto ms = ftg->audio_tracks.front();
+                audio_frequency = ms->audio_frequency;
                 got_audio_values = true;
             }
         }

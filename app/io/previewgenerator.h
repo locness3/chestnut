@@ -53,6 +53,11 @@ signals:
     void set_icon(int, bool);
 private:
     void parse_media();
+    /**
+     * @brief retrieve pre-existing (file-system) previews
+     * @param hash used to generate file_path
+     * @return  true==already exists and loaded in FootageStream of Media (groan)
+     */
     bool retrieve_preview(const QString &hash);
     void generate_waveform();
     void finalize_media();
@@ -64,8 +69,8 @@ private:
     bool replace;
     bool cancelled;
     QString data_path;
-    QString get_thumbnail_path(const QString &hash, const FootageStream &ms);
-    QString get_waveform_path(const QString& hash, const FootageStream &ms);
+    QString get_thumbnail_path(const QString &hash, FootageStreamPtr& ms);
+    QString get_waveform_path(const QString& hash, FootageStreamPtr& ms);
 };
 
 using PreviewGeneratorPtr = std::shared_ptr<PreviewGenerator>;

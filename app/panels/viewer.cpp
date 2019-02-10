@@ -702,16 +702,16 @@ void Viewer::set_media(MediaPtr m) {
             seq->setFrameRate(MEDIA_FRAME_RATE);
 
             if (ftg->video_tracks.size() > 0) {
-                const auto& video_stream = ftg->video_tracks.front();
-                seq->setWidth(video_stream.video_width);
-                seq->setHeight(video_stream.video_height);
-                if ( (video_stream.video_frame_rate > 0) && (!video_stream.infinite_length) ) {
-                    seq->setFrameRate(video_stream.video_frame_rate * ftg->speed);
+                const auto video_stream = ftg->video_tracks.front();
+                seq->setWidth(video_stream->video_width);
+                seq->setHeight(video_stream->video_height);
+                if ( (video_stream->video_frame_rate > 0) && (!video_stream->infinite_length) ) {
+                    seq->setFrameRate(video_stream->video_frame_rate * ftg->speed);
                 }
 
                 auto clp = std::make_shared<Clip>(seq);
                 clp->timeline_info.media        = media;
-                clp->timeline_info.media_stream = video_stream.file_index;
+                clp->timeline_info.media_stream = video_stream->file_index;
                 clp->timeline_info.in           = 0;
                 clp->timeline_info.out          = ftg->get_length_in_frames(seq->getFrameRate());
                 if (clp->timeline_info.out <= 0) {
@@ -727,12 +727,12 @@ void Viewer::set_media(MediaPtr m) {
             }
 
             if (ftg->audio_tracks.size() > 0) {
-                const auto& audio_stream = ftg->audio_tracks.front();
-                seq->setAudioFrequency(audio_stream.audio_frequency);
+                const auto audio_stream = ftg->audio_tracks.front();
+                seq->setAudioFrequency(audio_stream->audio_frequency);
 
                 auto clp = std::make_shared<Clip>(global::sequence);
                 clp->timeline_info.media        = media;
-                clp->timeline_info.media_stream = audio_stream.file_index;
+                clp->timeline_info.media_stream = audio_stream->file_index;
                 clp->timeline_info.in           = 0;
                 clp->timeline_info.out          = ftg->get_length_in_frames(seq->getFrameRate());
                 clp->timeline_info.track        = 0;
@@ -743,7 +743,7 @@ void Viewer::set_media(MediaPtr m) {
                 if (ftg->video_tracks.size() == 0) {
                     viewer_widget->waveform         = true;
                     viewer_widget->waveform_clip    = clp;
-                    viewer_widget->waveform_ms      = &audio_stream;
+                    viewer_widget->waveform_ms      = audio_stream;
                     viewer_widget->frame_update();
                 }
             } else {

@@ -154,23 +154,23 @@ void Media::updateTooltip(const QString& error) {
             if (i > 0) {
               _toolTip += ", ";
             }
-            _toolTip += QString::number(ftg->video_tracks.at(i).video_width) + "x"
-                        + QString::number(ftg->video_tracks.at(i).video_height);
+            _toolTip += QString::number(ftg->video_tracks.at(i)->video_width) + "x"
+                        + QString::number(ftg->video_tracks.at(i)->video_height);
           }
           _toolTip += "\n";
 
-          if (!ftg->video_tracks.at(0).infinite_length) {
+          if (!ftg->video_tracks.front()->infinite_length) {
             _toolTip += QCoreApplication::translate("Media", "Frame Rate:") + " ";
             for (int i=0;i<ftg->video_tracks.size();i++) {
               if (i > 0) {
                 _toolTip += ", ";
               }
-              if (ftg->video_tracks.at(i).video_interlacing == VIDEO_PROGRESSIVE) {
-                _toolTip += QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed);
+              if (ftg->video_tracks.at(i)->video_interlacing == VIDEO_PROGRESSIVE) {
+                _toolTip += QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed);
               } else {
                 _toolTip += QCoreApplication::translate("Media", "%1 fields (%2 frames)").arg(
-                              QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed * 2),
-                              QString::number(ftg->video_tracks.at(i).video_frame_rate * ftg->speed)
+                              QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed * 2),
+                              QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed)
                               );
               }
             }
@@ -182,7 +182,7 @@ void Media::updateTooltip(const QString& error) {
             if (i > 0) {
               _toolTip += ", ";
             }
-            _toolTip += get_interlacing_name(ftg->video_tracks.at(i).video_interlacing);
+            _toolTip += get_interlacing_name(ftg->video_tracks.at(i)->video_interlacing);
           }
         }
 
@@ -194,7 +194,7 @@ void Media::updateTooltip(const QString& error) {
             if (i > 0) {
               _toolTip += ", ";
             }
-            _toolTip += QString::number(ftg->audio_tracks.at(i).audio_frequency * ftg->speed);
+            _toolTip += QString::number(ftg->audio_tracks.at(i)->audio_frequency * ftg->speed);
           }
           _toolTip += "\n";
 
@@ -203,8 +203,8 @@ void Media::updateTooltip(const QString& error) {
             if (i > 0) {
               _toolTip += ", ";
             }
-            _toolTip += get_channel_layout_name(ftg->audio_tracks.at(i).audio_channels,
-                                                ftg->audio_tracks.at(i).audio_layout);
+            _toolTip += get_channel_layout_name(ftg->audio_tracks.at(i)->audio_channels,
+                                                ftg->audio_tracks.at(i)->audio_layout);
           }
           // tooltip += "\n";
         }
@@ -273,11 +273,10 @@ double Media::frameRate(const int stream) {
     {
       if (auto ftg = object<Footage>()) {
         if ( (stream < 0) && !ftg->video_tracks.empty()) {
-          return ftg->video_tracks.at(0).video_frame_rate * ftg->speed;
+          return ftg->video_tracks.front()->video_frame_rate * ftg->speed;
         }
-        FootageStream ms;
-        if (ftg->get_stream_from_file_index(true, stream, ms)) {
-          return ms.video_frame_rate * ftg->speed;
+        if (FootageStreamPtr ms = ftg->video_stream_from_file_index(stream)) {
+          return ms->video_frame_rate * ftg->speed;
         }
       }
       break;
@@ -301,11 +300,10 @@ int Media::samplingRate(const int stream) {
     {
       if (auto ftg = object<Footage>()) {
         if (stream < 0) {
-          return ftg->audio_tracks.at(0).audio_frequency * ftg->speed;
+          return ftg->audio_tracks.front()->audio_frequency * ftg->speed;
         }
-        FootageStream ms;
-        if (ftg->get_stream_from_file_index(false, stream, ms)) {
-          return ms.audio_frequency * ftg->speed;
+        if (FootageStreamPtr ms = ftg->audio_stream_from_file_index(stream)) {
+          return ms->audio_frequency * ftg->speed;
         }
       }
       break;
@@ -357,8 +355,8 @@ QVariant Media::data(int column, int role) {
         if (type() == MediaType::FOOTAGE) {
           FootagePtr f = object<Footage>();
           if (f->video_tracks.size() > 0
-              && f->video_tracks.at(0).preview_done) {
-            return f->video_tracks.at(0).video_preview_square;
+              && f->video_tracks.front()->preview_done) {
+            return f->video_tracks.front()->video_preview_square;
           }
         }
 
@@ -378,8 +376,8 @@ QVariant Media::data(int column, int role) {
             FootagePtr f = object<Footage>();
             double r = 30;
 
-            if (f->video_tracks.size() > 0 && !qIsNull(f->video_tracks.at(0).video_frame_rate))
-              r = f->video_tracks.at(0).video_frame_rate * f->speed;
+            if (f->video_tracks.size() > 0 && !qIsNull(f->video_tracks.front()->video_frame_rate))
+              r = f->video_tracks.front()->video_frame_rate * f->speed;
 
             long len = f->get_length_in_frames(r);
             if (len > 0) return frame_to_timecode(len, e_config.timecode_view, r);
@@ -406,7 +404,7 @@ QVariant Media::data(int column, int role) {
     case Qt::ToolTipRole:
       return _toolTip;
     default:
-      qWarning() << "Unhandled role" << role;
+      qDebug() << "Unhandled role" << role;
       break;
   }//switch
   return QVariant();

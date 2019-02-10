@@ -41,8 +41,15 @@ class MediaThrobber;
 using FootagePtr = std::shared_ptr<Footage>;
 using FootageWPtr = std::weak_ptr<Footage>;
 
-struct FootageStream {
-    //FIXME: this really shouldn't be a struct
+
+class FootageStream {
+  public:
+    FootageStream() = default;
+    FootageStream(const FootageStream&) = default;
+    FootageStream& operator=(const FootageStream&) = default;
+
+    void make_square_thumb();
+
     int file_index;
     int video_width;
     int video_height;
@@ -60,8 +67,9 @@ struct FootageStream {
     QImage video_preview;
     QIcon video_preview_square;
     QVector<char> audio_preview;
-    void make_square_thumb();
 };
+using FootageStreamPtr = std::shared_ptr<FootageStream>;
+using FootageStreamWPtr = std::weak_ptr<FootageStream>;
 
 class Footage : public project::ProjectItem {
 public:
@@ -75,8 +83,8 @@ public:
     //FIXME: encapsulation
     QString url;
     int64_t length = 0;
-    QVector<FootageStream> video_tracks;
-    QVector<FootageStream> audio_tracks;
+    QVector<FootageStreamPtr> video_tracks;
+    QVector<FootageStreamPtr> audio_tracks;
     int save_id;
     bool ready;
     bool invalid;
@@ -90,8 +98,16 @@ public:
     long out;
 
     long get_length_in_frames(const double frame_rate) const;
-    bool get_stream_from_file_index(const bool video, const int index, FootageStream& stream);
+
+    FootageStreamPtr video_stream_from_file_index(const int index);
+    FootageStreamPtr audio_stream_from_file_index(const int index);
+    bool has_stream_from_file_index(const int index);
+    bool has_video_stream_from_file_index(const int index);
+    bool has_audio_stream_from_file_index(const int index) const;
     void reset();
+  private:
+    FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
+
 };
 
 #endif // FOOTAGE_H

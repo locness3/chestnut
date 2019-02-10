@@ -178,8 +178,15 @@ bool Clip::openWorker() {
     auto ftg = timeline_info.media->object<Footage>();
     const char* const filename = ftg->url.toUtf8().data();
 
-    FootageStream ms;
-    if (!ftg->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream, ms)) {
+    FootageStreamPtr ms;
+    if (timeline_info.track < 0) {
+      ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
+    } else {
+      ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
+    }
+
+    if (ms == nullptr) {
+      qCritical() << "Footage stream is NULL";
       return false;
     }
     int errCode = avformat_open_input(
@@ -205,28 +212,30 @@ bool Clip::openWorker() {
 
     av_dump_format(media_handling.formatCtx, 0, filename, 0);
 
-    media_handling.stream = media_handling.formatCtx->streams[ms.file_index];
+    media_handling.stream = media_handling.formatCtx->streams[ms->file_index];
     media_handling.codec = avcodec_find_decoder(media_handling.stream->codecpar->codec_id);
     media_handling.codecCtx = avcodec_alloc_context3(media_handling.codec);
     avcodec_parameters_to_context(media_handling.codecCtx, media_handling.stream->codecpar);
 
-    if (ms.infinite_length) {
+    if (ms->infinite_length) {
       max_queue_size = 1;
     } else {
       max_queue_size = 0;
       if (e_config.upcoming_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
         max_queue_size += qCeil(e_config.upcoming_queue_size);
       } else {
-        max_queue_size += qCeil(ms.video_frame_rate * ftg->speed * e_config.upcoming_queue_size);
+        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed * e_config.upcoming_queue_size);
       }
       if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
         max_queue_size += qCeil(e_config.previous_queue_size);
       } else {
-        max_queue_size += qCeil(ms.video_frame_rate * ftg->speed * e_config.previous_queue_size);
+        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed * e_config.previous_queue_size);
       }
     }
 
-    if (ms.video_interlacing != VIDEO_PROGRESSIVE) max_queue_size *= 2;
+    if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
+      max_queue_size *= 2;
+    }
 
     media_handling.opts = nullptr;
 
@@ -271,10 +280,10 @@ bool Clip::openWorker() {
 
       AVFilterContext* last_filter = buffersrc_ctx;
 
-      if (ms.video_interlacing != VIDEO_PROGRESSIVE) {
+      if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
         AVFilterContext* yadif_filter;
         char yadif_args[100];
-        snprintf(yadif_args, sizeof(yadif_args), "mode=3:parity=%d", ((ms.video_interlacing == VIDEO_TOP_FIELD_FIRST) ? 0 : 1)); // there's a CUDA version if we start using nvdec/nvenc
+        snprintf(yadif_args, sizeof(yadif_args), "mode=3:parity=%d", ((ms->video_interlacing == VIDEO_TOP_FIELD_FIRST) ? 0 : 1)); // there's a CUDA version if we start using nvdec/nvenc
         avfilter_graph_create_filter(&yadif_filter, avfilter_get_by_name("yadif"), "yadif", yadif_args, nullptr, filter_graph);
 
         avfilter_link(last_filter, 0, yadif_filter, 0);
@@ -285,7 +294,12 @@ bool Clip::openWorker() {
       bool stabilize = false;
       if (stabilize) {
         AVFilterContext* stab_filter;
-        int stab_ret = avfilter_graph_create_filter(&stab_filter, avfilter_get_by_name("vidstabtransform"), "vidstab", "input=/media/matt/Home/samples/transforms.trf", nullptr, filter_graph);
+        int stab_ret = avfilter_graph_create_filter(&stab_filter,
+                                                    avfilter_get_by_name("vidstabtransform"),
+                                                    "vidstab",
+                                                    "input=/media/matt/Home/samples/transforms.trf", //FIXME: hardcoded location
+                                                    nullptr,
+                                                    filter_graph);
         if (stab_ret < 0) {
           char err[100];
           av_strerror(stab_ret, err, sizeof(err));
@@ -314,7 +328,9 @@ bool Clip::openWorker() {
 
       avfilter_graph_config(filter_graph, nullptr);
     } else if (media_handling.stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-      if (media_handling.codecCtx->channel_layout == 0) media_handling.codecCtx->channel_layout = av_get_default_channel_layout(media_handling.stream->codecpar->channels);
+      if (media_handling.codecCtx->channel_layout == 0) {
+        media_handling.codecCtx->channel_layout = av_get_default_channel_layout(media_handling.stream->codecpar->channels);
+      }
 
       // set up cache
       queue.append(av_frame_alloc());
@@ -598,9 +614,9 @@ void Clip::refresh() {
     FootagePtr m = timeline_info.media->object<Footage>();
 
     if (timeline_info.track < 0 && m->video_tracks.size() > 0)  {
-      timeline_info.media_stream = m->video_tracks.at(0).file_index;
+      timeline_info.media_stream = m->video_tracks.front()->file_index;
     } else if (timeline_info.track >= 0 && m->audio_tracks.size() > 0) {
-      timeline_info.media_stream = m->audio_tracks.at(0).file_index;
+      timeline_info.media_stream = m->audio_tracks.front()->file_index;
     }
   }
   replaced = false;
@@ -662,12 +678,17 @@ void Clip::frame(const long playhead, bool& texture_failed) {
   if (finished_opening) {
     auto ftg = timeline_info.media->object<Footage>();
     if (!ftg) return;
-    FootageStream ms;
-    if (!ftg->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream, ms)) return;
+    FootageStreamPtr ms;
+    if (timeline_info.track < 0) {
+      ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
+    } else {
+      ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
+    }
+    if (ms == nullptr) return;
 
     int64_t target_pts = qMax(0L, playhead_to_timestamp(playhead));
     int64_t second_pts = qRound64(av_q2d(av_inv_q(media_handling.stream->time_base)));
-    if (ms.video_interlacing != VIDEO_PROGRESSIVE) {
+    if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
       target_pts *= 2;
       second_pts *= 2;
     }
@@ -679,7 +700,7 @@ void Clip::frame(const long playhead, bool& texture_failed) {
 
     queue_lock.lock();
     if (queue.size() > 0) {
-      if (ms.infinite_length) {
+      if (ms->infinite_length) {
         target_frame = queue.at(0);
       } else {
         // correct frame may be somewhere else in the queue
@@ -901,14 +922,19 @@ void Clip::recalculateMaxLength() {
       switch (timeline_info.media->type()) {
         case MediaType::FOOTAGE:
         {
-          auto m = timeline_info.media->object<Footage>();
-          if (m != nullptr) {
-            FootageStream ms;
-            const bool found = m->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream, ms);
-            if (found && ms.infinite_length) {
+          auto ftg = timeline_info.media->object<Footage>();
+          if (ftg != nullptr) {
+            FootageStreamPtr ms;
+            if (timeline_info.track < 0) {
+              ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
+            } else {
+              ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
+            }
+
+            if (ms != nullptr && ms->infinite_length) {
               media_handling.calculated_length = LONG_MAX;
             } else {
-              media_handling.calculated_length = m->get_length_in_frames(fr);
+              media_handling.calculated_length = ftg->get_length_in_frames(fr);
             }
           }
         }
@@ -943,9 +969,15 @@ int Clip::width() {
     {
       auto ftg = timeline_info.media->object<Footage>();
       if (!ftg) return 0;
-      FootageStream ms;
-      if (ftg->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream, ms)) {
-        return ms.video_width;
+      FootageStreamPtr ms;
+      if (timeline_info.track < 0) {
+        ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
+      } else {
+        ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
+      }
+
+      if (ms != nullptr) {
+        return ms->video_width;
       }
       if (sequence != nullptr) {
         return sequence->getWidth();
@@ -978,9 +1010,15 @@ int Clip::height() {
       if (!ftg) {
         return 0;
       }
-      FootageStream ms;
-      if (ftg->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream, ms)) {
-        return ms.video_height;
+      FootageStreamPtr ms;
+      if (timeline_info.track < 0) {
+        ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
+      } else {
+        ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
+      }
+
+      if (ms != nullptr) {
+        return ms->video_height;
       }
       if (sequence != nullptr) {
         return sequence->getHeight();
@@ -1546,10 +1584,9 @@ void Clip::cache_video_worker(const long playhead) {
           queue_lock.lock();
           queue.append(frame);
 
-          auto media = timeline_info.media->object<Footage>();
-          FootageStream ms;
-          if (media->get_stream_from_file_index(true, timeline_info.media_stream, ms)) {
-            if (!ms.infinite_length && !reverse && queue.size() == limit) {
+          auto ftg = timeline_info.media->object<Footage>();
+          if (auto ms = ftg->video_stream_from_file_index(timeline_info.media_stream)) {
+            if (!ms->infinite_length && !reverse && queue.size() == limit) {
               // see if we got the frame we needed (used for speed ups primarily)
               bool found = false;
               for (int i=0;i<queue.size();i++) {
@@ -1626,9 +1663,16 @@ void Clip::reset_cache(const long target_frame) {
   } else {
     auto ftg = timeline_info.media->object<Footage>();
     if (!ftg) return;
-    FootageStream ms;
-    if (!ftg->get_stream_from_file_index(timeline_info.track < 0, timeline_info.media_stream, ms)) return;
-    if (ms.infinite_length) {
+
+    FootageStreamPtr ms;
+    if (timeline_info.track < 0) {
+      ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
+    } else {
+      ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
+    }
+
+    if (ms == nullptr) return;
+    if (ms->infinite_length) {
       /*avcodec_flush_buffers(media_handling.codecCtx);
             av_seek_frame(media_handling.formatCtx, ms.file_index, 0, AVSEEK_FLAG_BACKWARD);*/
       use_existing_frame = false;
@@ -1649,7 +1693,7 @@ void Clip::reset_cache(const long target_frame) {
           reached_end = false;
 
           if (seek_ts > 0) {
-            av_seek_frame(media_handling.formatCtx, ms.file_index, seek_ts, AVSEEK_FLAG_BACKWARD);
+            av_seek_frame(media_handling.formatCtx, ms->file_index, seek_ts, AVSEEK_FLAG_BACKWARD);
 
             av_frame_unref(media_handling.frame);
             int ret = retrieve_next_frame(media_handling.frame);
@@ -1665,7 +1709,7 @@ void Clip::reset_cache(const long target_frame) {
             }
           } else {
             av_frame_unref(media_handling.frame);
-            av_seek_frame(media_handling.formatCtx, ms.file_index, 0, AVSEEK_FLAG_BACKWARD);
+            av_seek_frame(media_handling.formatCtx, ms->file_index, 0, AVSEEK_FLAG_BACKWARD);
             use_existing_frame = false;
             break;
           }
@@ -1683,7 +1727,7 @@ void Clip::reset_cache(const long target_frame) {
           audio_playback.reverse_target = timestamp;
           timestamp -= av_q2d(av_inv_q(media_handling.stream->time_base));
         }
-        av_seek_frame(media_handling.formatCtx, ms.file_index, timestamp, AVSEEK_FLAG_BACKWARD);
+        av_seek_frame(media_handling.formatCtx, ms->file_index, timestamp, AVSEEK_FLAG_BACKWARD);
         audio_playback.target_frame = target_frame;
         audio_playback.frame_sample_index = -1;
         audio_playback.just_reset = true;

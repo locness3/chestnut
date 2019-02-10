@@ -427,9 +427,14 @@ void ViewerWidget::draw_waveform_func() {
   wr.setX(wr.x() - waveform_scroll);
 
   p.setPen(Qt::green);
-  draw_waveform(waveform_clip, *waveform_ms, waveform_clip->timeline_info.out, p, wr, waveform_scroll, width()+waveform_scroll, waveform_zoom);
+  auto stream = waveform_ms.lock();
+  if (stream == nullptr) {
+    qCritical() << "No stream to draw waveform";
+    return;
+  }
+  draw_waveform(waveform_clip, stream, waveform_clip->timeline_info.out, p, wr, waveform_scroll, width()+waveform_scroll, waveform_zoom);
   p.setPen(Qt::red);
-  int playhead_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->playhead) - waveform_scroll;
+  const auto playhead_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->playhead) - waveform_scroll;
   p.drawLine(playhead_x, 0, playhead_x, height());
 }
 

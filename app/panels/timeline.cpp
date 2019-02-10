@@ -209,8 +209,8 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
                 can_import = ftg->ready;
                 if (ftg->using_inout) {
                     auto source_fr = 30.0;
-                    if ( (!ftg->video_tracks.empty()) && !qIsNull(ftg->video_tracks.front().video_frame_rate)) {
-                        source_fr = ftg->video_tracks.front().video_frame_rate * ftg->speed;
+                    if ( (!ftg->video_tracks.empty()) && !qIsNull(ftg->video_tracks.front()->video_frame_rate)) {
+                        source_fr = ftg->video_tracks.front()->video_frame_rate * ftg->speed;
                     }
                     default_clip_in = refactor_frame_number(ftg->in, source_fr, seq->getFrameRate());
                     default_clip_out = refactor_frame_number(ftg->out, source_fr, seq->getFrameRate());
@@ -249,7 +249,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
         switch (mda->type()) {
         case MediaType::FOOTAGE:
             // is video source a still image?
-            if (ftg->video_tracks.size() > 0 && ftg->video_tracks.at(0).infinite_length && ftg->audio_tracks.size() == 0) {
+            if (ftg->video_tracks.size() > 0 && ftg->video_tracks.front()->infinite_length && ftg->audio_tracks.size() == 0) {
                 g.out = g.in + 100;
             } else {
                 long length = ftg->get_length_in_frames(seq->getFrameRate());
@@ -260,17 +260,17 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
             }
 
             for (int j=0;j<ftg->audio_tracks.size();j++) {
-                if (ftg->audio_tracks.at(j).enabled) {
+                if (ftg->audio_tracks.at(j)->enabled) {
                     g.track = j;
-                    g.media_stream = ftg->audio_tracks.at(j).file_index;
+                    g.media_stream = ftg->audio_tracks.at(j)->file_index;
                     ghosts.append(g);
                     audio_ghosts = true;
                 }
             }
             for (int j=0;j<ftg->video_tracks.size();j++) {
-                if (ftg->video_tracks.at(j).enabled) {
+                if (ftg->video_tracks.at(j)->enabled) {
                     g.track = -1-j;
-                    g.media_stream = ftg->video_tracks.at(j).file_index;
+                    g.media_stream = ftg->video_tracks.at(j)->file_index;
                     ghosts.append(g);
                     video_ghosts = true;
                 }

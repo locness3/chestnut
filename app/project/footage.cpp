@@ -30,71 +30,92 @@ extern "C" {
 
 
 Footage::Footage()
-    : ProjectItem(),
-      ready(false),
-      invalid(false),
-      speed(1.0),
-      preview_gen(nullptr),
-      in(0),
-      out(0)
+  : ProjectItem(),
+    ready(false),
+    invalid(false),
+    speed(1.0),
+    preview_gen(nullptr),
+    in(0),
+    out(0)
 {
-    ready_lock.lock();
+  ready_lock.lock();
 }
 
 Footage::~Footage() {
-    reset();
+  reset();
 }
 
 void Footage::reset() {
-    if (preview_gen != nullptr) {
-        preview_gen->cancel();
-//        preview_gen->wait(); //FIXME: segfault. hard to ascertain why
-    }
-    video_tracks.clear();
-    audio_tracks.clear();
-    ready = false;
+  if (preview_gen != nullptr) {
+    preview_gen->cancel();
+    //        preview_gen->wait(); //FIXME: segfault. hard to ascertain why
+  }
+  video_tracks.clear();
+  audio_tracks.clear();
+  ready = false;
 }
 
 long Footage::get_length_in_frames(const double frame_rate) const {
-    if (length >= 0) {
-        return qFloor((static_cast<double>(length) / static_cast<double>(AV_TIME_BASE)) * frame_rate / speed);
-    }
-    return 0;
+  if (length >= 0) {
+    return qFloor((static_cast<double>(length) / static_cast<double>(AV_TIME_BASE)) * frame_rate / speed);
+  }
+  return 0;
 }
 
-
-bool Footage::get_stream_from_file_index(const bool video, const int index, FootageStream& stream)
+FootageStreamPtr Footage::video_stream_from_file_index(const int index)
 {
-    auto found = false;
-    if (video) {
-        for (auto& track : video_tracks) {
-            if (track.file_index == index) {
-                found = true;
-                stream = track;
-                break;
-            }
-        }
-    } else {
-        for (auto& track : audio_tracks) {
-            if (track.file_index == index) {
-                found = true;
-                stream = track;
-                break;
-            }
-        }
-    }
-    return found;
+  return get_stream_from_file_index(true, index);
 }
+
+FootageStreamPtr Footage::audio_stream_from_file_index(const int index)
+{
+  return get_stream_from_file_index(false, index);
+}
+
+bool Footage::has_stream_from_file_index(const int index)
+{
+  bool found = video_stream_from_file_index(index) != nullptr;
+  found |= audio_stream_from_file_index(index) != nullptr;
+  return found;
+}
+
+
+bool Footage::has_video_stream_from_file_index(const int index)
+{
+  return video_stream_from_file_index(index)!= nullptr;
+}
+
+
+FootageStreamPtr Footage::get_stream_from_file_index(const bool video, const int index)
+{
+  FootageStreamPtr stream;
+  auto finder = [index] (auto tracks){
+    for (auto track : tracks) {
+      if (track->file_index == index) {
+        return track;
+      }
+    }
+    return FootageStreamPtr();
+  };
+  if (video) {
+    stream = finder(video_tracks);
+  } else {
+    stream = finder(audio_tracks);
+  }
+
+  return stream;
+}
+
 
 void FootageStream::make_square_thumb() {
-    // generate square version for QListView?
-    const auto max_dimension = qMax(video_preview.width(), video_preview.height());
-    QPixmap pixmap(max_dimension, max_dimension);
-    pixmap.fill(Qt::transparent);
-    QPainter p(&pixmap);
-    const auto diff = (video_preview.width() - video_preview.height()) / 2;
-    const auto sqx = (diff < 0) ? -diff : 0;
-    const auto sqy = (diff > 0) ? diff : 0;
-    p.drawImage(sqx, sqy, video_preview);
-    video_preview_square = QIcon(pixmap);
+  // generate square version for QListView?
+  const auto max_dimension = qMax(video_preview.width(), video_preview.height());
+  QPixmap pixmap(max_dimension, max_dimension);
+  pixmap.fill(Qt::transparent);
+  QPainter p(&pixmap);
+  const auto diff = (video_preview.width() - video_preview.height()) / 2;
+  const auto sqx = (diff < 0) ? -diff : 0;
+  const auto sqy = (diff > 0) ? diff : 0;
+  p.drawImage(sqx, sqy, video_preview);
+  video_preview_square = QIcon(pixmap);
 }
