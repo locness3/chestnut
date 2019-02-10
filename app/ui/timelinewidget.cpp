@@ -182,7 +182,7 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
       /*int video_clip_count = 0;
             bool all_video_is_footage = true;
             for (int i=0;i<selected_clips.size();i++) {
-                if (selected_clips.at(i)->timeline_info.track < 0) {
+                if (selected_clips.at(i)->timeline_info.isVideo()) {
                     video_clip_count++;
                     if (selected_clips.at(i)>timeline_info.media == nullptr
                             || selected_clips.at(i)->timeline_info.media->type() != MediaType::FOOTAGE) {
@@ -860,7 +860,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
             add.append(c);
             ca->append(new AddClipCommand(global::sequence, add));
 
-            if (c->timeline_info.track < 0) {
+            if (c->timeline_info.isVideo()) {
               // default video effects (before custom effects)
               c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TRANSFORM, EFFECT_TYPE_EFFECT)));
               //c->media_type = MEDIA_TYPE_SOLID;
@@ -1340,7 +1340,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
     if (g.clip != -1 && c->timeline_info.media != nullptr && c->timeline_info.media->type() == MediaType::FOOTAGE) {
       auto ftg = c->timeline_info.media->object<Footage>();
       if (ftg) {
-        if (c->timeline_info.track < 0) {
+        if (c->timeline_info.isVideo()) {
           ms = ftg->video_stream_from_file_index(c->timeline_info.media_stream);
         } else {
           ms = ftg->audio_stream_from_file_index(c->timeline_info.media_stream);
@@ -2423,7 +2423,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
             QRect checkerboard_rect(clip_rect);
             auto ftg = clip->timeline_info.media->object<Footage>();
             FootageStreamPtr ms;
-            if (clip->timeline_info.track < 0) {
+            if (clip->timeline_info.isVideo()) {
               ms = ftg->video_stream_from_file_index(clip->timeline_info.media_stream);
             } else {
               ms = ftg->audio_stream_from_file_index(clip->timeline_info.media_stream);
@@ -2470,7 +2470,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
               // draw thumbnail/waveform
               long media_length = clip->maximumLength();
 
-              if (clip->timeline_info.track < 0) {
+              if (clip->timeline_info.isVideo()) {
                 // draw thumbnail
                 int thumb_y = p.fontMetrics().height()+CLIP_TEXT_PADDING+CLIP_TEXT_PADDING;
                 if (thumb_x < width() && thumb_y < height()) {

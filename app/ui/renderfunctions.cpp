@@ -150,7 +150,7 @@ GLuint compose_sequence(Viewer* viewer,
     // if clip starts within one second and/or hasn't finished yet
     if (clp != nullptr) {
       //			if (!(!nests.isEmpty() && !same_sign(c->track, nests.last()->track))) {
-      if ((clp->timeline_info.track < 0) == video) {
+      if ((clp->timeline_info.isVideo()) == video) {
         auto clip_is_active = false;
 
         if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
@@ -222,7 +222,7 @@ GLuint compose_sequence(Viewer* viewer,
       qWarning() << "Tried to display clip" << i << "but it's closed";
       texture_failed = true;
     } else {
-      if (clp->timeline_info.track < 0) {
+      if (clp->timeline_info.isVideo()) {
         ctx->functions()->GL_DEFAULT_BLEND;
         glColor4f(1.0, 1.0, 1.0, 1.0);
 

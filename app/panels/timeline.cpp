@@ -357,7 +357,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
             }
         }
 
-        if (c->timeline_info.track < 0) {
+        if (c->timeline_info.isVideo()) {
             // add default video effects
             c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TRANSFORM, EFFECT_TYPE_EFFECT)));
         } else {
@@ -1030,7 +1030,7 @@ void Timeline::paste(bool insert) {
                 if (c != nullptr && is_clip_selected(c, true)) {
                     for (int j=0;j<e_clipboard.size();j++) {
                         EffectPtr e = std::dynamic_pointer_cast<Effect>(e_clipboard.at(j));
-                        if ((c->timeline_info.track < 0) == (e->meta->subtype == EFFECT_TYPE_VIDEO)) {
+                        if ((c->timeline_info.isVideo()) == (e->meta->subtype == EFFECT_TYPE_VIDEO)) {
                             int found = -1;
                             if (ask_conflict) {
                                 replace = false;

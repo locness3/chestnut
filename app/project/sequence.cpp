@@ -296,7 +296,7 @@ void Sequence::getTrackLimits(int& video_limit, int& audio_limit) const {
         if (clp == nullptr) {
             continue;
         }
-        if ( (clp->timeline_info.track < 0) && (clp->timeline_info.track < video_limit) ) { // video clip
+        if ( (clp->timeline_info.isVideo()) && (clp->timeline_info.track < video_limit) ) { // video clip
             video_limit = clp->timeline_info.track;
         } else if (clp->timeline_info.track > audio_limit) {
             audio_limit = clp->timeline_info.track;

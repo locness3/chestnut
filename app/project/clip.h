@@ -169,6 +169,9 @@ public:
         bool reverse = false;
         bool maintain_audio_pitch = true;
         bool autoscale = true;
+        bool isVideo() {
+          return track < 0;
+        }
     } timeline_info;
 
     // other variables (should be deep copied/duplicated in copy())

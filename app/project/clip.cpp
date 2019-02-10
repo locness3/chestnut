@@ -179,7 +179,7 @@ bool Clip::openWorker() {
     const char* const filename = ftg->url.toUtf8().data();
 
     FootageStreamPtr ms;
-    if (timeline_info.track < 0) {
+    if (timeline_info.isVideo()) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -470,7 +470,7 @@ bool Clip::open(const bool open_multithreaded) {
     if (multithreaded) {
       if (open_lock.tryLock()) {
         //                QObject::connect(this, SIGNAL(finished()), this, SLOT(deleteLater())); //TODO: this needs resolving
-        this->start((timeline_info.track < 0) ? QThread::HighPriority : QThread::TimeCriticalPriority);
+        this->start((timeline_info.isVideo()) ? QThread::HighPriority : QThread::TimeCriticalPriority);
       }
     } else {
       finished_opening = false;
@@ -613,7 +613,7 @@ void Clip::refresh() {
   if (replaced && timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
     FootagePtr m = timeline_info.media->object<Footage>();
 
-    if (timeline_info.track < 0 && m->video_tracks.size() > 0)  {
+    if (timeline_info.isVideo() && m->video_tracks.size() > 0)  {
       timeline_info.media_stream = m->video_tracks.front()->file_index;
     } else if (timeline_info.track >= 0 && m->audio_tracks.size() > 0) {
       timeline_info.media_stream = m->audio_tracks.front()->file_index;
@@ -679,7 +679,7 @@ void Clip::frame(const long playhead, bool& texture_failed) {
     auto ftg = timeline_info.media->object<Footage>();
     if (!ftg) return;
     FootageStreamPtr ms;
-    if (timeline_info.track < 0) {
+    if (timeline_info.isVideo()) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -896,7 +896,7 @@ long Clip::length() {
 }
 
 double Clip::mediaFrameRate() {
-  Q_ASSERT(timeline_info.track < 0);
+  Q_ASSERT(timeline_info.isVideo());
   if (timeline_info.media != nullptr) {
     double rate = timeline_info.media->frameRate(timeline_info.media_stream);
     if (!qIsNaN(rate)) {
@@ -925,7 +925,7 @@ void Clip::recalculateMaxLength() {
           auto ftg = timeline_info.media->object<Footage>();
           if (ftg != nullptr) {
             FootageStreamPtr ms;
-            if (timeline_info.track < 0) {
+            if (timeline_info.isVideo()) {
               ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
             } else {
               ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -970,7 +970,7 @@ int Clip::width() {
       auto ftg = timeline_info.media->object<Footage>();
       if (!ftg) return 0;
       FootageStreamPtr ms;
-      if (timeline_info.track < 0) {
+      if (timeline_info.isVideo()) {
         ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
       } else {
         ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -1011,7 +1011,7 @@ int Clip::height() {
         return 0;
       }
       FootageStreamPtr ms;
-      if (timeline_info.track < 0) {
+      if (timeline_info.isVideo()) {
         ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
       } else {
         ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -1088,7 +1088,7 @@ void Clip::run() {
       } else {
         while (true) {
           cache_worker(cache_info.playhead, cache_info.reset, cache_info.scrubbing, cache_info.nests);
-          if (multithreaded && cache_info.interrupt && (timeline_info.track < 0) ) {
+          if (multithreaded && cache_info.interrupt && (timeline_info.isVideo()) ) {
             cache_info.interrupt = false;
           } else {
             break;
@@ -1665,7 +1665,7 @@ void Clip::reset_cache(const long target_frame) {
     if (!ftg) return;
 
     FootageStreamPtr ms;
-    if (timeline_info.track < 0) {
+    if (timeline_info.isVideo()) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);

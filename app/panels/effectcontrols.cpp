@@ -92,7 +92,7 @@ void EffectControls::menu_select(QAction* q) {
   ComboAction* ca = new ComboAction();
   for (int i=0;i<selected_clips.size();i++) {
     ClipPtr c = global::sequence->clips.at(selected_clips.at(i));
-    if ((c->timeline_info.track < 0) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
+    if ((c->timeline_info.isVideo()) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
       const EffectMeta* meta = reinterpret_cast<const EffectMeta*>(q->data().value<quintptr>());
       if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
         if (c->openingTransition() == nullptr) {
@@ -474,7 +474,7 @@ void EffectControls::load_effects() {
     for (int i=0;i<selected_clips.size();i++) {
       ClipPtr c = global::sequence->clips.at(selected_clips.at(i));
       QVBoxLayout* layout;
-      if (c->timeline_info.track < 0) {
+      if (c->timeline_info.isVideo()) {
         vcontainer->setVisible(true);
         layout = static_cast<QVBoxLayout*>(video_effect_area->layout());
       } else {

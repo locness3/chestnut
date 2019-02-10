@@ -101,7 +101,7 @@ void SpeedDialog::run() {
 
         // get default frame rate/percentage
         clip_percent = clp->timeline_info.speed;
-        if (clp->timeline_info.track < 0) {
+        if (clp->timeline_info.isVideo()) {
             bool process_video = true;
             if (clp->timeline_info.media != nullptr && clp->timeline_info.media->type() == MediaType::FOOTAGE) {
                 FootagePtr ftg = clp->timeline_info.media->object<Footage>();
@@ -190,7 +190,7 @@ void SpeedDialog::percent_update() {
         ClipPtr c = clips.at(i);
 
         // get frame rate
-        if (frame_rate->isEnabled() && c->timeline_info.track < 0) {
+        if (frame_rate->isEnabled() && c->timeline_info.isVideo()) {
             double clip_fr = c->mediaFrameRate() * percent->value();
             if (got_fr) {
                 if (!qIsNaN(fr_val) && !qFuzzyCompare(fr_val, clip_fr)) {
@@ -234,7 +234,7 @@ void SpeedDialog::duration_update() {
         }
 
         // get frame rate
-        if (frame_rate->isEnabled() && c->timeline_info.track < 0) {
+        if (frame_rate->isEnabled() && c->timeline_info.isVideo()) {
             double clip_fr = c->mediaFrameRate() * clip_pc;
             if (got_fr) {
                 if (!qIsNaN(fr_val) && !qFuzzyCompare(fr_val, clip_fr)) {
@@ -274,7 +274,7 @@ void SpeedDialog::frame_rate_update() {
             old_pc_val = qSNaN();
         }
 
-        if (c->timeline_info.track < 0) {
+        if (c->timeline_info.isVideo()) {
             // what would the new speed be based on this frame rate
             double new_clip_speed = frame_rate->value() / c->mediaFrameRate();
             if (!got_pc_val) {
@@ -388,7 +388,7 @@ void SpeedDialog::accept() {
             } else if (!qFuzzyCompare(cached_speed, c->timeline_info.speed)) {
                 can_change_all = false;
             }
-            if (c->timeline_info.track < 0) {
+            if (c->timeline_info.isVideo()) {
                 if (qIsNaN(cached_fr)) {
                     cached_fr = c->mediaFrameRate();
                 } else if (!qFuzzyCompare(cached_fr, c->mediaFrameRate())) {
@@ -401,7 +401,7 @@ void SpeedDialog::accept() {
         // make changes
         for (int i=0;i<clips.size();i++) {
             ClipPtr c = clips.at(i);
-            if (c->timeline_info.track < 0) {
+            if (c->timeline_info.isVideo()) {
                 set_speed(ca, c, frame_rate->value() / c->mediaFrameRate(), ripple->isChecked(), earliest_point, longest_ripple);
             } else if (can_change_all) {
                 set_speed(ca, c, frame_rate->value() / cached_fr, ripple->isChecked(), earliest_point, longest_ripple);
