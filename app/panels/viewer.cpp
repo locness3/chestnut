@@ -134,11 +134,11 @@ void Viewer::set_main_sequence() {
 void Viewer::reset_all_audio() {
     // reset all clip audio
     if (seq != nullptr) {
-        audio_ibuffer_frame = seq->playhead;
-        audio_ibuffer_timecode = (double) audio_ibuffer_frame / seq->getFrameRate();
+        audio_ibuffer_frame = seq->playhead_;
+        audio_ibuffer_timecode = (double) audio_ibuffer_frame / seq->frameRate();
 
-        for (int i=0;i<seq->clips.size();i++) {
-            ClipPtr c = seq->clips.at(i);
+        for (int i=0;i<seq->clips_.size();i++) {
+            ClipPtr c = seq->clips_.at(i);
             if (c != nullptr) {
                 c->resetAudio();
             }
@@ -275,7 +275,7 @@ bool frame_rate_is_droppable(float rate) {
 
 void Viewer::seek(long p) {
     pause();
-    seq->playhead = p;
+    seq->playhead_ = p;
     bool update_fx = false;
     if (main_sequence) {
         e_panel_timeline->scroll_to_frame(p);
@@ -295,7 +295,7 @@ void Viewer::go_to_start() {
 }
 
 void Viewer::go_to_end() {
-    if (seq != nullptr) seek(seq->getEndFrame());
+    if (seq != nullptr) seek(seq->endFrame());
 }
 
 void Viewer::close_media() {
@@ -304,8 +304,8 @@ void Viewer::close_media() {
 
 void Viewer::go_to_in() {
     if (seq != nullptr) {
-        if (seq->using_workarea && seq->enable_workarea) {
-            seek(seq->workarea_in);
+        if (seq->using_workarea_ && seq->enable_workarea_) {
+            seek(seq->workarea_in_);
         } else {
             go_to_start();
         }
@@ -313,17 +313,17 @@ void Viewer::go_to_in() {
 }
 
 void Viewer::previous_frame() {
-    if (seq != nullptr && seq->playhead > 0) seek(seq->playhead-1);
+    if (seq != nullptr && seq->playhead_ > 0) seek(seq->playhead_-1);
 }
 
 void Viewer::next_frame() {
-    if (seq != nullptr) seek(seq->playhead+1);
+    if (seq != nullptr) seek(seq->playhead_+1);
 }
 
 void Viewer::go_to_out() {
     if (seq != nullptr) {
-        if (seq->using_workarea && seq->enable_workarea) {
-            seek(seq->workarea_out);
+        if (seq->using_workarea_ && seq->enable_workarea_) {
+            seek(seq->workarea_out_);
         } else {
             go_to_end();
         }
@@ -363,7 +363,7 @@ void Viewer::play() {
 
     if (seq != nullptr) {
         if (!is_recording_cued()
-                && seq->playhead >= get_seq_out()
+                && seq->playhead_ >= get_seq_out()
                 && (e_config.loop || !main_sequence)) {
             seek(get_seq_in());
         }
@@ -373,7 +373,7 @@ void Viewer::play() {
             qCritical() << "Failed to record audio";
             return;
         }
-        playhead_start = seq->playhead;
+        playhead_start = seq->playhead_;
         playing = true;
         just_played = true;
         set_playpause_icon(false);
@@ -418,7 +418,7 @@ void Viewer::pause() {
             clp->timeline_info.media = mda; // latest media
             clp->timeline_info.media_stream = 0;
             clp->timeline_info.in = recording_start;
-            clp->timeline_info.out = recording_start + ftg->get_length_in_frames(seq->getFrameRate());
+            clp->timeline_info.out = recording_start + ftg->get_length_in_frames(seq->frameRate());
             clp->timeline_info.clip_in = 0;
             clp->timeline_info.track = recording_track;
             clp->timeline_info.color = PAUSE_COLOR;
@@ -439,12 +439,12 @@ void Viewer::update_playhead_timecode(long p) {
 
 void Viewer::update_end_timecode() {
     endTimecode->setText((seq == nullptr) ? frame_to_timecode(0, e_config.timecode_view, 30)
-                                          : frame_to_timecode(seq->getEndFrame(), e_config.timecode_view, seq->getFrameRate()));
+                                          : frame_to_timecode(seq->endFrame(), e_config.timecode_view, seq->frameRate()));
 }
 
 void Viewer::update_header_zoom() {
     if (seq != nullptr) {
-        long sequenceEndFrame = seq->getEndFrame();
+        long sequenceEndFrame = seq->endFrame();
         if (cached_end_frame != sequenceEndFrame) {
             minimum_zoom = (sequenceEndFrame > 0) ? ((double) headers->width() / (double) sequenceEndFrame) : 1;
             headers->update_zoom(qMax(headers->get_zoom(), minimum_zoom));
@@ -484,44 +484,44 @@ SequencePtr Viewer::getSequence()
 void Viewer::update_viewer() {
     update_header_zoom();
     viewer_widget->frame_update();
-    if (seq != nullptr) update_playhead_timecode(seq->playhead);
+    if (seq != nullptr) update_playhead_timecode(seq->playhead_);
     update_end_timecode();
 }
 
 void Viewer::clear_in() {
-    if (seq->using_workarea) {
-        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, 0, seq->workarea_out));
+    if (seq->using_workarea_) {
+        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, 0, seq->workarea_out_));
         update_parents();
     }
 }
 
 void Viewer::clear_out() {
-    if (seq->using_workarea) {
-        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, seq->workarea_in, seq->getEndFrame()));
+    if (seq->using_workarea_) {
+        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, seq->workarea_in_, seq->endFrame()));
         update_parents();
     }
 }
 
 void Viewer::clear_inout_point() {
-    if (seq->using_workarea) {
+    if (seq->using_workarea_) {
         e_undo_stack.push(new SetTimelineInOutCommand(seq, false, 0, 0));
         update_parents();
     }
 }
 
 void Viewer::toggle_enable_inout() {
-    if (seq != nullptr && seq->using_workarea) {
-        e_undo_stack.push(new SetBool(&seq->enable_workarea, !seq->enable_workarea));
+    if (seq != nullptr && seq->using_workarea_) {
+        e_undo_stack.push(new SetBool(&seq->enable_workarea_, !seq->enable_workarea_));
         update_parents();
     }
 }
 
 void Viewer::set_in_point() {
-    headers->set_in_point(seq->playhead);
+    headers->set_in_point(seq->playhead_);
 }
 
 void Viewer::set_out_point() {
-    headers->set_out_point(seq->playhead);
+    headers->set_out_point(seq->playhead_);
 }
 
 void Viewer::set_zoom(bool in) {
@@ -554,24 +554,24 @@ void Viewer::set_zoom_value(double d) {
     if (seq != nullptr) {
         set_sb_max();
         if (!horizontal_bar->is_resizing())
-            center_scroll_to_playhead(horizontal_bar, headers->get_zoom(), seq->playhead);
+            center_scroll_to_playhead(horizontal_bar, headers->get_zoom(), seq->playhead_);
     }
 }
 
 void Viewer::set_sb_max() {
-    headers->set_scrollbar_max(horizontal_bar, seq->getEndFrame(), headers->width());
+    headers->set_scrollbar_max(horizontal_bar, seq->endFrame(), headers->width());
 }
 
 long Viewer::get_seq_in() {
-    return (seq->using_workarea && seq->enable_workarea)
-            ? seq->workarea_in
+    return (seq->using_workarea_ && seq->enable_workarea_)
+            ? seq->workarea_in_
             : 0;
 }
 
 long Viewer::get_seq_out() {
-    return (seq->using_workarea && seq->enable_workarea && previous_playhead < seq->workarea_out)
-            ? seq->workarea_out
-            : seq->getEndFrame();
+    return (seq->using_workarea_ && seq->enable_workarea_ && previous_playhead < seq->workarea_out_)
+            ? seq->workarea_out_
+            : seq->endFrame();
 }
 
 void Viewer::setup_ui() {
@@ -690,13 +690,13 @@ void Viewer::set_media(MediaPtr m) {
 
             seq = std::make_shared<Sequence>();
             created_sequence = true;
-            seq->wrapper_sequence = true;
+            seq->wrapper_sequence_ = true;
             seq->setName(ftg->getName());
 
-            seq->using_workarea = ftg->using_inout;
+            seq->using_workarea_ = ftg->using_inout;
             if (ftg->using_inout) {
-                seq->workarea_in = ftg->in;
-                seq->workarea_out = ftg->out;
+                seq->workarea_in_ = ftg->in;
+                seq->workarea_out_ = ftg->out;
             }
 
             seq->setFrameRate(MEDIA_FRAME_RATE);
@@ -713,14 +713,14 @@ void Viewer::set_media(MediaPtr m) {
                 clp->timeline_info.media        = media;
                 clp->timeline_info.media_stream = video_stream->file_index;
                 clp->timeline_info.in           = 0;
-                clp->timeline_info.out          = ftg->get_length_in_frames(seq->getFrameRate());
+                clp->timeline_info.out          = ftg->get_length_in_frames(seq->frameRate());
                 if (clp->timeline_info.out <= 0) {
                     clp->timeline_info.out = 150;
                 }
                 clp->timeline_info.track    = -1;
                 clp->timeline_info.clip_in  = 0;
                 clp->recalculateMaxLength();
-                seq->clips.append(clp);
+                seq->clips_.append(clp);
             } else {
                 seq->setWidth(MEDIA_WIDTH);
                 seq->setHeight(MEDIA_HEIGHT);
@@ -734,11 +734,11 @@ void Viewer::set_media(MediaPtr m) {
                 clp->timeline_info.media        = media;
                 clp->timeline_info.media_stream = audio_stream->file_index;
                 clp->timeline_info.in           = 0;
-                clp->timeline_info.out          = ftg->get_length_in_frames(seq->getFrameRate());
+                clp->timeline_info.out          = ftg->get_length_in_frames(seq->frameRate());
                 clp->timeline_info.track        = 0;
                 clp->timeline_info.clip_in      = 0;
                 clp->recalculateMaxLength();
-                seq->clips.append(clp);
+                seq->clips_.append(clp);
 
                 if (ftg->video_tracks.size() == 0) {
                     viewer_widget->waveform         = true;
@@ -773,16 +773,16 @@ void Viewer::update_playhead() {
 }
 
 void Viewer::timer_update() {
-    previous_playhead = seq->playhead;
+    previous_playhead = seq->playhead_;
 
-    seq->playhead = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * seq->getFrameRate()));
+    seq->playhead_ = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * seq->frameRate()));
     if (e_config.seek_also_selects) e_panel_timeline->select_from_playhead();
     update_parents(e_config.seek_also_selects);
 
     long end_frame = get_seq_out();
     if (!recording
             && playing
-            && seq->playhead >= end_frame
+            && seq->playhead_ >= end_frame
             && previous_playhead < end_frame) {
         if (!e_config.pause_at_out_point && e_config.loop) {
             seek(get_seq_in());
@@ -790,7 +790,7 @@ void Viewer::timer_update() {
         } else if (e_config.pause_at_out_point || !main_sequence) {
             pause();
         }
-    } else if (recording && recording_start != recording_end && seq->playhead >= recording_end) {
+    } else if (recording && recording_start != recording_end && seq->playhead_ >= recording_end) {
         pause();
     }
 }
@@ -846,11 +846,11 @@ void Viewer::set_sequence(bool main, SequencePtr s) {
     btnSkipToEnd->setEnabled(!null_sequence);
 
     if (!null_sequence) {
-        currentTimecode->set_frame_rate(seq->getFrameRate());
+        currentTimecode->set_frame_rate(seq->frameRate());
 
-        playback_updater.setInterval(qFloor(1000 / seq->getFrameRate()));
+        playback_updater.setInterval(qFloor(1000 / seq->frameRate()));
 
-        update_playhead_timecode(seq->playhead);
+        update_playhead_timecode(seq->playhead_);
         update_end_timecode();
 
         viewer_container->adjust();

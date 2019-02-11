@@ -60,15 +60,15 @@ void RenderThread::run() {
           SequencePtr sequenceNow = seq.lock();
 
           // gen texture
-          if (texColorBuffer == 0 || tex_width != sequenceNow->getWidth() || tex_height != sequenceNow->getHeight()) {
+          if (texColorBuffer == 0 || tex_width != sequenceNow->width() || tex_height != sequenceNow->height()) {
             delete_texture();
             glGenTextures(1, &texColorBuffer);
             glBindTexture(GL_TEXTURE_2D, texColorBuffer);
             glTexImage2D(
-                  GL_TEXTURE_2D, 0, GL_RGB, sequenceNow->getWidth(), sequenceNow->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr
+                  GL_TEXTURE_2D, 0, GL_RGB, sequenceNow->width(), sequenceNow->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr
                   );
-            tex_width = sequenceNow->getWidth();
-            tex_height = sequenceNow->getWidth();
+            tex_width = sequenceNow->width();
+            tex_height = sequenceNow->width();
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             ctx->functions()->glFramebufferTexture2D(

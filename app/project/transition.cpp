@@ -56,7 +56,7 @@ Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
 
   LabelSlider* length_ui_ele = static_cast<LabelSlider*>(length_field->ui_element);
   length_ui_ele->set_display_type(LABELSLIDER_FRAMENUMBER);
-  length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->getFrameRate());
+  length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->frameRate());
 }
 
 int Transition::copy(ClipPtr c, ClipPtr s) {
@@ -117,7 +117,7 @@ int create_transition(ClipPtr c, ClipPtr s, const EffectMeta* em, long length) {
     if (length >= 0) {
       t->set_length(length);
     }
-    QVector<TransitionPtr>& transition_list = (c->sequence == nullptr) ? e_clipboard_transitions : c->sequence->transitions;
+    QVector<TransitionPtr>& transition_list = (c->sequence == nullptr) ? e_clipboard_transitions : c->sequence->transitions_;
     transition_list.append(t);
     return transition_list.size() - 1;
   }

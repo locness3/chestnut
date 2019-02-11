@@ -223,11 +223,11 @@ void Media::updateTooltip(const QString& error) {
                                                       "\nAudio Frequency: %5"
                                                       "\nAudio Layout: %6").arg(
                    sqn->getName(),
-                   QString::number(sqn->getWidth()),
-                   QString::number(sqn->getHeight()),
-                   QString::number(sqn->getFrameRate()),
-                   QString::number(sqn->getAudioFrequency()),
-                   get_channel_layout_name(av_get_channel_layout_nb_channels(sqn->getAudioLayout()), sqn->getAudioLayout())
+                   QString::number(sqn->width()),
+                   QString::number(sqn->height()),
+                   QString::number(sqn->frameRate()),
+                   QString::number(sqn->audioFrequency()),
+                   get_channel_layout_name(av_get_channel_layout_nb_channels(sqn->audioLayout()), sqn->audioLayout())
                    );
     }
       break;
@@ -283,7 +283,7 @@ double Media::frameRate(const int stream) {
     }
     case MediaType::SEQUENCE:
       if (auto sqn = object<Sequence>()) {
-        return sqn->getFrameRate();
+        return sqn->frameRate();
       }
       break;
     default:
@@ -310,7 +310,7 @@ int Media::samplingRate(const int stream) {
     }
     case MediaType::SEQUENCE:
       if (auto sqn = object<Sequence>()) {
-        return sqn->getAudioFrequency();
+        return sqn->audioFrequency();
       }
       break;
     default:
@@ -370,7 +370,7 @@ QVariant Media::data(int column, int role) {
           if (_root) return QCoreApplication::translate("Media", "Duration");
           if (type() == MediaType::SEQUENCE) {
             SequencePtr s = object<Sequence>();
-            return frame_to_timecode(s->getEndFrame(), e_config.timecode_view, s->getFrameRate());
+            return frame_to_timecode(s->endFrame(), e_config.timecode_view, s->frameRate());
           }
           if (type() == MediaType::FOOTAGE) {
             FootagePtr f = object<Footage>();

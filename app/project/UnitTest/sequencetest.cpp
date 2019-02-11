@@ -13,16 +13,16 @@ void SequenceTest::testCaseDefaults()
     Sequence sqn(mediaList, sequenceName);
 
     QVERIFY(sqn.getName() == sequenceName);
-    QVERIFY(sqn.getAudioFrequency() == 48000);
-    QVERIFY(sqn.getAudioLayout() == 3);
-    QVERIFY(qFuzzyCompare(sqn.getFrameRate(), 29.97));
-    QVERIFY(sqn.getHeight() == 1080);
-    QVERIFY(sqn.getWidth() == 1920);
-    QVERIFY(sqn.clips.size() == 0);
-    QVERIFY(sqn.getEndFrame() == 0);
+    QVERIFY(sqn.audioFrequency() == 48000);
+    QVERIFY(sqn.audioLayout() == 3);
+    QVERIFY(qFuzzyCompare(sqn.frameRate(), 29.97));
+    QVERIFY(sqn.height() == 1080);
+    QVERIFY(sqn.width() == 1920);
+    QVERIFY(sqn.clips_.size() == 0);
+    QVERIFY(sqn.endFrame() == 0);
     int video_limit;
     int audio_limit;
-    sqn.getTrackLimits(video_limit, audio_limit);
+    sqn.trackLimits(video_limit, audio_limit);
     QVERIFY(video_limit == 0);
     QVERIFY(audio_limit == 0);
 }
@@ -31,14 +31,14 @@ void SequenceTest::testCaseCopy()
 {
     Sequence sqnOrigin;
     auto sqnCopy = sqnOrigin.copy();
-    QVERIFY(sqnOrigin.getAudioFrequency() == sqnCopy->getAudioFrequency());
-    QVERIFY(sqnOrigin.getAudioLayout() == sqnCopy->getAudioLayout());
-    QVERIFY(sqnOrigin.getEndFrame() == sqnCopy->getEndFrame());
-    QVERIFY(qFuzzyCompare(sqnOrigin.getFrameRate(), sqnCopy->getFrameRate()));
-    QVERIFY(sqnOrigin.getHeight() == sqnCopy->getHeight());
+    QVERIFY(sqnOrigin.audioFrequency() == sqnCopy->audioFrequency());
+    QVERIFY(sqnOrigin.audioLayout() == sqnCopy->audioLayout());
+    QVERIFY(sqnOrigin.endFrame() == sqnCopy->endFrame());
+    QVERIFY(qFuzzyCompare(sqnOrigin.frameRate(), sqnCopy->frameRate()));
+    QVERIFY(sqnOrigin.height() == sqnCopy->height());
     QVERIFY(sqnOrigin.getName() != sqnCopy->getName());
-    QVERIFY(sqnOrigin.getWidth() == sqnCopy->getWidth());
-    QVERIFY(sqnOrigin.clips.size() == sqnCopy->clips.size());
+    QVERIFY(sqnOrigin.width() == sqnCopy->width());
+    QVERIFY(sqnOrigin.clips_.size() == sqnCopy->clips_.size());
 }
 
 void SequenceTest::testCaseSetWidths_data()

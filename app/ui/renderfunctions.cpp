@@ -125,13 +125,13 @@ GLuint compose_sequence(Viewer* viewer,
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &current_fbo);
   }
   auto lcl_seq = seq;
-  long playhead = lcl_seq->playhead;
+  long playhead = lcl_seq->playhead_;
 
   if (!nests.isEmpty()) {
     for(auto nest_clip : nests) {
       lcl_seq = nest_clip->timeline_info.media->object<Sequence>();
       playhead += nest_clip->timeline_info.clip_in - nest_clip->timelineInWithTransition();
-      playhead = refactor_frame_number(playhead, nest_clip->sequence->getFrameRate(), lcl_seq->getFrameRate());
+      playhead = refactor_frame_number(playhead, nest_clip->sequence->frameRate(), lcl_seq->frameRate());
     }
 
     if (video && (nests.last()->fbo != nullptr) ) {
@@ -146,7 +146,7 @@ GLuint compose_sequence(Viewer* viewer,
 
   QVector<ClipPtr> current_clips;
 
-  for (auto clp : lcl_seq->clips) {
+  for (auto clp : lcl_seq->clips_) {
     // if clip starts within one second and/or hasn't finished yet
     if (clp != nullptr) {
       //			if (!(!nests.isEmpty() && !same_sign(c->track, nests.last()->track))) {
@@ -204,8 +204,8 @@ GLuint compose_sequence(Viewer* viewer,
     }
   }//for
 
-  const auto half_width = lcl_seq->getWidth()/2;
-  const auto half_height = lcl_seq->getHeight()/2;
+  const auto half_width = lcl_seq->width()/2;
+  const auto half_height = lcl_seq->height()/2;
 
   if (video) {
     glPushMatrix();
@@ -337,9 +337,9 @@ GLuint compose_sequence(Viewer* viewer,
           coords.textureBottomLeftQ = 1;
 
           // set up autoscale
-          if (clp->timeline_info.autoscale && (video_width != lcl_seq->getWidth() && video_height != lcl_seq->getHeight())) {
-            auto width_multiplier = static_cast<GLfloat>(lcl_seq->getWidth()) / static_cast<GLfloat>(video_width);
-            auto height_multiplier = static_cast<GLfloat>(lcl_seq->getHeight()) / static_cast<GLfloat>(video_height);
+          if (clp->timeline_info.autoscale && (video_width != lcl_seq->width() && video_height != lcl_seq->height())) {
+            auto width_multiplier = static_cast<GLfloat>(lcl_seq->width()) / static_cast<GLfloat>(video_width);
+            auto height_multiplier = static_cast<GLfloat>(lcl_seq->height()) / static_cast<GLfloat>(video_height);
             auto scale_multiplier = qMin(width_multiplier, height_multiplier);
             glScalef(scale_multiplier, scale_multiplier, 1);
           }
@@ -412,7 +412,7 @@ GLuint compose_sequence(Viewer* viewer,
           if (!nests.isEmpty()) {
             nests.last()->fbo[0]->bind();
           }
-          glViewport(0, 0, lcl_seq->getWidth(), lcl_seq->getHeight());
+          glViewport(0, 0, lcl_seq->width(), lcl_seq->height());
 
           glBindTexture(GL_TEXTURE_2D, composite_texture);
 
@@ -511,7 +511,7 @@ GLuint compose_sequence(Viewer* viewer,
 
         // visually update all the keyframe values
         if (clp->sequence == seq) { // only if you can currently see them
-          double ts = (playhead - clp->timelineInWithTransition() + clp->clipInWithTransition()) / lcl_seq->getFrameRate();
+          double ts = (playhead - clp->timelineInWithTransition() + clp->clipInWithTransition()) / lcl_seq->frameRate();
           for (auto efct : clp->effects) {
             for (int j=0; j<efct->row_count(); ++j) {
               auto efctRow = efct->row(j);

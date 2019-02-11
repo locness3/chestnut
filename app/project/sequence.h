@@ -48,23 +48,23 @@ public:
 
     Sequence(const Sequence& cpy);
     std::shared_ptr<Sequence> copy();
-    void getTrackLimits(int& video_limit, int& audio_limit) const;
-    long getEndFrame() const;
-    void hard_delete_transition(ClipPtr& c, const int type);
+    void trackLimits(int& video_limit, int& audio_limit) const;
+    long endFrame() const;
+    void hardDeleteTransition(ClipPtr& c, const int type);
 
     bool setWidth(const int val);
-    int getWidth() const;
+    int width() const;
     bool setHeight(const int val);
-    int getHeight() const;
-    double getFrameRate() const;
+    int height() const;
+    double frameRate() const;
     bool setFrameRate(const double frameRate);
-    int getAudioFrequency() const;
+    int audioFrequency() const;
     bool setAudioFrequency(const int frequency);
     /**
-     * @brief getAudioLayout from ffmpeg libresample
+     * @brief audioLayout from ffmpeg libresample
      * @return AV_CH_LAYOUT_*
      */
-    int getAudioLayout() const;
+    int audioLayout() const;
     /**
      * @brief setAudioLayout using ffmpeg libresample
      * @param layout AV_CH_LAYOUT_* value from libavutil/channel_layout.h
@@ -73,24 +73,24 @@ public:
 
     void closeActiveClips(const int depth=0);
 
-    QVector<Selection> selections;
-    QVector<ClipPtr> clips;
-    int save_id = 0;
-    bool using_workarea = false;
-    bool enable_workarea = true;
-    long workarea_in = 0;
-    long workarea_out = 0;
-    QVector<TransitionPtr> transitions;
-    QVector<Marker> markers;
-    long playhead = 0;
-    bool wrapper_sequence = false;
+    QVector<Selection> selections_;
+    QVector<ClipPtr> clips_;
+    int save_id_ = 0;
+    bool using_workarea_ = false;
+    bool enable_workarea_ = true;
+    long workarea_in_ = 0;
+    long workarea_out_ = 0;
+    QVector<TransitionPtr> transitions_;
+    QVector<Marker> markers_;
+    long playhead_ = 0;
+    bool wrapper_sequence_ = false;
 
 private:
-    int width = -1;
-    int height = -1;
-    double frame_rate = -0.0;
-    int audio_frequency = -1;
-    int audio_layout = -1;
+    int width_ = -1;
+    int height_ = -1;
+    double frame_rate_ = -0.0;
+    int audio_frequency_ = -1;
+    int audio_layout_ = -1;
 };
 
 namespace global {

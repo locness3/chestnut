@@ -40,11 +40,11 @@ const int       DEFAULT_LAYOUT             = 3; //TODO: what does this value mea
 
 Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName)
     : ProjectItem(sequenceName),
-      width(DEFAULT_WIDTH),
-      height(DEFAULT_HEIGHT),
-      frame_rate(DEFAULT_FRAMERATE),
-      audio_frequency(DEFAULT_AUDIO_FREQUENCY),
-      audio_layout(DEFAULT_LAYOUT)
+      width_(DEFAULT_WIDTH),
+      height_(DEFAULT_HEIGHT),
+      frame_rate_(DEFAULT_FRAMERATE),
+      audio_frequency_(DEFAULT_AUDIO_FREQUENCY),
+      audio_layout_(DEFAULT_LAYOUT)
 {
     bool got_video_values = false;
     bool got_audio_values = false;
@@ -61,13 +61,13 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
                 break;
             }
             for (const auto ms : ftg->video_tracks) {
-                width = ms->video_width;
-                height = ms->video_height;
+                width_ = ms->video_width;
+                height_ = ms->video_height;
                 if (!qFuzzyCompare(ms->video_frame_rate, 0.0)) {
-                    frame_rate = ms->video_frame_rate * ftg->speed;
+                    frame_rate_ = ms->video_frame_rate * ftg->speed;
 
                     if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
-                        frame_rate *= 2;
+                        frame_rate_ *= 2;
                     }
 
                     // only break with a decent frame rate, otherwise there may be a better candidate
@@ -77,7 +77,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
             }//for
             if (!got_audio_values && !ftg->audio_tracks.empty()) {
                 const auto ms = ftg->audio_tracks.front();
-                audio_frequency = ms->audio_frequency;
+                audio_frequency_ = ms->audio_frequency;
                 got_audio_values = true;
             }
         }
@@ -85,11 +85,11 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
         case MediaType::SEQUENCE:
         {
             if (auto seq = mda->object<Sequence>()) {
-                width = seq->getWidth();
-                height  = seq->getHeight();
-                frame_rate = seq->getFrameRate();
-                audio_frequency = seq->getAudioFrequency();
-                audio_layout = seq->getAudioLayout();
+                width_ = seq->width();
+                height_  = seq->height();
+                frame_rate_ = seq->frameRate();
+                audio_frequency_ = seq->audioFrequency();
+                audio_layout_ = seq->audioLayout();
 
                 got_video_values = true;
                 got_audio_values = true;
@@ -114,22 +114,22 @@ Sequence::~Sequence() {
  */
 Sequence::Sequence(const Sequence& cpy) :
     ProjectItem(),
-    selections(cpy.selections),
-    clips(cpy.clips),
-    save_id(cpy.save_id),
-    using_workarea(cpy.using_workarea),
-    enable_workarea(cpy.enable_workarea),
-    workarea_in(cpy.workarea_in),
-    workarea_out(cpy.workarea_out),
-    transitions(cpy.transitions),
-    markers(cpy.markers),
-    playhead(cpy.playhead),
-    wrapper_sequence(cpy.wrapper_sequence),
-    width(cpy.width),
-    height(cpy.height),
-    frame_rate(cpy.frame_rate),
-    audio_frequency(cpy.audio_frequency),
-    audio_layout(cpy.audio_layout)
+    selections_(cpy.selections_),
+    clips_(cpy.clips_),
+    save_id_(cpy.save_id_),
+    using_workarea_(cpy.using_workarea_),
+    enable_workarea_(cpy.enable_workarea_),
+    workarea_in_(cpy.workarea_in_),
+    workarea_out_(cpy.workarea_out_),
+    transitions_(cpy.transitions_),
+    markers_(cpy.markers_),
+    playhead_(cpy.playhead_),
+    wrapper_sequence_(cpy.wrapper_sequence_),
+    width_(cpy.width_),
+    height_(cpy.height_),
+    frame_rate_(cpy.frame_rate_),
+    audio_frequency_(cpy.audio_frequency_),
+    audio_layout_(cpy.audio_layout_)
 {
 
 }
@@ -137,29 +137,29 @@ Sequence::Sequence(const Sequence& cpy) :
 std::shared_ptr<Sequence> Sequence::copy() {
     auto sqn = std::make_shared<Sequence>();
     sqn->name = QCoreApplication::translate("Sequence", "%1 (copy)").arg(name);
-    sqn->width = width;
-    sqn->height = height;
-    sqn->frame_rate = frame_rate;
-    sqn->audio_frequency = audio_frequency;
-    sqn->audio_layout = audio_layout;
-    sqn->clips.resize(clips.size());
+    sqn->width_ = width_;
+    sqn->height_ = height_;
+    sqn->frame_rate_ = frame_rate_;
+    sqn->audio_frequency_ = audio_frequency_;
+    sqn->audio_layout_ = audio_layout_;
+    sqn->clips_.resize(clips_.size());
 
-    for (auto i=0;i<clips.size();i++) {
-        auto c = clips.at(i);
+    for (auto i=0;i<clips_.size();i++) {
+        auto c = clips_.at(i);
         if (c == nullptr) {
-            sqn->clips[i] = nullptr;
+            sqn->clips_[i] = nullptr;
         } else {
             auto copy(c->copy(sqn));
             copy->linked = c->linked;
-            sqn->clips[i] = copy;
+            sqn->clips_[i] = copy;
         }
     }
     return sqn;
 }
 
-long Sequence::getEndFrame() const{
+long Sequence::endFrame() const{
     auto end = 0L;
-    for (auto clp : clips) {
+    for (auto clp : clips_) {
         if (clp && (clp->timeline_info.out > end) ) {
             end = clp->timeline_info.out;
         }
@@ -167,14 +167,14 @@ long Sequence::getEndFrame() const{
     return end;
 }
 
-void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
+void Sequence::hardDeleteTransition(ClipPtr& c, const int type) {
     auto transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
     if (transition_index > -1) {
         auto del = true;
 
-        auto transition_for_delete = transitions.at(transition_index);
+        auto transition_for_delete = transitions_.at(transition_index);
         if (!transition_for_delete->secondary_clip.expired()) {
-            for (auto comp : clips) {
+            for (auto comp : clips_) {
                 if (!comp){
                     continue;
                 }
@@ -194,7 +194,7 @@ void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
         }
 
         if (del) {
-            transitions[transition_index] = nullptr;
+            transitions_[transition_index] = nullptr;
         }
 
         if (type == TA_OPENING_TRANSITION) {
@@ -209,48 +209,48 @@ void Sequence::hard_delete_transition(ClipPtr& c, const int type) {
 bool Sequence::setWidth(const int val)
 {
     if ( (val % 2  == 0) && (val > 0) && (val <= MAXIMUM_WIDTH) ) {
-        width = val;
+        width_ = val;
         return true;
     }
     return false;
 }
-int Sequence::getWidth() const {
-    return width;
+int Sequence::width() const {
+    return width_;
 }
 
 bool Sequence::setHeight(const int val)
 {
     if ( (val % 2  == 0) && (val > 0) && (val <= MAXIMUM_HEIGHT) ) {
-        height = val;
+        height_ = val;
         return true;
     }
     return false;
 }
-int Sequence::getHeight() const {
-    return height;
+int Sequence::height() const {
+    return height_;
 }
 
-double Sequence::getFrameRate() const {
-    return frame_rate;
+double Sequence::frameRate() const {
+    return frame_rate_;
 }
 
 bool Sequence::setFrameRate(const double frameRate)
 {
     if (frameRate > 0.0) {
-        frame_rate = frameRate;
+        frame_rate_ = frameRate;
         return true;
     }
     return false;
 }
 
 
-int Sequence::getAudioFrequency() const {
-    return audio_frequency;
+int Sequence::audioFrequency() const {
+    return audio_frequency_;
 }
 bool Sequence::setAudioFrequency(const int frequency)
 {
     if ( (frequency >= 0) && (frequency <= MAXIMUM_FREQUENCY) ) {
-        audio_frequency = frequency;
+        audio_frequency_ = frequency;
         return true;
     }
     return false;
@@ -260,22 +260,22 @@ bool Sequence::setAudioFrequency(const int frequency)
  * @brief getAudioLayout from ffmpeg libresample
  * @return AV_CH_LAYOUT_*
  */
-int Sequence::getAudioLayout() const {
-    return audio_layout;
+int Sequence::audioLayout() const {
+    return audio_layout_;
 }
 /**
  * @brief setAudioLayout using ffmpeg libresample
  * @param layout AV_CH_LAYOUT_* value from libavutil/channel_layout.h
  */
 void Sequence::setAudioLayout(const int layout) {
-    audio_layout = layout;
+    audio_layout_ = layout;
 }
 
 
 void Sequence::closeActiveClips(const int depth)
 {
     if (depth > RECURSION_LIMIT) return;
-    for (auto c : clips) {
+    for (auto c : clips_) {
         if (!c) {
             qWarning() << "Null Clip ptr";
             continue;
@@ -289,10 +289,10 @@ void Sequence::closeActiveClips(const int depth)
     }//for
 }
 
-void Sequence::getTrackLimits(int& video_limit, int& audio_limit) const {
+void Sequence::trackLimits(int& video_limit, int& audio_limit) const {
     video_limit = 0;
     audio_limit = 0;
-    for (auto clp : clips) {
+    for (auto clp : clips_) {
         if (clp == nullptr) {
             continue;
         }

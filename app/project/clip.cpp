@@ -83,8 +83,8 @@ Clip::~Clip() {
   }
 
   //FIXME:
-  //    if (opening_transition != -1) this->sequence->hard_delete_transition(this, TA_OPENING_TRANSITION);
-  //    if (closing_transition != -1) this->sequence->hard_delete_transition(this, TA_CLOSING_TRANSITION);
+  //    if (opening_transition != -1) this->sequence->hardDeleteTransition(this, TA_OPENING_TRANSITION);
+  //    if (closing_transition != -1) this->sequence->hardDeleteTransition(this, TA_CLOSING_TRANSITION);
 
   effects.clear();
   av_packet_free(&media_handling.pkt);
@@ -113,7 +113,7 @@ ClipPtr Clip::copy(SequencePtr s) {
     copyClip->effects.append(effects.at(i)->copy(copyClip));
   }
 
-  copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->getFrameRate();
+  copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
 
   if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
     copyClip->opening_transition = openingTransition()->copy(copyClip, nullptr);
@@ -129,7 +129,7 @@ ClipPtr Clip::copy(SequencePtr s) {
 bool Clip::isActive(const long playhead) {
   if (timeline_info.enabled) {
     if (sequence != nullptr) {
-      if ( timelineInWithTransition() < (playhead + (ceil(sequence->getFrameRate()*2)) ) )  {                      //TODO:what are we checking?
+      if ( timelineInWithTransition() < (playhead + (ceil(sequence->frameRate()*2)) ) )  {                      //TODO:what are we checking?
         if (timelineOutWithTransition() > playhead) {                                                            //TODO:what are we checking?
           if ( (playhead - timelineInWithTransition() + clipInWithTransition()) < maximumLength() ){ //TODO:what are we checking?
             return true;
@@ -163,7 +163,7 @@ bool Clip::openWorker() {
     if (timeline_info.track >= 0) {
       media_handling.frame = av_frame_alloc();
       media_handling.frame->format = SAMPLE_FORMAT;
-      media_handling.frame->channel_layout = sequence->getAudioLayout();
+      media_handling.frame->channel_layout = sequence->audioLayout();
       media_handling.frame->channels = av_get_channel_layout_nb_channels(media_handling.frame->channel_layout);
       media_handling.frame->sample_rate = current_audio_freq();
       media_handling.frame->nb_samples = AUDIO_SAMPLES;
@@ -339,8 +339,8 @@ bool Clip::openWorker() {
 
         reverse_frame->format = SAMPLE_FORMAT;
         reverse_frame->nb_samples = current_audio_freq()*2;
-        reverse_frame->channel_layout = sequence->getAudioLayout();
-        reverse_frame->channels = av_get_channel_layout_nb_channels(sequence->getAudioLayout());
+        reverse_frame->channel_layout = sequence->audioLayout();
+        reverse_frame->channels = av_get_channel_layout_nb_channels(sequence->audioLayout());
         av_frame_get_buffer(reverse_frame, 0);
 
         queue.append(reverse_frame);
@@ -599,8 +599,8 @@ void Clip::resetAudio() {
     audio_playback.buffer_write = 0;
   } else if (timeline_info.media->type() == MediaType::SEQUENCE) {
     SequencePtr nested_sequence = timeline_info.media->object<Sequence>();
-    for (int i=0;i<nested_sequence->clips.size();i++) {
-      ClipPtr c(nested_sequence->clips.at(i));
+    for (int i=0;i<nested_sequence->clips_.size();i++) {
+      ClipPtr c(nested_sequence->clips_.at(i));
       if (c != nullptr) {
         c->resetAudio(); //FIXME: no recursion depth check
       }
@@ -653,7 +653,7 @@ TransitionPtr Clip::openingTransition() {
     if (this->sequence == nullptr) {
       return e_clipboard_transitions.at(opening_transition);
     } else {
-      return this->sequence->transitions.at(opening_transition);
+      return this->sequence->transitions_.at(opening_transition);
     }
   }
   return nullptr;
@@ -664,7 +664,7 @@ TransitionPtr Clip::closingTransition() {
     if (this->sequence == nullptr) {
       return e_clipboard_transitions.at(closing_transition);
     } else {
-      return this->sequence->transitions.at(closing_transition);
+      return this->sequence->transitions_.at(closing_transition);
     }
   }
   return nullptr;
@@ -844,7 +844,7 @@ void Clip::frame(const long playhead, bool& texture_failed) {
 
 double Clip::timecode(const long playhead) {
   return (static_cast<double>(playhead - timelineInWithTransition() + clipInWithTransition())
-          / static_cast<double>(sequence->getFrameRate()) );
+          / static_cast<double>(sequence->frameRate()) );
 }
 
 /**
@@ -854,8 +854,8 @@ double Clip::timecode(const long playhead) {
  */
 bool Clip::isSelected(const bool containing)
 {
-  for (int i=0; i < sequence->selections.size(); i++) {
-    const Selection& s = sequence->selections.at(i);
+  for (int i=0; i < sequence->selections_.size(); i++) {
+    const Selection& s = sequence->selections_.at(i);
     //FIXME: christ almighty
     if (timeline_info.track == s.track && ((timeline_info.in >= s.in && timeline_info.out <= s.out && containing) ||
                                            (!containing && !(timeline_info.in < s.in && timeline_info.out < s.in) && !(timeline_info.in > s.in && timeline_info.out > s.in)))) {
@@ -904,7 +904,7 @@ double Clip::mediaFrameRate() {
     }
   }
   if (sequence != nullptr) {
-    return sequence->getFrameRate();
+    return sequence->frameRate();
   }
   return qSNaN();
 }
@@ -912,7 +912,7 @@ double Clip::mediaFrameRate() {
 void Clip::recalculateMaxLength() {
   // TODO: calculated_length on failures
   if (sequence != nullptr) {
-    double fr = this->sequence->getFrameRate();
+    double fr = this->sequence->frameRate();
 
     fr /= timeline_info.speed;
 
@@ -943,7 +943,7 @@ void Clip::recalculateMaxLength() {
         {
           SequencePtr s = timeline_info.media->object<Sequence>();
           if (s != nullptr) {
-            media_handling.calculated_length = refactor_frame_number(s->getEndFrame(), s->getFrameRate(), fr);
+            media_handling.calculated_length = refactor_frame_number(s->endFrame(), s->frameRate(), fr);
           }
         }
           break;
@@ -961,7 +961,7 @@ long Clip::maximumLength() {
 
 int Clip::width() {
   if (timeline_info.media == nullptr && sequence != nullptr) {
-    return sequence->getWidth();
+    return sequence->width();
   }
 
   switch (timeline_info.media->type()) {
@@ -980,14 +980,14 @@ int Clip::width() {
         return ms->video_width;
       }
       if (sequence != nullptr) {
-        return sequence->getWidth();
+        return sequence->width();
       }
       break;
     }
     case MediaType::SEQUENCE:
     {
       if (auto sequenceNow = timeline_info.media->object<Sequence>()){
-        return sequenceNow->getWidth();
+        return sequenceNow->width();
       }
       break;
     }
@@ -1000,7 +1000,7 @@ int Clip::width() {
 
 int Clip::height() {
   if ( (timeline_info.media == nullptr) && (sequence != nullptr) ) {
-    return sequence->getHeight();
+    return sequence->height();
   }
 
   switch (timeline_info.media->type()) {
@@ -1021,14 +1021,14 @@ int Clip::height() {
         return ms->video_height;
       }
       if (sequence != nullptr) {
-        return sequence->getHeight();
+        return sequence->height();
       }
       break;
     }
     case MediaType::SEQUENCE:
     {
       if (auto s = timeline_info.media->object<Sequence>() ) {
-        return s->getHeight();
+        return s->height();
       }
       break;
     }
@@ -1121,8 +1121,8 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
   }
   if (openingTransition() != nullptr) {
     if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
-      const double transition_start = (clipInWithTransition() / sequence->getFrameRate());
-      const double transition_end = (clipInWithTransition() + openingTransition()->get_length()) / sequence->getFrameRate();
+      const double transition_start = (clipInWithTransition() / sequence->frameRate());
+      const double transition_end = (clipInWithTransition() + openingTransition()->get_length()) / sequence->frameRate();
       if (timecode_end < transition_end) {
         const double adjustment = transition_end - transition_start;
         const double adjusted_range_start = (timecode_start - transition_start) / adjustment;
@@ -1134,8 +1134,8 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
   if (closingTransition() != nullptr) {
     if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
       const long length_with_transitions = timelineOutWithTransition() - timelineInWithTransition();
-      const double transition_start = (clipInWithTransition() + length_with_transitions - closingTransition()->get_length()) / sequence->getFrameRate();
-      const double transition_end = (clipInWithTransition() + length_with_transitions) / sequence->getFrameRate();
+      const double transition_start = (clipInWithTransition() + length_with_transitions - closingTransition()->get_length()) / sequence->frameRate();
+      const double transition_end = (clipInWithTransition() + length_with_transitions) / sequence->frameRate();
       if (timecode_start > transition_start) {
         const double adjustment = transition_end - transition_start;
         const double adjusted_range_start = (timecode_start - transition_start) / adjustment;
@@ -1149,7 +1149,7 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
   //    if (!nests.isEmpty()) {
   //        ClipPtr next_nest = nests.last();
   //        nests.removeLast();
-  //        apply_audio_effects(next_nest, timecode_start + (((double)timelineInWithTransition()-clipInWithTransition())/sequence->getFrameRate()), frame, nb_bytes, nests);
+  //        apply_audio_effects(next_nest, timecode_start + (((double)timelineInWithTransition()-clipInWithTransition())/sequence->frameRate()), frame, nb_bytes, nests);
   //    }
 }
 
@@ -1220,14 +1220,15 @@ double Clip::playhead_to_seconds(const long playhead) {
   if (timeline_info.reverse) {
     clip_frame = maximumLength() - clip_frame - 1;
   }
-  double secs = (static_cast<double>(clip_frame)/sequence->getFrameRate()) * timeline_info.speed;
+  double secs = (static_cast<double>(clip_frame)/sequence->frameRate()) * timeline_info.speed;
   if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
     secs *= timeline_info.media->object<Footage>()->speed;
   }
   return secs;
 }
 
-int64_t Clip::seconds_to_timestamp(const double seconds) {
+int64_t Clip::seconds_to_timestamp(const double seconds)
+{
   return qRound64(seconds * av_q2d(av_inv_q(media_handling.stream->time_base))) + qMax(0L, media_handling.stream->start_time);
 }
 
@@ -1238,20 +1239,20 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
   long target_frame = audio_playback.target_frame;
 
   long frame_skip = 0;
-  double last_fr = sequence->getFrameRate();
+  double last_fr = sequence->frameRate();
   if (!nests.isEmpty()) {
     for (auto nestedClip : nests) {
       //FIXME: same calc done 3 times
       timeline_in = refactor_frame_number(timeline_in, last_fr,
-                                          nestedClip->sequence->getFrameRate()) + nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
+                                          nestedClip->sequence->frameRate()) + nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
       timeline_out = refactor_frame_number(timeline_out, last_fr,
-                                           nestedClip->sequence->getFrameRate()) + nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
+                                           nestedClip->sequence->frameRate()) + nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
       target_frame = refactor_frame_number(target_frame, last_fr,
-                                           nestedClip->sequence->getFrameRate()) + nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
+                                           nestedClip->sequence->frameRate()) + nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
 
       timeline_out = qMin(timeline_out, nestedClip->timelineOutWithTransition());
 
-      frame_skip = refactor_frame_number(frame_skip, last_fr, nestedClip->sequence->getFrameRate());
+      frame_skip = refactor_frame_number(frame_skip, last_fr, nestedClip->sequence->frameRate());
 
       long validator = nestedClip->timelineInWithTransition() - timeline_in;
       if (validator > 0) {
@@ -1259,7 +1260,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
         //timeline_in = nests.at(i)->timelineInWithTransition();
       }
 
-      last_fr = nestedClip->sequence->getFrameRate();
+      last_fr = nestedClip->sequence->frameRate();
     }//for
   }
 
@@ -1447,7 +1448,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
       if (nb_bytes == INT_MAX) nb_bytes = av_frame->nb_samples * av_get_bytes_per_sample(static_cast<AVSampleFormat>(av_frame->format)) * av_frame->channels;
       if (new_frame) {
         apply_audio_effects(bytes_to_seconds(audio_playback.buffer_write, 2,
-                                             current_audio_freq()) + audio_ibuffer_timecode + ((double)clipInWithTransition()/sequence->getFrameRate()) - ((double)timeline_in/last_fr),
+                                             current_audio_freq()) + audio_ibuffer_timecode + ((double)clipInWithTransition()/sequence->frameRate()) - ((double)timeline_in/last_fr),
                             av_frame, nb_bytes, nests);
       }
     } else {
@@ -1460,7 +1461,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
     if (av_frame->nb_samples == 0) {
       break;
     } else {
-      long buffer_timeline_out = get_buffer_offset_from_frame(sequence->getFrameRate(), timeline_out);
+      long buffer_timeline_out = get_buffer_offset_from_frame(sequence->frameRate(), timeline_out);
       audio_write_lock.lock();
 
       while (audio_playback.frame_sample_index < nb_bytes

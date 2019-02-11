@@ -331,7 +331,7 @@ void GraphView::paintEvent(QPaintEvent *) {
 
     // draw playhead
     p.setPen(Qt::red);
-    int playhead_x = get_screen_x(e_panel_sequence_viewer->getSequence()->playhead - visible_in);
+    int playhead_x = get_screen_x(e_panel_sequence_viewer->getSequence()->playhead_ - visible_in);
     p.drawLine(playhead_x, 0, playhead_x, height());
 
     if (rect_select) {

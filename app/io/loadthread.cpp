@@ -296,7 +296,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                     int folder = attr.value().toInt();
                     if (folder > 0) parent = find_loaded_folder_by_id(folder);
                   } else if (attr.name() == "id") {
-                    s->save_id = attr.value().toInt();
+                    s->save_id_ = attr.value().toInt();
                   } else if (attr.name() == "width") {
                     s->setWidth(attr.value().toUInt());
                   } else if (attr.name() == "height") {
@@ -310,13 +310,13 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                   } else if (attr.name() == "open") {
                     open_seq = s;
                   } else if (attr.name() == "workarea") {
-                    s->using_workarea = (attr.value() == "1");
+                    s->using_workarea_ = (attr.value() == "1");
                   } else if (attr.name() == "workareaEnabled") {
-                    s->enable_workarea = (attr.value() == "1");
+                    s->enable_workarea_ = (attr.value() == "1");
                   } else if (attr.name() == "workareaIn") {
-                    s->workarea_in = attr.value().toLong();
+                    s->workarea_in_ = attr.value().toLong();
                   } else if (attr.name() == "workareaOut") {
-                    s->workarea_out = attr.value().toLong();
+                    s->workarea_out_ = attr.value().toLong();
                   }
                 }
 
@@ -335,7 +335,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                         m.name = attr.value().toString();
                       }
                     }
-                    s->markers.append(m);
+                    s->markers_.append(m);
                   } else if (stream.name() == "transition" && stream.isStartElement()) {
                     TransitionData td;
                     td.otc = nullptr;
@@ -451,19 +451,19 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                     }
                     if (cancelled) return false;
 
-                    s->clips.append(clp);
+                    s->clips_.append(clp);
                   }
                 }
                 if (cancelled) return false;
 
                 // correct links, clip IDs, transitions
-                for (int i=0;i<s->clips.size();i++) {
+                for (int i=0;i<s->clips_.size();i++) {
                   // correct links
-                  ClipPtr  correct_clip = s->clips.at(i);
+                  ClipPtr  correct_clip = s->clips_.at(i);
                   for (int j=0;j<correct_clip->linked.size();j++) {
                     bool found = false;
-                    for (int k=0;k<s->clips.size();k++) {
-                      if (s->clips.at(k)->load_id == correct_clip->linked.at(j)) {
+                    for (int k=0;k<s->clips_.size();k++) {
+                      if (s->clips_.at(k)->load_id == correct_clip->linked.at(j)) {
                         correct_clip->linked[j] = k;
                         found = true;
                         break;
@@ -644,7 +644,7 @@ void LoadThread::run() {
       for (int i=0;i<loaded_clips.size();i++) {
         for (int j=0;j<loaded_sequences.size();j++) {
           if ( (loaded_clips.at(i)->timeline_info.media == nullptr)
-               && (loaded_clips.at(i)->timeline_info.media_stream == loaded_sequences.at(j)->object<Sequence>()->save_id) ) {
+               && (loaded_clips.at(i)->timeline_info.media_stream == loaded_sequences.at(j)->object<Sequence>()->save_id_) ) {
             loaded_clips.at(i)->timeline_info.media = loaded_sequences.at(j);
             loaded_clips.at(i)->refresh();
             break;
@@ -759,7 +759,7 @@ void LoadThread::create_effect_ui(
     }
   } else {
     int transition_index = create_transition(c, nullptr, meta);
-    auto t = c->sequence->transitions.at(transition_index);
+    auto t = c->sequence->transitions_.at(transition_index);
     if (effect_length > -1) t->set_length(effect_length);
     t->set_enabled(effect_enabled);
     t->load(*stream);
@@ -776,7 +776,7 @@ void LoadThread::create_effect_ui(
 
 void LoadThread::create_dual_transition(const TransitionData* td, ClipPtr  primary, ClipPtr  secondary, const EffectMeta* meta) {
   int transition_index = create_transition(primary, secondary, meta);
-  primary->sequence->transitions.at(transition_index)->set_length(td->length);
+  primary->sequence->transitions_.at(transition_index)->set_length(td->length);
   if (td->otc != nullptr) td->otc->opening_transition = transition_index;
   if (td->ctc != nullptr) td->ctc->closing_transition = transition_index;
   waitCond.wakeAll();

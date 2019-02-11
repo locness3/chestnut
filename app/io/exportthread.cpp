@@ -157,15 +157,15 @@ bool ExportThread::setupVideo() {
     video_frame = av_frame_alloc();
     av_frame_make_writable(video_frame);
     video_frame->format = AV_PIX_FMT_RGBA;
-    video_frame->width = global::sequence->getWidth();
-    video_frame->height = global::sequence->getHeight();
+    video_frame->width = global::sequence->width();
+    video_frame->height = global::sequence->height();
     av_frame_get_buffer(video_frame, 0);
 
     av_init_packet(&video_pkt);
 
     sws_ctx = sws_getContext(
-                global::sequence->getWidth(),
-                global::sequence->getHeight(),
+                global::sequence->width(),
+                global::sequence->height(),
                 AV_PIX_FMT_RGBA,
                 video_width,
                 video_height,
@@ -254,9 +254,9 @@ bool ExportThread::setupAudio() {
                 acodec_ctx->channel_layout,
                 acodec_ctx->sample_fmt,
                 acodec_ctx->sample_rate,
-                global::sequence->getAudioLayout(),
+                global::sequence->audioLayout(),
                 AV_SAMPLE_FMT_S16,
-                global::sequence->getAudioFrequency(),
+                global::sequence->audioFrequency(),
                 0,
                 nullptr
                 );
@@ -264,7 +264,7 @@ bool ExportThread::setupAudio() {
 
     // initialize raw audio frame
     audio_frame = av_frame_alloc();
-    audio_frame->sample_rate = global::sequence->getAudioFrequency();
+    audio_frame->sample_rate = global::sequence->audioFrequency();
     audio_frame->nb_samples = acodec_ctx->frame_size;
     if (audio_frame->nb_samples == 0) audio_frame->nb_samples = 256; // should possibly be smaller?
     audio_frame->format = AV_SAMPLE_FMT_S16;
@@ -349,7 +349,7 @@ void ExportThread::run() {
 
     mutex.lock();
 
-    while (global::sequence->playhead <= end_frame && continueEncode) {
+    while (global::sequence->playhead_ <= end_frame && continueEncode) {
         start_time = QDateTime::currentMSecsSinceEpoch();
 
         if (audio_enabled) {
@@ -366,7 +366,7 @@ void ExportThread::run() {
         }
 
         // encode last frame while rendering next frame
-        double timecode_secs = (double) (global::sequence->playhead-start_frame) / global::sequence->getFrameRate();
+        double timecode_secs = (double) (global::sequence->playhead_-start_frame) / global::sequence->frameRate();
         if (video_enabled) {
             // change pixel format
             sws_scale(sws_ctx, video_frame->data, video_frame->linesize, 0, video_frame->height, sws_frame->data, sws_frame->linesize);
@@ -407,14 +407,14 @@ void ExportThread::run() {
         // encoding stats
         frame_time = (QDateTime::currentMSecsSinceEpoch()-start_time);
         total_time += frame_time;
-        remaining_frames = (end_frame-global::sequence->playhead);
+        remaining_frames = (end_frame-global::sequence->playhead_);
         avg_time = (total_time/frame_count);
         eta = (remaining_frames*avg_time);
 
         //        qInfo() << "Encoded frame" << sequence->playhead << "- took" << frame_time << "ms (avg:" << avg_time << "ms, remaining:" << remaining_frames << ", ETA:" << eta << ")";
 
-        emit progress_changed(qRound(((double) (global::sequence->playhead-start_frame) / (double) (end_frame-start_frame)) * 100), eta);
-        global::sequence->playhead++;
+        emit progress_changed(qRound(((double) (global::sequence->playhead_-start_frame) / (double) (end_frame-start_frame)) * 100), eta);
+        global::sequence->playhead_++;
         frame_count++;
     }
 

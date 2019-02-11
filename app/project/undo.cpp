@@ -137,24 +137,24 @@ DeleteClipAction::~DeleteClipAction() {
 
 void DeleteClipAction::undo() {
   // restore ref to clip
-  seq->clips[index] = ref;
+  seq->clips_[index] = ref;
 
   // restore shared transitions
   if (opening_transition > -1) {
-    seq->transitions.at(opening_transition)->secondary_clip = seq->transitions.at(opening_transition)->parent_clip;
-    seq->transitions.at(opening_transition)->parent_clip = ref;
+    seq->transitions_.at(opening_transition)->secondary_clip = seq->transitions_.at(opening_transition)->parent_clip;
+    seq->transitions_.at(opening_transition)->parent_clip = ref;
     ref->opening_transition = opening_transition;
     opening_transition = -1;
   }
   if (closing_transition > -1) {
-    seq->transitions.at(closing_transition)->secondary_clip = ref;
+    seq->transitions_.at(closing_transition)->secondary_clip = ref;
     ref->closing_transition = closing_transition;
     closing_transition = -1;
   }
 
   // restore links to this clip
   for (int i=linkClipIndex.size()-1;i>=0;i--) {
-    seq->clips.at(linkClipIndex.at(i))->linked.insert(linkLinkIndex.at(i), index);
+    seq->clips_.at(linkClipIndex.at(i))->linked.insert(linkLinkIndex.at(i), index);
   }
 
   ref = nullptr;
@@ -164,10 +164,10 @@ void DeleteClipAction::undo() {
 
 void DeleteClipAction::redo() {
   // remove ref to clip
-  ref = seq->clips.at(index);
+  ref = seq->clips_.at(index);
   ref->close(true);
 
-  seq->clips[index] = nullptr;
+  seq->clips_[index] = nullptr;
 
   // save shared transitions
   if (ref->opening_transition > -1 && !ref->openingTransition()->secondary_clip.expired()) {
@@ -185,8 +185,8 @@ void DeleteClipAction::redo() {
   // delete link to this clip
   linkClipIndex.clear();
   linkLinkIndex.clear();
-  for (int i=0;i<seq->clips.size();i++) {
-    ClipPtr   c = seq->clips.at(i);
+  for (int i=0;i<seq->clips_.size();i++) {
+    ClipPtr   c = seq->clips_.at(i);
     if (c != nullptr) {
       for (int j=0;j<c->linked.size();j++) {
         if (c->linked.at(j) == index) {
@@ -223,14 +223,14 @@ SetTimelineInOutCommand::SetTimelineInOutCommand(SequencePtr s, const bool enabl
 {}
 
 void SetTimelineInOutCommand::undo() {
-  seq->using_workarea = old_enabled;
-  seq->enable_workarea = old_workarea_enabled;
-  seq->workarea_in = old_in;
-  seq->workarea_out = old_out;
+  seq->using_workarea_ = old_enabled;
+  seq->enable_workarea_ = old_workarea_enabled;
+  seq->workarea_in_ = old_in;
+  seq->workarea_out_ = old_out;
 
   // footage viewer functions
-  if (seq->wrapper_sequence) {
-    FootagePtr  m = seq->clips.at(0)->timeline_info.media->object<Footage>();
+  if (seq->wrapper_sequence_) {
+    FootagePtr  m = seq->clips_.at(0)->timeline_info.media->object<Footage>();
     m->using_inout = old_enabled;
     m->in = old_in;
     m->out = old_out;
@@ -240,19 +240,19 @@ void SetTimelineInOutCommand::undo() {
 }
 
 void SetTimelineInOutCommand::redo() {
-  old_enabled = seq->using_workarea;
-  old_workarea_enabled = seq->enable_workarea;
-  old_in = seq->workarea_in;
-  old_out = seq->workarea_out;
+  old_enabled = seq->using_workarea_;
+  old_workarea_enabled = seq->enable_workarea_;
+  old_in = seq->workarea_in_;
+  old_out = seq->workarea_out_;
 
-  if (!seq->using_workarea) seq->enable_workarea = true;
-  seq->using_workarea = new_enabled;
-  seq->workarea_in = new_in;
-  seq->workarea_out = new_out;
+  if (!seq->using_workarea_) seq->enable_workarea_ = true;
+  seq->using_workarea_ = new_enabled;
+  seq->workarea_in_ = new_in;
+  seq->workarea_out_ = new_out;
 
   // footage viewer functions
-  if (seq->wrapper_sequence) {
-    FootagePtr  m = seq->clips.at(0)->timeline_info.media->object<Footage>();
+  if (seq->wrapper_sequence_) {
+    FootagePtr  m = seq->clips_.at(0)->timeline_info.media->object<Footage>();
     m->using_inout = new_enabled;
     m->in = new_in;
     m->out = new_out;
@@ -309,8 +309,8 @@ AddTransitionCommand::AddTransitionCommand(ClipPtr   c, ClipPtr s, TransitionPtr
 {}
 
 void AddTransitionCommand::undo() {
-  clip->sequence->hard_delete_transition(clip, type);
-  if (secondary != nullptr) secondary->sequence->hard_delete_transition(secondary, (type == TA_OPENING_TRANSITION) ? TA_CLOSING_TRANSITION : TA_OPENING_TRANSITION);
+  clip->sequence->hardDeleteTransition(clip, type);
+  if (secondary != nullptr) secondary->sequence->hardDeleteTransition(secondary, (type == TA_OPENING_TRANSITION) ? TA_CLOSING_TRANSITION : TA_OPENING_TRANSITION);
 
   if (type == TA_OPENING_TRANSITION) {
     clip->opening_transition = old_ptransition;
@@ -381,18 +381,22 @@ DeleteTransitionCommand::~DeleteTransitionCommand() {
 }
 
 void DeleteTransitionCommand::undo() {
-  seq->transitions[index] = transition;
+  seq->transitions_[index] = transition;
 
-  if (otc != nullptr) otc->opening_transition = index;
-  if (ctc != nullptr) ctc->closing_transition = index;
+  if (otc != nullptr) {
+    otc->opening_transition = index;
+  }
+  if (ctc != nullptr) {
+    ctc->closing_transition = index;
+  }
 
   transition = nullptr;
   global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void DeleteTransitionCommand::redo() {
-  for (int i=0;i<seq->clips.size();i++) {
-    ClipPtr   c = seq->clips.at(i);
+  for (int i=0;i<seq->clips_.size();i++) {
+    ClipPtr   c = seq->clips_.at(i);
     if (c != nullptr) {
       if (c->opening_transition == index) {
         otc = c;
@@ -405,8 +409,8 @@ void DeleteTransitionCommand::redo() {
     }
   }
 
-  transition = seq->transitions.at(index);
-  seq->transitions[index] = nullptr;
+  transition = seq->transitions_.at(index);
+  seq->transitions_[index] = nullptr;
 
   global::mainWindow->setWindowModified(true);
 }
@@ -499,11 +503,11 @@ AddClipCommand::~AddClipCommand() {
 void AddClipCommand::undo() {
   e_panel_effect_controls->clear_effects(true);
   for (int i=0;i<clips.size();i++) {
-    ClipPtr   c = seq->clips.last();
+    ClipPtr   c = seq->clips_.last();
     e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track);
     undone_clips.prepend(c);
     c->close(true);
-    seq->clips.removeLast();
+    seq->clips_.removeLast();
   }
   global::mainWindow->setWindowModified(old_project_changed);
 }
@@ -511,11 +515,11 @@ void AddClipCommand::undo() {
 void AddClipCommand::redo() {
   if (undone_clips.size() > 0) {
     for (int i=0;i<undone_clips.size();i++) {
-      seq->clips.append(undone_clips.at(i));
+      seq->clips_.append(undone_clips.at(i));
     }
     undone_clips.clear();
   } else {
-    int linkOffset = seq->clips.size();
+    int linkOffset = seq->clips_.size();
     for (int i=0;i<clips.size();i++) {
       ClipPtr   original = clips.at(i);
       ClipPtr   copy = original->copy(seq);
@@ -525,7 +529,7 @@ void AddClipCommand::redo() {
       }
       if (original->opening_transition > -1) copy->opening_transition = original->openingTransition()->copy(copy, nullptr);
       if (original->closing_transition > -1) copy->closing_transition = original->closingTransition()->copy(copy, nullptr);
-      seq->clips.append(copy);
+      seq->clips_.append(copy);
     }
   }
   global::mainWindow->setWindowModified(true);
@@ -540,7 +544,7 @@ LinkCommand::LinkCommand()
 
 void LinkCommand::undo() {
   for (int i=0;i<clips.size();i++) {
-    ClipPtr   c = s->clips.at(clips.at(i));
+    ClipPtr   c = s->clips_.at(clips.at(i));
     if (link) {
       c->linked.clear();
     } else {
@@ -554,7 +558,7 @@ void LinkCommand::redo() {
   old_links.clear();
   for (int i=0;i<clips.size();i++) {
     dout << clips.at(i);
-    ClipPtr   c = s->clips.at(clips.at(i));
+    ClipPtr   c = s->clips_.at(clips.at(i));
     if (link) {
       for (int j=0;j<clips.size();j++) {
         if (i != j) {
@@ -599,8 +603,8 @@ void ReplaceMediaCommand::replace(QString& filename) {
   QVector<MediaPtr> all_sequences = e_panel_project->list_all_project_sequences();
   for (int i=0;i<all_sequences.size();i++) {
     SequencePtr s = all_sequences.at(i)->object<Sequence>();
-    for (int j=0;j<s->clips.size();j++) {
-      ClipPtr   c = s->clips.at(j);
+    for (int j=0;j<s->clips_.size();j++) {
+      ClipPtr   c = s->clips_.at(j);
       if (c != nullptr && c->timeline_info.media == item && c->is_open) {
         c->close(true);
         c->replaced = true;
@@ -822,9 +826,9 @@ AddMarkerAction::AddMarkerAction(SequencePtr s, const long t, QString n) :
 
 void AddMarkerAction::undo() {
   if (index == -1) {
-    seq->markers.removeLast();
+    seq->markers_.removeLast();
   } else {
-    seq->markers[index].name = old_name;
+    seq->markers_[index].name = old_name;
   }
 
   global::mainWindow->setWindowModified(old_project_changed);
@@ -832,8 +836,8 @@ void AddMarkerAction::undo() {
 
 void AddMarkerAction::redo() {
   index = -1;
-  for (int i=0;i<seq->markers.size();i++) {
-    if (seq->markers.at(i).frame == time) {
+  for (int i=0;i<seq->markers_.size();i++) {
+    if (seq->markers_.at(i).frame == time) {
       index = i;
       break;
     }
@@ -842,10 +846,10 @@ void AddMarkerAction::redo() {
   if (index == -1) {
     Marker m;
     m.frame = time;
-    seq->markers.append(m);
+    seq->markers_.append(m);
   } else {
-    old_name = seq->markers.at(index).name;
-    seq->markers[index].name = name;
+    old_name = seq->markers_.at(index).name;
+    seq->markers_[index].name = name;
   }
 
   global::mainWindow->setWindowModified(true);
@@ -876,7 +880,7 @@ DeleteMarkerAction::DeleteMarkerAction(SequencePtr s) :
 
 void DeleteMarkerAction::undo() {
   for (int i=markers.size()-1;i>=0;i--) {
-    seq->markers.insert(markers.at(i), copies.at(i));
+    seq->markers_.insert(markers.at(i), copies.at(i));
   }
   global::mainWindow->setWindowModified(old_project_changed);
 }
@@ -885,14 +889,14 @@ void DeleteMarkerAction::redo() {
   for (int i=0;i<markers.size();i++) {
     // correct future removals
     if (!sorted) {
-      copies.append(seq->markers.at(markers.at(i)));
+      copies.append(seq->markers_.at(markers.at(i)));
       for (int j=i+1;j<markers.size();j++) {
         if (markers.at(j) > markers.at(i)) {
           markers[j]--;
         }
       }
     }
-    seq->markers.removeAt(markers.at(i));
+    seq->markers_.removeAt(markers.at(i));
   }
   sorted = true;
   global::mainWindow->setWindowModified(true);
@@ -941,14 +945,14 @@ SetSelectionsCommand::SetSelectionsCommand(SequencePtr s) :
 {}
 
 void SetSelectionsCommand::undo() {
-  seq->selections = old_data;
+  seq->selections_  = old_data;
   done = false;
   global::mainWindow->setWindowModified(old_project_changed);
 }
 
 void SetSelectionsCommand::redo() {
   if (!done) {
-    seq->selections = new_data;
+    seq->selections_  = new_data;
     done = true;
   }
   global::mainWindow->setWindowModified(true);
@@ -976,11 +980,11 @@ EditSequenceCommand::EditSequenceCommand(MediaPtr i, SequencePtr s) :
   seq(s),
   old_project_changed(global::mainWindow->isWindowModified()),
   old_name(s->getName()),
-  old_width(s->getWidth()),
-  old_height(s->getHeight()),
-  old_frame_rate(s->getFrameRate()),
-  old_audio_frequency(s->getAudioFrequency()),
-  old_audio_layout(s->getAudioLayout())
+  old_width(s->width()),
+  old_height(s->height()),
+  old_frame_rate(s->frameRate()),
+  old_audio_frequency(s->audioFrequency()),
+  old_audio_layout(s->audioLayout())
 {}
 
 void EditSequenceCommand::undo() {
@@ -1011,8 +1015,8 @@ void EditSequenceCommand::update() {
   // update tooltip
   item->setSequence(seq);
 
-  for (int i=0;i<seq->clips.size();i++) {
-    if (seq->clips.at(i) != nullptr) seq->clips.at(i)->refresh();
+  for (int i=0;i<seq->clips_.size();i++) {
+    if (seq->clips_.at(i) != nullptr) seq->clips_.at(i)->refresh();
   }
 
   if (global::sequence == seq) {
@@ -1168,9 +1172,9 @@ void RippleAction::undo() {
 
 void RippleAction::redo() {
   ca = new ComboAction();
-  for (int i=0;i<s->clips.size();i++) {
+  for (int i=0;i<s->clips_.size();i++) {
     if (!ignore.contains(i)) {
-      ClipPtr   c = s->clips.at(i);
+      ClipPtr   c = s->clips_.at(i);
       if (c != nullptr) {
         if (c->timeline_info.in >= point) {
           move_clip(ca, c, length, length, 0, 0, true, true);
@@ -1277,8 +1281,8 @@ void RefreshClips::redo() {
   QVector<MediaPtr> all_sequences = e_panel_project->list_all_project_sequences();
   for (int i=0;i<all_sequences.size();i++) {
     SequencePtr s = all_sequences.at(i)->object<Sequence>();
-    for (int j=0;j<s->clips.size();j++) {
-      ClipPtr   c = s->clips.at(j);
+    for (int j=0;j<s->clips_.size();j++) {
+      ClipPtr   c = s->clips_.at(j);
       if (c != nullptr && c->timeline_info.media == media) {
         c->replaced = true;
         c->refresh();

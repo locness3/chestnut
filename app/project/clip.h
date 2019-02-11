@@ -57,7 +57,7 @@ using ClipWPtr = std::weak_ptr<Clip>;
 
 class Clip : public project::SequenceItem, QThread, std::enable_shared_from_this<Clip>
 {
-public:
+  public:
 
     explicit Clip(SequencePtr s);
     virtual ~Clip() override;
@@ -235,11 +235,11 @@ public:
     } audio_playback;
 
 
-protected:
+  protected:
     virtual void run() override;
 
-private:
-
+  private:
+    friend class ClipTest;
     struct {
         bool caching = false;
         // must be set before caching

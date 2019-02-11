@@ -408,7 +408,7 @@ void MainWindow::delete_slot() {
     if (e_panel_timeline->headers->hasFocus()) {
         e_panel_timeline->headers->delete_markers();
     } else if (e_panel_timeline->focused()) {
-        e_panel_timeline->delete_selection(global::sequence->selections, false);
+        e_panel_timeline->delete_selection(global::sequence->selections_, false);
     } else if (e_panel_effect_controls->is_focused()) {
         e_panel_effect_controls->delete_effects();
     } else if (e_panel_project->is_focused()) {
@@ -471,7 +471,7 @@ void MainWindow::export_dialog() {
 }
 
 void MainWindow::ripple_delete() {
-    if (global::sequence != nullptr) e_panel_timeline->delete_selection(global::sequence->selections, true);
+    if (global::sequence != nullptr) e_panel_timeline->delete_selection(global::sequence->selections_, true);
 }
 
 void MainWindow::editMenu_About_To_Be_Shown() {
@@ -494,8 +494,8 @@ void MainWindow::redo() {
 void MainWindow::open_speed_dialog() {
     if (global::sequence != nullptr) {
         SpeedDialog s(this);
-        for (int i=0;i<global::sequence->clips.size();i++) {
-            ClipPtr c = global::sequence->clips.at(i);
+        for (int i=0;i<global::sequence->clips_.size();i++) {
+            ClipPtr c = global::sequence->clips_.at(i);
             if (c != nullptr && c->isSelected(true)) {
                 s.clips.append(c);
             }
@@ -1451,8 +1451,8 @@ void MainWindow::toggle_enable_clips() {
     if (global::sequence != nullptr) {
         ComboAction* ca = new ComboAction();
         bool push_undo = false;
-        for (int i=0;i<global::sequence->clips.size();i++) {
-            ClipPtr  c = global::sequence->clips.at(i);
+        for (int i=0;i<global::sequence->clips_.size();i++) {
+            ClipPtr  c = global::sequence->clips_.at(i);
             if (c != nullptr && c->isSelected(true)) {
                 ca->append(new SetEnableCommand(c, !c->timeline_info.enabled));
                 push_undo = true;
@@ -1483,8 +1483,8 @@ void MainWindow::nest() {
         long earliest_point = LONG_MAX;
 
         // get selected clips
-        for (int i=0;i<global::sequence->clips.size();i++) {
-            ClipPtr  c = global::sequence->clips.at(i);
+        for (int i=0;i<global::sequence->clips_.size();i++) {
+            ClipPtr  c = global::sequence->clips_.at(i);
             if (c != nullptr && c->isSelected(true)) {
                 selected_clips.append(i);
                 earliest_point = qMin(c->timeline_info.in, earliest_point);
@@ -1499,11 +1499,11 @@ void MainWindow::nest() {
 
             // create "nest" sequence
             s->setName(e_panel_project->get_next_sequence_name(tr("Nested Sequence")));
-            s->setWidth(global::sequence->getWidth());
-            s->setHeight(global::sequence->getHeight());
-            s->setFrameRate(global::sequence->getFrameRate());
-            s->setAudioFrequency(global::sequence->getAudioFrequency());
-            s->setAudioLayout(global::sequence->getAudioLayout());
+            s->setWidth(global::sequence->width());
+            s->setHeight(global::sequence->height());
+            s->setFrameRate(global::sequence->frameRate());
+            s->setAudioFrequency(global::sequence->audioFrequency());
+            s->setAudioLayout(global::sequence->audioLayout());
 
             // copy all selected clips to the nest
             for (int i=0;i<selected_clips.size();i++) {
@@ -1511,10 +1511,10 @@ void MainWindow::nest() {
                 ca->append(new DeleteClipAction(global::sequence, selected_clips.at(i)));
 
                 // copy to new
-                ClipPtr  copy = global::sequence->clips.at(selected_clips.at(i))->copy(s);
+                ClipPtr  copy = global::sequence->clips_.at(selected_clips.at(i))->copy(s);
                 copy->timeline_info.in -= earliest_point;
                 copy->timeline_info.out -= earliest_point;
-                s->clips.append(copy);
+                s->clips_.append(copy);
             }
 
             // add sequence to project
@@ -1527,7 +1527,7 @@ void MainWindow::nest() {
             e_panel_timeline->add_clips_from_ghosts(ca, global::sequence);
 
             e_panel_effect_controls->clear_effects(true);
-            global::sequence->selections.clear();
+            global::sequence->selections_.clear();
 
             e_undo_stack.push(ca);
 

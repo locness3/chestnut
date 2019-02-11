@@ -1,6 +1,7 @@
 #include "cliptest.h"
 #include "project/clip.h"
 
+
 ClipTest::ClipTest()
 {
 
@@ -43,3 +44,5 @@ void ClipTest::testCaseUsesCacher()
   clp.timeline_info.media = mda;
   QVERIFY(clp.usesCacher() == false);
 }
+
+

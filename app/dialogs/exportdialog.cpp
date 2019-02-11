@@ -78,9 +78,9 @@ ExportDialog::ExportDialog(QWidget *parent) :
     setup_ui();
 
     rangeCombobox->setCurrentIndex(0);
-    if (global::sequence->using_workarea) {
+    if (global::sequence->using_workarea_) {
         rangeCombobox->setEnabled(true);
-        if (global::sequence->enable_workarea) rangeCombobox->setCurrentIndex(1);
+        if (global::sequence->enable_workarea_) rangeCombobox->setCurrentIndex(1);
     }
 
     format_strings.resize(FORMAT_SIZE);
@@ -111,10 +111,10 @@ ExportDialog::ExportDialog(QWidget *parent) :
     }
     formatCombobox->setCurrentIndex(FORMAT_MPEG4);
 
-    widthSpinbox->setValue(global::sequence->getWidth());
-    heightSpinbox->setValue(global::sequence->getHeight());
-    samplingRateSpinbox->setValue(global::sequence->getAudioFrequency());
-    framerateSpinbox->setValue(global::sequence->getFrameRate());
+    widthSpinbox->setValue(global::sequence->width());
+    heightSpinbox->setValue(global::sequence->height());
+    samplingRateSpinbox->setValue(global::sequence->audioFrequency());
+    framerateSpinbox->setValue(global::sequence->frameRate());
 }
 
 ExportDialog::~ExportDialog()
@@ -551,10 +551,10 @@ void ExportDialog::export_action() {
         }
 
         et->start_frame = 0;
-        et->end_frame = global::sequence->getEndFrame(); // entire sequence
+        et->end_frame = global::sequence->endFrame(); // entire sequence
         if (rangeCombobox->currentIndex() == 1) {
-            et->start_frame = qMax(global::sequence->workarea_in, et->start_frame);
-            et->end_frame = qMin(global::sequence->workarea_out, et->end_frame);
+            et->start_frame = qMax(global::sequence->workarea_in_, et->start_frame);
+            et->end_frame = qMin(global::sequence->workarea_out_, et->end_frame);
         }
 
         et->ed = this;
@@ -601,7 +601,7 @@ void ExportDialog::comp_type_changed(int) {
     case COMPRESSION_TYPE_CBR:
     case COMPRESSION_TYPE_TARGETBR:
         videoBitrateLabel->setText(tr("Bitrate (Mbps):"));
-        videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * global::sequence->getHeight()) - 4.5))); // FIXME: magic numbers
+        videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * global::sequence->height()) - 4.5))); // FIXME: magic numbers
         break;
     case COMPRESSION_TYPE_CFR:
         videoBitrateLabel->setText(tr("Quality (CRF):"));

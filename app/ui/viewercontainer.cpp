@@ -73,7 +73,7 @@ void ViewerContainer::adjust() {
             child->move(0, 0);
             child->resize(size());
         } else if (fit) {
-            const auto aspect_ratio = static_cast<double>(sqn->getWidth())/static_cast<double>(sqn->getHeight());
+            const auto aspect_ratio = static_cast<double>(sqn->width())/static_cast<double>(sqn->height());
 
             auto widget_x = 0;
             auto widget_y = 0;
@@ -94,10 +94,10 @@ void ViewerContainer::adjust() {
             child->move(widget_x, widget_y);
             child->resize(widget_width, widget_height);
 
-            zoom = static_cast<double>(widget_width) / static_cast<double>(sqn->getWidth());
+            zoom = static_cast<double>(widget_width) / static_cast<double>(sqn->width());
         } else {
-            const auto zoomed_width = qRound(viewer->getSequence()->getWidth() * zoom);
-            const auto zoomed_height = qRound(viewer->getSequence()->getHeight() * zoom);
+            const auto zoomed_width = qRound(viewer->getSequence()->width() * zoom);
+            const auto zoomed_height = qRound(viewer->getSequence()->height() * zoom);
             auto zoomed_x = 0;
             auto zoomed_y = 0;
 

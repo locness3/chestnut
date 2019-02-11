@@ -50,9 +50,9 @@ NewSequenceDialog::NewSequenceDialog(QWidget *parent, MediaPtr existing) :
     existing_sequence = existing->object<Sequence>();
     setWindowTitle(tr("Editing \"%1\"").arg(existing_sequence->getName()));
 
-    width_numeric->setValue(existing_sequence->getWidth());
-    height_numeric->setValue(existing_sequence->getHeight());
-    int comp_rate = qRound(existing_sequence->getFrameRate()*100);
+    width_numeric->setValue(existing_sequence->width());
+    height_numeric->setValue(existing_sequence->height());
+    int comp_rate = qRound(existing_sequence->frameRate()*100);
     for (int i=0;i<frame_rate_combobox->count();i++) {
       if (qRound(frame_rate_combobox->itemData(i).toDouble()*100) == comp_rate) {
         frame_rate_combobox->setCurrentIndex(i);
@@ -61,7 +61,7 @@ NewSequenceDialog::NewSequenceDialog(QWidget *parent, MediaPtr existing) :
     }
     sequence_name_edit->setText(existing_sequence->getName());
     for (int i=0;i<audio_frequency_combobox->count();i++) {
-      if (audio_frequency_combobox->itemData(i) == existing_sequence->getAudioFrequency()) {
+      if (audio_frequency_combobox->itemData(i) == existing_sequence->audioFrequency()) {
         audio_frequency_combobox->setCurrentIndex(i);
         break;
       }
@@ -96,7 +96,7 @@ void NewSequenceDialog::create() {
   } else {
     ComboAction* ca = new ComboAction();
 
-    double multiplier = frame_rate_combobox->currentData().toDouble() / existing_sequence->getFrameRate();
+    double multiplier = frame_rate_combobox->currentData().toDouble() / existing_sequence->frameRate();
 
     EditSequenceCommand* esc = new EditSequenceCommand(existing_item, existing_sequence);
     esc->name = sequence_name_edit->text();
@@ -107,8 +107,8 @@ void NewSequenceDialog::create() {
     esc->audio_layout = AV_CH_LAYOUT_STEREO;
     ca->append(esc);
 
-    for (int i=0;i<existing_sequence->clips.size();i++) {
-      ClipPtr c = existing_sequence->clips.at(i);
+    for (int i=0;i<existing_sequence->clips_.size();i++) {
+      ClipPtr c = existing_sequence->clips_.at(i);
       if (c != nullptr) {
         c->refactorFrameRate(ca, multiplier, true);
       }

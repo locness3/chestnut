@@ -457,8 +457,8 @@ void Project::delete_selected_media() {
       auto skip = false;
       for (auto j=0; j<sequence_items.size() && (!abort) && (!skip); ++j) {
         auto seq = sequence_items.at(j)->object<Sequence>();
-        for (auto k=0; (k<seq->clips.size()) && (!abort) && (!skip); ++k) {
-          auto c = seq->clips.at(k);
+        for (auto k=0; (k<seq->clips_.size()) && (!abort) && (!skip); ++k) {
+          auto c = seq->clips_.at(k);
           if ( (c != nullptr) && (c->timeline_info.media == item) ) {
             if (!confirm_delete) {
               auto ftg = item->object<Footage>();
@@ -523,7 +523,7 @@ void Project::delete_selected_media() {
   // remove
   if (remove) {
     e_panel_effect_controls->clear_effects(true);
-    if (global::sequence != nullptr) global::sequence->selections.clear();
+    if (global::sequence != nullptr) global::sequence->selections_.clear();
 
     // remove media and parents
     for (int m=0; m < parents.size(); m++) {
@@ -557,7 +557,7 @@ void Project::delete_selected_media() {
         }
       } else if (item->type() == MediaType::FOOTAGE) {
         if (e_panel_footage_viewer->getSequence()) {
-          for (auto clp : e_panel_footage_viewer->getSequence()->clips) {
+          for (auto clp : e_panel_footage_viewer->getSequence()->clips_) {
             if (clp) {
               if (clp->timeline_info.media == item) {
                 // Media viewer is displaying the clip for deletion, so clear it
@@ -824,8 +824,8 @@ void Project::delete_clips_using_selected_media() {
     ComboAction* ca = new ComboAction();
     bool deleted = false;
     QModelIndexList items = get_current_selected();
-    for (int i=0;i<global::sequence->clips.size();i++) {
-      ClipPtr c = global::sequence->clips.at(i);
+    for (int i=0;i<global::sequence->clips_.size();i++) {
+      ClipPtr c = global::sequence->clips_.at(i);
       if (c != nullptr) {
         for (int j=0;j<items.size();j++) {
           MediaPtr m = item_to_media(items.at(j));
@@ -953,28 +953,28 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
         } else if (type == MediaType::SEQUENCE) {
           SequencePtr  s = mda->object<Sequence>();
           if (set_ids_only) {
-            s->save_id = sequence_id;
+            s->save_id_ = sequence_id;
             sequence_id++;
           } else {
             stream.writeStartElement("sequence");
-            stream.writeAttribute("id", QString::number(s->save_id));
+            stream.writeAttribute("id", QString::number(s->save_id_));
             stream.writeAttribute("folder", QString::number(folder));
             stream.writeAttribute("name", s->getName());
-            stream.writeAttribute("width", QString::number(s->getWidth()));
-            stream.writeAttribute("height", QString::number(s->getHeight()));
-            stream.writeAttribute("framerate", QString::number(s->getFrameRate(), 'f', 10));
-            stream.writeAttribute("afreq", QString::number(s->getAudioFrequency()));
-            stream.writeAttribute("alayout", QString::number(s->getAudioLayout()));
+            stream.writeAttribute("width", QString::number(s->width()));
+            stream.writeAttribute("height", QString::number(s->height()));
+            stream.writeAttribute("framerate", QString::number(s->frameRate(), 'f', 10));
+            stream.writeAttribute("afreq", QString::number(s->audioFrequency()));
+            stream.writeAttribute("alayout", QString::number(s->audioLayout()));
             if (s == global::sequence) {
               stream.writeAttribute("open", "1");
             }
-            stream.writeAttribute("workarea", QString::number(s->using_workarea));
-            stream.writeAttribute("workareaEnabled", QString::number(s->enable_workarea));
-            stream.writeAttribute("workareaIn", QString::number(s->workarea_in));
-            stream.writeAttribute("workareaOut", QString::number(s->workarea_out));
+            stream.writeAttribute("workarea", QString::number(s->using_workarea_));
+            stream.writeAttribute("workareaEnabled", QString::number(s->enable_workarea_));
+            stream.writeAttribute("workareaIn", QString::number(s->workarea_in_));
+            stream.writeAttribute("workareaOut", QString::number(s->workarea_out_));
 
-            for (int j=0;j<s->transitions.size();j++) {
-              auto t = s->transitions.at(j);
+            for (int j=0;j<s->transitions_.size();j++) {
+              auto t = s->transitions_.at(j);
               if (t != nullptr) {
                 stream.writeStartElement("transition");
                 stream.writeAttribute("id", QString::number(j));
@@ -984,8 +984,8 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
               }
             }
 
-            for (int j=0;j<s->clips.size();j++) {
-              auto c = s->clips.at(j);
+            for (int j=0;j<s->clips_.size();j++) {
+              auto c = s->clips_.at(j);
               if (c != nullptr) {
                 stream.writeStartElement("clip"); // clip
                 stream.writeAttribute("id", QString::number(j));
@@ -1015,7 +1015,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                       stream.writeAttribute("stream", QString::number(c->timeline_info.media_stream));
                       break;
                     case MediaType::SEQUENCE:
-                      stream.writeAttribute("sequence", QString::number(c->timeline_info.media->object<Sequence>()->save_id));
+                      stream.writeAttribute("sequence", QString::number(c->timeline_info.media->object<Sequence>()->save_id_));
                       break;
 
                     default:
@@ -1041,10 +1041,10 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                 stream.writeEndElement(); // clip
               }
             }
-            for (int j=0;j<s->markers.size();j++) {
+            for (auto marker : s->markers_) {
               stream.writeStartElement("marker");
-              stream.writeAttribute("frame", QString::number(s->markers.at(j).frame));
-              stream.writeAttribute("name", s->markers.at(j).name);
+              stream.writeAttribute("frame", QString::number(marker.frame));
+              stream.writeAttribute("name", marker.name);
               stream.writeEndElement();
             }
             stream.writeEndElement();
@@ -1313,7 +1313,7 @@ void MediaThrobber::stop(const int icon_type, const bool replace) {
   auto sequences = e_panel_project->list_all_project_sequences();
   for (auto sqn : sequences) {
     if (auto s = sqn->object<Sequence>()) {
-      for (auto clp: s->clips) {
+      for (auto clp: s->clips_) {
         if (clp != nullptr) {
           clp->refresh();
         }

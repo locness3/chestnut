@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -36,104 +36,104 @@
 #include <QCheckBox>
 
 namespace{
-    const int DIALOG_WIDTH = 300;
-    const int DIALOG_HEIGHT = 400;
+  const int DIALOG_WIDTH = 300;
+  const int DIALOG_HEIGHT = 400;
 }
 
 ReplaceClipMediaDialog::ReplaceClipMediaDialog(QWidget *parent, MediaPtr old_media) :
-	QDialog(parent),
-	media(old_media)
+  QDialog(parent),
+  media(old_media)
 {
-    setWindowTitle(tr("Replace clips using \"%1\"").arg(old_media->name()));
+  setWindowTitle(tr("Replace clips using \"%1\"").arg(old_media->name()));
 
-    resize(DIALOG_WIDTH, DIALOG_HEIGHT);
+  resize(DIALOG_WIDTH, DIALOG_HEIGHT);
 
-	QVBoxLayout* layout = new QVBoxLayout();
+  QVBoxLayout* layout = new QVBoxLayout();
 
-    layout->addWidget(new QLabel(tr("Select which media you want to replace this media's clips with:")));
+  layout->addWidget(new QLabel(tr("Select which media you want to replace this media's clips with:")));
 
-	tree = new QTreeView();
+  tree = new QTreeView();
 
-	layout->addWidget(tree);
+  layout->addWidget(tree);
 
-    use_same_media_in_points = new QCheckBox(tr("Keep the same media in-points"));
-	use_same_media_in_points->setChecked(true);
-	layout->addWidget(use_same_media_in_points);
+  use_same_media_in_points = new QCheckBox(tr("Keep the same media in-points"));
+  use_same_media_in_points->setChecked(true);
+  layout->addWidget(use_same_media_in_points);
 
-	QHBoxLayout* buttons = new QHBoxLayout();
+  QHBoxLayout* buttons = new QHBoxLayout();
 
-	buttons->addStretch();
+  buttons->addStretch();
 
-    QPushButton* replace_button = new QPushButton(tr("Replace"));
-	connect(replace_button, SIGNAL(clicked(bool)), this, SLOT(replace()));
-	buttons->addWidget(replace_button);
+  QPushButton* replace_button = new QPushButton(tr("Replace"));
+  connect(replace_button, SIGNAL(clicked(bool)), this, SLOT(replace()));
+  buttons->addWidget(replace_button);
 
-    QPushButton* cancel_button = new QPushButton(tr("Cancel"));
-	connect(cancel_button, SIGNAL(clicked(bool)), this, SLOT(close()));
-	buttons->addWidget(cancel_button);
+  QPushButton* cancel_button = new QPushButton(tr("Cancel"));
+  connect(cancel_button, SIGNAL(clicked(bool)), this, SLOT(close()));
+  buttons->addWidget(cancel_button);
 
-	buttons->addStretch();
+  buttons->addStretch();
 
-	layout->addLayout(buttons);
+  layout->addLayout(buttons);
 
-	setLayout(layout);
+  setLayout(layout);
 
-	tree->setModel(&project_model);
+  tree->setModel(&project_model);
 }
 
 void ReplaceClipMediaDialog::replace() {
-	QModelIndexList selected_items = tree->selectionModel()->selectedRows();
-	if (selected_items.size() != 1) {
-        QMessageBox::critical(
-                    this,
-                    tr("No media selected"),
-                    tr("Please select a media to replace with or click 'Cancel'."),
-                    QMessageBox::Ok
-                );
-	} else {
-//        MediaPtr new_item = std::dynamic_pointer_cast<Media>(selected_items.at(0).internalPointer()); //FIXME: ptr issue
-        MediaPtr new_item;
-		if (media == new_item) {
-            QMessageBox::critical(
-                        this,
-                        tr("Same media selected"),
-                        tr("You selected the same media that you're replacing. Please select a different one or click 'Cancel'."),
-                        QMessageBox::Ok
-                    );
+  QModelIndexList selected_items = tree->selectionModel()->selectedRows();
+  if (selected_items.size() != 1) {
+    QMessageBox::critical(
+          this,
+          tr("No media selected"),
+          tr("Please select a media to replace with or click 'Cancel'."),
+          QMessageBox::Ok
+          );
+  } else {
+    //        MediaPtr new_item = std::dynamic_pointer_cast<Media>(selected_items.at(0).internalPointer()); //FIXME: ptr issue
+    MediaPtr new_item;
+    if (media == new_item) {
+      QMessageBox::critical(
+            this,
+            tr("Same media selected"),
+            tr("You selected the same media that you're replacing. Please select a different one or click 'Cancel'."),
+            QMessageBox::Ok
+            );
     } else if (new_item->type() == MediaType::FOLDER) {
-            QMessageBox::critical(
-                        this,
-                        tr("Folder selected"),
-                        tr("You cannot replace footage with a folder."),
-                        QMessageBox::Ok
-                    );
-		} else {
-            if (new_item->type() == MediaType::SEQUENCE && global::sequence == new_item->object<Sequence>()) {
-                QMessageBox::critical(
-                            this,
-                            tr("Active sequence selected"),
-                            tr("You cannot insert a sequence into itself."),
-                            QMessageBox::Ok
-                        );
-			} else {
-				ReplaceClipMediaCommand* rcmc = new ReplaceClipMediaCommand(
-							media,
-							new_item,
-							use_same_media_in_points->isChecked()
-						);
+      QMessageBox::critical(
+            this,
+            tr("Folder selected"),
+            tr("You cannot replace footage with a folder."),
+            QMessageBox::Ok
+            );
+    } else {
+      if (new_item->type() == MediaType::SEQUENCE && global::sequence == new_item->object<Sequence>()) {
+        QMessageBox::critical(
+              this,
+              tr("Active sequence selected"),
+              tr("You cannot insert a sequence into itself."),
+              QMessageBox::Ok
+              );
+      } else {
+        ReplaceClipMediaCommand* rcmc = new ReplaceClipMediaCommand(
+                                          media,
+                                          new_item,
+                                          use_same_media_in_points->isChecked()
+                                          );
 
-				for (int i=0;i<global::sequence->clips.size();i++) {
-                    ClipPtr c = global::sequence->clips.at(i);
-                    if (c != nullptr && c->timeline_info.media == media) {
-						rcmc->clips.append(c);
-					}
-				}
+        for (int i=0;i<global::sequence->clips_.size();i++) {
+          ClipPtr c = global::sequence->clips_.at(i);
+          if (c != nullptr && c->timeline_info.media == media) {
+            rcmc->clips.append(c);
+          }
+        }
 
-				e_undo_stack.push(rcmc);
+        e_undo_stack.push(rcmc);
 
-				close();
-			}
+        close();
+      }
 
-		}
-	}
+    }
+  }
 }

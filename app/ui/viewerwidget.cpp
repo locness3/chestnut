@@ -292,7 +292,7 @@ void ViewerWidget::context_destroy() {
 
 EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(int x, int y) {
   if (gizmos != nullptr) {
-    double multiplier = double(viewer->getSequence()->getWidth()) / double(width());
+    double multiplier = double(viewer->getSequence()->width()) / double(width());
     QPoint mouse_pos(qRound(x*multiplier), qRound((height()-y)*multiplier));
     int dot_size = 2 * qRound(GIZMO_DOT_SIZE * multiplier);
     int target_size = 2 * qRound(GIZMO_TARGET_SIZE * multiplier);
@@ -333,12 +333,15 @@ EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(int x, int y) {
 
 void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
   if (selected_gizmo != nullptr) {
-    double multiplier = double(viewer->getSequence()->getWidth()) / double(width());
+    const auto multiplier = static_cast<double>(viewer->getSequence()->width()) / static_cast<double>(width());
 
-    int x_movement = qRound((event->pos().x() - drag_start_x)*multiplier);
-    int y_movement = qRound((event->pos().y() - drag_start_y)*multiplier);
+    const auto x_movement = qRound((event->pos().x() - drag_start_x)*multiplier);
+    const auto y_movement = qRound((event->pos().y() - drag_start_y)*multiplier);
 
-    gizmos->gizmo_move(selected_gizmo, x_movement, y_movement, gizmos->parent_clip->timecode(gizmos->parent_clip->sequence->playhead), done);
+    gizmos->gizmo_move(selected_gizmo,
+                       x_movement, y_movement,
+                       gizmos->parent_clip->timecode(gizmos->parent_clip->sequence->playhead_),
+                       done);
 
     gizmo_x_mvmt += x_movement;
     gizmo_y_mvmt += y_movement;
@@ -414,9 +417,9 @@ void ViewerWidget::close_window() {
 
 void ViewerWidget::draw_waveform_func() {
   QPainter p(this);
-  if (viewer->getSequence()->using_workarea) {
-    int in_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_in) - waveform_scroll;
-    int out_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_out) - waveform_scroll;
+  if (viewer->getSequence()->using_workarea_) {
+    int in_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_in_) - waveform_scroll;
+    int out_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_out_) - waveform_scroll;
 
     p.fillRect(QRect(in_x, 0, out_x - in_x, height()), QColor(255, 255, 255, 64));
     p.setPen(Qt::white);
@@ -434,7 +437,7 @@ void ViewerWidget::draw_waveform_func() {
   }
   draw_waveform(waveform_clip, stream, waveform_clip->timeline_info.out, p, wr, waveform_scroll, width()+waveform_scroll, waveform_zoom);
   p.setPen(Qt::red);
-  const auto playhead_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->playhead) - waveform_scroll;
+  const auto playhead_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->playhead_) - waveform_scroll;
   p.drawLine(playhead_x, 0, playhead_x, height());
 }
 
@@ -510,12 +513,12 @@ void ViewerWidget::draw_gizmos() {
   float color[4];
   glGetFloatv(GL_CURRENT_COLOR, color);
 
-  float dot_size = GIZMO_DOT_SIZE / width() * viewer->getSequence()->getWidth();
-  float target_size = GIZMO_TARGET_SIZE / width() * viewer->getSequence()->getWidth();
+  float dot_size = GIZMO_DOT_SIZE / width() * viewer->getSequence()->width();
+  float target_size = GIZMO_TARGET_SIZE / width() * viewer->getSequence()->width();
 
   glPushMatrix();
   glLoadIdentity();
-  glOrtho(0, viewer->getSequence()->getWidth(), viewer->getSequence()->getHeight(), 0, -1, 10);
+  glOrtho(0, viewer->getSequence()->width(), viewer->getSequence()->height(), 0, -1, 10);
   float gizmo_z = 0.0f;
   for (int j=0;j<gizmos->gizmo_count();j++) {
     EffectGizmoPtr g = gizmos->gizmo(j);
@@ -624,7 +627,7 @@ void ViewerWidget::paintGL() {
     glDisable(GL_TEXTURE_2D);
 
     if (window != nullptr && window->isVisible()) {
-      window->set_texture(renderer->texColorBuffer, double(viewer->getSequence()->getWidth())/double(viewer->getSequence()->getHeight()), &renderer->mutex);
+      window->set_texture(renderer->texColorBuffer, double(viewer->getSequence()->width())/double(viewer->getSequence()->height()), &renderer->mutex);
     }
 
     renderer->mutex.unlock();

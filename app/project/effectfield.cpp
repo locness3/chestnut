@@ -138,11 +138,11 @@ QVariant EffectField::get_current_data() {
 }
 
 double EffectField::frameToTimecode(const long frame) {
-  return (static_cast<double>(frame) / parent_row->parent_effect->parent_clip->sequence->getFrameRate());
+  return (static_cast<double>(frame) / parent_row->parent_effect->parent_clip->sequence->frameRate());
 }
 
 long EffectField::timecodeToFrame(double timecode) {
-  return qRound(timecode * parent_row->parent_effect->parent_clip->sequence->getFrameRate());
+  return qRound(timecode * parent_row->parent_effect->parent_clip->sequence->frameRate());
 }
 
 void EffectField::set_current_data(const QVariant& data) {
@@ -228,19 +228,19 @@ QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
             // bezier interpolation
             if (before_key.type == KEYFRAME_TYPE_BEZIER && after_key.type == KEYFRAME_TYPE_BEZIER) {
               // cubic bezier
-              double t = cubic_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(),
+              double t = cubic_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->frameRate(),
                                         before_key.time, before_key.time+before_key.post_handle_x,
                                         after_key.time+after_key.pre_handle_x, after_key.time);
               value = cubic_from_t(before_dbl, before_dbl+before_key.post_handle_y,
                                    after_dbl+after_key.pre_handle_y, after_dbl, t);
             } else if (after_key.type == KEYFRAME_TYPE_LINEAR) { // quadratic bezier
               // last keyframe is the bezier one
-              double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(),
+              double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->frameRate(),
                                        before_key.time, before_key.time+before_key.post_handle_x, after_key.time);
               value = quad_from_t(before_dbl, before_dbl+before_key.post_handle_y, after_dbl, t);
             } else {
               // this keyframe is the bezier one
-              double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->getFrameRate(),
+              double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->frameRate(),
                                        before_key.time, after_key.time+after_key.pre_handle_x, after_key.time);
               value = quad_from_t(before_dbl, after_dbl+after_key.pre_handle_y, after_dbl, t);
             }
