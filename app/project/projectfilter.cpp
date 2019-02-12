@@ -1,31 +1,38 @@
 #include "projectfilter.h"
 
 #include "project/media.h"
+#include "panels/project.h"
 
 #include <QDebug>
 
 ProjectFilter::ProjectFilter(QObject *parent) :
-	QSortFilterProxyModel(parent),
-	show_sequences(true)
-{}
+  QSortFilterProxyModel(parent),
+  show_sequences(true)
+{
 
-bool ProjectFilter::get_show_sequences() {
-	return show_sequences;
 }
 
-void ProjectFilter::set_show_sequences(bool b) {
-	show_sequences = b;
-	invalidateFilter();
+bool ProjectFilter::get_show_sequences()
+{
+  return show_sequences;
 }
 
-bool ProjectFilter::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const {
-	if (!show_sequences) {
-		// hide sequences if show_sequences is false
-		QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
-    Media* media = static_cast<Media*>(index.internalPointer()); //FIXME: do not use internalPointer
-    if (media != nullptr && media->type() == MediaType::SEQUENCE) {
-			return false;
-		}
-	}
-	return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+void ProjectFilter::set_show_sequences(bool b)
+{
+  show_sequences = b;
+  invalidateFilter();
+}
+
+bool ProjectFilter::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+{
+  if (!show_sequences) {
+    // hide sequences if show_sequences is false
+    const auto index = sourceModel()->index(source_row, 0, source_parent);
+    auto mda = project_model.getItem(index);
+
+    if (mda != nullptr && mda->type() == MediaType::SEQUENCE) {
+      return false;
+    }
+  }
+  return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 }

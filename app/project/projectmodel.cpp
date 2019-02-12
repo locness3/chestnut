@@ -36,16 +36,19 @@ ProjectModel::ProjectModel(QObject *parent)
     make_root();
 }
 
-ProjectModel::~ProjectModel() {
+ProjectModel::~ProjectModel()
+{
     destroy_root();
 }
 
-void ProjectModel::make_root() {
+void ProjectModel::make_root()
+{
     root_item = std::make_shared<Media>();
     root_item->temp_id = 0;
 }
 
-void ProjectModel::destroy_root() {
+void ProjectModel::destroy_root()
+{
     if ( (e_panel_sequence_viewer != nullptr) && (e_panel_sequence_viewer->viewer_widget != nullptr) ){
         e_panel_sequence_viewer->viewer_widget->delete_function();
     }
@@ -54,7 +57,8 @@ void ProjectModel::destroy_root() {
     }
 }
 
-void ProjectModel::clear() {
+void ProjectModel::clear()
+{
     beginResetModel();
     destroy_root();
     make_root();
@@ -62,11 +66,13 @@ void ProjectModel::clear() {
     project_items.clear();
 }
 
-MediaPtr ProjectModel::root() {
+MediaPtr ProjectModel::root()
+{
     return root_item;
 }
 
-QVariant ProjectModel::data(const QModelIndex &index, int role) const {
+QVariant ProjectModel::data(const QModelIndex &index, int role) const
+{
     if (!index.isValid())
         return QVariant();
     if (auto item = getItem(index)) {
@@ -75,21 +81,24 @@ QVariant ProjectModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 
-Qt::ItemFlags ProjectModel::flags(const QModelIndex &index) const {
+Qt::ItemFlags ProjectModel::flags(const QModelIndex &index) const
+{
     if (!index.isValid())
         return Qt::ItemIsDropEnabled;
 
     return QAbstractItemModel::flags(index) | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEditable;
 }
 
-QVariant ProjectModel::headerData(int section, Qt::Orientation orientation, int role) const {
+QVariant ProjectModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
         return root_item->data(section, role);
 
     return QVariant();
 }
 
-QModelIndex ProjectModel::index(int row, int column, const QModelIndex &parent) const {
+QModelIndex ProjectModel::index(int row, int column, const QModelIndex &parent) const
+{
     if (!hasIndex(row, column, parent)) {
         return QModelIndex();
     }
@@ -105,16 +114,19 @@ QModelIndex ProjectModel::index(int row, int column, const QModelIndex &parent) 
 }
 
 
-QModelIndex ProjectModel::create_index(const int row, const int col, const MediaPtr& mda) const {
+QModelIndex ProjectModel::create_index(const int row, const int col, const MediaPtr& mda) const
+{
     return createIndex(row, col, static_cast<quintptr>(mda->id()));
 }
 
 
-QModelIndex ProjectModel::create_index(const int row, const MediaPtr& mda) const {
+QModelIndex ProjectModel::create_index(const int row, const MediaPtr& mda) const
+{
     return create_index(row, DEFAULT_COLUMN, mda);
 }
 
-QModelIndex ProjectModel::parent(const QModelIndex &index) const {
+QModelIndex ProjectModel::parent(const QModelIndex &index) const
+{
     if (!index.isValid())
         return QModelIndex();
 
@@ -141,7 +153,8 @@ QModelIndex ProjectModel::parent(const QModelIndex &index) const {
     return QModelIndex();
 }
 
-bool ProjectModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+bool ProjectModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
     if (role != Qt::EditRole) {
         return false;
     }
@@ -156,7 +169,8 @@ bool ProjectModel::setData(const QModelIndex &index, const QVariant &value, int 
     return result;
 }
 
-int ProjectModel::rowCount(const QModelIndex &parent) const {
+int ProjectModel::rowCount(const QModelIndex &parent) const
+{
     MediaPtr parentItem;
     if (parent.column() > 0)
         return 0;
@@ -173,7 +187,8 @@ int ProjectModel::rowCount(const QModelIndex &parent) const {
     return 0;
 }
 
-int ProjectModel::columnCount(const QModelIndex &parent) const {
+int ProjectModel::columnCount(const QModelIndex &parent) const
+{
     if (parent.isValid()) {
         const auto mda = project_items.value(static_cast<int>(parent.internalId()));
         if (mda != nullptr) {
@@ -185,7 +200,8 @@ int ProjectModel::columnCount(const QModelIndex &parent) const {
     return -1;
 }
 
-MediaPtr ProjectModel::getItem(const QModelIndex &index) const {
+MediaPtr ProjectModel::getItem(const QModelIndex &index) const
+{
     if (index.isValid()) {
         const auto id = static_cast<int>(index.internalId());
         return project_items.value(id);
@@ -193,7 +209,8 @@ MediaPtr ProjectModel::getItem(const QModelIndex &index) const {
     return root_item;
 }
 
-void ProjectModel::set_icon(MediaPtr m, const QIcon &ico) {
+void ProjectModel::set_icon(MediaPtr m, const QIcon &ico)
+{
     project_items.insert(m->id(), m);
     const auto index = create_index(m->row(), m);
     m->setIcon(ico);
@@ -201,17 +218,20 @@ void ProjectModel::set_icon(MediaPtr m, const QIcon &ico) {
 
 }
 
-QModelIndex ProjectModel::add(MediaPtr mda) {
+QModelIndex ProjectModel::add(MediaPtr mda)
+{
     project_items.insert(mda->id(), mda);
     return create_index(mda->row(), mda);
 }
 
 
-MediaPtr ProjectModel::get(const QModelIndex& idx) {
+MediaPtr ProjectModel::get(const QModelIndex& idx)
+{
     return project_items.value(idx.internalId());
 }
 
-void ProjectModel::appendChild(MediaPtr parent, MediaPtr child) {
+void ProjectModel::appendChild(MediaPtr parent, MediaPtr child)
+{
     if (parent == nullptr) {
         parent = root_item;
     }
@@ -222,7 +242,8 @@ void ProjectModel::appendChild(MediaPtr parent, MediaPtr child) {
     endInsertRows();
 }
 
-void ProjectModel::moveChild(MediaPtr child, MediaPtr to) {
+void ProjectModel::moveChild(MediaPtr child, MediaPtr to)
+{
     if (to == nullptr) {
         to = root_item;
     }
@@ -240,7 +261,8 @@ void ProjectModel::moveChild(MediaPtr child, MediaPtr to) {
     }
 }
 
-void ProjectModel::removeChild(MediaPtr parent, MediaPtr m) {
+void ProjectModel::removeChild(MediaPtr parent, MediaPtr m)
+{
     if (parent == nullptr) {
         parent = root_item;
     }
@@ -251,14 +273,16 @@ void ProjectModel::removeChild(MediaPtr parent, MediaPtr m) {
     endRemoveRows();
 }
 
-MediaPtr ProjectModel::child(const int index, MediaPtr parent) {
+MediaPtr ProjectModel::child(const int index, MediaPtr parent)
+{
     if (parent == nullptr) {
         parent = root_item;
     }
     return parent->child(index);
 }
 
-int ProjectModel::childCount(MediaPtr parent) {
+int ProjectModel::childCount(MediaPtr parent)
+{
     if (parent == nullptr) {
         parent = root_item;
     }

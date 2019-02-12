@@ -42,7 +42,7 @@ namespace{
 
 ReplaceClipMediaDialog::ReplaceClipMediaDialog(QWidget *parent, MediaPtr old_media) :
   QDialog(parent),
-  media(old_media)
+  media_(old_media)
 {
   setWindowTitle(tr("Replace clips using \"%1\"").arg(old_media->name()));
 
@@ -91,9 +91,8 @@ void ReplaceClipMediaDialog::replace() {
           QMessageBox::Ok
           );
   } else {
-    //        MediaPtr new_item = std::dynamic_pointer_cast<Media>(selected_items.at(0).internalPointer()); //FIXME: ptr issue
-    MediaPtr new_item;
-    if (media == new_item) {
+    auto new_item = project_model.getItem(selected_items.front());
+    if (media_ == new_item) {
       QMessageBox::critical(
             this,
             tr("Same media selected"),
@@ -117,14 +116,14 @@ void ReplaceClipMediaDialog::replace() {
               );
       } else {
         ReplaceClipMediaCommand* rcmc = new ReplaceClipMediaCommand(
-                                          media,
+                                          media_,
                                           new_item,
                                           use_same_media_in_points->isChecked()
                                           );
 
         for (int i=0;i<global::sequence->clips_.size();i++) {
           ClipPtr c = global::sequence->clips_.at(i);
-          if (c != nullptr && c->timeline_info.media == media) {
+          if (c != nullptr && c->timeline_info.media == media_) {
             rcmc->clips.append(c);
           }
         }

@@ -37,7 +37,7 @@ class ReplaceClipMediaDialog : public QDialog {
   private slots:
     void replace();
   private:
-    MediaPtr media;
+    MediaPtr media_;
     QTreeView* tree = nullptr;
     QCheckBox* use_same_media_in_points = nullptr;
 };
