@@ -979,7 +979,7 @@ EditSequenceCommand::EditSequenceCommand(MediaPtr i, SequencePtr s) :
   item(i),
   seq(s),
   old_project_changed(global::mainWindow->isWindowModified()),
-  old_name(s->getName()),
+  old_name(s->name()),
   old_width(s->width()),
   old_height(s->height()),
   old_frame_rate(s->frameRate()),
@@ -1126,7 +1126,7 @@ void RenameClipCommand::undo() {
 void RenameClipCommand::redo() {
   old_names.resize(clips.size());
   for (int i=0;i<clips.size();i++) {
-    old_names[i] = clips.at(i)->getName();
+    old_names[i] = clips.at(i)->name();
     clips.at(i)->setName(new_name);
   }
 }

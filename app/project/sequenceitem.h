@@ -23,15 +23,15 @@ namespace project {
         SequenceItem& operator=(const SequenceItem&&) = delete;
 
         void setName(const QString& val);
-        const QString& getName() const;
+        const QString& name() const;
 
-        virtual SequenceItemType getType() const;
+        SequenceItemType type() const;
 
     private:
         friend class Clip;
         friend class Effect;
-        QString _name;
-        SequenceItemType _type;
+        QString name_;
+        SequenceItemType type_;
 
     };
     typedef std::shared_ptr<SequenceItem> SequenceItemPtr;

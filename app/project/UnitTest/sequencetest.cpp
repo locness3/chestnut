@@ -12,7 +12,7 @@ void SequenceTest::testCaseDefaults()
     QString sequenceName("Default");
     Sequence sqn(mediaList, sequenceName);
 
-    QVERIFY(sqn.getName() == sequenceName);
+    QVERIFY(sqn.name() == sequenceName);
     QVERIFY(sqn.audioFrequency() == 48000);
     QVERIFY(sqn.audioLayout() == 3);
     QVERIFY(qFuzzyCompare(sqn.frameRate(), 29.97));
@@ -36,7 +36,7 @@ void SequenceTest::testCaseCopy()
     QVERIFY(sqnOrigin.endFrame() == sqnCopy->endFrame());
     QVERIFY(qFuzzyCompare(sqnOrigin.frameRate(), sqnCopy->frameRate()));
     QVERIFY(sqnOrigin.height() == sqnCopy->height());
-    QVERIFY(sqnOrigin.getName() != sqnCopy->getName());
+    QVERIFY(sqnOrigin.name() != sqnCopy->name());
     QVERIFY(sqnOrigin.width() == sqnCopy->width());
     QVERIFY(sqnOrigin.clips_.size() == sqnCopy->clips_.size());
 }

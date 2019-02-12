@@ -466,7 +466,7 @@ void Project::delete_selected_media() {
               QMessageBox confirm(this);
               confirm.setWindowTitle(tr("Delete media in use?"));
               confirm.setText(tr("The media '%1' is currently used in '%2'. Deleting it will remove all instances in the sequence."
-                                 "Are you sure you want to do this?").arg(ftg ->getName(), seq->getName()));
+                                 "Are you sure you want to do this?").arg(ftg ->name(), seq->name()));
               auto yes_button = confirm.addButton(QMessageBox::Yes);
               QAbstractButton* skip_button = nullptr;
               if (items.size() > 1) skip_button = confirm.addButton("Skip", QMessageBox::NoRole);
@@ -921,7 +921,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
           stream.writeStartElement("footage");
           stream.writeAttribute("id", QString::number(media_id));
           stream.writeAttribute("folder", QString::number(folder));
-          stream.writeAttribute("name", ftg->getName());
+          stream.writeAttribute("name", ftg->name());
           stream.writeAttribute("url", proj_dir.relativeFilePath(ftg->url));
           stream.writeAttribute("duration", QString::number(ftg->length));
           stream.writeAttribute("using_inout", QString::number(ftg->using_inout));
@@ -959,7 +959,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
             stream.writeStartElement("sequence");
             stream.writeAttribute("id", QString::number(s->save_id_));
             stream.writeAttribute("folder", QString::number(folder));
-            stream.writeAttribute("name", s->getName());
+            stream.writeAttribute("name", s->name());
             stream.writeAttribute("width", QString::number(s->width()));
             stream.writeAttribute("height", QString::number(s->height()));
             stream.writeAttribute("framerate", QString::number(s->frameRate(), 'f', 10));

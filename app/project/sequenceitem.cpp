@@ -3,8 +3,8 @@
 using project::SequenceItem;
 
 SequenceItem::SequenceItem()
-    : _name(),
-      _type(project::SequenceItemType::NONE)
+  : name_(),
+    type_(project::SequenceItemType::NONE)
 {
 
 }
@@ -16,22 +16,25 @@ SequenceItem::~SequenceItem()
 
 
 SequenceItem::SequenceItem(const project::SequenceItemType sequenceType)
-    : _name(),
-      _type(sequenceType)
+  : name_(),
+    type_(sequenceType)
 {
 
 }
 
 
-void SequenceItem::setName(const QString& val) {
-    //TODO: input validation
-    _name = val;
+void SequenceItem::setName(const QString& val)
+{
+  //TODO: input validation
+  name_ = val;
 }
-const QString& SequenceItem::getName() const {
-    return _name;
+const QString& SequenceItem::name() const
+{
+  return name_;
 }
 
 
-project::SequenceItemType SequenceItem::getType() const {
-    return _type;
+project::SequenceItemType SequenceItem::type() const
+{
+  return type_;
 }

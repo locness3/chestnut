@@ -243,7 +243,7 @@ void TimelineWidget::tooltip_timer_timeout() {
       if (c != nullptr) {
         QToolTip::showText(QCursor::pos(),
                            tr("%1\nStart: %2\nEnd: %3\nDuration: %4").arg(
-                             c->getName(),
+                             c->name(),
                              frame_to_timecode(c->timeline_info.in, e_config.timecode_view, global::sequence->frameRate()),
                              frame_to_timecode(c->timeline_info.out, e_config.timecode_view, global::sequence->frameRate()),
                              frame_to_timecode(c->length(), e_config.timecode_view, global::sequence->frameRate())
@@ -264,10 +264,10 @@ void TimelineWidget::rename_clip() {
   }
   if (selected_clips.size() > 0) {
     QString s = QInputDialog::getText(this,
-                                      (selected_clips.size() == 1) ? tr("Rename '%1'").arg(selected_clips.at(0)->getName()) : tr("Rename multiple clips"),
+                                      (selected_clips.size() == 1) ? tr("Rename '%1'").arg(selected_clips.at(0)->name()) : tr("Rename multiple clips"),
                                       tr("Enter a new name for this clip:"),
                                       QLineEdit::Normal,
-                                      selected_clips.at(0)->getName()
+                                      selected_clips.at(0)->name()
                                       );
     if (!s.isEmpty()) {
       RenameClipCommand* rcc = new RenameClipCommand();
@@ -2569,10 +2569,10 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
             }
             if (clip->linked.size() > 0) {
               int underline_y = CLIP_TEXT_PADDING + p.fontMetrics().height() + clip_rect.top();
-              int underline_width = qMin(text_rect.width() - 1, p.fontMetrics().width(clip->getName()));
+              int underline_width = qMin(text_rect.width() - 1, p.fontMetrics().width(clip->name()));
               p.drawLine(text_rect.x(), underline_y, text_rect.x() + underline_width, underline_y);
             }
-            QString name(clip->getName());
+            QString name(clip->name());
             if (!qFuzzyCompare(clip->timeline_info.speed, 1.0) || clip->timeline_info.reverse) {
               name += " (";
               if (clip->timeline_info.reverse) {

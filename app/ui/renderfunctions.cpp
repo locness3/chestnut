@@ -171,7 +171,7 @@ GLuint compose_sequence(Viewer* viewer,
                 clp->close(false);
               }
             } else {
-              qWarning() << "Media '" + ftg->getName() + "' was not ready, retrying...";
+              qWarning() << "Media '" + ftg->name() + "' was not ready, retrying...";
               texture_failed = true;
             }
           }

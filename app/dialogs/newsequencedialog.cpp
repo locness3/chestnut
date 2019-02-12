@@ -48,7 +48,7 @@ NewSequenceDialog::NewSequenceDialog(QWidget *parent, MediaPtr existing) :
 
   if (existing != nullptr) {
     existing_sequence = existing->object<Sequence>();
-    setWindowTitle(tr("Editing \"%1\"").arg(existing_sequence->getName()));
+    setWindowTitle(tr("Editing \"%1\"").arg(existing_sequence->name()));
 
     width_numeric->setValue(existing_sequence->width());
     height_numeric->setValue(existing_sequence->height());
@@ -59,7 +59,7 @@ NewSequenceDialog::NewSequenceDialog(QWidget *parent, MediaPtr existing) :
         break;
       }
     }
-    sequence_name_edit->setText(existing_sequence->getName());
+    sequence_name_edit->setText(existing_sequence->name());
     for (int i=0;i<audio_frequency_combobox->count();i++) {
       if (audio_frequency_combobox->itemData(i) == existing_sequence->audioFrequency()) {
         audio_frequency_combobox->setCurrentIndex(i);

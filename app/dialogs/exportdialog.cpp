@@ -74,7 +74,7 @@ enum ExportFormats {
 ExportDialog::ExportDialog(QWidget *parent) :
     QDialog(parent)
 {
-    setWindowTitle(tr("Export \"%1\"").arg(global::sequence->getName()));
+    setWindowTitle(tr("Export \"%1\"").arg(global::sequence->name()));
     setup_ui();
 
     rangeCombobox->setCurrentIndex(0);

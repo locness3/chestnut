@@ -27,7 +27,7 @@ ProjectItem::ProjectItem()
 
 
 ProjectItem::ProjectItem(const QString& itemName)
-    : name(itemName)
+    : name_(itemName)
 {
 
 }
@@ -39,9 +39,9 @@ ProjectItem::~ProjectItem()
 
 void ProjectItem::setName(const QString& val)
 {
-    name = val;
+    name_ = val;
 }
-const QString& ProjectItem::getName() const
+const QString& ProjectItem::name() const
 {
-    return name;
+    return name_;
 }

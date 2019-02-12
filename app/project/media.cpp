@@ -144,7 +144,7 @@ void Media::updateTooltip(const QString& error) {
     case MediaType::FOOTAGE:
     {
       auto ftg = object<Footage>();
-      _toolTip = QCoreApplication::translate("Media", "Name:") + " " + ftg->getName() + "\n"
+      _toolTip = QCoreApplication::translate("Media", "Name:") + " " + ftg->name() + "\n"
                  + QCoreApplication::translate("Media", "Filename:") + " " + ftg->url + "\n";
 
       if (error.isEmpty()) {
@@ -222,7 +222,7 @@ void Media::updateTooltip(const QString& error) {
                                                       "\nFrame Rate: %4"
                                                       "\nAudio Frequency: %5"
                                                       "\nAudio Layout: %6").arg(
-                   sqn->getName(),
+                   sqn->name(),
                    QString::number(sqn->width()),
                    QString::number(sqn->height()),
                    QString::number(sqn->frameRate()),
@@ -244,8 +244,8 @@ MediaType Media::type() const {
 
 const QString &Media::name() {
   switch (_type) {
-    case MediaType::FOOTAGE: return object<Footage>()->getName();
-    case MediaType::SEQUENCE: return object<Sequence>()->getName();
+    case MediaType::FOOTAGE: return object<Footage>()->name();
+    case MediaType::SEQUENCE: return object<Sequence>()->name();
     default: return _folderName;
   }
 }

@@ -334,13 +334,13 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
                 // video and audio (blueish)
                 clp->timeline_info.color = AUDIO_VIDEO_COLOR;
             }
-            clp->timeline_info.name = ftg->getName();
+            clp->timeline_info.name = ftg->name();
         } else if (clp->timeline_info.media->type() == MediaType::SEQUENCE) {
             // sequence (red?ish?)
             clp->timeline_info.color = SEQUENCE_COLOR;
 
             SequencePtr media = clp->timeline_info.media->object<Sequence>();
-            clp->timeline_info.name = media->getName();
+            clp->timeline_info.name = media->name();
         }
         clp->recalculateMaxLength();
         added_clips.append(clp);
@@ -438,7 +438,7 @@ void Timeline::update_sequence() {
     if (null_sequence) {
         setWindowTitle(title + tr("<none>"));
     } else {
-        setWindowTitle(title + global::sequence->getName());
+        setWindowTitle(title + global::sequence->name());
         update_ui(false);
     }
 }
@@ -1045,7 +1045,7 @@ void Timeline::paste(bool insert) {
                             if (found >= 0 && ask_conflict) {
                                 QMessageBox box(this);
                                 box.setWindowTitle(tr("Effect already exists"));
-                                box.setText(tr("Clip '%1' already contains a '%2' effect. Would you like to replace it with the pasted one or add it as a separate effect?").arg(c->getName(), e->meta->name));
+                                box.setText(tr("Clip '%1' already contains a '%2' effect. Would you like to replace it with the pasted one or add it as a separate effect?").arg(c->name(), e->meta->name));
                                 box.setIcon(QMessageBox::Icon::Question);
 
                                 box.addButton(tr("Add"), QMessageBox::YesRole);

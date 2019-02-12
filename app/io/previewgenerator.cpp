@@ -87,7 +87,7 @@ void PreviewGenerator::parse_media() {
     for (int i=0;i<(int)fmt_ctx->nb_streams;i++) {
       // Find the decoder for the video stream
       if (avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id) == nullptr) {
-        qCritical() << "Unsupported codec in stream" << i << "of file" << ftg->getName();
+        qCritical() << "Unsupported codec in stream" << i << "of file" << ftg->name();
       } else {
         auto ms = std::make_shared<FootageStream>();
         ms->preview_done = false;

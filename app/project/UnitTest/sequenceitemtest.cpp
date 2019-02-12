@@ -17,8 +17,8 @@ void SequenceItemTest::testCaseConstructor_data()
 void SequenceItemTest::testCaseDefaults()
 {
     project::SequenceItem item;
-    QVERIFY2(item.getType() == project::SequenceItemType::NONE, "Default SequenceItem type not NONE");
-    QVERIFY2(item.getName().isEmpty(), "Default SequenceItem name is not empty");
+    QVERIFY2(item.type() == project::SequenceItemType::NONE, "Default SequenceItem type not NONE");
+    QVERIFY2(item.name().isEmpty(), "Default SequenceItem name is not empty");
 }
 
 void SequenceItemTest::testCaseConstructor()
@@ -28,12 +28,12 @@ void SequenceItemTest::testCaseConstructor()
 
     project::SequenceItem item(inputType);
 
-    QCOMPARE(item.getType(), outputType);
+    QCOMPARE(item.type(), outputType);
 }
 
 void SequenceItemTest::testCaseNameSetter()
 {
     project::SequenceItem item;
     item.setName("test name");
-    QVERIFY(item.getName() == "test name");
+    QVERIFY(item.name() == "test name");
 }

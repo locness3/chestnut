@@ -136,7 +136,7 @@ Sequence::Sequence(const Sequence& cpy) :
 
 std::shared_ptr<Sequence> Sequence::copy() {
     auto sqn = std::make_shared<Sequence>();
-    sqn->name = QCoreApplication::translate("Sequence", "%1 (copy)").arg(name);
+    sqn->name_ = QCoreApplication::translate("Sequence", "%1 (copy)").arg(name_);
     sqn->width_ = width_;
     sqn->height_ = height_;
     sqn->frame_rate_ = frame_rate_;

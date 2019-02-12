@@ -27,19 +27,18 @@ class Footage;
 
 namespace project {
 
-    class ProjectItem
-    {
+    class ProjectItem {
     public:
         ProjectItem();
         explicit ProjectItem(const QString& itemName);
         virtual ~ProjectItem();
-        virtual void setName(const QString& val);
-        virtual const QString& getName() const;
+        void setName(const QString& val);
+        const QString& name() const;
 
     private:
         friend class ::Sequence;
         friend class ::Footage;
-        QString name;
+        QString name_;
     };
 
     typedef std::shared_ptr<ProjectItem> ProjectItemPtr;
