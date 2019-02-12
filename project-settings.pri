@@ -15,17 +15,5 @@ MOC_DIR = $${DESTDIR}/moc
 RCC_DIR = $${DESTDIR}/rcc
 UI_DIR = $${DESTDIR}/ui
 
-
-win32 {
-    LIBS += -lavutil -lavformat -lavcodec -lavfilter -lswscale -lswresample -lopengl32 -luser32
-}
-
-mac {
-    LIBS += -L/usr/local/lib -lavutil -lavformat -lavcodec -lavfilter -lswscale -lswresample
-    INCLUDEPATH = /usr/local/include
-}
-
-unix:!mac {
-    CONFIG += link_pkgconfig
-    PKGCONFIG += libavutil libavformat libavcodec libavfilter libswscale libswresample
-}
+CONFIG += link_pkgconfig
+PKGCONFIG += libavutil libavformat libavcodec libavfilter libswscale libswresample
