@@ -63,7 +63,9 @@ void LabelSlider::set_value(const double val, const bool userSet) {
     }
 
     setText(valueToString(internal_value));
-    if (userSet) emit valueChanged();
+    if (userSet) {
+      emit valueChanged();
+    }
   }
 }
 
@@ -111,7 +113,8 @@ void LabelSlider::set_default_value(double v) {
   default_value = v;
   if (!set) {
     set_value(v, false);
-    set = false; //FIXME: its already unset
+    // set_value "sets" set ...
+    set = false;
   }
 }
 

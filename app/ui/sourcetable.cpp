@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -43,56 +43,56 @@
 #include <QProcess>
 
 SourceTable::SourceTable(QWidget* parent) : QTreeView(parent) {
-	setSortingEnabled(true);
-	setAcceptDrops(true);
-	sortByColumn(0, Qt::AscendingOrder);
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	setEditTriggers(QAbstractItemView::NoEditTriggers);
-	setDragDropMode(QAbstractItemView::DragDrop);
-	setSelectionMode(QAbstractItemView::ExtendedSelection);
-	connect(this, SIGNAL(clicked(const QModelIndex&)), this, SLOT(item_click(const QModelIndex&)));
-	connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu()));
+  setSortingEnabled(true);
+  setAcceptDrops(true);
+  sortByColumn(0, Qt::AscendingOrder);
+  setContextMenuPolicy(Qt::CustomContextMenu);
+  setEditTriggers(QAbstractItemView::NoEditTriggers);
+  setDragDropMode(QAbstractItemView::DragDrop);
+  setSelectionMode(QAbstractItemView::ExtendedSelection);
+  connect(this, SIGNAL(clicked(const QModelIndex&)), this, SLOT(item_click(const QModelIndex&)));
+  connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu()));
 }
 
 void SourceTable::show_context_menu() {
-	project_parent->sources_common->show_context_menu(this, selectionModel()->selectedRows());
+  project_parent->sources_common->show_context_menu(this, selectionModel()->selectedRows());
 }
 
 void SourceTable::item_click(const QModelIndex& index) {
-    if ((selectionModel()->selectedRows().size() == 1) && (index.column() == 0)) {
-        project_parent->sources_common->item_click(project_parent->item_to_media(index), index); //FIXME: ptr issue
-	}
+  if ((selectionModel()->selectedRows().size() == 1) && (index.column() == 0)) {
+    project_parent->sources_common->item_click(project_parent->item_to_media(index), index);
+  }
 }
 
 void SourceTable::mousePressEvent(QMouseEvent* event) {
-	project_parent->sources_common->mousePressEvent(event);
-	QTreeView::mousePressEvent(event);
+  project_parent->sources_common->mousePressEvent(event);
+  QTreeView::mousePressEvent(event);
 }
 
 void SourceTable::mouseDoubleClickEvent(QMouseEvent* event) {
-    if (project_parent != nullptr) {
-        if (project_parent->sources_common != nullptr) {
-            project_parent->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
-        }
+  if (project_parent != nullptr) {
+    if (project_parent->sources_common != nullptr) {
+      project_parent->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
     }
+  }
 }
 
 void SourceTable::dragEnterEvent(QDragEnterEvent *event) {
-	if (event->mimeData()->hasUrls()) {
-		event->acceptProposedAction();
-	} else {
-		QTreeView::dragEnterEvent(event);
-	}
+  if (event->mimeData()->hasUrls()) {
+    event->acceptProposedAction();
+  } else {
+    QTreeView::dragEnterEvent(event);
+  }
 }
 
 void SourceTable::dragMoveEvent(QDragMoveEvent *event) {
-	if (event->mimeData()->hasUrls()) {
-		event->acceptProposedAction();
-	} else {
-		QTreeView::dragMoveEvent(event);
-	}
+  if (event->mimeData()->hasUrls()) {
+    event->acceptProposedAction();
+  } else {
+    QTreeView::dragMoveEvent(event);
+  }
 }
 
 void SourceTable::dropEvent(QDropEvent* event) {
-	project_parent->sources_common->dropEvent(this, event, indexAt(event->pos()), selectionModel()->selectedRows());
+  project_parent->sources_common->dropEvent(this, event, indexAt(event->pos()), selectionModel()->selectedRows());
 }

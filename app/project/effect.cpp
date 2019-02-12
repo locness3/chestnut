@@ -921,7 +921,6 @@ void Effect::process_image(double, uint8_t *, int)
 
 EffectPtr Effect::copy(ClipPtr c)
 {
-    // FIXME: leak and not the way to do it
     EffectPtr copy = create_effect(c, meta);
     copy->set_enabled(is_enabled());
     copy_field_keyframes(copy);
