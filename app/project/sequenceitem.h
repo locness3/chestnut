@@ -11,7 +11,7 @@ namespace project {
         NONE
     };
 
-    class SequenceItem: public std::enable_shared_from_this<SequenceItem>
+    class SequenceItem
     {
     public:
         SequenceItem();
