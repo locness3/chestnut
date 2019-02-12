@@ -50,8 +50,8 @@ class ComboAction : public QUndoCommand {
 public:
     ComboAction();
     virtual ~ComboAction();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
     void append(QUndoCommand* u);
     void appendPost(QUndoCommand* u);
 private:
@@ -62,8 +62,8 @@ private:
 class MoveClipAction : public QUndoCommand {
 public:
     MoveClipAction(ClipPtr c, const long iin, const long iout, const long iclip_in, const int itrack, const bool irelative);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     ClipPtr clip;
 
@@ -89,8 +89,8 @@ public:
     RippleAction(const RippleAction& ) = delete;
     RippleAction& operator=(const RippleAction&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     SequencePtr s;
     long point;
@@ -103,8 +103,8 @@ class DeleteClipAction : public QUndoCommand {
 public:
     DeleteClipAction(SequencePtr s, const int clip);
     virtual ~DeleteClipAction();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     SequencePtr seq;
     ClipPtr ref;
@@ -122,8 +122,8 @@ private:
 class ChangeSequenceAction : public QUndoCommand {
 public:
     ChangeSequenceAction(SequencePtr s);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     SequencePtr old_sequence;
     SequencePtr new_sequence;
@@ -137,8 +137,8 @@ public:
     AddEffectCommand& operator=(const AddEffectCommand&) = delete;
 
     virtual ~AddEffectCommand();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     ClipPtr clip;
     const EffectMeta* meta;
@@ -156,8 +156,8 @@ public:
     AddTransitionCommand(const AddTransitionCommand& ) = delete;
     AddTransitionCommand& operator=(const AddTransitionCommand&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     ClipPtr clip;
     ClipPtr secondary;
@@ -173,8 +173,8 @@ private:
 class ModifyTransitionCommand : public QUndoCommand {
 public:
     ModifyTransitionCommand(ClipPtr c, const int itype, const long ilength);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     ClipPtr clip;
     int type;
@@ -187,8 +187,8 @@ class DeleteTransitionCommand : public QUndoCommand {
 public:
     DeleteTransitionCommand(SequencePtr s, const int transition_index);
     virtual ~DeleteTransitionCommand();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     SequencePtr seq;
     int index;
@@ -201,8 +201,8 @@ private:
 class SetTimelineInOutCommand : public QUndoCommand {
 public:
     SetTimelineInOutCommand(SequencePtr s, const bool enabled, const long in, const long out);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     SequencePtr seq;
 
@@ -223,8 +223,8 @@ class NewSequenceCommand : public QUndoCommand {
 public:
     NewSequenceCommand(MediaPtr s, MediaPtr iparent);
     virtual ~NewSequenceCommand();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     MediaPtr seq;
     MediaPtr parent;
@@ -236,8 +236,8 @@ class AddMediaCommand : public QUndoCommand {
 public:
     AddMediaCommand(MediaPtr iitem, MediaPtr iparent);
     virtual ~AddMediaCommand();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     MediaPtr item;
     MediaPtr parent;
@@ -249,8 +249,8 @@ class DeleteMediaCommand : public QUndoCommand {
 public:
     DeleteMediaCommand(MediaPtr i);
     virtual ~DeleteMediaCommand();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     MediaPtr item;
     MediaPtr parent;
@@ -262,8 +262,8 @@ class AddClipCommand : public QUndoCommand {
 public:
     AddClipCommand(SequencePtr s, QVector<ClipPtr>& add);
     virtual ~AddClipCommand();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     SequencePtr seq;
     QVector<ClipPtr> clips;
@@ -274,8 +274,8 @@ private:
 class LinkCommand : public QUndoCommand {
 public:
     LinkCommand();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
     SequencePtr s;
     QVector<int> clips;
     bool link;
@@ -292,8 +292,8 @@ public:
     CheckboxCommand(const CheckboxCommand& ) = delete;
     CheckboxCommand& operator=(const CheckboxCommand&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     QCheckBox* box;
     bool checked;
@@ -304,8 +304,8 @@ private:
 class ReplaceMediaCommand : public QUndoCommand {
 public:
     ReplaceMediaCommand(MediaPtr, QString);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     MediaPtr item;
     QString old_filename;
@@ -317,8 +317,8 @@ private:
 class ReplaceClipMediaCommand : public QUndoCommand {
 public:
     ReplaceClipMediaCommand(MediaPtr , MediaPtr , const bool);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
     QVector<ClipPtr> clips;
 private:
     MediaPtr old_media;
@@ -333,8 +333,8 @@ class EffectDeleteCommand : public QUndoCommand {
 public:
     EffectDeleteCommand();
     virtual ~EffectDeleteCommand();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
     QVector<ClipPtr> clips;
     QVector<int> fx;
 private:
@@ -348,8 +348,8 @@ public:
     MediaMove();
     QVector<MediaPtr> items;
     MediaPtr to;
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     QVector<MediaPtr> froms;
     bool old_project_changed;
@@ -358,8 +358,8 @@ private:
 class MediaRename : public QUndoCommand {
 public:
     MediaRename(MediaPtr iitem, const QString& ito);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     bool old_project_changed;
     MediaPtr item;
@@ -374,8 +374,8 @@ public:
     KeyframeDelete(const KeyframeDelete& ) = delete;
     KeyframeDelete& operator=(const KeyframeDelete&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     EffectField* field;
     int index;
@@ -393,8 +393,8 @@ public:
     KeyframeFieldSet(const KeyframeFieldSet& ) = delete;
     KeyframeFieldSet& operator=(const KeyframeFieldSet&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     EffectField* field;
     int index;
@@ -410,8 +410,8 @@ public:
     EffectFieldUndo(const EffectFieldUndo& ) = delete;
     EffectFieldUndo& operator=(const EffectFieldUndo&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     EffectField* field;
     QVariant old_val;
@@ -423,8 +423,8 @@ private:
 class SetAutoscaleAction : public QUndoCommand {
 public:
     SetAutoscaleAction();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
     QVector<ClipPtr> clips;
 private:
     bool old_project_changed;
@@ -433,8 +433,8 @@ private:
 class AddMarkerAction : public QUndoCommand {
 public:
     AddMarkerAction(SequencePtr s, const long t, QString n);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     SequencePtr seq;
     long time;
@@ -451,8 +451,8 @@ public:
     MoveMarkerAction(const MoveMarkerAction& ) = delete;
     MoveMarkerAction& operator=(const MoveMarkerAction&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     Marker* marker;
     long old_time;
@@ -463,8 +463,8 @@ private:
 class DeleteMarkerAction : public QUndoCommand {
 public:
     DeleteMarkerAction(SequencePtr s);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
     QVector<int> markers;
 private:
     SequencePtr seq;
@@ -476,8 +476,8 @@ private:
 class SetSpeedAction : public QUndoCommand {
 public:
     SetSpeedAction(ClipPtr c, double speed);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     ClipPtr clip;
     double old_speed;
@@ -492,8 +492,8 @@ public:
     SetBool(const SetBool& ) = delete;
     SetBool& operator=(const SetBool&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     bool* boolean;
     bool old_setting;
@@ -504,8 +504,8 @@ private:
 class SetSelectionsCommand : public QUndoCommand {
 public:
     SetSelectionsCommand(SequencePtr s);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
     QVector<Selection> old_data;
     QVector<Selection> new_data;
 private:
@@ -517,8 +517,8 @@ private:
 class SetEnableCommand : public QUndoCommand {
 public:
     SetEnableCommand(ClipPtr c, const bool enable);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     ClipPtr clip;
     bool old_val;
@@ -530,8 +530,8 @@ class EditSequenceCommand : public QUndoCommand {
 
 public:
     EditSequenceCommand(MediaPtr i, SequencePtr s);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
     void update();
 
     QString name;
@@ -560,8 +560,8 @@ public:
     SetInt(const SetInt& ) = delete;
     SetInt& operator=(const SetInt&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     int* p;
     int oldval;
@@ -576,8 +576,8 @@ public:
     SetLong(const SetLong& ) = delete;
     SetLong& operator=(const SetLong&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     long* p;
     long oldval;
@@ -592,8 +592,8 @@ public:
     SetDouble(const SetDouble& ) = delete;
     SetDouble& operator=(const SetDouble&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     double* p;
     double oldval;
@@ -608,8 +608,8 @@ public:
     SetString(const SetString& ) = delete;
     SetString& operator=(const SetString&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     QString* p;
     QString oldval;
@@ -619,15 +619,15 @@ private:
 
 class CloseAllClipsCommand : public QUndoCommand {
 public:
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 };
 
 class UpdateFootageTooltip : public QUndoCommand {
 public:
     UpdateFootageTooltip(MediaPtr i);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     MediaPtr item;
 };
@@ -635,8 +635,8 @@ private:
 class MoveEffectCommand : public QUndoCommand {
 public:
     MoveEffectCommand();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
     ClipPtr clip;
     int from;
     int to;
@@ -648,8 +648,8 @@ class RemoveClipsFromClipboard : public QUndoCommand {
 public:
     RemoveClipsFromClipboard(int index);
     virtual ~RemoveClipsFromClipboard();
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     int pos;
     ClipPtr clip;
@@ -662,8 +662,8 @@ public:
     RenameClipCommand();
     QVector<ClipPtr> clips;
     QString new_name;
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     QVector<QString> old_names;
     bool old_project_changed;
@@ -676,8 +676,8 @@ public:
     SetPointer(const SetPointer& ) = delete;
     SetPointer& operator=(const SetPointer&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     bool old_changed;
     void** p;
@@ -687,8 +687,8 @@ private:
 
 class ReloadEffectsCommand : public QUndoCommand {
 public:
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 };
 
 class SetQVariant : public QUndoCommand {
@@ -698,8 +698,8 @@ public:
     SetQVariant(const SetQVariant& ) = delete;
     SetQVariant& operator=(const SetQVariant&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     QVariant* target;
     QVariant old_val;
@@ -713,8 +713,8 @@ public:
     SetKeyframing(const SetKeyframing& ) = delete;
     SetKeyframing& operator=(const SetKeyframing&) = delete;
 
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     EffectRow* row;
     bool b;
@@ -723,8 +723,8 @@ private:
 class RefreshClips : public QUndoCommand {
 public:
     RefreshClips(MediaPtr m);
-    virtual void undo();
-    virtual void redo();
+    virtual void undo() override;
+    virtual void redo() override;
 private:
     MediaPtr media;
 };
