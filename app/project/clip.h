@@ -55,7 +55,7 @@ using ClipPtr = std::shared_ptr<Clip>;
 using ClipUPtr = std::unique_ptr<Clip>;
 using ClipWPtr = std::weak_ptr<Clip>;
 
-class Clip : public project::SequenceItem, QThread, std::enable_shared_from_this<Clip>
+class Clip : public project::SequenceItem, QThread
 {
   public:
 
@@ -237,7 +237,6 @@ class Clip : public project::SequenceItem, QThread, std::enable_shared_from_this
 
   protected:
     virtual void run() override;
-
   private:
     friend class ClipTest;
     struct {
