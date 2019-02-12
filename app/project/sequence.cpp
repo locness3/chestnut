@@ -167,7 +167,8 @@ long Sequence::endFrame() const{
     return end;
 }
 
-void Sequence::hardDeleteTransition(ClipPtr& c, const int type) {
+void Sequence::hardDeleteTransition(ClipPtr c, const int type)
+{
     auto transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
     if (transition_index > -1) {
         auto del = true;
@@ -178,7 +179,7 @@ void Sequence::hardDeleteTransition(ClipPtr& c, const int type) {
                 if (!comp){
                     continue;
                 }
-                if (c != comp){ //TODO: check this is the correct comparison
+                if (c != comp) {
                     continue;
                 }
                 if ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) ) {

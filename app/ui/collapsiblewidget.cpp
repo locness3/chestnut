@@ -34,7 +34,6 @@
 CollapsibleWidget::CollapsibleWidget(QWidget* parent) : QWidget(parent) {
   selected = false;
 
-  //FIXME: leaks!
   layout = new QVBoxLayout(this);
   layout->setMargin(0);
   layout->setSpacing(0);

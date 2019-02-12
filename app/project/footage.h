@@ -80,7 +80,6 @@ public:
     Footage& operator=(const Footage&) = delete;
     Footage& operator=(const Footage&&) = delete;
 
-    //FIXME: encapsulation
     QString url;
     int64_t length = 0;
     QVector<FootageStreamPtr> video_tracks;

@@ -669,21 +669,22 @@ private:
     bool old_project_changed;
 };
 
-class SetPointer : public QUndoCommand {
-public:
-    SetPointer(void** pointer, void* data);
+//class SetPointer : public QUndoCommand {
+//public:
+//    SetPointer(void** pointer, void* data);
+//    SetPointer(ClipPtr clp);
 
-    SetPointer(const SetPointer& ) = delete;
-    SetPointer& operator=(const SetPointer&) = delete;
+//    SetPointer(const SetPointer& ) = delete;
+//    SetPointer& operator=(const SetPointer&) = delete;
 
-    virtual void undo() override;
-    virtual void redo() override;
-private:
-    bool old_changed;
-    void** p;
-    void* new_data;
-    void* old_data;
-};
+//    virtual void undo() override;
+//    virtual void redo() override;
+//private:
+//    bool old_changed;
+//    void** p;
+//    void* new_data;
+//    void* old_data;
+//};
 
 class ReloadEffectsCommand : public QUndoCommand {
 public:

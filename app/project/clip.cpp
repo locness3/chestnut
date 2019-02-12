@@ -82,9 +82,12 @@ Clip::~Clip() {
     close(WAIT_ON_CLOSE);
   }
 
-  //FIXME:
-  //    if (opening_transition != -1) this->sequence->hardDeleteTransition(this, TA_OPENING_TRANSITION);
-  //    if (closing_transition != -1) this->sequence->hardDeleteTransition(this, TA_CLOSING_TRANSITION);
+  if (opening_transition != -1) {
+    sequence->hardDeleteTransition(shared_from_this(), TA_OPENING_TRANSITION);
+  }
+  if (closing_transition != -1) {
+    sequence->hardDeleteTransition(shared_from_this(), TA_CLOSING_TRANSITION);
+  }
 
   effects.clear();
   av_packet_free(&media_handling.pkt);
@@ -857,15 +860,17 @@ bool Clip::isSelected(const bool containing)
   for (int i=0; i < sequence->selections_.size(); i++) {
     const Selection& s = sequence->selections_.at(i);
     //FIXME: christ almighty
-    if (timeline_info.track == s.track && ((timeline_info.in >= s.in && timeline_info.out <= s.out && containing) ||
-                                           (!containing && !(timeline_info.in < s.in && timeline_info.out < s.in) && !(timeline_info.in > s.in && timeline_info.out > s.in)))) {
+    if ( (timeline_info.track == s.track)
+         && ( (timeline_info.in >= s.in && timeline_info.out <= s.out && containing)
+              || (!containing && !(timeline_info.in < s.in && timeline_info.out < s.in) && !(timeline_info.in > s.in && timeline_info.out > s.in)) )) {
       return true;
     }
   }
   return false;
 }
 
-long Clip::clipInWithTransition() {
+long Clip::clipInWithTransition()
+{
   if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
     // we must be the secondary clip, so return (timeline in - length)
     return timeline_info.clip_in - openingTransition()->get_true_length();
@@ -873,7 +878,8 @@ long Clip::clipInWithTransition() {
   return timeline_info.clip_in;
 }
 
-long Clip::timelineInWithTransition() {
+long Clip::timelineInWithTransition()
+{
   if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
     // we must be the secondary clip, so return (timeline in - length)
     return timeline_info.in - openingTransition()->get_true_length();
@@ -1109,7 +1115,8 @@ void Clip::run() {
 }
 
 
-void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& /*nests*/) {
+void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests)
+{
   // perform all audio effects
   const double timecode_end = timecode_start + bytes_to_seconds(nb_bytes, frame->channels, frame->sample_rate);
 
@@ -1145,12 +1152,17 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
     }
   }
 
-  //FIXME: hmm
-  //    if (!nests.isEmpty()) {
-  //        ClipPtr next_nest = nests.last();
-  //        nests.removeLast();
-  //        apply_audio_effects(next_nest, timecode_start + (((double)timelineInWithTransition()-clipInWithTransition())/sequence->frameRate()), frame, nb_bytes, nests);
-  //    }
+  if (!nests.isEmpty()) {
+    auto next_nest = nests.last();
+    nests.removeLast();
+    if (next_nest != nullptr) {
+      next_nest->apply_audio_effects(
+            timecode_start + ( (static_cast<double>(timelineInWithTransition()) - clipInWithTransition()) /sequence->frameRate() ),
+            frame,
+            nb_bytes,
+            nests);
+    }
+  }
 }
 
 
@@ -1758,7 +1770,7 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
          (!closingTransition()->secondary_clip.expired()) &&
          (closingTransition()->parent_clip->timeline_info.in != iout) ) {
       // separate transition
-      //            ca.append(new SetPointer((void**) &closingTransition()->secondary_clip, nullptr)); //FIXME:
+      //      ca.append(new SetPointer((void**) &closingTransition()->secondary_clip, nullptr)); //FIXME:
       ca.append(new AddTransitionCommand(ClipPtr(shared_from_this()), nullptr, closingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
     }
   }

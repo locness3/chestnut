@@ -1131,24 +1131,24 @@ void RenameClipCommand::redo() {
   }
 }
 
-SetPointer::SetPointer(void **pointer, void *data) :
-  old_changed(global::mainWindow->isWindowModified()),
-  p(pointer),
-  new_data(data)
-{
+//SetPointer::SetPointer(void **pointer, void *data) :
+//  old_changed(global::mainWindow->isWindowModified()),
+//  p(pointer),
+//  new_data(data)
+//{
 
-}
+//}
 
-void SetPointer::undo() {
-  *p = old_data;
-  global::mainWindow->setWindowModified(old_changed);
-}
+//void SetPointer::undo() {
+//  *p = old_data;
+//  global::mainWindow->setWindowModified(old_changed);
+//}
 
-void SetPointer::redo() {
-  old_data = *p;
-  *p = new_data;
-  global::mainWindow->setWindowModified(true);
-}
+//void SetPointer::redo() {
+//  old_data = *p;
+//  *p = new_data;
+//  global::mainWindow->setWindowModified(true);
+//}
 
 void ReloadEffectsCommand::undo() {
   redo();

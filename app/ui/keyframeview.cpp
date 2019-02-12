@@ -42,7 +42,8 @@
 
 long KeyframeView::adjust_row_keyframe(EffectRowPtr row, long time) {
   //FIXME: the use of ptrs
-  return time-row->parent_effect->parent_clip->timeline_info.clip_in
+  return time
+      - row->parent_effect->parent_clip->timeline_info.clip_in
       + (row->parent_effect->parent_clip->timeline_info.in - visible_in);
 }
 

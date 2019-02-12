@@ -50,7 +50,7 @@ public:
     std::shared_ptr<Sequence> copy();
     void trackLimits(int& video_limit, int& audio_limit) const;
     long endFrame() const;
-    void hardDeleteTransition(ClipPtr& c, const int type);
+    void hardDeleteTransition(ClipPtr c, const int type);
 
     bool setWidth(const int val);
     int width() const;

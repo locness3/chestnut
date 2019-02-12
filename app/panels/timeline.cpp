@@ -1870,7 +1870,7 @@ void move_clip(ComboAction* ca, ClipPtr c, long iin, long iout, long iclip_in, i
         if (c->openingTransition() != nullptr && !c->openingTransition()->secondary_clip.expired()
                 && c->openingTransition()->secondary_clip.lock()->timeline_info.out != iin) {
             // separate transition
-            ca->append(new SetPointer(reinterpret_cast<void**>(&c->openingTransition()->secondary_clip), nullptr)); //TODO: casting
+//            ca->append(new SetPointer(reinterpret_cast<void**>(&c->openingTransition()->secondary_clip), nullptr)); //FIXME: casting
             ca->append(new AddTransitionCommand(c->openingTransition()->secondary_clip.lock(), nullptr,
                                                 c->openingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
         }
@@ -1878,7 +1878,7 @@ void move_clip(ComboAction* ca, ClipPtr c, long iin, long iout, long iclip_in, i
         if (c->closingTransition() != nullptr && !c->closingTransition()->secondary_clip.expired()
                 && c->closingTransition()->parent_clip->timeline_info.in != iout) {
             // separate transition
-            ca->append(new SetPointer(reinterpret_cast<void**>(&c->closingTransition()->secondary_clip), nullptr)); //TODO: casting
+//            ca->append(new SetPointer(reinterpret_cast<void**>(&c->closingTransition()->secondary_clip), nullptr)); //FIXME: casting
             ca->append(new AddTransitionCommand(c, nullptr, c->closingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
         }
     }

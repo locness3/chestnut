@@ -41,14 +41,16 @@ Footage::Footage()
   ready_lock.lock();
 }
 
-Footage::~Footage() {
+Footage::~Footage()
+{
   reset();
 }
 
-void Footage::reset() {
+void Footage::reset()
+{
   if (preview_gen != nullptr) {
     preview_gen->cancel();
-    //        preview_gen->wait(); //FIXME: segfault. hard to ascertain why
+    preview_gen->wait();
   }
   video_tracks.clear();
   audio_tracks.clear();

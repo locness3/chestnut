@@ -141,7 +141,7 @@ void EffectControls::copy(bool del) {
             e_clipboard_type = CLIPBOARD_TYPE_EFFECT;
           }
 
-          //                    clipboard.append(std::dynamic_pointer_cast<project::SequenceItemPtr>(effect->copy(nullptr))); //FIXME:
+          e_clipboard.append(std::dynamic_pointer_cast<project::SequenceItem>(effect->copy(nullptr)));
 
           if (del_com != nullptr) {
             del_com->clips.append(c);
@@ -486,9 +486,9 @@ void EffectControls::load_effects() {
           open_effect(layout, c->effects.at(j));
         }
       } else if (mode == TA_OPENING_TRANSITION && c->openingTransition() != nullptr) {
-        //				open_effect(layout, c->openingTransition()); //FIXME:
+        open_effect(layout, c->openingTransition());
       } else if (mode == TA_CLOSING_TRANSITION && c->closingTransition() != nullptr) {
-        //				open_effect(layout, c->closingTransition()); //FIXME:
+        open_effect(layout, c->closingTransition());
       }
     }
     if (selected_clips.size() > 0) {
