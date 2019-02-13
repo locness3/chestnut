@@ -689,7 +689,7 @@ void Clip::frame(const long playhead, bool& texture_failed) {
     }
     if (ms == nullptr) return;
 
-    int64_t target_pts = qMax(0L, playhead_to_timestamp(playhead));
+    int64_t target_pts = qMax(0LL, playhead_to_timestamp(playhead));
     int64_t second_pts = qRound64(av_q2d(av_inv_q(media_handling.stream->time_base)));
     if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
       target_pts *= 2;
@@ -1241,7 +1241,7 @@ double Clip::playhead_to_seconds(const long playhead) {
 
 int64_t Clip::seconds_to_timestamp(const double seconds)
 {
-  return qRound64(seconds * av_q2d(av_inv_q(media_handling.stream->time_base))) + qMax(0L, media_handling.stream->start_time);
+  return qRound64(seconds * av_q2d(av_inv_q(media_handling.stream->time_base))) + qMax(0LL, media_handling.stream->start_time);
 }
 
 //TODO: hmmm
@@ -1313,7 +1313,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
           if (timeline_info.reverse && !audio_playback.just_reset) {
             avcodec_flush_buffers(media_handling.codecCtx);
             reached_end = false;
-            int64_t backtrack_seek = qMax(audio_playback.reverse_target - static_cast<int64_t>(av_q2d(av_inv_q(media_handling.stream->time_base))), 0L);
+            int64_t backtrack_seek = qMax(audio_playback.reverse_target - static_cast<int64_t>(av_q2d(av_inv_q(media_handling.stream->time_base))), 0LL);
             av_seek_frame(media_handling.formatCtx, media_handling.stream->index, backtrack_seek, AVSEEK_FLAG_BACKWARD);
           }
 
