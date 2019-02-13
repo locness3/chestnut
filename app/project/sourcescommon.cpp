@@ -34,6 +34,8 @@
 #include <QMimeData>
 #include <QMessageBox>
 #include <QDesktopServices>
+#include <QDropEvent>
+#include <QUrl>
 
 namespace {
   const int RENAME_INTERVAL = 1000;

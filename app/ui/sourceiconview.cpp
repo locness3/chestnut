@@ -18,6 +18,7 @@
 #include "sourceiconview.h"
 
 #include <QMimeData>
+#include <QMouseEvent>
 
 #include "panels/project.h"
 #include "project/media.h"
