@@ -22,7 +22,7 @@ void SequenceTest::testCaseDefaults()
     QVERIFY(sqn.endFrame() == 0);
     int video_limit;
     int audio_limit;
-    sqn.trackLimits(video_limit, audio_limit);
+    std::tie(video_limit,audio_limit) = sqn.trackLimits();
     QVERIFY(video_limit == 0);
     QVERIFY(audio_limit == 0);
 }
