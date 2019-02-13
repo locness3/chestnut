@@ -176,7 +176,7 @@ void Sequence::hardDeleteTransition(ClipPtr c, const int type)
         auto del = true;
 
         auto transition_for_delete = transitions_.at(transition_index);
-        if (!transition_for_delete->secondary_clip.expired()) {
+    if (auto secondary = transition_for_delete->secondary_clip.lock()) {
             for (auto comp : clips_) {
                 if (!comp){
                     continue;
@@ -187,11 +187,11 @@ void Sequence::hardDeleteTransition(ClipPtr c, const int type)
                 if ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) ) {
                     if (type == TA_OPENING_TRANSITION) {
                         // convert to closing transition
-                        transition_for_delete->parent_clip = transition_for_delete->secondary_clip.lock();
+            transition_for_delete->parent_clip = secondary;
                     }
 
                     del = false;
-                    transition_for_delete->secondary_clip.reset();
+          secondary.reset();
                 }
             }//for
         }
