@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,15 +19,15 @@
 #define SELECTION_H
 
 struct Selection {
-	long in;
-	long out;
-	int track;
+    long in;
+    long out;
+    int track;
 
-	long old_in;
-	long old_out;
-	int old_track;
+    long old_in;
+    long old_out;
+    int old_track;
 
-	bool trim_in;
+    bool trim_in;
 };
 
 #endif // SELECTION_H

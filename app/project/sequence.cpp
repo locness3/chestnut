@@ -157,7 +157,7 @@ std::shared_ptr<Sequence> Sequence::copy()
   return sqn;
 }
 
-long Sequence::endFrame() const
+int64_t Sequence::endFrame() const
 {
   auto end = 0L;
   for (auto clp : clips_) {
@@ -168,7 +168,7 @@ long Sequence::endFrame() const
   return end;
 }
 
-void Sequence::hardDeleteTransition(ClipPtr c, const int type)
+void Sequence::hardDeleteTransition(ClipPtr c, const int32_t type)
 {
   auto transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
   if (transition_index > -1) {
@@ -208,7 +208,7 @@ void Sequence::hardDeleteTransition(ClipPtr c, const int type)
 }
 
 
-bool Sequence::setWidth(const int val)
+bool Sequence::setWidth(const int32_t val)
 {
   if ( (val % 2  == 0) && (val > 0) && (val <= MAXIMUM_WIDTH) ) {
     width_ = val;
@@ -216,12 +216,12 @@ bool Sequence::setWidth(const int val)
   }
   return false;
 }
-int Sequence::width() const
+int32_t Sequence::width() const
 {
   return width_;
 }
 
-bool Sequence::setHeight(const int val)
+bool Sequence::setHeight(const int32_t val)
 {
   if ( (val % 2  == 0) && (val > 0) && (val <= MAXIMUM_HEIGHT) ) {
     height_ = val;
@@ -229,7 +229,7 @@ bool Sequence::setHeight(const int val)
   }
   return false;
 }
-int Sequence::height() const
+int32_t Sequence::height() const
 {
   return height_;
 }
@@ -249,11 +249,11 @@ bool Sequence::setFrameRate(const double frameRate)
 }
 
 
-int Sequence::audioFrequency() const
+int32_t Sequence::audioFrequency() const
 {
   return audio_frequency_;
 }
-bool Sequence::setAudioFrequency(const int frequency)
+bool Sequence::setAudioFrequency(const int32_t frequency)
 {
   if ( (frequency >= 0) && (frequency <= MAXIMUM_FREQUENCY) ) {
     audio_frequency_ = frequency;
@@ -266,7 +266,7 @@ bool Sequence::setAudioFrequency(const int frequency)
  * @brief getAudioLayout from ffmpeg libresample
  * @return AV_CH_LAYOUT_*
  */
-int Sequence::audioLayout() const
+int32_t Sequence::audioLayout() const
 {
   return audio_layout_;
 }
@@ -274,13 +274,13 @@ int Sequence::audioLayout() const
  * @brief setAudioLayout using ffmpeg libresample
  * @param layout AV_CH_LAYOUT_* value from libavutil/channel_layout.h
  */
-void Sequence::setAudioLayout(const int layout)
+void Sequence::setAudioLayout(const int32_t layout)
 {
   audio_layout_ = layout;
 }
 
 
-void Sequence::closeActiveClips(const int depth)
+void Sequence::closeActiveClips(const int32_t depth)
 {
   if (depth > RECURSION_LIMIT) return;
   for (auto c : clips_) {

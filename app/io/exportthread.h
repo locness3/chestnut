@@ -63,8 +63,8 @@ public:
     int audio_codec;
     int audio_sampling_rate;
     int audio_bitrate;
-    int32_t start_frame;
-    int32_t end_frame;
+    int64_t start_frame;
+    int64_t end_frame;
 
     QOffscreenSurface surface;
 

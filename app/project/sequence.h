@@ -50,51 +50,51 @@ public:
     std::shared_ptr<Sequence> copy();
     std::pair<int64_t,int64_t> trackLimits() const;
     long endFrame() const;
-    void hardDeleteTransition(ClipPtr c, const int type);
+    void hardDeleteTransition(ClipPtr c, const int32_t type);
 
-    bool setWidth(const int val);
-    int width() const;
-    bool setHeight(const int val);
-    int height() const;
+    bool setWidth(const int32_t val);
+    int32_t width() const;
+    bool setHeight(const int32_t val);
+    int32_t height() const;
     double frameRate() const;
     bool setFrameRate(const double frameRate);
-    int audioFrequency() const;
-    bool setAudioFrequency(const int frequency);
+    int32_t audioFrequency() const;
+    bool setAudioFrequency(const int32_t frequency);
     /**
      * @brief audioLayout from ffmpeg libresample
      * @return AV_CH_LAYOUT_*
      */
-    int audioLayout() const;
+    int32_t audioLayout() const;
     /**
      * @brief setAudioLayout using ffmpeg libresample
      * @param layout AV_CH_LAYOUT_* value from libavutil/channel_layout.h
      */
-    void setAudioLayout(const int layout);
+    void setAudioLayout(const int32_t layout);
 
-    void closeActiveClips(const int depth=0);
+    void closeActiveClips(const int32_t depth=0);
 
     QVector<Selection> selections_;
     QVector<ClipPtr> clips_;
-    int save_id_ = 0;
+    int32_t save_id_ = 0;
     struct {
         bool using_ = false;
         bool enabled_ = true;
-        int32_t in_ = 0;
-        int32_t out_ = 0;
+        int64_t in_ = 0;
+        int64_t out_ = 0;
     } workarea_;
 
     QVector<TransitionPtr> transitions_;
     QVector<Marker> markers_;
-    long playhead_ = 0;
+    int64_t playhead_ = 0;
     bool wrapper_sequence_ = false;
 
 private:
     friend class SequenceTest;
-    int width_ = -1;
-    int height_ = -1;
+    int32_t width_ = -1;
+    int32_t height_ = -1;
     double frame_rate_ = -0.0;
-    int audio_frequency_ = -1;
-    int audio_layout_ = -1;
+    int32_t audio_frequency_ = -1;
+    int32_t audio_layout_ = -1;
 };
 
 namespace global {
