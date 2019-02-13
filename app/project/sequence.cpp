@@ -19,6 +19,8 @@
 
 #include <QCoreApplication>
 
+#include <libavutil/channel_layout.h>
+
 #include "clip.h"
 #include "transition.h"
 
@@ -33,7 +35,7 @@ const int       DEFAULT_WIDTH              = 1920;
 const int       DEFAULT_HEIGHT             = 1080;
 const double    DEFAULT_FRAMERATE          = 29.97;
 const int       DEFAULT_AUDIO_FREQUENCY    = 48000;
-const int       DEFAULT_LAYOUT             = 3; //TODO: what does this value mean?
+  const int       DEFAULT_LAYOUT             = AV_CH_LAYOUT_STEREO;
 }
 
 
