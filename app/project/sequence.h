@@ -49,7 +49,7 @@ public:
     Sequence(const Sequence& cpy);
     std::shared_ptr<Sequence> copy();
     std::pair<int64_t,int64_t> trackLimits() const;
-    long endFrame() const;
+    int64_t endFrame() const;
     void hardDeleteTransition(ClipPtr c, const int32_t type);
 
     bool setWidth(const int32_t val);
