@@ -304,8 +304,8 @@ void Viewer::close_media() {
 
 void Viewer::go_to_in() {
     if (seq != nullptr) {
-        if (seq->using_workarea_ && seq->enable_workarea_) {
-            seek(seq->workarea_in_);
+        if (seq->workarea_.using_ && seq->workarea_.enabled_) {
+            seek(seq->workarea_.in_);
         } else {
             go_to_start();
         }
@@ -322,8 +322,8 @@ void Viewer::next_frame() {
 
 void Viewer::go_to_out() {
     if (seq != nullptr) {
-        if (seq->using_workarea_ && seq->enable_workarea_) {
-            seek(seq->workarea_out_);
+        if (seq->workarea_.using_ && seq->workarea_.enabled_) {
+            seek(seq->workarea_.out_);
         } else {
             go_to_end();
         }
@@ -489,29 +489,29 @@ void Viewer::update_viewer() {
 }
 
 void Viewer::clear_in() {
-    if (seq->using_workarea_) {
-        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, 0, seq->workarea_out_));
+    if (seq->workarea_.using_) {
+        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, 0, seq->workarea_.out_));
         update_parents();
     }
 }
 
 void Viewer::clear_out() {
-    if (seq->using_workarea_) {
-        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, seq->workarea_in_, seq->endFrame()));
+    if (seq->workarea_.using_) {
+        e_undo_stack.push(new SetTimelineInOutCommand(seq, true, seq->workarea_.in_, seq->endFrame()));
         update_parents();
     }
 }
 
 void Viewer::clear_inout_point() {
-    if (seq->using_workarea_) {
+    if (seq->workarea_.using_) {
         e_undo_stack.push(new SetTimelineInOutCommand(seq, false, 0, 0));
         update_parents();
     }
 }
 
 void Viewer::toggle_enable_inout() {
-    if (seq != nullptr && seq->using_workarea_) {
-        e_undo_stack.push(new SetBool(&seq->enable_workarea_, !seq->enable_workarea_));
+    if (seq != nullptr && seq->workarea_.using_) {
+        e_undo_stack.push(new SetBool(&seq->workarea_.enabled_, !seq->workarea_.enabled_));
         update_parents();
     }
 }
@@ -563,14 +563,14 @@ void Viewer::set_sb_max() {
 }
 
 long Viewer::get_seq_in() {
-    return (seq->using_workarea_ && seq->enable_workarea_)
-            ? seq->workarea_in_
+    return (seq->workarea_.using_ && seq->workarea_.enabled_)
+            ? seq->workarea_.in_
             : 0;
 }
 
 long Viewer::get_seq_out() {
-    return (seq->using_workarea_ && seq->enable_workarea_ && previous_playhead < seq->workarea_out_)
-            ? seq->workarea_out_
+    return (seq->workarea_.using_ && seq->workarea_.enabled_ && previous_playhead < seq->workarea_.out_)
+            ? seq->workarea_.out_
             : seq->endFrame();
 }
 
@@ -693,10 +693,10 @@ void Viewer::set_media(MediaPtr m) {
             seq->wrapper_sequence_ = true;
             seq->setName(ftg->name());
 
-            seq->using_workarea_ = ftg->using_inout;
+            seq->workarea_.using_ = ftg->using_inout;
             if (ftg->using_inout) {
-                seq->workarea_in_ = ftg->in;
-                seq->workarea_out_ = ftg->out;
+                seq->workarea_.in_ = ftg->in;
+                seq->workarea_.out_ = ftg->out;
             }
 
             seq->setFrameRate(MEDIA_FRAME_RATE);

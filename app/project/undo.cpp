@@ -223,10 +223,10 @@ SetTimelineInOutCommand::SetTimelineInOutCommand(SequencePtr s, const bool enabl
 {}
 
 void SetTimelineInOutCommand::undo() {
-  seq->using_workarea_ = old_enabled;
-  seq->enable_workarea_ = old_workarea_enabled;
-  seq->workarea_in_ = old_in;
-  seq->workarea_out_ = old_out;
+  seq->workarea_.using_ = old_enabled;
+  seq->workarea_.enabled_ = old_workarea_enabled;
+  seq->workarea_.in_ = old_in;
+  seq->workarea_.out_ = old_out;
 
   // footage viewer functions
   if (seq->wrapper_sequence_) {
@@ -240,15 +240,15 @@ void SetTimelineInOutCommand::undo() {
 }
 
 void SetTimelineInOutCommand::redo() {
-  old_enabled = seq->using_workarea_;
-  old_workarea_enabled = seq->enable_workarea_;
-  old_in = seq->workarea_in_;
-  old_out = seq->workarea_out_;
+  old_enabled = seq->workarea_.using_;
+  old_workarea_enabled = seq->workarea_.enabled_;
+  old_in = seq->workarea_.in_;
+  old_out = seq->workarea_.out_;
 
-  if (!seq->using_workarea_) seq->enable_workarea_ = true;
-  seq->using_workarea_ = new_enabled;
-  seq->workarea_in_ = new_in;
-  seq->workarea_out_ = new_out;
+  if (!seq->workarea_.using_) seq->workarea_.enabled_ = true;
+  seq->workarea_.using_ = new_enabled;
+  seq->workarea_.in_ = new_in;
+  seq->workarea_.out_ = new_out;
 
   // footage viewer functions
   if (seq->wrapper_sequence_) {

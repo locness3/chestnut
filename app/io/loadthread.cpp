@@ -310,13 +310,13 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                   } else if (attr.name() == "open") {
                     open_seq = s;
                   } else if (attr.name() == "workarea") {
-                    s->using_workarea_ = (attr.value() == "1");
+                    s->workarea_.using_ = (attr.value() == "1");
                   } else if (attr.name() == "workareaEnabled") {
-                    s->enable_workarea_ = (attr.value() == "1");
+                    s->workarea_.enabled_ = (attr.value() == "1");
                   } else if (attr.name() == "workareaIn") {
-                    s->workarea_in_ = attr.value().toLong();
+                    s->workarea_.in_ = attr.value().toLong();
                   } else if (attr.name() == "workareaOut") {
-                    s->workarea_out_ = attr.value().toLong();
+                    s->workarea_.out_ = attr.value().toLong();
                   }
                 }
 

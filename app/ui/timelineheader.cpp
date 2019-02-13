@@ -104,7 +104,7 @@ void TimelineHeader::set_visible_in(long i) {
 
 void TimelineHeader::set_in_point(long new_in) {
     if (auto sqn = viewer->getSequence()) {
-        auto new_out = sqn->workarea_out_;
+        auto new_out = sqn->workarea_.out_;
         if (new_out == new_in) {
             new_in--;
         } else if (new_out < new_in) {
@@ -118,7 +118,7 @@ void TimelineHeader::set_in_point(long new_in) {
 
 void TimelineHeader::set_out_point(long new_out) {
     if (auto sqn = viewer->getSequence()) {
-        auto new_in = sqn->workarea_in_;
+        auto new_in = sqn->workarea_.in_;
         if (new_out == new_in) {
             new_out++;
         } else if (new_in > new_out || new_in < 0) {
@@ -243,19 +243,19 @@ void TimelineHeader::mouseMoveEvent(QMouseEvent* event) {
         } else {
             resizing_workarea = false;
             unsetCursor();
-            if (sqn != nullptr && sqn->using_workarea_) {
+            if (sqn != nullptr && sqn->workarea_.using_) {
                 long min_frame = getHeaderFrameFromScreenPoint(event->pos().x() - CLICK_RANGE) - 1;
                 long max_frame = getHeaderFrameFromScreenPoint(event->pos().x() + CLICK_RANGE) + 1;
-                if (sqn->workarea_in_ > min_frame && sqn->workarea_in_ < max_frame) {
+                if (sqn->workarea_.in_ > min_frame && sqn->workarea_.in_ < max_frame) {
                     resizing_workarea = true;
                     resizing_workarea_in = true;
-                } else if (sqn->workarea_out_ > min_frame && sqn->workarea_out_ < max_frame) {
+                } else if (sqn->workarea_.out_ > min_frame && sqn->workarea_.out_ < max_frame) {
                     resizing_workarea = true;
                     resizing_workarea_in = false;
                 }
                 if (resizing_workarea) {
-                    temp_workarea_in = sqn->workarea_in_;
-                    temp_workarea_out = sqn->workarea_out_;
+                    temp_workarea_in = sqn->workarea_.in_;
+                    temp_workarea_out = sqn->workarea_.out_;
                     setCursor(Qt::SizeHorCursor);
                 }
             }
@@ -397,10 +397,10 @@ void TimelineHeader::paintEvent(QPaintEvent*) {
 
             // draw in/out selection
             int in_x;
-            if (sqn->using_workarea_) {
-                in_x = getHeaderScreenPointFromFrame((resizing_workarea ? temp_workarea_in : sqn->workarea_in_));
-                int out_x = getHeaderScreenPointFromFrame((resizing_workarea ? temp_workarea_out : sqn->workarea_out_));
-                p.fillRect(QRect(in_x, 0, out_x-in_x, height()), sqn->enable_workarea_ ? QColor(0, 192, 255, 128) : QColor(255, 255, 255, 64));
+            if (sqn->workarea_.using_) {
+                in_x = getHeaderScreenPointFromFrame((resizing_workarea ? temp_workarea_in : sqn->workarea_.in_));
+                int out_x = getHeaderScreenPointFromFrame((resizing_workarea ? temp_workarea_out : sqn->workarea_.out_));
+                p.fillRect(QRect(in_x, 0, out_x-in_x, height()), sqn->workarea_.enabled_ ? QColor(0, 192, 255, 128) : QColor(255, 255, 255, 64));
                 p.setPen(Qt::white);
                 p.drawLine(in_x, 0, in_x, height());
                 p.drawLine(out_x, 0, out_x, height());

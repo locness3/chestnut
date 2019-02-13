@@ -968,10 +968,10 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
             if (s == global::sequence) {
               stream.writeAttribute("open", "1");
             }
-            stream.writeAttribute("workarea", QString::number(s->using_workarea_));
-            stream.writeAttribute("workareaEnabled", QString::number(s->enable_workarea_));
-            stream.writeAttribute("workareaIn", QString::number(s->workarea_in_));
-            stream.writeAttribute("workareaOut", QString::number(s->workarea_out_));
+            stream.writeAttribute("workarea", QString::number(s->workarea_.using_));
+            stream.writeAttribute("workareaEnabled", QString::number(s->workarea_.enabled_));
+            stream.writeAttribute("workareaIn", QString::number(s->workarea_.in_));
+            stream.writeAttribute("workareaOut", QString::number(s->workarea_.out_));
 
             for (int j=0;j<s->transitions_.size();j++) {
               auto t = s->transitions_.at(j);

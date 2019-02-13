@@ -78,9 +78,9 @@ ExportDialog::ExportDialog(QWidget *parent) :
     setup_ui();
 
     rangeCombobox->setCurrentIndex(0);
-    if (global::sequence->using_workarea_) {
+    if (global::sequence->workarea_.using_) {
         rangeCombobox->setEnabled(true);
-        if (global::sequence->enable_workarea_) rangeCombobox->setCurrentIndex(1);
+        if (global::sequence->workarea_.enabled_) rangeCombobox->setCurrentIndex(1);
     }
 
     format_strings.resize(FORMAT_SIZE);
@@ -553,8 +553,8 @@ void ExportDialog::export_action() {
         et->start_frame = 0;
         et->end_frame = global::sequence->endFrame(); // entire sequence
         if (rangeCombobox->currentIndex() == 1) {
-            et->start_frame = qMax(global::sequence->workarea_in_, et->start_frame);
-            et->end_frame = qMin(global::sequence->workarea_out_, et->end_frame);
+            et->start_frame = qMax(global::sequence->workarea_.in_, et->start_frame);
+            et->end_frame = qMin(global::sequence->workarea_.out_, et->end_frame);
         }
 
         et->ed = this;

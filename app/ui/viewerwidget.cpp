@@ -417,9 +417,9 @@ void ViewerWidget::close_window() {
 
 void ViewerWidget::draw_waveform_func() {
   QPainter p(this);
-  if (viewer->getSequence()->using_workarea_) {
-    int in_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_in_) - waveform_scroll;
-    int out_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_out_) - waveform_scroll;
+  if (viewer->getSequence()->workarea_.using_) {
+    int in_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_.in_) - waveform_scroll;
+    int out_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_.out_) - waveform_scroll;
 
     p.fillRect(QRect(in_x, 0, out_x - in_x, height()), QColor(255, 255, 255, 64));
     p.setPen(Qt::white);

@@ -76,16 +76,20 @@ public:
     QVector<Selection> selections_;
     QVector<ClipPtr> clips_;
     int save_id_ = 0;
-    bool using_workarea_ = false;
-    bool enable_workarea_ = true;
-    long workarea_in_ = 0;
-    long workarea_out_ = 0;
+    struct {
+        bool using_ = false;
+        bool enabled_ = true;
+        int32_t in_ = 0;
+        int32_t out_ = 0;
+    } workarea_;
+
     QVector<TransitionPtr> transitions_;
     QVector<Marker> markers_;
     long playhead_ = 0;
     bool wrapper_sequence_ = false;
 
 private:
+    friend class SequenceTest;
     int width_ = -1;
     int height_ = -1;
     double frame_rate_ = -0.0;

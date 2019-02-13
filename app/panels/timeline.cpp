@@ -224,9 +224,9 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
                 sequence_length = refactor_frame_number(sequence_length, lcl_seq->frameRate(), seq->frameRate());
             }
             can_import = ( (lcl_seq != seq) && (sequence_length != 0) );
-            if (lcl_seq->using_workarea_) {
-                default_clip_in = refactor_frame_number(lcl_seq->workarea_in_, lcl_seq->frameRate(), seq->frameRate());
-                default_clip_out = refactor_frame_number(lcl_seq->workarea_out_, lcl_seq->frameRate(), seq->frameRate());
+            if (lcl_seq->workarea_.using_) {
+                default_clip_in = refactor_frame_number(lcl_seq->workarea_.in_, lcl_seq->frameRate(), seq->frameRate());
+                default_clip_out = refactor_frame_number(lcl_seq->workarea_.out_, lcl_seq->frameRate(), seq->frameRate());
             }
             break;
         default:
@@ -279,7 +279,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
         case MediaType::SEQUENCE:
             g.out = entry + sequence_length - default_clip_in;
 
-            if (lcl_seq->using_workarea_ && lcl_seq->enable_workarea_) {
+            if (lcl_seq->workarea_.using_ && lcl_seq->workarea_.enabled_) {
                 g.out -= (sequence_length - default_clip_out);
             }
 
@@ -537,21 +537,21 @@ void Timeline::resizeEvent(QResizeEvent* /*event*/) {
 }
 
 void Timeline::delete_in_out(bool ripple) {
-    if (global::sequence != nullptr && global::sequence->using_workarea_) {
+    if (global::sequence != nullptr && global::sequence->workarea_.using_) {
         QVector<Selection> areas;
         int video_tracks;
         int audio_tracks;
         std::tie(video_tracks,audio_tracks) = global::sequence->trackLimits();
         for (int i=video_tracks;i<=audio_tracks;i++) {
             Selection s;
-            s.in = global::sequence->workarea_in_;
-            s.out = global::sequence->workarea_out_;
+            s.in = global::sequence->workarea_.in_;
+            s.out = global::sequence->workarea_.out_;
             s.track = i;
             areas.append(s);
         }
         ComboAction* ca = new ComboAction();
         delete_areas_and_relink(ca, areas);
-        if (ripple) ripple_clips(ca, global::sequence, global::sequence->workarea_in_, global::sequence->workarea_in_ - global::sequence->workarea_out_);
+        if (ripple) ripple_clips(ca, global::sequence, global::sequence->workarea_.in_, global::sequence->workarea_.in_ - global::sequence->workarea_.out_);
         ca->append(new SetTimelineInOutCommand(global::sequence, false, 0, 0));
         e_undo_stack.push(ca);
         update_ui(true);
@@ -1397,9 +1397,9 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
         }
 
         // snap to in/out
-        if (use_workarea && global::sequence->using_workarea_) {
-            if (snap_to_point(global::sequence->workarea_in_, l)) return true;
-            if (snap_to_point(global::sequence->workarea_out_, l)) return true;
+        if (use_workarea && global::sequence->workarea_.using_) {
+            if (snap_to_point(global::sequence->workarea_.in_, l)) return true;
+            if (snap_to_point(global::sequence->workarea_.out_, l)) return true;
         }
 
         // snap to clip/transition
