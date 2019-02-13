@@ -40,7 +40,9 @@ int main(int argc, char** argv)
 {
   argCount = argc;
   argVals = argv;
-  int status = runTest<ConfigTest>();
+  ConfigTest testItem;
+   // need 1 non-templated QTest::qExec for "Test Results" panel to work
+  auto status = QTest::qExec(&testItem, argCount, argVals);
   status |= runTest<SequenceItemTest>();
   status |= runTest<SequenceTest>();
   status |= runTest<MediaTest>();
