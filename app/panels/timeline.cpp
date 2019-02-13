@@ -539,8 +539,9 @@ void Timeline::resizeEvent(QResizeEvent* /*event*/) {
 void Timeline::delete_in_out(bool ripple) {
     if (global::sequence != nullptr && global::sequence->using_workarea_) {
         QVector<Selection> areas;
-        int video_tracks = 0, audio_tracks = 0;
-        global::sequence->trackLimits(video_tracks, audio_tracks);
+        int video_tracks;
+        int audio_tracks;
+        std::tie(video_tracks,audio_tracks) = global::sequence->trackLimits();
         for (int i=video_tracks;i<=audio_tracks;i++) {
             Selection s;
             s.in = global::sequence->workarea_in_;

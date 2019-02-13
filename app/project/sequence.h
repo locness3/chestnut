@@ -48,7 +48,7 @@ public:
 
     Sequence(const Sequence& cpy);
     std::shared_ptr<Sequence> copy();
-    void trackLimits(int& video_limit, int& audio_limit) const;
+    std::pair<int64_t,int64_t> trackLimits() const;
     long endFrame() const;
     void hardDeleteTransition(ClipPtr c, const int type);
 
