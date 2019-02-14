@@ -104,7 +104,9 @@ public:
     bool has_video_stream_from_file_index(const int index);
     bool has_audio_stream_from_file_index(const int index) const;
     void reset();
+    bool isImage() const;
   private:
+    friend class FootageTest;
     FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
 
 };

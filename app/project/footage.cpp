@@ -57,6 +57,11 @@ void Footage::reset()
   ready = false;
 }
 
+bool Footage::isImage() const
+{
+  return (!video_tracks.empty()) && video_tracks.front()->infinite_length && (audio_tracks.size() == 0);
+}
+
 long Footage::get_length_in_frames(const double frame_rate) const {
   if (length >= 0) {
     return qFloor((static_cast<double>(length) / static_cast<double>(AV_TIME_BASE)) * frame_rate / speed);
