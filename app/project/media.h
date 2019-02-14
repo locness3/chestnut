@@ -66,13 +66,13 @@ public:
 
     template<typename T>
     auto object() {
-        return std::dynamic_pointer_cast<T>(_object);
+        return std::dynamic_pointer_cast<T>(object_);
     }
     /**
      * @brief Obtain this instance unique-id
      * @return id
      */
-    int id() const;
+    int32_t id() const;
     void clearObject();
     bool setFootage(FootagePtr ftg);
     bool setSequence(SequencePtr sqn);
@@ -84,38 +84,38 @@ public:
     const QString& name();
     void setName(const QString& n);
 
-    double frameRate(const int stream = -1);
-    int samplingRate(const int stream = -1);
+    double frameRate(const int32_t stream = -1);
+    int32_t samplingRate(const int32_t stream = -1);
 
     // item functions
     void appendChild(MediaPtr child);
-    bool setData(int col, const QVariant &value);
-    MediaPtr child(const int row);
-    int childCount() const;
-    int columnCount() const;
-    QVariant data(int column, int role);
-    int row();
+    bool setData(const int32_t column, const QVariant &value);
+    MediaPtr child(const int32_t row);
+    int32_t childCount() const;
+    int32_t columnCount() const;
+    QVariant data(const int32_t column, const int32_t role);
+    int32_t row();
     MediaPtr parentItem();
-    void removeChild(int i);
+    void removeChild(const int32_t index);
 
     MediaThrobber* throbber;
-    int temp_id = 0;
-    int temp_id2 = 0;
+    int32_t temp_id = 0;
+    int32_t temp_id2 = 0;
 
 protected:
-    static int nextID;
+    static int32_t nextID;
 private:
-    bool _root;
-    MediaType _type = MediaType::NONE;
-    project::ProjectItemPtr _object;
+    bool root_;
+    MediaType type_ = MediaType::NONE;
+    project::ProjectItemPtr object_;
 
     // item functions
-    QVector<MediaPtr> _children;
-    MediaWPtr _parent;
-    QString _folderName;
-    QString _toolTip;
-    QIcon _icon;
-    int _id;
+    QVector<MediaPtr> children_;
+    MediaWPtr parent_;
+    QString folder_name_;
+    QString tool_tip_;
+    QIcon icon_;
+    int32_t id_;
 
 };
 
