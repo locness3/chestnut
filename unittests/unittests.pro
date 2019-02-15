@@ -30,7 +30,9 @@ SOURCES += \
     ../app/project/UnitTest/mediatest.cpp \
     ../app/project/UnitTest/cliptest.cpp \
     ../app/io/UnitTest/configtest.cpp \
-    ../app/project/UnitTest/footagetest.cpp
+    ../app/project/UnitTest/footagetest.cpp \
+    ../app/project/UnitTest/undotest.cpp \
+    ../app/project/UnitTest/projectmodeltest.cpp
 
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
@@ -41,7 +43,9 @@ HEADERS += \
     ../app/project/UnitTest/mediatest.h \
     ../app/project/UnitTest/cliptest.h \
     ../app/io/UnitTest/configtest.h \
-    ../app/project/UnitTest/footagetest.h
+    ../app/project/UnitTest/footagetest.h \
+    ../app/project/UnitTest/undotest.h \
+    ../app/project/UnitTest/projectmodeltest.h
 
 INCLUDEPATH += ../app/
 LIBS += -L../app/$${DESTDIR}/ -lchestnut

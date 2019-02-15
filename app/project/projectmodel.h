@@ -60,8 +60,18 @@ public:
     MediaPtr get(const QModelIndex& idx);
 
 private:
+    friend class ProjectModelTest;
     MediaPtr root_item;
+    //TODO: it's likely this is uneeded by using root_item instead, or vice-versa. However, using Model::internalId it's easier
+    // to use the map than traversing the tree-like use of root_item
     QMap<int, MediaPtr> project_items;
+
+    /**
+     * @brief insert Add object into managed map of objects
+     * @param item    Object to manage
+     * @return  true==item exists in map
+     */
+    bool insert(MediaPtr item);
 
     QModelIndex create_index(const int row, const int col, const MediaPtr& mda) const;
     QModelIndex create_index(const int row, const MediaPtr& mda) const;

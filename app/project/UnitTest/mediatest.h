@@ -20,7 +20,7 @@ private slots:
     /**
      * @brief Set media instance as a child of another instance and check linkage is correct
      */
-    void testCaseConstructorWithParent();    
+    void testCaseConstructorWithParent();
     /**
      * @brief Set media instance as a Footage type and check stored object is non-null
      */

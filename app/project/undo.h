@@ -82,6 +82,7 @@ private:
     bool old_project_changed;
 };
 
+
 class RippleAction : public QUndoCommand {
 public:
     RippleAction(SequencePtr is, const long ipoint, const long ilength, const QVector<int>& iignore);
@@ -221,15 +222,16 @@ private:
 
 class NewSequenceCommand : public QUndoCommand {
 public:
-    NewSequenceCommand(MediaPtr s, MediaPtr iparent);
+    NewSequenceCommand(MediaPtr s, MediaPtr iparent, const bool modified);
     virtual ~NewSequenceCommand();
     virtual void undo() override;
     virtual void redo() override;
 private:
-    MediaPtr seq;
-    MediaPtr parent;
-    bool done;
-    bool old_project_changed;
+    friend class UndoTest;
+    MediaPtr seq_;
+    MediaPtr parent_;
+    bool done_;
+    bool old_project_changed_;
 };
 
 class AddMediaCommand : public QUndoCommand {

@@ -335,23 +335,24 @@ void Project::open_properties() {
   }
 }
 
-MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaPtr parent) {
-  if (parent == nullptr) {
-    parent = project_model.root();
+MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaPtr parentItem) {
+  if (parentItem == nullptr) {
+    parentItem = project_model.root();
   }
-  auto item = std::make_shared<Media>(parent);
+  auto item = std::make_shared<Media>(parentItem);
   item->setSequence(s);
 
   if (ca != nullptr) {
-    ca->append(new NewSequenceCommand(item, parent));
+    auto cmd = new NewSequenceCommand(item, parentItem, global::mainWindow->isWindowModified());
+    ca->append(cmd);
     if (open) {
       ca->append(new ChangeSequenceAction(s));
     }
   } else {
-    if (parent == project_model.root()) {
-      project_model.appendChild(parent, item);
+    if (parentItem == project_model.root()) {
+      project_model.appendChild(parentItem, item);
     } else {
-      parent->appendChild(item);
+      parentItem->appendChild(item);
     }
     if (open) {
       set_sequence(s);

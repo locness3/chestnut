@@ -69,7 +69,7 @@ public:
 
     bool is_focused();
     void clear();
-    MediaPtr new_sequence(ComboAction *ca, SequencePtr  s, bool open, MediaPtr parent);
+    MediaPtr new_sequence(ComboAction *ca, SequencePtr  s, bool open, MediaPtr parentItem);
     QString get_next_sequence_name(QString start = 0);
     void process_file_list(QStringList& files, bool recursive = false, MediaPtr replace = nullptr, MediaPtr parent = nullptr);
     void replace_media(MediaPtr item, QString filename);

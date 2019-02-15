@@ -23,6 +23,8 @@
 #include "project/UnitTest/mediatest.h"
 #include "project/UnitTest/cliptest.h"
 #include "project/UnitTest/footagetest.h"
+#include "project/UnitTest/undotest.h"
+#include "project/UnitTest/projectmodeltest.h"
 #include "io/UnitTest/configtest.h"
 
 namespace
@@ -49,5 +51,7 @@ int main(int argc, char** argv)
   status |= runTest<MediaTest>();
   status |= runTest<ClipTest>();
   status |= runTest<FootageTest>();
+  status |= runTest<UndoTest>();
+  status |= runTest<ProjectModelTest>();
   return status;
 }

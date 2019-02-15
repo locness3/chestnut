@@ -530,16 +530,16 @@ void insert_clips(ComboAction* ca) {
 }
 
 void TimelineWidget::dropEvent(QDropEvent* event) {
-  if (e_panel_timeline->importing && e_panel_timeline->ghosts.size() > 0) {
+  if (e_panel_timeline->importing && !e_panel_timeline->ghosts.empty()) {
     event->acceptProposedAction();
 
-    ComboAction* ca = new ComboAction();
+    auto ca = new ComboAction();
 
-    SequencePtr s = global::sequence;
+    auto working_sequence = global::sequence;
 
     // if we're dropping into nothing, create a new sequences based on the clip being dragged
-    if (s == nullptr) {
-      s = self_created_sequence;
+    if (working_sequence == nullptr) {
+      working_sequence = self_created_sequence;
       e_panel_project->new_sequence(ca, self_created_sequence, true, nullptr);
       self_created_sequence = nullptr;
     } else if (event->keyboardModifiers() & Qt::ControlModifier) {
@@ -548,7 +548,7 @@ void TimelineWidget::dropEvent(QDropEvent* event) {
       delete_area_under_ghosts(ca);
     }
 
-    e_panel_timeline->add_clips_from_ghosts(ca, s);
+    e_panel_timeline->add_clips_from_ghosts(ca, working_sequence);
 
     e_undo_stack.push(ca);
 

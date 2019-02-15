@@ -105,6 +105,7 @@ public:
 protected:
     static int32_t nextID;
 private:
+    friend class MediaTest;
     bool root_;
     MediaType type_ = MediaType::NONE;
     project::ProjectItemPtr object_;

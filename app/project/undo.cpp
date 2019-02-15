@@ -45,7 +45,8 @@ QUndoStack e_undo_stack;
 
 ComboAction::ComboAction() {}
 
-ComboAction::~ComboAction() {
+ComboAction::~ComboAction()
+{
   for (int i=0;i<commands.size();i++) {
     delete commands.at(i);
   }
@@ -415,30 +416,35 @@ void DeleteTransitionCommand::redo() {
   global::mainWindow->setWindowModified(true);
 }
 
-NewSequenceCommand::NewSequenceCommand(MediaPtr s, MediaPtr iparent) :
-  seq(s),
-  parent(iparent),
-  done(false),
-  old_project_changed(global::mainWindow->isWindowModified())
+NewSequenceCommand::NewSequenceCommand(MediaPtr s, MediaPtr iparent, const bool modified) :
+  seq_(s),
+  parent_(iparent),
+  done_(false),
+  old_project_changed_(modified)
 {
-  if (parent == nullptr) parent = project_model.root();
+  if (parent_ == nullptr) {
+    parent_ = project_model.root();
+  }
 }
 
-NewSequenceCommand::~NewSequenceCommand() {
+NewSequenceCommand::~NewSequenceCommand()
+{
 
 }
 
-void NewSequenceCommand::undo() {
-  project_model.removeChild(parent, seq);
+void NewSequenceCommand::undo()
+{
+  project_model.removeChild(parent_, seq_);
 
-  done = false;
-  global::mainWindow->setWindowModified(old_project_changed);
+  done_ = false;
+  global::mainWindow->setWindowModified(old_project_changed_);
 }
 
-void NewSequenceCommand::redo() {
-  project_model.appendChild(parent, seq);
+void NewSequenceCommand::redo()
+{
+  project_model.appendChild(parent_, seq_);
 
-  done = true;
+  done_ = true;
   global::mainWindow->setWindowModified(true);
 }
 

@@ -80,6 +80,9 @@ Media::Media(MediaPtr iparent) :
   root_(false),
   type_(MediaType::NONE),
   parent_(iparent),
+  folder_name_(),
+  tool_tip_(),
+  icon_(),
   id_(nextID++)
 {
 
