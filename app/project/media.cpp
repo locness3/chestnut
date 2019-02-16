@@ -40,6 +40,8 @@ namespace
   const auto COLUMN_COUNT = 3;
   const auto FOLDER_ICON = ":/icons/folder.png";
   const auto SEQUENCE_ICON = ":/icons/sequence.png";
+  const auto FRAME_RATE_DECIMAL_POINTS = 2;
+  const auto FRAME_RATE_ARG_FORMAT = 'f';
 }
 
 QString get_interlacing_name(const int32_t interlacing) 
@@ -417,7 +419,9 @@ QVariant Media::data(const int32_t column, const int32_t role)
           break;
         case 2:
           if (root_) return QCoreApplication::translate("Media", "Rate");
-          if (type() == MediaType::SEQUENCE) return QString::number(frameRate()) + " FPS";
+          if (type() == MediaType::SEQUENCE) return QString::number(frameRate(),
+                                                                    FRAME_RATE_ARG_FORMAT,
+                                                                    FRAME_RATE_DECIMAL_POINTS) + " FPS";
           if (type() == MediaType::FOOTAGE) {
             auto ftg = object<Footage>();
             const double rate = frameRate();
