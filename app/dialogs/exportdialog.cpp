@@ -185,7 +185,10 @@ void ExportDialog::format_changed(int index)
         format_vcodecs.append(AV_CODEC_ID_BMP);
         format_vcodecs.append(AV_CODEC_ID_MJPEG);
         format_vcodecs.append(AV_CODEC_ID_JPEG2000);
+
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(57, 64, 101)
         format_vcodecs.append(AV_CODEC_ID_PSD);
+#endif
         format_vcodecs.append(AV_CODEC_ID_PNG);
         format_vcodecs.append(AV_CODEC_ID_TIFF);
 
@@ -405,9 +408,11 @@ void ExportDialog::export_action() {
         case AV_CODEC_ID_JPEG2000:
             ext = "jp2";
             break;
+#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(57, 64, 101)
         case AV_CODEC_ID_PSD:
             ext = "psd";
             break;
+#endif
         case AV_CODEC_ID_PNG:
             ext = "png";
             break;
