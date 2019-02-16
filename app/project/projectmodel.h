@@ -34,7 +34,6 @@ public:
     ProjectModel& operator=(const ProjectModel&) = delete;
     ProjectModel& operator=(const ProjectModel&&) = delete;
 
-    void make_root();
     void destroy_root();
     void clear();
     MediaPtr root();
@@ -50,20 +49,18 @@ public:
 
     MediaPtr getItem(const QModelIndex &index) const;
 
-    void appendChild(MediaPtr parent, MediaPtr child);
+    bool appendChild(MediaPtr parent, MediaPtr child);
     void moveChild(MediaPtr child, MediaPtr to);
-    void removeChild(MediaPtr parent, MediaPtr m);
+    void removeChild(MediaPtr parent, const MediaPtr& m);
     MediaPtr child(const int index, MediaPtr parent = nullptr);
     int childCount(MediaPtr parent = nullptr);
     void set_icon(MediaPtr m, const QIcon &ico);
     QModelIndex add(MediaPtr mda);
     MediaPtr get(const QModelIndex& idx);
+    const MediaPtr get(const QModelIndex& idx) const;
 
 private:
     friend class ProjectModelTest;
-    MediaPtr root_item;
-    //TODO: it's likely this is uneeded by using root_item instead, or vice-versa. However, using Model::internalId it's easier
-    // to use the map than traversing the tree-like use of root_item
     QMap<int, MediaPtr> project_items;
 
     /**

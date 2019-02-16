@@ -10,6 +10,7 @@ class ProjectModelTest : public QObject
     explicit ProjectModelTest(QObject *parent = nullptr);
 
   private slots:
+    void testCaseConstructor();
     void testCaseInsert();
     void testCaseAppendChildWithSequence();
 };

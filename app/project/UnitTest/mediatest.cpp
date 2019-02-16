@@ -10,8 +10,9 @@ MediaTest::MediaTest()
 
 void MediaTest::testCaseConstructor()
 {
+  auto current = Media::nextID; //post incremented in Media
   Media mda;
-  QVERIFY(mda.id() == 1);
+  QVERIFY(mda.id() == current);
   QVERIFY(mda.object<Footage>() == nullptr);
   QVERIFY(mda.object<Sequence>() == nullptr);
   QVERIFY(mda.type() == MediaType::NONE);
