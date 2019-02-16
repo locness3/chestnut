@@ -53,64 +53,31 @@ void close_debug_file()
 void debug_message_handler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
   debug_mutex.lock();
-  QByteArray localMsg = msg.toLocal8Bit();
-  QDateTime now = QDateTime::currentDateTime();
-  QByteArray timeRepr(now.toString(Qt::ISODate).toLocal8Bit());
+  const QByteArray localMsg = msg.toLocal8Bit();
+  const QDateTime now = QDateTime::currentDateTime();
+  const QByteArray timeRepr(now.toString(Qt::ISODate).toLocal8Bit());
+  QString msgTag;
+  QString fontColor;
   switch (type) {
     case QtDebugMsg:
-      fprintf(stderr, "%s [DEBUG] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
-              context.file, context.line, context.function);
-      if (debug_file.isOpen()) {
-        debug_stream << QString("[DEBUG] %1 (%2:%3, %4)\n")
-                        .arg(localMsg.constData(), context.file, QString::number(context.line), context.function);
-      }
-      debug_info.prepend(QString("<b>[DEBUG]</b> %1 (%2:%3, %4)<br>")
-                         .arg(localMsg.constData(), context.file, QString::number(context.line), context.function));
-      fflush(stderr);
+      msgTag = "DEBUG";
+      fontColor = "grey";
       break;
     case QtInfoMsg:
-      fprintf(stderr, "%s [INFO] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
-              context.file, context.line, context.function);
-      if (debug_file.isOpen()) {
-        debug_stream << QString("[INFO] %1 (%2:%3, %4)\n")
-                        .arg(localMsg.constData(), context.file, QString::number(context.line), context.function);
-      }
-      debug_info.prepend(QString("<b>[INFO]</b> %1 (%2:%3, %4)<br>")
-                         .arg(localMsg.constData(), context.file,QString::number(context.line), context.function));
-      fflush(stderr);
+      msgTag = "INFO";
+      fontColor = "blue";
       break;
     case QtWarningMsg:
-      fprintf(stderr, "%s [WARNING] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
-              context.file, context.line, context.function);
-      if (debug_file.isOpen()) {
-        debug_stream << QString("[WARNING] %1 (%2:%3, %4)\n")
-                        .arg(localMsg.constData(), context.file,QString::number(context.line), context.function);
-      }
-      debug_info.prepend(QString("<font color='yellow'><b>[WARNING]</b> %1 (%2:%3, %4)</font><br>")
-                         .arg(localMsg.constData(), context.file, QString::number(context.line), context.function));
-      fflush(stderr);
+      msgTag = "WARNING";
+      fontColor = "yellow";
       break;
     case QtCriticalMsg:
-      fprintf(stderr, "%s [ERROR] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
-              context.file, context.line, context.function);
-      if (debug_file.isOpen()) {
-        debug_stream << QString("[ERROR] %1 (%2:%3, %4)\n")
-                        .arg(localMsg.constData(), context.file, QString::number(context.line), context.function);
-      }
-      debug_info.prepend(QString("<font color='red'><b>[ERROR]</b> %1 (%2:%3, %4)</font><br>")
-                         .arg(localMsg.constData(), context.file, QString::number(context.line), context.function));
-      fflush(stderr);
+      msgTag = "ERROR";
+      fontColor = "red";
       break;
     case QtFatalMsg:
-      fprintf(stderr, "%s [FATAL] %s (%s:%u, %s)\n", timeRepr.constData(), localMsg.constData(),
-              context.file, context.line, context.function);
-      if (debug_file.isOpen()) {
-        debug_stream << QString("[FATAL] %1 (%2:%3, %4)\n")
-                        .arg(localMsg.constData(), context.file, QString::number(context.line), context.function);
-      }
-      debug_info.prepend(QString("<font color='red'><b>[FATAL]</b> %1 (%2:%3, %4)</font><br>")
-                         .arg(localMsg.constData(), context.file, QString::number(context.line), context.function));
-      fflush(stderr);
+      msgTag = "FATAL";
+      fontColor = "red";
       break;
     default:
       fprintf(stderr, "Unknown debug msg type");
@@ -118,6 +85,15 @@ void debug_message_handler(QtMsgType type, const QMessageLogContext &context, co
       break;
   }//switch
 
+  fprintf(stderr, "%s [%s] %s (%s:%u, %s)\n", timeRepr.data(), msgTag.toLocal8Bit().constData(), localMsg.data(),
+          context.file, context.line, context.function);
+  if (debug_file.isOpen()) {
+    debug_stream << QString("[%1] %2 (%3:%4, %5)\n")
+                    .arg(msgTag, localMsg, context.file, QString::number(context.line), context.function);
+  }
+  debug_info.prepend(QString("<font color='%1'><b>[%2]</b> %3 (%4:%5, %6)</font><br>")
+                     .arg(fontColor, localMsg, context.file, QString::number(context.line), context.function));
+  fflush(stderr);
   if (debug_dialog != nullptr && debug_dialog->isVisible()) {
     QMetaObject::invokeMethod(debug_dialog, "update_log", Qt::QueuedConnection);
   }
