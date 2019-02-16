@@ -33,7 +33,6 @@ private slots:
      * @brief Set media instance as a folder and check name is non-empty
      */
     void testCaseSetAsFolder();
-
     /**
      * @brief Clearing of media sets it to none-type and the stored object is empty/null/invalid
      */

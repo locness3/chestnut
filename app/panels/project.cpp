@@ -380,7 +380,8 @@ bool Project::is_focused() {
   return tree_view->hasFocus() || icon_view->hasFocus();
 }
 
-MediaPtr Project::new_folder(const QString &name) {
+MediaPtr Project::new_folder(const QString &name)
+{
   MediaPtr item = std::make_shared<Media>();
   item->setFolder();
   item->setName(name);

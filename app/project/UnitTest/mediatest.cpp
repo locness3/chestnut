@@ -22,6 +22,7 @@ void MediaTest::testCaseConstructor()
   QVERIFY(mda.data(0,0).isValid());
   QVERIFY(mda.row() == 0);
   QVERIFY(mda.parentItem() == nullptr);
+  QVERIFY(mda.root_ == true);
 }
 
 
@@ -31,6 +32,7 @@ void MediaTest::testCaseConstructorWithParent()
   Media child(parent);
   QVERIFY(child.parentItem() != nullptr);
   QVERIFY(child.parentItem() == parent);
+  QVERIFY(child.root_ == false);
 }
 
 
@@ -44,6 +46,7 @@ void MediaTest::testCaseSetAsFootage()
   QVERIFY(mda.setFootage(ftg) == false);
   QVERIFY(mda.type() == MediaType::FOOTAGE);
   QVERIFY(mda.object<Footage>() != nullptr);
+  QVERIFY(mda.root_ == false);
 }
 
 void MediaTest::testCaseSetAsSequence()
@@ -56,6 +59,7 @@ void MediaTest::testCaseSetAsSequence()
   QVERIFY(mda.setSequence(sqn) == false);
   QVERIFY(mda.type() == MediaType::SEQUENCE);
   QVERIFY(mda.object<Sequence>() != nullptr);
+  QVERIFY(mda.root_ == false);
 }
 
 
@@ -65,6 +69,7 @@ void MediaTest::testCaseSetAsFolder()
   mda.setFolder();
   QVERIFY(mda.type() == MediaType::FOLDER);
   QVERIFY(!mda.name().isEmpty());
+  QVERIFY(mda.root_ == false);
 }
 
 void MediaTest::testCaseClear()
@@ -75,4 +80,5 @@ void MediaTest::testCaseClear()
   mda.clearObject();
   QVERIFY(mda.type() == MediaType::NONE);
   QVERIFY(mda.object<Footage>() == nullptr);
+  QVERIFY(mda.root_ == true);
 }

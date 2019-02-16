@@ -109,6 +109,7 @@ void Media::clearObject()
 {
   type_ = MediaType::NONE;
   object_ = nullptr;
+  root_ = true;
 }
 
 bool Media::setFootage(FootagePtr ftg)
@@ -116,6 +117,7 @@ bool Media::setFootage(FootagePtr ftg)
   if ((ftg != nullptr) && (ftg != object_)) {
     type_ = MediaType::FOOTAGE;
     object_ = ftg;
+    root_ = false;
     return true;
   }
   return false;
@@ -127,6 +129,7 @@ bool Media::setSequence(SequencePtr sqn)
     setIcon(QIcon(SEQUENCE_ICON));
     type_ = MediaType::SEQUENCE;
     object_ = sqn;
+    root_ = false;
     updateTooltip();
     return true;
   }
@@ -141,6 +144,7 @@ void Media::setFolder()
   setIcon(QIcon(FOLDER_ICON));
   type_ = MediaType::FOLDER;
   object_ = nullptr;
+  root_ = false;
 }
 
 void Media::setIcon(const QIcon &ico) 
@@ -151,6 +155,7 @@ void Media::setIcon(const QIcon &ico)
 void Media::setParent(MediaWPtr p) 
 {
   parent_ = p;
+  root_ = false;
 }
 
 void Media::updateTooltip(const QString& error) 
