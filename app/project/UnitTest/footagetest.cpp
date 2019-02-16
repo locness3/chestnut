@@ -17,4 +17,12 @@ void FootageTest::testCaseIsImage()
   stream->infinite_length = true;
   ftg.video_tracks.append(stream);
   QVERIFY(ftg.isImage() == true);
+  // video-stream has a defined length -> not an image
+  stream->infinite_length = false;
+  QVERIFY(ftg.isImage() == false);
+  // audio and video streams -> not an image
+  stream->infinite_length = true;
+  ftg.audio_tracks.append(stream);
+  QVERIFY(ftg.isImage() == false);
+
 }
