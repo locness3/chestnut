@@ -30,6 +30,9 @@ PKGCONFIG += libavutil libavformat libavcodec libavfilter libswscale libswresamp
 
 
 LIBS += -L../$${DESTDIR}/ -lchestnut
+CONFIG(coverage) {
+    LIBS += -lgcov
+}
 
 
 RESOURCES += \

@@ -49,5 +49,7 @@ HEADERS += \
 
 INCLUDEPATH += ../app/
 LIBS += -L../app/$${DESTDIR}/ -lchestnut
-
+CONFIG(coverage) {
+LIBS += -lgcov
+}
 

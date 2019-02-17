@@ -10,6 +10,11 @@ CONFIG(debug, debug|release) {
     DESTDIR = build/release
 }
 
+CONFIG(coverage) {
+
+QMAKE_CXXFLAGS += -fprofile-arcs -ftest-coverage
+}
+
 OBJECTS_DIR = $${DESTDIR}/obj
 MOC_DIR = $${DESTDIR}/moc
 RCC_DIR = $${DESTDIR}/rcc
