@@ -246,7 +246,7 @@ bool Clip::openWorker() {
     if ((media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_APNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_TIFF
-#if LIBAVCODEC_VERSION_INT > AV_VERSION_INT(57, 64, 101)
+#ifndef DISABLE_PSD
          && media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PSD)
 #else
          )
