@@ -27,64 +27,69 @@ extern "C" {
 }
 
 int main(int argc, char *argv[]) {
-    QString appName = "Chestnut";
+  QString appName = "Chestnut";
 
-    auto launch_fullscreen = false;
-    QString load_proj;
+  auto launch_fullscreen = false;
+  QString load_proj;
 
-    auto use_internal_logger = true;
-    if (argc > 1) {
-        for (int i=1;i<argc;i++) {
-            if (argv[i][0] == '-') {
-                if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
+  auto use_internal_logger = true;
+  if (argc > 1) {
+    for (int i=1;i<argc;i++) {
+      if (argv[i][0] == '-') {
+        if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
 #ifndef GITHASH
-                    qWarning() << "No Git commit information found";
+          qWarning() << "No Git commit information found";
 #endif
-                    printf("%s\n", appName.toUtf8().constData());
-                    return 0;
-                } else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
-                    printf("Usage: %s [options] [filename]\n\n[filename] is the file to open on startup.\n\nOptions:\n\t-v, --version\tShow version information\n\t-h, --help\tShow this help\n\t-f, --fullscreen\tStart in full screen mode\n\n", argv[0]);
-                    return 0;
-                } else if (!strcmp(argv[i], "--fullscreen") || !strcmp(argv[i], "-f")) {
-                    launch_fullscreen = true;
-                } else if (!strcmp(argv[i], "--disable-shaders")) {
-                    shaders_are_enabled = false;
-                } else if (!strcmp(argv[i], "--no-debug")) {
-                    use_internal_logger = false;
-                } else {
-                    printf("[ERROR] Unknown argument '%s'\n", argv[1]);
-                    return 1;
-                }
-            } else if (load_proj.isEmpty()) {
-                load_proj = argv[i];
-            }
+          printf("%s\n", appName.toUtf8().constData());
+          return 0;
+        } else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
+          printf("Usage: %s [options] [filename]\n\n[filename] is the file to open on startup.\n\nOptions:\n\t-v, "
+                 "--version\tShow version information\n\t-h, --help\tShow this help\n\t-f, --fullscreen\tStart in full screen mode\n\n",
+                 argv[0]);
+          return 0;
+        } else if (!strcmp(argv[i], "--fullscreen") || !strcmp(argv[i], "-f")) {
+          launch_fullscreen = true;
+        } else if (!strcmp(argv[i], "--disable-shaders")) {
+          shaders_are_enabled = false;
+        } else if (!strcmp(argv[i], "--no-debug")) {
+          use_internal_logger = false;
+        } else {
+          printf("[ERROR] Unknown argument '%s'\n", argv[1]);
+          return 1;
         }
+      } else if (load_proj.isEmpty()) {
+        load_proj = argv[i];
+      }
     }
+  }
 
-    if (use_internal_logger) {
-        qInstallMessageHandler(debug_message_handler);
-    }
+  if (use_internal_logger) {
+    qInstallMessageHandler(debug_message_handler);
+  }
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
-    // init ffmpeg subsystem
-    av_register_all();
-    avfilter_register_all();
+  // init ffmpeg subsystem
+  av_register_all();
 #endif
 
-    QApplication a(argc, argv);
-    a.setWindowIcon(QIcon(":/icons/olive64.png"));
+#if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(7, 14, 100)
+  avfilter_register_all();
+#endif
 
-    MainWindow w(nullptr, appName);
-    w.updateTitle("");
+  QApplication a(argc, argv);
+  a.setWindowIcon(QIcon(":/icons/olive64.png"));
 
-    if (!load_proj.isEmpty()) {
-        w.launch_with_project(load_proj);
-    }
-    if (launch_fullscreen) {
-        w.showFullScreen();
-    } else {
-        w.showMaximized();
-    }
+  MainWindow w(nullptr, appName);
+  w.updateTitle("");
 
-    return a.exec();
+  if (!load_proj.isEmpty()) {
+    w.launch_with_project(load_proj);
+  }
+  if (launch_fullscreen) {
+    w.showFullScreen();
+  } else {
+    w.showMaximized();
+  }
+
+  return a.exec();
 }
