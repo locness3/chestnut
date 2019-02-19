@@ -171,39 +171,37 @@ int64_t Sequence::endFrame() const
 void Sequence::hardDeleteTransition(ClipPtr c, const int32_t type)
 {
   auto transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
-  if (transition_index > -1) {
-    auto del = true;
+  if (transition_index < 0) {
+    return;
+  }
+  auto del = true;
 
-    auto transition_for_delete = transitions_.at(transition_index);
-    if (auto secondary = transition_for_delete->secondary_clip.lock()) {
-      for (auto comp : clips_) {
-        if (!comp){
-          continue;
+  auto transition_for_delete = transitions_.at(transition_index);
+  if (auto secondary = transition_for_delete->secondary_clip.lock()) {
+    for (auto comp : clips_) {
+      if ( (!comp) && (c != comp) ) {
+        continue;
+      }
+      if ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) ) {
+        if (type == TA_OPENING_TRANSITION) {
+          // convert to closing transition
+          transition_for_delete->parent_clip = secondary;
         }
-        if (c != comp) {
-          continue;
-        }
-        if ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) ) {
-          if (type == TA_OPENING_TRANSITION) {
-            // convert to closing transition
-            transition_for_delete->parent_clip = secondary;
-          }
 
-          del = false;
-          secondary.reset();
-        }
-      }//for
-    }
+        del = false;
+        secondary.reset();
+      }
+    }//for
+  }
 
-    if (del) {
-      transitions_[transition_index] = nullptr;
-    }
+  if (del) {
+    transitions_[transition_index] = nullptr;
+  }
 
-    if (type == TA_OPENING_TRANSITION) {
-      c->opening_transition = -1;
-    } else {
-      c->closing_transition = -1;
-    }
+  if (type == TA_OPENING_TRANSITION) {
+    c->opening_transition = -1;
+  } else {
+    c->closing_transition = -1;
   }
 }
 
