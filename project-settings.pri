@@ -12,7 +12,7 @@ CONFIG(debug, debug|release) {
 
 CONFIG(coverage) {
 
-QMAKE_CXXFLAGS += -fprofile-arcs -ftest-coverage
+QMAKE_CXXFLAGS += --coverage
 }
 
 OBJECTS_DIR = $${DESTDIR}/obj
