@@ -216,9 +216,7 @@ GLuint compose_sequence(Viewer* viewer,
   for (int i=0; i<current_clips.size(); ++i) {
     auto clp = current_clips.at(i);
 
-    if ( (clp->timeline_info.media != nullptr)
-         && (clp->timeline_info.media->type() == MediaType::FOOTAGE)
-         && !clp->finished_opening) {
+    if (!clp->mediaOpen()) {
       qWarning() << "Tried to display clip" << i << "but it's closed";
       texture_failed = true;
     } else {

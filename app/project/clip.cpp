@@ -490,6 +490,14 @@ bool Clip::open(const bool open_multithreaded) {
   return true;
 }
 
+/**
+ * @brief mediaOpen
+ * @return  true==clip's media has been opened
+ */
+bool Clip::mediaOpen() const
+{
+  return (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE) && (finished_opening);
+}
 
 /**
  * @brief Close this clip and free up resources

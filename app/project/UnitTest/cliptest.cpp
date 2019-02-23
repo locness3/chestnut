@@ -46,3 +46,20 @@ void ClipTest::testCaseUsesCacher()
 }
 
 
+void ClipTest::testCaseMediaOpen()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  QVERIFY(clp.mediaOpen() == false);
+  auto mda =  std::make_shared<Media>();
+  mda->setFootage(std::make_shared<Footage>());
+  clp.timeline_info.media = mda;
+  QVERIFY(clp.mediaOpen() == false);
+  clp.finished_opening = true;
+  QVERIFY(clp.mediaOpen() == true);
+  mda->clearObject();
+  QVERIFY(clp.mediaOpen() == false);
+  mda->setSequence(std::make_shared<Sequence>());
+  QVERIFY(clp.mediaOpen() == false);
+}
+

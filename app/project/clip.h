@@ -92,6 +92,11 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
      */
     bool open(const bool open_multithreaded);
     /**
+     * @brief mediaOpen
+     * @return  true==clip's media has been opened
+     */
+    bool mediaOpen() const;
+    /**
      * @brief Close this clip and free up resources
      * @param wait  Wait on cache?
      */
@@ -179,11 +184,9 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
     int load_id;
     bool undeletable;
     bool reached_end;
-    bool pkt_written;
     bool is_open;
-    bool finished_opening;
     bool replaced;
-    bool ignore_reverse;
+    std::atomic_bool ignore_reverse{false};
     int pix_fmt;
 
     // caching functions
@@ -231,6 +234,10 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
         bool interrupt = false;
         QVector<ClipPtr> nests = QVector<ClipPtr>();
     } cache_info;
+
+
+    std::atomic_bool finished_opening{false};
+    bool pkt_written;
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 

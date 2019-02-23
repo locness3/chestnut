@@ -22,6 +22,11 @@ class ClipTest : public QObject
       * @brief Test caching used with a Media item assigned of type footage only
       */
      void testCaseUsesCacher();
+
+     /**
+      * @brief Test that the Clip's media is open
+      */
+     void testCaseMediaOpen();
 };
 
 #endif // CLIPTEST_H
