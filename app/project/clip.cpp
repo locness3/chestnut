@@ -690,7 +690,7 @@ TransitionPtr Clip::closingTransition() {
  * @param playhead
  */
 void Clip::frame(const long playhead, bool& texture_failed) {
-  if (finished_opening) {
+  if (finished_opening && (media_handling.stream != nullptr) ) {
     auto ftg = timeline_info.media->object<Footage>();
     if (!ftg) return;
     FootageStreamPtr ms;
@@ -1253,6 +1253,9 @@ double Clip::playhead_to_seconds(const long playhead) {
 
 int64_t Clip::seconds_to_timestamp(const double seconds)
 {
+  if (media_handling.stream == nullptr) {
+    return -1;
+  }
   return qRound64(seconds * av_q2d(av_inv_q(media_handling.stream->time_base))) + qMax(static_cast<int64_t>(0), media_handling.stream->start_time);
 }
 

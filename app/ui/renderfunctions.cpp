@@ -232,7 +232,12 @@ GLuint compose_sequence(Viewer* viewer,
           switch (clp->timeline_info.media->type()) {
             case MediaType::FOOTAGE:
               // set up opengl texture
-              if (clp->texture == nullptr) {
+              if ( (clp->media_handling.stream == nullptr)
+                   || (clp->media_handling.stream->codecpar == nullptr) ) {
+                qCritical() << "Media stream is null";
+                break;
+              }
+              if ( clp->texture == nullptr) {
                 clp->texture = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
                 clp->texture->setSize(clp->media_handling.stream->codecpar->width,
                                       clp->media_handling.stream->codecpar->height);
