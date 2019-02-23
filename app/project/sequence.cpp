@@ -305,10 +305,10 @@ std::pair<int64_t, int64_t> Sequence::trackLimits() const
     if (clp == nullptr) {
       continue;
     }
-    if ( (clp->timeline_info.isVideo()) && (clp->timeline_info.track < video_limit) ) { // video clip
-      video_limit = clp->timeline_info.track;
-    } else if (clp->timeline_info.track > audio_limit) {
-      audio_limit = clp->timeline_info.track;
+    if ( (clp->timeline_info.isVideo()) && (clp->timeline_info.track_ < video_limit) ) { // video clip
+      video_limit = clp->timeline_info.track_;
+    } else if (clp->timeline_info.track_ > audio_limit) {
+      audio_limit = clp->timeline_info.track_;
     }
   }//for
   return std::make_pair(video_limit, audio_limit);

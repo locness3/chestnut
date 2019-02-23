@@ -104,7 +104,8 @@ SOURCES += \
     ui/renderthread.cpp \
     ui/renderfunctions.cpp \
     ui/viewerwindow.cpp \
-    project/projectfilter.cpp
+    project/projectfilter.cpp \
+    project/timelineinfo.cpp
 
 HEADERS += \
     ui/mainwindow.h \
@@ -200,7 +201,8 @@ HEADERS += \
     ui/renderthread.h \
     ui/renderfunctions.h \
     ui/viewerwindow.h \
-    project/projectfilter.h
+    project/projectfilter.h \
+    project/timelineinfo.h
 
 DISTFILES +=
 

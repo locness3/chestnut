@@ -55,7 +55,7 @@ void update_effect_controls() {
         for (int j=0;j<global::sequence->selections_.size();j++) {
           const Selection& s = global::sequence->selections_.at(j);
           bool add = true;
-          if (clip->timeline_info.in >= s.in && clip->timeline_info.out <= s.out && clip->timeline_info.track == s.track) {
+          if (clip->timeline_info.in >= s.in && clip->timeline_info.out <= s.out && clip->timeline_info.track_ == s.track) {
             mode = TA_NO_TRANSITION;
           } else if (selection_contains_transition(s, clip, TA_OPENING_TRANSITION)) {
             mode = TA_OPENING_TRANSITION;
@@ -68,7 +68,7 @@ void update_effect_controls() {
           if (add) {
             if (clip->timeline_info.isVideo() && vclip == -1) {
               vclip = i;
-            } else if (clip->timeline_info.track >= 0 && aclip == -1) {
+            } else if (clip->timeline_info.track_ >= 0 && aclip == -1) {
               aclip = i;
             } else {
               vclip = -2;

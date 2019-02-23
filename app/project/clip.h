@@ -31,6 +31,7 @@
 #include "project/sequenceitem.h"
 #include "project/footage.h"
 #include "project/media.h"
+#include "project/timelineinfo.h"
 
 #define SKIP_TYPE_DISCARD 0
 #define SKIP_TYPE_SEEK 1
@@ -55,7 +56,7 @@ using ClipPtr = std::shared_ptr<Clip>;
 using ClipUPtr = std::unique_ptr<Clip>;
 using ClipWPtr = std::weak_ptr<Clip>;
 
-class Clip : public project::SequenceItem, public std::enable_shared_from_this<Clip>, protected QThread
+class Clip : public project::SequenceItem,  public std::enable_shared_from_this<Clip>, protected QThread
 {
   public:
 
@@ -154,25 +155,27 @@ class Clip : public project::SequenceItem, public std::enable_shared_from_this<C
     SequencePtr sequence;
     // timeline variables (should be copied in copy())
 
-    struct {
-        bool enabled = true;
-        long clip_in = 0;
-        long in = 0;
-        long out = 0;
-        int track = -1;
-        QString name = "";
-        QColor color = {0,0,0};
-        MediaPtr media = nullptr;
-        int media_stream = -1;
-        double speed = 1.0;
-        double cached_fr = 0.0;
-        bool reverse = false;
-        bool maintain_audio_pitch = true;
-        bool autoscale = true;
-        bool isVideo() {
-          return track < 0;
-        }
-    } timeline_info;
+    project::TimelineInfo timeline_info;
+
+//    struct {
+//        bool enabled = true;
+//        long clip_in = 0;
+//        long in = 0;
+//        long out = 0;
+//        int track = -1;
+//        QString name = "";
+//        QColor color = {0,0,0};
+//        MediaPtr media = nullptr;
+//        int media_stream = -1;
+//        double speed = 1.0;
+//        double cached_fr = 0.0;
+//        bool reverse = false;
+//        bool maintain_audio_pitch = true;
+//        bool autoscale = true;
+//        bool isVideo() {
+//          return track < 0;
+//        }
+//    } timeline_info;
 
     // other variables (should be deep copied/duplicated in copy())
     QList<EffectPtr> effects;

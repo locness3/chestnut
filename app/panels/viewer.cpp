@@ -420,7 +420,7 @@ void Viewer::pause() {
             clp->timeline_info.in = recording_start;
             clp->timeline_info.out = recording_start + ftg->get_length_in_frames(seq->frameRate());
             clp->timeline_info.clip_in = 0;
-            clp->timeline_info.track = recording_track;
+            clp->timeline_info.track_ = recording_track;
             clp->timeline_info.color = PAUSE_COLOR;
             clp->timeline_info.name = mda->name();
 
@@ -717,7 +717,7 @@ void Viewer::set_media(MediaPtr m) {
                 if (clp->timeline_info.out <= 0) {
                     clp->timeline_info.out = 150;
                 }
-                clp->timeline_info.track    = -1;
+                clp->timeline_info.track_ = -1;
                 clp->timeline_info.clip_in  = 0;
                 clp->recalculateMaxLength();
                 seq->clips_.append(clp);
@@ -735,7 +735,7 @@ void Viewer::set_media(MediaPtr m) {
                 clp->timeline_info.media_stream = audio_stream->file_index;
                 clp->timeline_info.in           = 0;
                 clp->timeline_info.out          = ftg->get_length_in_frames(seq->frameRate());
-                clp->timeline_info.track        = 0;
+                clp->timeline_info.track_ = 0;
                 clp->timeline_info.clip_in      = 0;
                 clp->recalculateMaxLength();
                 seq->clips_.append(clp);

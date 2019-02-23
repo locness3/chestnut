@@ -102,12 +102,12 @@ ClipPtr Clip::copy(SequencePtr s) {
   copyClip->timeline_info.clip_in = timeline_info.clip_in;
   copyClip->timeline_info.in = timeline_info.in;
   copyClip->timeline_info.out = timeline_info.out;
-  copyClip->timeline_info.track = timeline_info.track;
+  copyClip->timeline_info.track_ = timeline_info.track_.load();
   copyClip->timeline_info.color = timeline_info.color;
   copyClip->timeline_info.media = timeline_info.media;
   copyClip->timeline_info.media_stream = timeline_info.media_stream;
   copyClip->timeline_info.autoscale = timeline_info.autoscale;
-  copyClip->timeline_info.speed = timeline_info.speed;
+  copyClip->timeline_info.speed = timeline_info.speed.load();
   copyClip->timeline_info.maintain_audio_pitch = timeline_info.maintain_audio_pitch;
   copyClip->timeline_info.reverse = timeline_info.reverse;
 
@@ -150,7 +150,7 @@ bool Clip::isActive(const long playhead) {
  */
 bool Clip::usesCacher() const
 {
-  if (( (timeline_info.media == nullptr) && (timeline_info.track >= 0) )
+  if (( (timeline_info.media == nullptr) && (timeline_info.track_ >= 0) )
       || ( (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE))) {
     return true;
   }
@@ -163,7 +163,7 @@ bool Clip::usesCacher() const
  */
 bool Clip::openWorker() {
   if (timeline_info.media == nullptr) {
-    if (timeline_info.track >= 0) {
+    if (timeline_info.track_ >= 0) {
       media_handling.frame = av_frame_alloc();
       media_handling.frame->format = SAMPLE_FORMAT;
       media_handling.frame->channel_layout = sequence->audioLayout();
@@ -434,7 +434,7 @@ bool Clip::openWorker() {
 
   finished_opening = true;
 
-  qInfo() << "Clip opened on track" << timeline_info.track;
+  qInfo() << "Clip opened on track" << timeline_info.track_.load();
   return true;
 }
 
@@ -458,7 +458,7 @@ void Clip::closeWorker() {
 
   reset();
 
-  qInfo() << "Clip closed on track" << timeline_info.track;
+  qInfo() << "Clip closed on track" << timeline_info.track_.load();
 }
 
 
@@ -622,7 +622,7 @@ void Clip::refresh() {
 
     if (timeline_info.isVideo() && m->video_tracks.size() > 0)  {
       timeline_info.media_stream = m->video_tracks.front()->file_index;
-    } else if (timeline_info.track >= 0 && m->audio_tracks.size() > 0) {
+    } else if (timeline_info.track_ >= 0 && m->audio_tracks.size() > 0) {
       timeline_info.media_stream = m->audio_tracks.front()->file_index;
     }
   }
@@ -864,7 +864,7 @@ bool Clip::isSelected(const bool containing)
   for (int i=0; i < sequence->selections_.size(); i++) {
     const Selection& s = sequence->selections_.at(i);
     //FIXME: christ almighty
-    if ( (timeline_info.track == s.track)
+    if ( (timeline_info.track_ == s.track)
          && ( (timeline_info.in >= s.in && timeline_info.out <= s.out && containing)
               || (!containing && !(timeline_info.in < s.in && timeline_info.out < s.in) && !(timeline_info.in > s.in && timeline_info.out > s.in)) )) {
       return true;
@@ -1056,7 +1056,7 @@ void Clip::refactorFrameRate(ComboAction* ca, double multiplier, bool change_tim
            qRound(static_cast<double>(timeline_info.in) * multiplier),
            qRound(static_cast<double>(timeline_info.out) * multiplier),
            qRound(static_cast<double>(timeline_info.clip_in) * multiplier),
-           timeline_info.track);
+           timeline_info.track_.load());
     }
   }
 
@@ -1648,7 +1648,7 @@ void Clip::cache_worker(const long playhead, const bool reset, const bool scrubb
   }
 
   if (timeline_info.media == nullptr) {
-    if (timeline_info.track >= 0) {
+    if (timeline_info.track_ >= 0) {
       cache_audio_worker(scrubbing, nests);
     }
   } else if (timeline_info.media->type() == MediaType::FOOTAGE) {
@@ -1671,7 +1671,7 @@ void Clip::cache_worker(const long playhead, const bool reset, const bool scrubb
 void Clip::reset_cache(const long target_frame) {
   // if we seek to a whole other place in the timeline, we'll need to reset the cache with new values
   if (timeline_info.media == nullptr) {
-    if (timeline_info.track >= 0) {
+    if (timeline_info.track_ >= 0) {
       // tone clip
       reached_end = false;
       audio_playback.target_frame = target_frame;

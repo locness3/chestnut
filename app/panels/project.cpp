@@ -996,7 +996,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                 stream.writeAttribute("clipin", QString::number(c->timeline_info.clip_in));
                 stream.writeAttribute("in", QString::number(c->timeline_info.in));
                 stream.writeAttribute("out", QString::number(c->timeline_info.out));
-                stream.writeAttribute("track", QString::number(c->timeline_info.track));
+                stream.writeAttribute("track", QString::number(c->timeline_info.track_));
                 stream.writeAttribute("opening", QString::number(c->opening_transition));
                 stream.writeAttribute("closing", QString::number(c->closing_transition));
 

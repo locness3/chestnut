@@ -83,7 +83,7 @@ MoveClipAction::MoveClipAction(ClipPtr c, const long iin, const long iout, const
     old_in(c->timeline_info.in),
     old_out(c->timeline_info.out),
     old_clip_in(c->timeline_info.clip_in),
-    old_track(c->timeline_info.track),
+    old_track(c->timeline_info.track_),
     new_in(iin),
     new_out(iout),
     new_clip_in(iclip_in),
@@ -97,12 +97,12 @@ void MoveClipAction::undo() {
     clip->timeline_info.in -= new_in;
     clip->timeline_info.out -= new_out;
     clip->timeline_info.clip_in -= new_clip_in;
-    clip->timeline_info.track -= new_track;
+    clip->timeline_info.track_ -= new_track;
   } else {
     clip->timeline_info.in = old_in;
     clip->timeline_info.out = old_out;
     clip->timeline_info.clip_in = old_clip_in;
-    clip->timeline_info.track = old_track;
+    clip->timeline_info.track_  = old_track ;
   }
 
   global::mainWindow->setWindowModified(old_project_changed);
@@ -113,12 +113,12 @@ void MoveClipAction::redo() {
     clip->timeline_info.in += new_in;
     clip->timeline_info.out += new_out;
     clip->timeline_info.clip_in += new_clip_in;
-    clip->timeline_info.track += new_track;
+    clip->timeline_info.track_ += new_track;
   } else {
     clip->timeline_info.in = new_in;
     clip->timeline_info.out = new_out;
     clip->timeline_info.clip_in = new_clip_in;
-    clip->timeline_info.track = new_track;
+    clip->timeline_info.track_ = new_track;
   }
 
   global::mainWindow->setWindowModified(true);
@@ -510,7 +510,7 @@ void AddClipCommand::undo() {
   e_panel_effect_controls->clear_effects(true);
   for (int i=0;i<clips.size();i++) {
     ClipPtr   c = seq->clips_.last();
-    e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track);
+    e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
     undone_clips.prepend(c);
     c->close(true);
     seq->clips_.removeLast();

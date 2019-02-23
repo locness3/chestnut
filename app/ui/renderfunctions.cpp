@@ -155,7 +155,7 @@ GLuint compose_sequence(Viewer* viewer,
 
         if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
           auto ftg = clp->timeline_info.media->object<Footage>();
-          if (!ftg->invalid && !( (clp->timeline_info.track >= 0) && !is_audio_device_set())) {
+          if (!ftg->invalid && !( (clp->timeline_info.track_ >= 0) && !is_audio_device_set())) {
             if (ftg->ready) {
               const auto found = ftg->has_stream_from_file_index(clp->timeline_info.media_stream);
 
@@ -164,7 +164,7 @@ GLuint compose_sequence(Viewer* viewer,
                 // but we also don't want to hang the UI thread
                 clp->open(!rendering);
                 clip_is_active = true;
-                if (clp->timeline_info.track >= 0) {
+                if (clp->timeline_info.track_ >= 0) {
                   audio_track_count++;
                 }
               } else if (clp->is_open) {
@@ -190,7 +190,7 @@ GLuint compose_sequence(Viewer* viewer,
               qDebug() << "Clip is Null";
               continue;
             }
-            if (current_clips.at(j)->timeline_info.track < clp->timeline_info.track) {
+            if (current_clips.at(j)->timeline_info.track_ < clp->timeline_info.track_) {
               current_clips.insert(j, clp);
               added = true;
               break;

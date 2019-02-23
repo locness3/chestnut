@@ -377,7 +377,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                       } else if (attr.name() == "out") {
                         clp->timeline_info.out = attr.value().toLong();
                       } else if (attr.name() == "track") {
-                        clp->timeline_info.track = attr.value().toInt();
+                        clp->timeline_info.track_ = attr.value().toInt();
                       } else if (attr.name() == "r") {
                         clp->timeline_info.color.setRed(attr.value().toInt());
                       } else if (attr.name() == "g") {

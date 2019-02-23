@@ -299,7 +299,7 @@ void SpeedDialog::frame_rate_update() {
     for (int i=0;i<clips.size();i++) {
         ClipPtr c = clips.at(i);
 
-        if (c->timeline_info.track >= 0) {
+        if (c->timeline_info.track_ >= 0) {
             long new_clip_len = (qIsNaN(old_pc_val) || qIsNaN(pc_val)) ? c->length() : ((c->length() * c->timeline_info.speed) / pc_val);
             if (len_val > -1 && new_clip_len != len_val) {
                 len_val = -1;
@@ -313,7 +313,7 @@ void SpeedDialog::frame_rate_update() {
 }
 
 void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, long& ep, long& lr) {
-    e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track);
+    e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
 
     long proposed_out = c->timeline_info.out; //FIXME: this is never used
     double multiplier = (c->timeline_info.speed / speed);
@@ -323,7 +323,7 @@ void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, long& ep, 
         for (int i=0;i<c->sequence->clips_.size();i++) {
             ClipPtr compare = c->sequence->clips_.at(i);
             if (compare != nullptr
-                    && compare->timeline_info.track == c->timeline_info.track
+                    && compare->timeline_info.track_ == c->timeline_info.track_
                     && compare->timeline_info.in >= c->timeline_info.out && compare->timeline_info.in < proposed_out) {
                 proposed_out = compare->timeline_info.in;
             }
@@ -331,14 +331,14 @@ void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, long& ep, 
     }
     ep = qMin(ep, c->timeline_info.out);
     lr = qMax(lr, proposed_out - c->timeline_info.out);
-    move_clip(ca, c, c->timeline_info.in, proposed_out, c->timeline_info.clip_in * multiplier, c->timeline_info.track);
+    move_clip(ca, c, c->timeline_info.in, proposed_out, c->timeline_info.clip_in * multiplier, c->timeline_info.track_);
 
     c->refactorFrameRate(ca, multiplier, false);
 
     Selection sel;
     sel.in = c->timeline_info.in;
     sel.out = proposed_out;
-    sel.track = c->timeline_info.track;
+    sel.track = c->timeline_info.track_;
     global::sequence->selections_.append(sel);
 }
 
@@ -355,7 +355,7 @@ void SpeedDialog::accept() {
         ClipPtr c = clips.at(i);
         c->close(true);
 
-        if (c->timeline_info.track >= 0
+        if (c->timeline_info.track_ >= 0
                 && maintain_pitch->checkState() != Qt::PartiallyChecked
                 && c->timeline_info.maintain_audio_pitch != maintain_pitch->isChecked()) {
             ca->append(new SetBool(&c->timeline_info.maintain_audio_pitch, maintain_pitch->isChecked()));
@@ -363,7 +363,7 @@ void SpeedDialog::accept() {
 
         if (reverse->checkState() != Qt::PartiallyChecked && c->timeline_info.reverse != reverse->isChecked()) {
             long new_clip_in = (c->maximumLength() - (c->length() + c->timeline_info.clip_in));
-            move_clip(ca, c, c->timeline_info.in, c->timeline_info.out, new_clip_in, c->timeline_info.track);
+            move_clip(ca, c, c->timeline_info.in, c->timeline_info.out, new_clip_in, c->timeline_info.track_);
             c->timeline_info.clip_in = new_clip_in;
             ca->append(new SetBool(&c->timeline_info.reverse, reverse->isChecked()));
         }
