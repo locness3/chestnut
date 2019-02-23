@@ -33,8 +33,6 @@
 #include "project/media.h"
 #include "project/timelineinfo.h"
 
-#define SKIP_TYPE_DISCARD 0
-#define SKIP_TYPE_SEEK 1
 
 class Transition;
 class ComboAction;
