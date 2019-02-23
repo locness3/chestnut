@@ -40,8 +40,8 @@ class KeyframeView : public QWidget {
 
     TimelineHeader* header;
 
-    long visible_in;
-    long visible_out;
+    int64_t visible_in;
+    int64_t visible_out;
   public slots:
     void set_x_scroll(int);
     void set_y_scroll(int);

@@ -957,8 +957,8 @@ void Timeline::paste(bool insert) {
       // create copies and delete areas that we'll be pasting to
       QVector<Selection> delete_areas;
       QVector<ClipPtr> pasted_clips;
-      long paste_start = LONG_MAX;
-      long paste_end = LONG_MIN;
+      int64_t paste_start = LONG_MAX;
+      int64_t paste_end = LONG_MIN;
       for (int i=0;i<e_clipboard.size();i++) {
         ClipPtr c = std::dynamic_pointer_cast<Clip>(e_clipboard.at(i));
 
@@ -966,16 +966,19 @@ void Timeline::paste(bool insert) {
         ClipPtr cc = c->copy(global::sequence);
 
         // convert frame rates
-        cc->timeline_info.in = refactor_frame_number(cc->timeline_info.in, c->timeline_info.cached_fr, global::sequence->frameRate());
-        cc->timeline_info.out = refactor_frame_number(cc->timeline_info.out, c->timeline_info.cached_fr, global::sequence->frameRate());
-        cc->timeline_info.clip_in = refactor_frame_number(cc->timeline_info.clip_in, c->timeline_info.cached_fr, global::sequence->frameRate());
+        cc->timeline_info.in = refactor_frame_number(cc->timeline_info.in, c->timeline_info.cached_fr,
+                                                     global::sequence->frameRate());
+        cc->timeline_info.out = refactor_frame_number(cc->timeline_info.out, c->timeline_info.cached_fr,
+                                                      global::sequence->frameRate());
+        cc->timeline_info.clip_in = refactor_frame_number(cc->timeline_info.clip_in, c->timeline_info.cached_fr,
+                                                          global::sequence->frameRate());
 
         cc->timeline_info.in += global::sequence->playhead_;
         cc->timeline_info.out += global::sequence->playhead_;
         cc->timeline_info.track_ = c->timeline_info.track_.load();
 
-        paste_start = qMin(paste_start, cc->timeline_info.in);
-        paste_end = qMax(paste_end, cc->timeline_info.out);
+        paste_start = qMin(paste_start, cc->timeline_info.in.load());
+        paste_end = qMax(paste_end, cc->timeline_info.out.load());
 
         pasted_clips.append(cc);
 
@@ -1102,12 +1105,12 @@ void Timeline::ripple_to_in_point(bool in, bool ripple) {
       // get track count
       int track_min = INT_MAX;
       int track_max = INT_MIN;
-      long sequence_end = 0;
+      int64_t sequence_end = 0;
 
       bool playhead_falls_on_in = false;
       bool playhead_falls_on_out = false;
-      long next_cut = LONG_MAX;
-      long prev_cut = 0;
+      int64_t next_cut = LONG_MAX;
+      int64_t prev_cut = 0;
 
       // find closest in point to playhead
       for (int i=0;i<global::sequence->clips_.size();i++) {
@@ -1116,20 +1119,20 @@ void Timeline::ripple_to_in_point(bool in, bool ripple) {
           track_min = qMin(track_min, c->timeline_info.track_.load());
           track_max = qMax(track_max, c->timeline_info.track_.load());
 
-          sequence_end = qMax(c->timeline_info.out, sequence_end);
-
+          sequence_end = qMax(c->timeline_info.out.load(), sequence_end);
+          // TODO: check this. Looks repetitive at first glance
           if (c->timeline_info.in == global::sequence->playhead_)
             playhead_falls_on_in = true;
           if (c->timeline_info.out == global::sequence->playhead_)
             playhead_falls_on_out = true;
           if (c->timeline_info.in > global::sequence->playhead_)
-            next_cut = qMin(c->timeline_info.in, next_cut);
+            next_cut = qMin(c->timeline_info.in.load(), next_cut);
           if (c->timeline_info.out > global::sequence->playhead_)
-            next_cut = qMin(c->timeline_info.out, next_cut);
+            next_cut = qMin(c->timeline_info.out.load(), next_cut);
           if (c->timeline_info.in < global::sequence->playhead_)
-            prev_cut = qMax(c->timeline_info.in, prev_cut);
+            prev_cut = qMax(c->timeline_info.in.load(), prev_cut);
           if (c->timeline_info.out < global::sequence->playhead_)
-            prev_cut = qMax(c->timeline_info.out, prev_cut);
+            prev_cut = qMax(c->timeline_info.out.load(), prev_cut);
         }
       }
 

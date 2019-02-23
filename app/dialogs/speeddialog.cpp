@@ -312,10 +312,10 @@ void SpeedDialog::frame_rate_update() {
     duration->set_value((len_val == -1) ? qSNaN() : len_val, false);
 }
 
-void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, long& ep, long& lr) {
+void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, int64_t& ep, long& lr) {
     e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
 
-    long proposed_out = c->timeline_info.out; //FIXME: this is never used
+    long proposed_out = c->timeline_info.out;
     double multiplier = (c->timeline_info.speed / speed);
     proposed_out = c->timeline_info.in + (c->length() * multiplier);
     ca->append(new SetSpeedAction(c, speed));
@@ -329,7 +329,7 @@ void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, long& ep, 
             }
         }
     }
-    ep = qMin(ep, c->timeline_info.out);
+    ep = qMin(ep, c->timeline_info.out.load());
     lr = qMax(lr, proposed_out - c->timeline_info.out);
     move_clip(ca, c, c->timeline_info.in, proposed_out, c->timeline_info.clip_in * multiplier, c->timeline_info.track_);
 

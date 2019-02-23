@@ -90,8 +90,8 @@ class TimelineWidget : public QWidget {
     SequencePtr self_created_sequence;
 
     // used for "right click ripple"
-    long rc_ripple_min;
-    long rc_ripple_max;
+    int64_t rc_ripple_min;
+    int64_t rc_ripple_max;
     MediaPtr rc_reveal_media;
 
     QTimer tooltip_timer;

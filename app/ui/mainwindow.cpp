@@ -1480,14 +1480,14 @@ void MainWindow::edit_to_out_point() {
 void MainWindow::nest() {
     if (global::sequence != nullptr) {
         QVector<int> selected_clips;
-        long earliest_point = LONG_MAX;
+        int64_t earliest_point = LONG_MAX;
 
         // get selected clips
         for (int i=0;i<global::sequence->clips_.size();i++) {
             ClipPtr  c = global::sequence->clips_.at(i);
             if (c != nullptr && c->isSelected(true)) {
                 selected_clips.append(i);
-                earliest_point = qMin(c->timeline_info.in, earliest_point);
+                earliest_point = qMin(c->timeline_info.in.load(), earliest_point);
             }
         }
 

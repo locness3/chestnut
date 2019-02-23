@@ -11,7 +11,7 @@
 
 namespace project {
   /**
-   * @brief The TimelineInfo class of whose members may be used in multiple threads
+   * @brief The TimelineInfo class of whose members may be used in multiple threads.
    */
   class TimelineInfo
   {
@@ -20,17 +20,17 @@ namespace project {
       bool isVideo() const;
 
       bool enabled = true;
-      long clip_in = 0;
-      long in = 0;
-      long out = 0;
+      std::atomic_int64_t clip_in{0};
+      std::atomic_int64_t in{0};
+      std::atomic_int64_t out{0};
       std::atomic_int32_t track_{-1};
       QString name = "";
       QColor color = {0,0,0};
-      MediaPtr media = nullptr;
-      int media_stream = -1;
+      MediaPtr media = nullptr; //TODO: assess Media members in lieu of c++20 atomic_shared_ptr
+      std::atomic_int32_t media_stream{-1};
       std::atomic<double> speed{1.0};
       double cached_fr = 0.0;
-      bool reverse = false;
+      bool reverse = false; //TODO: revisit
       bool maintain_audio_pitch = true;
       bool autoscale = true;
   };

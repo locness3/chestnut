@@ -111,8 +111,8 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 
     for (int j=0;j<e_panel_effect_controls->selected_clips.size();j++) {
       ClipPtr c = global::sequence->clips_.at(e_panel_effect_controls->selected_clips.at(j));
-      visible_in = qMin(visible_in, c->timeline_info.in);
-      visible_out = qMax(visible_out, c->timeline_info.out);
+      visible_in = qMin(visible_in, c->timeline_info.in.load());
+      visible_out = qMax(visible_out, c->timeline_info.out.load());
     }
 
     for (int j=0;j<e_panel_effect_controls->selected_clips.size();j++) {

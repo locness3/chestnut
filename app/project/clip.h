@@ -153,29 +153,9 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
 
     //FIXME: all the class members
     SequencePtr sequence;
+
     // timeline variables (should be copied in copy())
-
     project::TimelineInfo timeline_info;
-
-//    struct {
-//        bool enabled = true;
-//        long clip_in = 0;
-//        long in = 0;
-//        long out = 0;
-//        int track = -1;
-//        QString name = "";
-//        QColor color = {0,0,0};
-//        MediaPtr media = nullptr;
-//        int media_stream = -1;
-//        double speed = 1.0;
-//        double cached_fr = 0.0;
-//        bool reverse = false;
-//        bool maintain_audio_pitch = true;
-//        bool autoscale = true;
-//        bool isVideo() {
-//          return track < 0;
-//        }
-//    } timeline_info;
 
     // other variables (should be deep copied/duplicated in copy())
     QList<EffectPtr> effects;

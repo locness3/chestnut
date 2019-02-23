@@ -99,13 +99,13 @@ ClipPtr Clip::copy(SequencePtr s) {
 
   copyClip->timeline_info.enabled = timeline_info.enabled;
   copyClip->timeline_info.name = timeline_info.name;
-  copyClip->timeline_info.clip_in = timeline_info.clip_in;
-  copyClip->timeline_info.in = timeline_info.in;
-  copyClip->timeline_info.out = timeline_info.out;
+  copyClip->timeline_info.clip_in = timeline_info.clip_in.load();
+  copyClip->timeline_info.in = timeline_info.in.load();
+  copyClip->timeline_info.out = timeline_info.out.load();
   copyClip->timeline_info.track_ = timeline_info.track_.load();
   copyClip->timeline_info.color = timeline_info.color;
   copyClip->timeline_info.media = timeline_info.media;
-  copyClip->timeline_info.media_stream = timeline_info.media_stream;
+  copyClip->timeline_info.media_stream = timeline_info.media_stream.load();
   copyClip->timeline_info.autoscale = timeline_info.autoscale;
   copyClip->timeline_info.speed = timeline_info.speed.load();
   copyClip->timeline_info.maintain_audio_pitch = timeline_info.maintain_audio_pitch;

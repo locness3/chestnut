@@ -145,9 +145,9 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
               can_ripple_delete = false;
               break;
             } else if (c->timeline_info.out < e_panel_timeline->cursor_frame) {
-              rc_ripple_min = qMax(rc_ripple_min, c->timeline_info.out);
+              rc_ripple_min = qMax(rc_ripple_min, c->timeline_info.out.load());
             } else if (c->timeline_info.in > e_panel_timeline->cursor_frame) {
-              rc_ripple_max = qMin(rc_ripple_max, c->timeline_info.in);
+              rc_ripple_max = qMin(rc_ripple_max, c->timeline_info.in.load());
             }
           }
         }
@@ -1153,14 +1153,24 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
 
             e_panel_timeline->delete_areas_and_relink(ca, areas);
 
-            if (move_post) move_clip(ca, post, qMin(transition_start, post->timeline_info.in), post->timeline_info.out, post->timeline_info.clip_in - (post->timeline_info.in - transition_start), post->timeline_info.track_);
-            if (move_pre) move_clip(ca, pre, pre->timeline_info.in, qMax(transition_end, pre->timeline_info.out), pre->timeline_info.clip_in, pre->timeline_info.track_);
+            if (move_post){
+              const int64_t in_point = post->timeline_info.in.load();
+              move_clip(ca, post, qMin(transition_start, in_point),
+                        post->timeline_info.out, post->timeline_info.clip_in - (in_point - transition_start),
+                        post->timeline_info.track_);
+            }
+            if (move_pre) {
+              move_clip(ca, pre, pre->timeline_info.in, qMax(transition_end, pre->timeline_info.out.load()),
+                        pre->timeline_info.clip_in, pre->timeline_info.track_);
+            }
           }
 
           if (e_panel_timeline->transition_tool_post_clip > -1) {
-            ca->append(new AddTransitionCommand(pre, post, nullptr, e_panel_timeline->transition_tool_meta, TA_OPENING_TRANSITION, transition_end - pre->timeline_info.in));
+            ca->append(new AddTransitionCommand(pre, post, nullptr, e_panel_timeline->transition_tool_meta,
+                                                TA_OPENING_TRANSITION, transition_end - pre->timeline_info.in));
           } else {
-            ca->append(new AddTransitionCommand(pre, nullptr, nullptr, e_panel_timeline->transition_tool_meta, e_panel_timeline->transition_tool_type, transition_end - transition_start));
+            ca->append(new AddTransitionCommand(pre, nullptr, nullptr, e_panel_timeline->transition_tool_meta,
+                                                e_panel_timeline->transition_tool_type, transition_end - transition_start));
           }
 
           push_undo = true;
@@ -1936,14 +1946,14 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
 
         // ripple edit prep
         if (e_panel_timeline->tool == TIMELINE_TOOL_RIPPLE) {
-          long axis = LONG_MAX;
+          int64_t axis = LONG_MAX;
 
           for (int i=0;i<e_panel_timeline->ghosts.size();i++) {
             ClipPtr c = global::sequence->clips_.at(e_panel_timeline->ghosts.at(i).clip);
             if (e_panel_timeline->trim_in_point) {
-              axis = qMin(axis, c->timeline_info.in);
+              axis = qMin(axis, c->timeline_info.in.load());
             } else {
-              axis = qMin(axis, c->timeline_info.out);
+              axis = qMin(axis, c->timeline_info.out.load());
             }
           }
 
@@ -2215,7 +2225,8 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
 
           Ghost g;
 
-          g.in = g.old_in = g.out = g.old_out = (e_panel_timeline->transition_tool_type == TA_OPENING_TRANSITION) ? c->timeline_info.in : c->timeline_info.out;
+          g.in = g.old_in = g.out = g.old_out = (e_panel_timeline->transition_tool_type == TA_OPENING_TRANSITION)
+                                                ? c->timeline_info.in.load() : c->timeline_info.out.load();
           g.track = c->timeline_info.track_;
           g.clip = e_panel_timeline->transition_tool_pre_clip;
           g.media_stream = e_panel_timeline->transition_tool_type;
