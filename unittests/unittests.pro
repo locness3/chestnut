@@ -48,7 +48,10 @@ HEADERS += \
     ../app/project/UnitTest/projectmodeltest.h
 
 INCLUDEPATH += ../app/
+
 LIBS += -L../app/$${DESTDIR}/ -lchestnut
+PRE_TARGETDEPS += ../$${DESTDIR}/libchestnut.a
+
 CONFIG(coverage) {
 LIBS += -lgcov
 }

@@ -34,6 +34,8 @@ CONFIG(coverage) {
     LIBS += -lgcov
 }
 
+PRE_TARGETDEPS += ../$${DESTDIR}/libchestnut.a
+
 
 RESOURCES += \
     ../icons/icons.qrc
