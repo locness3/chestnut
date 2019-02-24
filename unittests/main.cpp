@@ -26,6 +26,7 @@
 #include "project/UnitTest/undotest.h"
 #include "project/UnitTest/projectmodeltest.h"
 #include "io/UnitTest/configtest.h"
+#include "project/UnitTest/mediahandlertest.h"
 
 namespace
 {
@@ -53,5 +54,6 @@ int main(int argc, char** argv)
   status |= runTest<FootageTest>();
   status |= runTest<UndoTest>();
   status |= runTest<ProjectModelTest>();
+  status |= runTest<MediaHandlerTest>();
   return status;
 }

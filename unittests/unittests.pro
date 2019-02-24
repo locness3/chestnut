@@ -32,7 +32,8 @@ SOURCES += \
     ../app/io/UnitTest/configtest.cpp \
     ../app/project/UnitTest/footagetest.cpp \
     ../app/project/UnitTest/undotest.cpp \
-    ../app/project/UnitTest/projectmodeltest.cpp
+    ../app/project/UnitTest/projectmodeltest.cpp \
+    ../app/project/UnitTest/mediahandlertest.cpp
 
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
@@ -45,12 +46,13 @@ HEADERS += \
     ../app/io/UnitTest/configtest.h \
     ../app/project/UnitTest/footagetest.h \
     ../app/project/UnitTest/undotest.h \
-    ../app/project/UnitTest/projectmodeltest.h
+    ../app/project/UnitTest/projectmodeltest.h \
+    ../app/project/UnitTest/mediahandlertest.h
 
 INCLUDEPATH += ../app/
 
 LIBS += -L../app/$${DESTDIR}/ -lchestnut
-PRE_TARGETDEPS += ../$${DESTDIR}/libchestnut.a
+PRE_TARGETDEPS += ../app/$${DESTDIR}/libchestnut.a
 
 CONFIG(coverage) {
 LIBS += -lgcov
