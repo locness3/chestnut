@@ -30,6 +30,7 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <memory>
+#include <random>
 
 #include "effectfield.h"
 #include "effectrow.h"
@@ -201,6 +202,16 @@ public:
     void gizmo_move(EffectGizmoPtr& sender, const int x_movement, const int y_movement, const double timecode, const bool done);
     void gizmo_world_to_screen();
     bool are_gizmos_enabled() const;
+
+
+    template <typename T>
+    T randomNumber()
+    {
+      static std::random_device device;
+      static std::mt19937 generator(device());
+      static std::uniform_int_distribution<> distribution(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+      return distribution(generator);
+    }
 
     ClipPtr parent_clip; //TODO: make weak
     const EffectMeta* meta;

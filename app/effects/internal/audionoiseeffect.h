@@ -19,6 +19,7 @@
 #define AUDIONOISEEFFECT_H
 
 #include "project/effect.h"
+#include <random>
 
 class AudioNoiseEffect : public Effect {
 public:
@@ -32,6 +33,7 @@ public:
 
     EffectField* amount_val;
     EffectField* mix_val;
+
 };
 
 #endif // AUDIONOISEEFFECT_H
