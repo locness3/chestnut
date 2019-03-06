@@ -1069,7 +1069,9 @@ void CloseAllClipsCommand::undo() {
 }
 
 void CloseAllClipsCommand::redo() {
-  global::sequence->closeActiveClips();
+  if (global::sequence != nullptr) {
+    global::sequence->closeActiveClips();
+  }
 }
 
 UpdateFootageTooltip::UpdateFootageTooltip(MediaPtr i) :
