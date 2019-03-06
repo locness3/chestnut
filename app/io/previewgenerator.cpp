@@ -123,8 +123,8 @@ void PreviewGenerator::parse_media() {
           ms->video_height = fmt_ctx->streams[i]->codecpar->height;
 
           // default value, we get the true value later in generate_waveform()
-          ms->video_auto_interlacing = VIDEO_PROGRESSIVE;
-          ms->video_interlacing = VIDEO_PROGRESSIVE;
+          ms->video_auto_interlacing = ScanMethod::UNKNOWN;
+          ms->video_interlacing = ScanMethod::UNKNOWN;
 
           append = true;
         } else if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
@@ -324,8 +324,8 @@ void PreviewGenerator::generate_waveform() {
 
             // is video interlaced?
             ms->video_auto_interlacing = (temp_frame->interlaced_frame)
-                                         ? ((temp_frame->top_field_first) ? VIDEO_TOP_FIELD_FIRST : VIDEO_BOTTOM_FIELD_FIRST)
-                                         : VIDEO_PROGRESSIVE;
+                                         ? ((temp_frame->top_field_first) ? ScanMethod::TOP_FIRST : ScanMethod::BOTTOM_FIRST)
+                                         : ScanMethod::PROGRESSIVE;
             ms->video_interlacing = ms->video_auto_interlacing;
 
             ms->preview_done = true;
@@ -457,7 +457,8 @@ QString PreviewGenerator::get_waveform_path(const QString& hash, FootageStreamPt
   return data_path + "/" + hash + "w" + QString::number(ms->file_index);
 }
 
-void PreviewGenerator::run() {
+void PreviewGenerator::run()
+{
   Q_ASSERT(!footage.expired());
   Q_ASSERT(media != nullptr);
 
@@ -572,8 +573,8 @@ bool PreviewGenerator::generate_image_thumbnail(FootagePtr ftg) const
   ms->video_width       = img.width();
   ms->infinite_length   = true;
   ms->video_frame_rate  = IMAGE_FRAMERATE;
-  ms->video_auto_interlacing  = VIDEO_PROGRESSIVE; // TODO: is this needed
-  ms->video_interlacing       = VIDEO_PROGRESSIVE; // TODO: is this needed
+  ms->video_auto_interlacing  = ScanMethod::PROGRESSIVE; // TODO: is this needed
+  ms->video_interlacing       = ScanMethod::PROGRESSIVE; // TODO: is this needed
   ftg->video_tracks.append(ms);
   return success;
 }

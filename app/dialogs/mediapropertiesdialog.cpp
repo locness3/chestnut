@@ -102,14 +102,14 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
             get_interlacing_name(ftg->video_tracks.front()->video_auto_interlacing)
             )
           );
-    interlacing_box->addItem(get_interlacing_name(VIDEO_PROGRESSIVE));
-    interlacing_box->addItem(get_interlacing_name(VIDEO_TOP_FIELD_FIRST));
-    interlacing_box->addItem(get_interlacing_name(VIDEO_BOTTOM_FIELD_FIRST));
+    interlacing_box->addItem(get_interlacing_name(ScanMethod::PROGRESSIVE));
+    interlacing_box->addItem(get_interlacing_name(ScanMethod::TOP_FIRST));
+    interlacing_box->addItem(get_interlacing_name(ScanMethod::BOTTOM_FIRST));
 
     interlacing_box->setCurrentIndex(
           (ftg->video_tracks.front()->video_auto_interlacing == ftg->video_tracks.front()->video_interlacing)
           ? 0
-          : ftg->video_tracks.front()->video_interlacing + 1);
+          : static_cast<int>(ftg->video_tracks.front()->video_interlacing) + 1);
 
     grid->addWidget(new QLabel(tr("Interlacing:")), row, 0);
     grid->addWidget(interlacing_box, row, 1);
@@ -169,9 +169,11 @@ void MediaPropertiesDialog::accept() {
   // set interlacing
   if ( (ftg->video_tracks.size() > 0) && (ftg->video_tracks.front() != nullptr) ) {
     if (interlacing_box->currentIndex() > 0) {
-      ca->append(new SetInt(&ftg->video_tracks.front()->video_interlacing, interlacing_box->currentIndex() - 1));
+      ca->append(new SetInt(reinterpret_cast<int*>(&ftg->video_tracks.front()->video_interlacing),
+                            interlacing_box->currentIndex() - 1));
     } else {
-      ca->append(new SetInt(&ftg->video_tracks.front()->video_interlacing, ftg->video_tracks.front()->video_auto_interlacing));
+      ca->append(new SetInt(reinterpret_cast<int*>(&ftg->video_tracks.front()->video_interlacing),
+                            static_cast<int>(ftg->video_tracks.front()->video_auto_interlacing)));
     }
 
     // set frame rate conform

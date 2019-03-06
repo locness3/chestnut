@@ -236,7 +236,7 @@ bool Clip::openWorker() {
       }
     }
 
-    if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
+    if (ms->video_interlacing != ScanMethod::PROGRESSIVE) {
       max_queue_size *= 2;
     }
 
@@ -287,10 +287,10 @@ bool Clip::openWorker() {
 
       AVFilterContext* last_filter = buffersrc_ctx;
 
-      if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
+      if (ms->video_interlacing != ScanMethod::PROGRESSIVE) {
         AVFilterContext* yadif_filter;
         char yadif_args[100];
-        snprintf(yadif_args, sizeof(yadif_args), "mode=3:parity=%d", ((ms->video_interlacing == VIDEO_TOP_FIELD_FIRST) ? 0 : 1)); // there's a CUDA version if we start using nvdec/nvenc
+        snprintf(yadif_args, sizeof(yadif_args), "mode=3:parity=%d", ((ms->video_interlacing == ScanMethod::TOP_FIRST) ? 0 : 1)); // there's a CUDA version if we start using nvdec/nvenc
         avfilter_graph_create_filter(&yadif_filter, avfilter_get_by_name("yadif"), "yadif", yadif_args, nullptr, filter_graph);
 
         avfilter_link(last_filter, 0, yadif_filter, 0);
@@ -703,7 +703,7 @@ void Clip::frame(const long playhead, bool& texture_failed) {
 
     int64_t target_pts = qMax(static_cast<int64_t>(0), playhead_to_timestamp(playhead));
     int64_t second_pts = qRound64(av_q2d(av_inv_q(media_handling.stream->time_base)));
-    if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
+    if (ms->video_interlacing != ScanMethod::PROGRESSIVE) {
       target_pts *= 2;
       second_pts *= 2;
     }

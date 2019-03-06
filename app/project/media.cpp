@@ -44,12 +44,12 @@ namespace
   const auto FRAME_RATE_ARG_FORMAT = 'f';
 }
 
-QString get_interlacing_name(const int32_t interlacing) 
+QString get_interlacing_name(const ScanMethod interlacing)
 {
   switch (interlacing) {
-    case VIDEO_PROGRESSIVE: return QCoreApplication::translate("InterlacingName", "None (Progressive)");
-    case VIDEO_TOP_FIELD_FIRST: return QCoreApplication::translate("InterlacingName", "Top Field First");
-    case VIDEO_BOTTOM_FIELD_FIRST: return QCoreApplication::translate("InterlacingName", "Bottom Field First");
+    case ScanMethod::PROGRESSIVE: return QCoreApplication::translate("InterlacingName", "None (Progressive)");
+    case ScanMethod::TOP_FIRST: return QCoreApplication::translate("InterlacingName", "Top Field First");
+    case ScanMethod::BOTTOM_FIRST: return QCoreApplication::translate("InterlacingName", "Bottom Field First");
     default: return QCoreApplication::translate("InterlacingName", "Invalid");
   }
 }
@@ -187,7 +187,7 @@ void Media::updateTooltip(const QString& error)
               if (i > 0) {
                 tool_tip_ += ", ";
               }
-              if (ftg->video_tracks.at(i)->video_interlacing == VIDEO_PROGRESSIVE) {
+              if (ftg->video_tracks.at(i)->video_interlacing == ScanMethod::PROGRESSIVE) {
                 tool_tip_ += QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed);
               } else {
                 tool_tip_ += QCoreApplication::translate("Media", "%1 fields (%2 frames)").arg(

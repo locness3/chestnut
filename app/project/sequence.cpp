@@ -68,7 +68,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
           if (!qFuzzyCompare(ms->video_frame_rate, 0.0)) {
             frame_rate_ = ms->video_frame_rate * ftg->speed;
 
-            if (ms->video_interlacing != VIDEO_PROGRESSIVE) {
+            if (ms->video_interlacing != ScanMethod::PROGRESSIVE) {
               frame_rate_ *= 2;
             }
 

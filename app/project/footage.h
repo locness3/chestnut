@@ -28,9 +28,13 @@
 
 #include "project/projectitem.h"
 
-#define VIDEO_PROGRESSIVE 0
-#define VIDEO_TOP_FIELD_FIRST 1
-#define VIDEO_BOTTOM_FIELD_FIRST 2
+
+enum class ScanMethod {
+  PROGRESSIVE = 0,
+  TOP_FIRST = 1,
+  BOTTOM_FIRST = 2,
+  UNKNOWN
+};
 
 
 class Clip;
@@ -50,20 +54,20 @@ class FootageStream {
 
     void make_square_thumb();
 
-    int file_index;
-    int video_width;
-    int video_height;
-    bool infinite_length;
-    double video_frame_rate;
-    int video_interlacing;
-    int video_auto_interlacing;
-    int audio_channels;
-    int audio_layout;
-    int audio_frequency;
-    bool enabled;
+    int file_index = -1;
+    int video_width = -1;
+    int video_height = -1;
+    bool infinite_length = false;
+    double video_frame_rate = 0.0;
+    ScanMethod video_interlacing = ScanMethod::UNKNOWN;
+    ScanMethod video_auto_interlacing = ScanMethod::UNKNOWN;
+    int audio_channels = -1;
+    int audio_layout = -1;
+    int audio_frequency = -1;
+    bool enabled = false;
 
     // preview thumbnail/waveform
-    bool preview_done;
+    bool preview_done = false;
     QImage video_preview;
     QIcon video_preview_square;
     QVector<char> audio_preview;
