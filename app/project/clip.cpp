@@ -246,11 +246,11 @@ bool Clip::openWorker() {
     if ((media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_APNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_TIFF
-#ifndef DISABLE_PSD
+     #ifndef DISABLE_PSD
          && media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PSD)
-#else
+    #else
          )
-#endif
+    #endif
         || !e_config.disable_multithreading_for_images) {
       av_dict_set(&media_handling.opts, "threads", "auto", 0);
     }
@@ -1269,19 +1269,19 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
   double last_fr = sequence->frameRate();
   if (!nests.isEmpty()) {
     for (auto nestedClip : nests) {
-      //FIXME: same calc done 3 times
+      const auto offset = nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
       timeline_in = refactor_frame_number(timeline_in, last_fr,
-                                          nestedClip->sequence->frameRate()) + nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
+                                          nestedClip->sequence->frameRate()) + offset;
       timeline_out = refactor_frame_number(timeline_out, last_fr,
-                                           nestedClip->sequence->frameRate()) + nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
+                                           nestedClip->sequence->frameRate()) + offset;
       target_frame = refactor_frame_number(target_frame, last_fr,
-                                           nestedClip->sequence->frameRate()) + nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
+                                           nestedClip->sequence->frameRate()) + offset;
 
       timeline_out = qMin(timeline_out, nestedClip->timelineOutWithTransition());
 
       frame_skip = refactor_frame_number(frame_skip, last_fr, nestedClip->sequence->frameRate());
 
-      long validator = nestedClip->timelineInWithTransition() - timeline_in;
+      const long validator = nestedClip->timelineInWithTransition() - timeline_in;
       if (validator > 0) {
         frame_skip += validator;
         //timeline_in = nests.at(i)->timelineInWithTransition();
@@ -1298,7 +1298,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
     if (timeline_info.media == nullptr) {
       av_frame = media_handling.frame;
       nb_bytes = av_frame->nb_samples * av_get_bytes_per_sample(static_cast<AVSampleFormat>(av_frame->format)) * av_frame->channels;
-      while ((audio_playback.frame_sample_index == -1 || audio_playback.frame_sample_index >= nb_bytes) && nb_bytes > 0) {
+      while (( (audio_playback.frame_sample_index == -1) || (audio_playback.frame_sample_index >= nb_bytes)) && (nb_bytes > 0) ) {
         // create "new frame"
         memset(media_handling.frame->data[0], 0, nb_bytes);
         apply_audio_effects(bytes_to_seconds(av_frame->pts, av_frame->channels, av_frame->sample_rate), av_frame, nb_bytes, nests);
@@ -1307,20 +1307,20 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
         if (audio_playback.buffer_write == 0) {
           audio_playback.buffer_write = get_buffer_offset_from_frame(last_fr, qMax(timeline_in, target_frame));
         }
-        int offset = audio_ibuffer_read - audio_playback.buffer_write;
+        const int offset = audio_ibuffer_read - audio_playback.buffer_write;
         if (offset > 0) {
           audio_playback.buffer_write += offset;
           audio_playback.frame_sample_index += offset;
         }
-      }
+      }//while
     } else if (timeline_info.media->type() == MediaType::FOOTAGE) {
-      double timebase = av_q2d(media_handling.stream->time_base);
+      const double timebase = av_q2d(media_handling.stream->time_base);
 
       av_frame = queue.at(0);
 
       // retrieve frame
       bool new_frame = false;
-      while ((audio_playback.frame_sample_index == -1 || audio_playback.frame_sample_index >= nb_bytes) && nb_bytes > 0) {
+      while (( (audio_playback.frame_sample_index == -1) || (audio_playback.frame_sample_index >= nb_bytes) ) && (nb_bytes > 0) ) {
         // no more audio left in frame, get a new one
         if (!reached_end) {
           int loop = 0;
@@ -1390,9 +1390,13 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
 
                 if ((media_handling.frame->pts >= audio_playback.reverse_target) || (ret == AVERROR_EOF)) {
                   double playback_speed = timeline_info.speed * timeline_info.media->object<Footage>()->speed;
-                  rev_frame->nb_samples = qRound64(static_cast<double>(audio_playback.reverse_target - rev_frame->pts) / media_handling.stream->codecpar->sample_rate * (current_audio_freq() / playback_speed));
+                  rev_frame->nb_samples = qRound64(static_cast<double>(audio_playback.reverse_target - rev_frame->pts)
+                                                   / media_handling.stream->codecpar->sample_rate
+                                                   * (current_audio_freq() / playback_speed));
 
-                  int frame_size = rev_frame->nb_samples * rev_frame->channels * av_get_bytes_per_sample(static_cast<AVSampleFormat>(rev_frame->format));
+                  int frame_size = rev_frame->nb_samples
+                                   * rev_frame->channels
+                                   * av_get_bytes_per_sample(static_cast<AVSampleFormat>(rev_frame->format));
                   int half_frame_size = frame_size >> 1;
 
                   int sample_size = rev_frame->channels*av_get_bytes_per_sample(static_cast<AVSampleFormat>(rev_frame->format));
@@ -1444,20 +1448,22 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
           double frame_sts = ((av_frame->pts - media_handling.stream->start_time) * timebase);
           int nb_samples = qRound64((target_sts - frame_sts)*current_audio_freq());
           audio_playback.frame_sample_index = nb_samples * 4;
-          if (timeline_info.reverse) audio_playback.frame_sample_index = nb_bytes - audio_playback.frame_sample_index;
+          if (timeline_info.reverse) {
+            audio_playback.frame_sample_index = nb_bytes - audio_playback.frame_sample_index;
+          }
           audio_playback.just_reset = false;
         }
         if (audio_playback.buffer_write == 0) {
           audio_playback.buffer_write = get_buffer_offset_from_frame(last_fr, qMax(timeline_in, target_frame));
 
           if (frame_skip > 0) {
-            int target = get_buffer_offset_from_frame(last_fr, qMax(timeline_in + frame_skip, target_frame));
+            const int target = get_buffer_offset_from_frame(last_fr, qMax(timeline_in + frame_skip, target_frame));
             audio_playback.frame_sample_index += (target - audio_playback.buffer_write);
             audio_playback.buffer_write = target;
           }
         }
 
-        int offset = audio_ibuffer_read - audio_playback.buffer_write;
+        const int offset = audio_ibuffer_read - audio_playback.buffer_write;
         if (offset > 0) {
           audio_playback.buffer_write += offset;
           audio_playback.frame_sample_index += offset;
@@ -1468,16 +1474,23 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
           audio_playback.buffer_write -= audio_playback.frame_sample_index;
           audio_playback.frame_sample_index = 0;
         }
-      }
+      } //while
 
       if (timeline_info.reverse) av_frame = queue.at(1);
 
       // apply any audio effects to the data
-      if (nb_bytes == INT_MAX) nb_bytes = av_frame->nb_samples * av_get_bytes_per_sample(static_cast<AVSampleFormat>(av_frame->format)) * av_frame->channels;
+      if (nb_bytes == INT_MAX) {
+        nb_bytes = av_frame->nb_samples
+                   * av_get_bytes_per_sample(static_cast<AVSampleFormat>(av_frame->format))
+                   * av_frame->channels;
+      }
       if (new_frame) {
-        apply_audio_effects(bytes_to_seconds(audio_playback.buffer_write, 2,
-                                             current_audio_freq()) + audio_ibuffer_timecode + ((double)clipInWithTransition()/sequence->frameRate()) - ((double)timeline_in/last_fr),
-                            av_frame, nb_bytes, nests);
+        const auto sample_rate = bytes_to_seconds(audio_playback.buffer_write, 2,
+                                                  current_audio_freq())
+                                 + audio_ibuffer_timecode
+                                 + (static_cast<double>(clipInWithTransition())/sequence->frameRate())
+                                 - (static_cast<double>(timeline_in)/last_fr);
+        apply_audio_effects(sample_rate, av_frame, nb_bytes, nests);
       }
     } else {
       // shouldn't ever get here
@@ -1489,28 +1502,31 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
     if (av_frame->nb_samples == 0) {
       break;
     } else {
+      // have audio data so write to audio_data_buffer
       long buffer_timeline_out = get_buffer_offset_from_frame(sequence->frameRate(), timeline_out);
       audio_write_lock.lock();
 
       while (audio_playback.frame_sample_index < nb_bytes
              && audio_playback.buffer_write < audio_ibuffer_read+(audio_ibuffer_size>>1)
              && audio_playback.buffer_write < buffer_timeline_out) {
-        int upper_byte_index = (audio_playback.buffer_write+1)%audio_ibuffer_size;
-        int lower_byte_index = (audio_playback.buffer_write)%audio_ibuffer_size;
-        qint16 old_sample = static_cast<qint16>((audio_ibuffer[upper_byte_index] & 0xFF) << 8 | (audio_ibuffer[lower_byte_index] & 0xFF));
-        qint16 new_sample = static_cast<qint16>((av_frame->data[0][audio_playback.frame_sample_index+1] & 0xFF) << 8 | (av_frame->data[0][audio_playback.frame_sample_index] & 0xFF));
-        qint16 mixed_sample = mix_audio_sample(old_sample, new_sample);
+        int upper_byte_index = (audio_playback.buffer_write + 1) % audio_ibuffer_size;
+        int lower_byte_index = (audio_playback.buffer_write) % audio_ibuffer_size;
+        const qint16 old_sample = static_cast<qint16>( ((audio_ibuffer[upper_byte_index] & 0xFF) << 8)
+                                                 | (audio_ibuffer[lower_byte_index] & 0xFF));
+        const qint16 new_sample = static_cast<qint16>(((av_frame->data[0][audio_playback.frame_sample_index + 1] & 0xFF) << 8)
+            | (av_frame->data[0][audio_playback.frame_sample_index] & 0xFF));
+        const qint16 mixed_sample = mix_audio_sample(old_sample, new_sample);
 
         audio_ibuffer[upper_byte_index] = static_cast<quint8>((mixed_sample >> 8) & 0xFF);
         audio_ibuffer[lower_byte_index] = static_cast<quint8>(mixed_sample & 0xFF);
 
-        audio_playback.buffer_write+=2;
-        audio_playback.frame_sample_index+=2;
-      }
+        audio_playback.buffer_write += 2;
+        audio_playback.frame_sample_index += 2;
+      }//while
       audio_write_lock.unlock();
 
-      if (scrubbing) {
-        if (audio_thread != nullptr) audio_thread->notifyReceiver();
+      if (scrubbing && (audio_thread != nullptr) ) {
+          audio_thread->notifyReceiver();
       }
 
       if (audio_playback.frame_sample_index == nb_bytes) {
@@ -1526,8 +1542,9 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
     if (scrubbing) {
       break;
     }
-  }
+  } //while
 
+  // frame processed, trigger timeline movement
   QMetaObject::invokeMethod(e_panel_footage_viewer, "play_wake", Qt::QueuedConnection);
   QMetaObject::invokeMethod(e_panel_sequence_viewer, "play_wake", Qt::QueuedConnection);
 }
