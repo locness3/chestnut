@@ -103,30 +103,18 @@ const EffectMeta* get_internal_meta(int internal_id, int type);
 #define KEYFRAME_TYPE_BEZIER 1
 #define KEYFRAME_TYPE_HOLD 2
 
+template <typename T>
+struct CartesianCoordinate {
+  T x_;
+  T y_;
+  T z_;
+};
+
+
 struct GLTextureCoords {
     int grid_size;
-
-    int vertexTopLeftX;
-    int vertexTopLeftY;
-    int vertexTopLeftZ;
-    int vertexTopRightX;
-    int vertexTopRightY;
-    int vertexTopRightZ;
-    int vertexBottomLeftX;
-    int vertexBottomLeftY;
-    int vertexBottomLeftZ;
-    int vertexBottomRightX;
-    int vertexBottomRightY;
-    int vertexBottomRightZ;
-
-    float textureTopLeftX;
-    float textureTopLeftY;
-    float textureTopRightX;
-    float textureTopRightY;
-    float textureBottomRightX;
-    float textureBottomRightY;
-    float textureBottomLeftX;
-    float textureBottomLeftY;
+    CartesianCoordinate<int> vertices_[4]; // 0->3 top-left, top-right, bottom-right, bottom-left
+    CartesianCoordinate<float> texture_[4]; // 0->3 top-left, top-right, bottom-right, bottom-left
 };
 
 qint16 mix_audio_sample(qint16 a, qint16 b);

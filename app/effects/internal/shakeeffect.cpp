@@ -56,7 +56,8 @@ ShakeEffect::ShakeEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
   }
 }
 
-void ShakeEffect::process_coords(double timecode, GLTextureCoords& coords, int) {
+void ShakeEffect::process_coords(double timecode, GLTextureCoords& coords, int)
+{
   int lim = RANDOM_VAL_SIZE/6;
 
   double multiplier = intensity_val->get_double_value(timecode)/lim;
@@ -78,15 +79,15 @@ void ShakeEffect::process_coords(double timecode, GLTextureCoords& coords, int) 
   yoff *= multiplier;
   rotoff *= rotmult;
 
-  coords.vertexTopLeftX += xoff;
-  coords.vertexTopRightX += xoff;
-  coords.vertexBottomLeftX += xoff;
-  coords.vertexBottomRightX += xoff;
+  coords.vertices_[0].x_ += xoff;
+  coords.vertices_[1].x_ += xoff;
+  coords.vertices_[3].x_ += xoff;
+  coords.vertices_[2].x_ += xoff;
 
-  coords.vertexTopLeftY += yoff;
-  coords.vertexTopRightY += yoff;
-  coords.vertexBottomLeftY += yoff;
-  coords.vertexBottomRightY += yoff;
+  coords.vertices_[0].y_ += yoff;
+  coords.vertices_[1].y_ += yoff;
+  coords.vertices_[3].y_ += yoff;
+  coords.vertices_[2].y_ += yoff;
 
   glRotatef(rotoff, 0, 0, 1);
 }

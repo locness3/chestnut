@@ -210,14 +210,14 @@ void TransformEffect::process_coords(double timecode, GLTextureCoords& coords, i
   // anchor point
   int anchor_x_offset = (anchor_x_box->get_double_value(timecode));
   int anchor_y_offset = (anchor_y_box->get_double_value(timecode));
-  coords.vertexTopLeftX -= anchor_x_offset;
-  coords.vertexTopRightX -= anchor_x_offset;
-  coords.vertexBottomLeftX -= anchor_x_offset;
-  coords.vertexBottomRightX -= anchor_x_offset;
-  coords.vertexTopLeftY -= anchor_y_offset;
-  coords.vertexTopRightY -= anchor_y_offset;
-  coords.vertexBottomLeftY -= anchor_y_offset;
-  coords.vertexBottomRightY -= anchor_y_offset;
+  coords.vertices_[0].x_ -= anchor_x_offset;
+  coords.vertices_[1].x_ -= anchor_x_offset;
+  coords.vertices_[3].x_ -= anchor_x_offset;
+  coords.vertices_[2].x_ -= anchor_x_offset;
+  coords.vertices_[0].y_ -= anchor_y_offset;
+  coords.vertices_[1].y_ -= anchor_y_offset;
+  coords.vertices_[3].y_ -= anchor_y_offset;
+  coords.vertices_[2].y_ -= anchor_y_offset;
 
   // rotation
   glRotatef(rotation->get_double_value(timecode), 0, 0, 1);
@@ -251,20 +251,26 @@ void TransformEffect::process_coords(double timecode, GLTextureCoords& coords, i
   glColor4f(1.0, 1.0, 1.0, color[3]*(opacity->get_double_value(timecode)*0.01));
 }
 
-void TransformEffect::gizmo_draw(double, GLTextureCoords& coords) {
-  top_left_gizmo->world_pos[0] = QPoint(coords.vertexTopLeftX, coords.vertexTopLeftY);
-  top_center_gizmo->world_pos[0] = QPoint(lerp(coords.vertexTopLeftX, coords.vertexTopRightX, 0.5), lerp(coords.vertexTopLeftY, coords.vertexTopRightY, 0.5));
-  top_right_gizmo->world_pos[0] = QPoint(coords.vertexTopRightX, coords.vertexTopRightY);
-  right_center_gizmo->world_pos[0] = QPoint(lerp(coords.vertexTopRightX, coords.vertexBottomRightX, 0.5), lerp(coords.vertexTopRightY, coords.vertexBottomRightY, 0.5));
-  bottom_right_gizmo->world_pos[0] = QPoint(coords.vertexBottomRightX, coords.vertexBottomRightY);
-  bottom_center_gizmo->world_pos[0] = QPoint(lerp(coords.vertexBottomRightX, coords.vertexBottomLeftX, 0.5), lerp(coords.vertexBottomRightY, coords.vertexBottomLeftY, 0.5));
-  bottom_left_gizmo->world_pos[0] = QPoint(coords.vertexBottomLeftX, coords.vertexBottomLeftY);
-  left_center_gizmo->world_pos[0] = QPoint(lerp(coords.vertexBottomLeftX, coords.vertexTopLeftX, 0.5), lerp(coords.vertexBottomLeftY, coords.vertexTopLeftY, 0.5));
+void TransformEffect::gizmo_draw(double, GLTextureCoords& coords)
+{
+  top_left_gizmo->world_pos[0] = QPoint(coords.vertices_[0].x_, coords.vertices_[0].y_);
+  top_center_gizmo->world_pos[0] = QPoint(lerp(coords.vertices_[0].x_, coords.vertices_[1].x_, 0.5),
+                                          lerp(coords.vertices_[0].y_, coords.vertices_[1].y_, 0.5));
+  top_right_gizmo->world_pos[0] = QPoint(coords.vertices_[1].x_, coords.vertices_[1].y_);
+  right_center_gizmo->world_pos[0] = QPoint(lerp(coords.vertices_[1].x_, coords.vertices_[2].x_, 0.5),
+                                            lerp(coords.vertices_[1].y_, coords.vertices_[2].y_, 0.5));
+  bottom_right_gizmo->world_pos[0] = QPoint(coords.vertices_[2].x_, coords.vertices_[2].y_);
+  bottom_center_gizmo->world_pos[0] = QPoint(lerp(coords.vertices_[2].x_, coords.vertices_[3].x_, 0.5),
+                                             lerp(coords.vertices_[2].y_, coords.vertices_[3].y_, 0.5));
+  bottom_left_gizmo->world_pos[0] = QPoint(coords.vertices_[3].x_, coords.vertices_[3].y_);
+  left_center_gizmo->world_pos[0] = QPoint(lerp(coords.vertices_[3].x_, coords.vertices_[0].x_, 0.5),
+                                           lerp(coords.vertices_[3].y_, coords.vertices_[0].y_, 0.5));
 
-  rotate_gizmo->world_pos[0] = QPoint(lerp(top_center_gizmo->world_pos[0].x(), bottom_center_gizmo->world_pos[0].x(), -0.1), lerp(top_center_gizmo->world_pos[0].y(), bottom_center_gizmo->world_pos[0].y(), -0.1));
+  rotate_gizmo->world_pos[0] = QPoint(lerp(top_center_gizmo->world_pos[0].x(), bottom_center_gizmo->world_pos[0].x(), -0.1),
+      lerp(top_center_gizmo->world_pos[0].y(), bottom_center_gizmo->world_pos[0].y(), -0.1));
 
-  rect_gizmo->world_pos[0] = QPoint(coords.vertexTopLeftX, coords.vertexTopLeftY);
-  rect_gizmo->world_pos[1] = QPoint(coords.vertexTopRightX, coords.vertexTopRightY);
-  rect_gizmo->world_pos[2] = QPoint(coords.vertexBottomRightX, coords.vertexBottomRightY);
-  rect_gizmo->world_pos[3] = QPoint(coords.vertexBottomLeftX, coords.vertexBottomLeftY);
+  rect_gizmo->world_pos[0] = QPoint(coords.vertices_[0].x_, coords.vertices_[0].y_);
+  rect_gizmo->world_pos[1] = QPoint(coords.vertices_[1].x_, coords.vertices_[1].y_);
+  rect_gizmo->world_pos[2] = QPoint(coords.vertices_[2].x_, coords.vertices_[2].y_);
+  rect_gizmo->world_pos[3] = QPoint(coords.vertices_[3].x_, coords.vertices_[3].y_);
 }
