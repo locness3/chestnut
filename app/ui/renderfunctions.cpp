@@ -271,14 +271,6 @@ GLuint compose_sequence(Viewer* viewer,
             clp->fbo[1] = new QOpenGLFramebufferObject(video_width, video_height);
           }
 
-          // clear fbos
-          /*c->fbo[0]->bind();
-                    glClear(GL_COLOR_BUFFER_BIT);
-                    c->fbo[0]->release();
-                    c->fbo[1]->bind();
-                    glClear(GL_COLOR_BUFFER_BIT);
-                    c->fbo[1]->release();*/
-
           bool fbo_switcher = false;
 
           glViewport(0, 0, video_width, video_height);
@@ -333,11 +325,6 @@ GLuint compose_sequence(Viewer* viewer,
           coords.textureBottomRightY = 1.0;
           coords.textureTopRightX = 1.0;
           coords.textureBottomRightX = 1.0;
-
-          coords.textureTopLeftQ = 1;
-          coords.textureTopRightQ = 1;
-          coords.textureTopLeftQ = 1;
-          coords.textureBottomLeftQ = 1;
 
           // set up autoscale
           if (clp->timeline_info.autoscale && (video_width != lcl_seq->width() && video_height != lcl_seq->height())) {
@@ -398,20 +385,6 @@ GLuint compose_sequence(Viewer* viewer,
           }
           // EFFECT CODE END
 
-          /*if (!nests.isEmpty()) {
-                        nests.last()->fbo[0]->bind();
-                        glViewport(0, 0, s->width, s->height);
-                    } else if (rendering) {
-                        glViewport(0, 0, s->width, s->height);
-                    } else {
-                        int widget_width = width();
-                        int widget_height = height();
-
-                        widget_width *= QApplication::desktop()->devicePixelRatio();
-                        widget_height *= QApplication::desktop()->devicePixelRatio();
-
-                        glViewport(0, 0, widget_width, widget_height);
-                    }*/
           if (!nests.isEmpty()) {
             nests.last()->fbo[0]->bind();
           }

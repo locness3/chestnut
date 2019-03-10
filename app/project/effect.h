@@ -121,16 +121,12 @@ struct GLTextureCoords {
 
     float textureTopLeftX;
     float textureTopLeftY;
-    float textureTopLeftQ;
     float textureTopRightX;
     float textureTopRightY;
-    float textureTopRightQ;
     float textureBottomRightX;
     float textureBottomRightY;
-    float textureBottomRightQ;
     float textureBottomLeftX;
     float textureBottomLeftY;
-    float textureBottomLeftQ;
 };
 
 qint16 mix_audio_sample(qint16 a, qint16 b);
