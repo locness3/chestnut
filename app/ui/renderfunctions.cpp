@@ -401,13 +401,13 @@ GLuint compose_sequence(Viewer* viewer,
             float z = 0.0f;
 
             glTexCoord2f(coords.textureTopLeftX, coords.textureTopLeftY); // top left
-            glVertex3f(coords.vertexTopLeftX, coords.vertexTopLeftY, z); // top left
+            glVertex3i(coords.vertices_[0].x_, coords.vertices_[0].y_, z); // top left
             glTexCoord2f(coords.textureTopRightX, coords.textureTopRightY); // top right
-            glVertex3f(coords.vertexTopRightX, coords.vertexTopRightY, z); // top right
+            glVertex3i(coords.vertices_[1].x_, coords.vertices_[1].y_, z); // top right
             glTexCoord2f(coords.textureBottomRightX, coords.textureBottomRightY); // bottom right
-            glVertex3f(coords.vertexBottomRightX, coords.vertexBottomRightY, z); // bottom right
+            glVertex3i(coords.vertices_[2].x_, coords.vertices_[2].y_, z); // bottom right
             glTexCoord2f(coords.textureBottomLeftX, coords.textureBottomLeftY); // bottom left
-            glVertex3f(coords.vertexBottomLeftX, coords.vertexBottomLeftY, z); // bottom left
+            glVertex3i(coords.vertices_[3].x_, coords.vertices_[3].y_, z); // bottom left
           } else {
             const auto rows = coords.grid_size;
             const auto cols = coords.grid_size;
