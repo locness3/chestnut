@@ -398,7 +398,7 @@ GLuint compose_sequence(Viewer* viewer,
           glBegin(GL_QUADS);
 
           if (coords.grid_size <= 1) {
-            float z = 0.0f;
+            const auto z = 0;
 
             glTexCoord2f(coords.textureTopLeftX, coords.textureTopLeftY); // top left
             glVertex3i(coords.vertices_[0].x_, coords.vertices_[0].y_, z); // top left
