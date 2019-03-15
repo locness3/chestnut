@@ -47,7 +47,7 @@ isEmpty(PREFIX) {
 target.path = $$PREFIX/bin
 
 effects.files = $$PWD/effects/*.frag $$PWD/effects/*.xml $$PWD/effects/*.vert
-effects.path = $$PREFIX/share/olive-editor/effects
+effects.path = $$PREFIX/share/chestnut/effects
 
 metainfo.files = $$PWD/packaging/linux/org.olivevideoeditor.Olive.appdata.xml
 metainfo.path = $$PREFIX/share/metainfo
@@ -71,4 +71,5 @@ icon512.files = $$PWD/packaging/linux/icons/512x512/org.olivevideoeditor.Olive.p
 icon512.path = $$PREFIX/share/icons/hicolor/512x512/apps
 icon1024.files = $$PWD/packaging/linux/icons/1024x1024/org.olivevideoeditor.Olive.png
 icon1024.path = $$PREFIX/share/icons/hicolor/1024x1024/apps
+
 INSTALLS += target effects metainfo desktop mime icon16 icon32 icon48 icon64 icon128 icon256 icon512 icon1024
