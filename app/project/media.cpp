@@ -440,7 +440,7 @@ QVariant Media::data(const int32_t column, const int32_t role)
     case Qt::ToolTipRole:
       return tool_tip_;
     default:
-      qDebug() << "Unhandled role" << role;
+      // Unhandled role
       break;
   }//switch
   return QVariant();
