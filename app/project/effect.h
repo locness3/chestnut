@@ -232,6 +232,7 @@ protected:
     // enable effect to update constantly
     bool enable_always_update;
 private:
+    friend class EffectTest;
     // superimpose effect
     QString script;
 
@@ -247,6 +248,7 @@ private:
     void delete_texture();
     int get_index_in_clip();
     void validate_meta_path();
+    void setupControlWidget(const EffectMeta& em);
 };
 
 //TODO: be in Effect

@@ -33,7 +33,8 @@ SOURCES += \
     ../app/project/UnitTest/footagetest.cpp \
     ../app/project/UnitTest/undotest.cpp \
     ../app/project/UnitTest/projectmodeltest.cpp \
-    ../app/project/UnitTest/mediahandlertest.cpp
+    ../app/project/UnitTest/mediahandlertest.cpp \
+    ../app/project/UnitTest/effecttest.cpp
 
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
@@ -47,7 +48,8 @@ HEADERS += \
     ../app/project/UnitTest/footagetest.h \
     ../app/project/UnitTest/undotest.h \
     ../app/project/UnitTest/projectmodeltest.h \
-    ../app/project/UnitTest/mediahandlertest.h
+    ../app/project/UnitTest/mediahandlertest.h \
+    ../app/project/UnitTest/effecttest.h
 
 INCLUDEPATH += ../app/
 

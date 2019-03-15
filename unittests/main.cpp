@@ -27,6 +27,7 @@
 #include "project/UnitTest/projectmodeltest.h"
 #include "io/UnitTest/configtest.h"
 #include "project/UnitTest/mediahandlertest.h"
+#include "project/UnitTest/effecttest.h"
 
 namespace
 {
@@ -42,6 +43,7 @@ int runTest()
 
 int main(int argc, char** argv)
 {
+  QApplication a(argc, argv); // QWidgets need a constructed Qapplication
   argCount = argc;
   argVals = argv;
   ConfigTest testItem;
@@ -55,5 +57,6 @@ int main(int argc, char** argv)
   status |= runTest<UndoTest>();
   status |= runTest<ProjectModelTest>();
   status |= runTest<MediaHandlerTest>();
+  status |= runTest<EffectTest>();
   return status;
 }

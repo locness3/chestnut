@@ -46,7 +46,7 @@ isEmpty(PREFIX) {
 
 target.path = $$PREFIX/bin
 
-effects.files = $$PWD/effects/*.frag $$PWD/effects/*.xml $$PWD/effects/*.vert
+effects.files = $$PWD/../effects/*.frag $$PWD/../effects/*.xml $$PWD/../effects/*.vert
 effects.path = $$PREFIX/share/chestnut/effects
 
 metainfo.files = $$PWD/packaging/linux/org.olivevideoeditor.Olive.appdata.xml

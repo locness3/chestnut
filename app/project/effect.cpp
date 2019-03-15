@@ -212,7 +212,7 @@ void load_shader_effects(QVector<EffectMeta>& effect_list)
   for (auto& effects_path : get_effects_paths()){
     const QDir effects_dir(effects_path);
     if (!effects_dir.exists()) {
-      qWarning() << "Directory does not exist, " << effects_dir.absolutePath();
+      qWarning() << "Effects directory does not exist, " << effects_dir.absolutePath();
       continue;
     }
     const QList<QString> entries = effects_dir.entryList(QStringList(EFFECT_EXT), QDir::Files);
@@ -277,7 +277,7 @@ void EffectInit::run() {
   qInfo() << "Finished initializing effects";
 }
 
-//FIXME: congitive complexity of 322.....
+
 Effect::Effect(ClipPtr c, const EffectMeta *em) :
   SequenceItem(project::SequenceItemType::CLIP),
   enable_shader(false),
@@ -290,11 +290,10 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
   texture(nullptr),
   enable_always_update(false),
   isOpen(false),
-  bound(false)
+  bound(false),
+  container(new CollapsibleWidget())
 {
-  //FIXME: leaks
   // set up base UI
-  container = new CollapsibleWidget();
   connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
   ui = new QWidget();
   ui_layout = new QGridLayout();
@@ -306,192 +305,7 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
 
   if (em != nullptr) {
     // set up UI from effect file
-    container->setText(em->name);
-
-    if (!em->filename.isEmpty()) {
-      QFile effect_file(em->filename);
-      if (effect_file.open(QFile::ReadOnly)) {
-        QXmlStreamReader reader(&effect_file);
-        const QXmlStreamAttributes& attributes = reader.attributes();
-
-        while (!reader.atEnd()) {
-          if (reader.name() == "row" && reader.isStartElement()) {
-            QString row_name;
-            for (int i=0;i<attributes.size();i++) {
-              const QXmlStreamAttribute& attr = attributes.at(i);
-              if (attr.name() == "name") {
-                row_name = attr.value().toString();
-              }
-            }
-            if (!row_name.isEmpty()) {
-              EffectRowPtr row(add_row(row_name));
-              while (!reader.atEnd() && !(reader.name() == "row" && reader.isEndElement())) {
-                reader.readNext();
-                if (reader.name() == "field" && reader.isStartElement()) {
-                  auto fieldType = EffectFieldType::UNKNOWN;
-                  QString attrId;
-
-                  // get field type
-                  for (const auto& readerAttr : attributes) {
-                    if (readerAttr.name() == "type") {
-                      QString comp = readerAttr.value().toString().toUpper();
-                      if (comp == "DOUBLE") {
-                        fieldType = EffectFieldType::DOUBLE;
-                      } else if (comp == "BOOL") {
-                        fieldType = EffectFieldType::BOOL;
-                      } else if (comp == "COLOR") {
-                        fieldType = EffectFieldType::COLOR;
-                      } else if (comp == "COMBO") {
-                        fieldType = EffectFieldType::COMBO;
-                      } else if (comp == "FONT") {
-                        fieldType = EffectFieldType::FONT;
-                      } else if (comp == "STRING") {
-                        fieldType = EffectFieldType::STRING;
-                      } else if (comp == "FILE") {
-                        fieldType = EffectFieldType::FILE_T;
-                      }
-                    } else if (readerAttr.name() == "id") {
-                      attrId = readerAttr.value().toString();
-                    }
-                  }
-
-                  if (attrId.isEmpty()) {
-                    qCritical() << "Couldn't load field from" << em->filename << "- ID cannot be empty.";
-                  } else if (fieldType != EffectFieldType::UNKNOWN) {
-                    EffectField* field = row->add_field(fieldType, attrId);
-                    connect(field, SIGNAL(changed()), this, SLOT(field_changed()));
-                    switch (fieldType) {
-                      case EffectFieldType::DOUBLE:
-                        for (int i=0;i<attributes.size();i++) {
-                          const QXmlStreamAttribute& attr = attributes.at(i);
-                          if (attr.name() == "default") {
-                            field->set_double_default_value(attr.value().toDouble());
-                          } else if (attr.name() == "min") {
-                            field->set_double_minimum_value(attr.value().toDouble());
-                          } else if (attr.name() == "max") {
-                            field->set_double_maximum_value(attr.value().toDouble());
-                          }
-                        }
-                        break;
-                      case EffectFieldType::COLOR:
-                      {
-                        QColor color;
-                        for (int i=0;i<attributes.size();i++) {
-                          const QXmlStreamAttribute& attr = attributes.at(i);
-                          if (attr.name() == "r") {
-                            color.setRed(attr.value().toInt());
-                          } else if (attr.name() == "g") {
-                            color.setGreen(attr.value().toInt());
-                          } else if (attr.name() == "b") {
-                            color.setBlue(attr.value().toInt());
-                          } else if (attr.name() == "rf") {
-                            color.setRedF(attr.value().toDouble());
-                          } else if (attr.name() == "gf") {
-                            color.setGreenF(attr.value().toDouble());
-                          } else if (attr.name() == "bf") {
-                            color.setBlueF(attr.value().toDouble());
-                          } else if (attr.name() == "hex") {
-                            color.setNamedColor(attr.value().toString());
-                          }
-                        }
-                        field->set_color_value(color);
-                      }
-                        break;
-                      case EffectFieldType::STRING:
-                        for (int i=0;i<attributes.size();i++) {
-                          const QXmlStreamAttribute& attr = attributes.at(i);
-                          if (attr.name() == "default") {
-                            field->set_string_value(attr.value().toString());
-                          }
-                        }
-                        break;
-                      case EffectFieldType::BOOL:
-                        for (int i=0;i<attributes.size();i++) {
-                          const QXmlStreamAttribute& attr = attributes.at(i);
-                          if (attr.name() == "default") {
-                            field->set_bool_value(attr.value() == "1");
-                          }
-                        }
-                        break;
-                      case EffectFieldType::COMBO:
-                      {
-                        int combo_index = 0;
-                        for (int i=0;i<attributes.size();i++) {
-                          const QXmlStreamAttribute& attr = attributes.at(i);
-                          if (attr.name() == "default") {
-                            combo_index = attr.value().toInt();
-                            break;
-                          }
-                        }
-                        while (!reader.atEnd() && !(reader.name() == "field" && reader.isEndElement())) {
-                          reader.readNext();
-                          if (reader.name() == "option" && reader.isStartElement()) {
-                            reader.readNext();
-                            field->add_combo_item(reader.text().toString(), 0);
-                          }
-                        }
-                        field->set_combo_index(combo_index);
-                      }
-                        break;
-                      case EffectFieldType::FONT:
-                        for (int i=0;i<attributes.size();i++) {
-                          const QXmlStreamAttribute& attr = attributes.at(i);
-                          if (attr.name() == "default") {
-                            field->set_font_name(attr.value().toString());
-                          }
-                        }
-                        break;
-                      case EffectFieldType::FILE_T:
-                        for (int i=0;i<attributes.size();i++) {
-                          const QXmlStreamAttribute& attr = attributes.at(i);
-                          if (attr.name() == "filename") {
-                            field->set_filename(attr.value().toString());
-                          }
-                        }
-                        break;
-                      default:
-                        qWarning() << "Unknown EffectField type" << static_cast<int>(fieldType);
-                        break;
-                    }//switch
-                  }
-                }
-              }//while
-            }
-          } else if (reader.name() == "shader" && reader.isStartElement()) {
-            enable_shader = true;
-            for (int i=0;i<attributes.size();i++) {
-              const QXmlStreamAttribute& attr = attributes.at(i);
-              if (attr.name() == "vert") {
-                vertPath = attr.value().toString();
-              } else if (attr.name() == "frag") {
-                fragPath = attr.value().toString();
-              }
-            }
-          }/* else if (reader.name() == "superimpose" && reader.isStartElement()) {
-                        enable_superimpose = true;
-                        const QXmlStreamAttributes& attributes = reader.attributes();
-                        for (int i=0;i<attributes.size();i++) {
-                            const QXmlStreamAttribute& attr = attributes.at(i);
-                            if (attr.name() == "script") {
-                                QFile script_file(get_effects_dir() + "/" + attr.value().toString());
-                                if (script_file.open(QFile::ReadOnly)) {
-                                    script = script_file.readAll();
-                                } else {
-                                    qCritical() << "Failed to open superimpose script file for" << em->filename;
-                                    enable_superimpose = false;
-                                }
-                                break;
-                            }
-                        }
-                    }*/
-          reader.readNext();
-        }//while
-
-        effect_file.close();
-      } else {
-        qCritical() << "Failed to open effect file" << em->filename;
-      }
-    }
+    setupControlWidget(*em);
   }
 }
 
@@ -500,7 +314,7 @@ Effect::~Effect() {
     close();
   }
 
-  //delete container;
+  container = nullptr; // the layout handles memory
 }
 
 
@@ -1094,6 +908,176 @@ void Effect::delete_texture() {
   if (texture != nullptr) {
     delete texture;
     texture = nullptr;
+  }
+}
+
+
+void Effect::setupControlWidget(const EffectMeta& em)
+{
+  container->setText(em.name);
+
+  if (!em.filename.isEmpty()) {
+    QFile effect_file(em.filename);
+    if (effect_file.open(QFile::ReadOnly)) {
+      QXmlStreamReader reader(&effect_file);
+
+      while (!reader.atEnd()) {
+        auto attributes = reader.attributes();
+        if (reader.name() == "row" && reader.isStartElement()) {
+          QString row_name;
+          for (int i=0;i<attributes.size();i++) {
+            const QXmlStreamAttribute& attr = attributes.at(i);
+            if (attr.name() == "name") {
+              row_name = attr.value().toString();
+            }
+          }
+          if (!row_name.isEmpty()) {
+            EffectRowPtr row(add_row(row_name));
+            while (!reader.atEnd() && !(reader.name() == "row" && reader.isEndElement())) {
+              reader.readNext();
+              if (reader.name() == "field" && reader.isStartElement()) {
+                auto fieldType = EffectFieldType::UNKNOWN;
+                QString attrId;
+                attributes = reader.attributes();
+
+                // get field type
+                for (const auto& readerAttr : attributes) {
+                  if (readerAttr.name() == "type") {
+                    const auto comp = readerAttr.value().toString().toUpper();
+                    if (comp == "DOUBLE") {
+                      fieldType = EffectFieldType::DOUBLE;
+                    } else if (comp == "BOOL") {
+                      fieldType = EffectFieldType::BOOL;
+                    } else if (comp == "COLOR") {
+                      fieldType = EffectFieldType::COLOR;
+                    } else if (comp == "COMBO") {
+                      fieldType = EffectFieldType::COMBO;
+                    } else if (comp == "FONT") {
+                      fieldType = EffectFieldType::FONT;
+                    } else if (comp == "STRING") {
+                      fieldType = EffectFieldType::STRING;
+                    } else if (comp == "FILE") {
+                      fieldType = EffectFieldType::FILE_T;
+                    }
+                  } else if (readerAttr.name() == "id") {
+                    attrId = readerAttr.value().toString();
+                  }
+                }
+
+                if (attrId.isEmpty()) {
+                  qCritical() << "Couldn't load field from" << em.filename << "- ID cannot be empty.";
+                } else if (fieldType != EffectFieldType::UNKNOWN) {
+                  EffectField* field = row->add_field(fieldType, attrId);
+                  connect(field, SIGNAL(changed()), this, SLOT(field_changed()));
+                  switch (fieldType) {
+                    case EffectFieldType::DOUBLE:
+                      for (const auto& attr : attributes) {
+                        if (attr.name() == "default") {
+                          field->set_double_default_value(attr.value().toDouble());
+                        } else if (attr.name() == "min") {
+                          field->set_double_minimum_value(attr.value().toDouble());
+                        } else if (attr.name() == "max") {
+                          field->set_double_maximum_value(attr.value().toDouble());
+                        }
+                      }
+                      break;
+                    case EffectFieldType::COLOR:
+                    {
+                      QColor color;
+                      for (const auto& attr : attributes) {
+                        if (attr.name() == "r") {
+                          color.setRed(attr.value().toInt());
+                        } else if (attr.name() == "g") {
+                          color.setGreen(attr.value().toInt());
+                        } else if (attr.name() == "b") {
+                          color.setBlue(attr.value().toInt());
+                        } else if (attr.name() == "rf") {
+                          color.setRedF(attr.value().toDouble());
+                        } else if (attr.name() == "gf") {
+                          color.setGreenF(attr.value().toDouble());
+                        } else if (attr.name() == "bf") {
+                          color.setBlueF(attr.value().toDouble());
+                        } else if (attr.name() == "hex") {
+                          color.setNamedColor(attr.value().toString());
+                        }
+                      }
+                      field->set_color_value(color);
+                    }
+                      break;
+                    case EffectFieldType::STRING:
+                      for (const auto& attr : attributes) {
+                        if (attr.name() == "default") {
+                          field->set_string_value(attr.value().toString());
+                        }
+                      }
+                      break;
+                    case EffectFieldType::BOOL:
+                      for (const auto& attr : attributes) {
+                        if (attr.name() == "default") {
+                          field->set_bool_value(attr.value() == "1");
+                        }
+                      }
+                      break;
+                    case EffectFieldType::COMBO:
+                    {
+                      int combo_index = 0;
+                      for (const auto& attr : attributes) {
+                        if (attr.name() == "default") {
+                          combo_index = attr.value().toInt();
+                          break;
+                        }
+                      }
+                      while (!reader.atEnd() && !(reader.name() == "field" && reader.isEndElement())) {
+                        reader.readNext();
+                        if (reader.name() == "option" && reader.isStartElement()) {
+                          reader.readNext();
+                          field->add_combo_item(reader.text().toString(), 0);
+                        }
+                      }
+                      field->set_combo_index(combo_index);
+                    }
+                      break;
+                    case EffectFieldType::FONT:
+                      for (const auto& attr : attributes) {
+                        if (attr.name() == "default") {
+                          field->set_font_name(attr.value().toString());
+                        }
+                      }
+                      break;
+                    case EffectFieldType::FILE_T:
+                      for (const auto& attr : attributes) {
+                        if (attr.name() == "filename") {
+                          field->set_filename(attr.value().toString());
+                        }
+                      }
+                      break;
+                    default:
+                      qWarning() << "Unknown EffectField type" << static_cast<int>(fieldType);
+                      break;
+                  }//switch
+                }
+              }
+            }//while
+          }
+        } else if (reader.name() == "shader" && reader.isStartElement()) {
+          enable_shader = true;
+          for (const auto& attr : attributes) {
+            if (attr.name() == "vert") {
+              vertPath = attr.value().toString();
+            } else if (attr.name() == "frag") {
+              fragPath = attr.value().toString();
+            }
+          }
+        }
+        reader.readNext();
+      }//while
+
+      effect_file.close();
+    } else {
+      qCritical() << "Failed to open effect file" << em.filename;
+    }
+  } else {
+    qDebug() << "Effect" << em.name << "has no file name";
   }
 }
 
