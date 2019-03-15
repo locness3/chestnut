@@ -45,9 +45,6 @@
 #include "effects/internal/paneffect.h"
 #include "effects/internal/shakeeffect.h"
 #include "effects/internal/cornerpineffect.h"
-#ifdef _WIN32
-#include "effects/internal/vsthostwin.h"
-#endif
 #include "effects/internal/fillleftrighteffect.h"
 
 #include <QCheckBox>
@@ -84,9 +81,6 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em) {
         case EFFECT_INTERNAL_SHAKE: return std::make_shared<ShakeEffect>(c, em);
         case EFFECT_INTERNAL_CORNERPIN: return std::make_shared<CornerPinEffect>(c, em);
         case EFFECT_INTERNAL_FILLLEFTRIGHT: return std::make_shared<FillLeftRightEffect>(c, em);
-#ifdef _WIN32
-        case EFFECT_INTERNAL_VST: return new VSTHostWin(c, em);
-#endif
         default:
             qWarning() << "Unknown Effect Type" << em->internal;
             break;
@@ -125,12 +119,6 @@ void load_internal_effects() {
     em.name = "Pan";
     em.internal = EFFECT_INTERNAL_PAN;
     effects.append(em);
-
-#ifdef _WIN32
-    em.name = "VST Plugin 2.x";
-    em.internal = EFFECT_INTERNAL_VST;
-    effects.append(em);
-#endif
 
     em.name = "Tone";
     em.internal = EFFECT_INTERNAL_TONE;
