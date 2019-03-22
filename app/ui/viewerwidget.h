@@ -33,7 +33,7 @@
 
 class Viewer;
 class Clip;
-struct FootageStream;
+class FootageStream;
 class QOpenGLFramebufferObject;
 class EffectGizmo;
 class ViewerContainer;
@@ -46,7 +46,7 @@ class ViewerWidget : public QOpenGLWidget, QOpenGLFunctions
     Q_OBJECT
 public:
     explicit ViewerWidget(QWidget *parent = nullptr);
-    virtual ~ViewerWidget();
+    virtual ~ViewerWidget() override;
     ViewerWidget() = delete;
     ViewerWidget(const ViewerWidget&) = delete;
     ViewerWidget(const ViewerWidget&&) = delete;
@@ -56,8 +56,8 @@ public:
     void delete_function();
     void close_window();
 
-    void paintGL();
-    void initializeGL();
+    void paintGL() override;
+    void initializeGL() override;
     Viewer* viewer;
     ViewerContainer* container;
 
@@ -72,9 +72,10 @@ public:
 public slots:
     void set_waveform_scroll(int s);
 protected:
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
-    virtual void mouseReleaseEvent(QMouseEvent *event);
+    bool event(QEvent *e) override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mouseMoveEvent(QMouseEvent *event) override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
 private:
     void draw_waveform_func();
     void draw_title_safe_area();

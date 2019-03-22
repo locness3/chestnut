@@ -41,6 +41,7 @@
 #include "ui/renderthread.h"
 #include "ui/viewerwindow.h"
 #include "ui/mainwindow.h"
+#include "io/exportthread.h"
 
 #include <QPainter>
 #include <QAudioOutput>
@@ -117,6 +118,16 @@ void ViewerWidget::set_waveform_scroll(int s) {
     waveform_scroll = s;
     update();
   }
+}
+
+
+bool ViewerWidget::event(QEvent *e)
+{
+  if ( (e != nullptr) && (e->type() == QEvent::Paint) && ExportThread::exporting) {
+    // FIXME: when rendering crashes would occur if QOpenGLWidget::event(e) was called
+    return true;
+  }
+  return QOpenGLWidget::event(e);
 }
 
 void ViewerWidget::show_context_menu() {

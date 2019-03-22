@@ -50,6 +50,8 @@ public:
     ExportThread(const ExportThread& ) = delete;
     ExportThread& operator=(const ExportThread&) = delete;
 
+    static std::atomic_bool exporting;
+
     // export parameters
     QString filename;
     bool video_enabled;
