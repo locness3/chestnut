@@ -108,8 +108,8 @@ class ExportThread : public QThread {
     AVPacket audio_pkt;
     SwrContext* swr_ctx = nullptr;
 
-    bool vpkt_alloc;
-    bool apkt_alloc;
+    bool vpkt_alloc = false;
+    bool apkt_alloc = false;
 
     int aframe_bytes;
     int ret;

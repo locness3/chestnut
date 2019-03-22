@@ -88,7 +88,7 @@ bool ExportThread::setupVideo() {
   vcodec = avcodec_find_encoder(static_cast<AVCodecID>(video_params.codec));
   if (!vcodec) {
     qCritical() << "Could not find video encoder";
-    ed->export_error = tr("could not video encoder for %1").arg(QString::number(video_params.enabled));
+    ed->export_error = tr("could not video encoder for %1").arg(QString::number(video_params.codec));
     return false;
   }
 
@@ -119,7 +119,7 @@ bool ExportThread::setupVideo() {
   vcodec_ctx->pix_fmt = vcodec->pix_fmts[0]; // maybe be breakable code
   vcodec_ctx->framerate = av_d2q(video_params.frame_rate, INT_MAX);
   if (video_params.compression_type == COMPRESSION_TYPE_CBR) {
-    vcodec_ctx->bit_rate = video_params.bitrate * 1000000;
+    vcodec_ctx->bit_rate = static_cast<int64_t>((video_params.bitrate * 1000000.0) + 0.5);
   }
   vcodec_ctx->time_base = av_inv_q(vcodec_ctx->framerate);
   video_stream->time_base = vcodec_ctx->time_base;
@@ -255,7 +255,7 @@ bool ExportThread::setupAudio() {
   // init audio resampler context
   swr_ctx = swr_alloc_set_opts(
               nullptr,
-              acodec_ctx->channel_layout,
+              static_cast<int64_t>(acodec_ctx->channel_layout),
               acodec_ctx->sample_fmt,
               acodec_ctx->sample_rate,
               global::sequence->audioLayout(),
@@ -321,7 +321,10 @@ void ExportThread::run()
   exporting = true;
   e_panel_sequence_viewer->pause();
 
-  if (!e_panel_sequence_viewer->viewer_widget->context()->makeCurrent(&surface)) {
+  auto ctxt = e_panel_sequence_viewer->viewer_widget->context();
+  ctxt->moveToThread(this);
+
+  if (!ctxt->makeCurrent(&surface)) {
     qCritical() << "Make current failed";
     ed->export_error = tr("could not make OpenGL context current");
     return;
@@ -422,9 +425,7 @@ void ExportThread::run()
     avg_time = (total_time/frame_count);
     eta = (remaining_frames*avg_time);
 
-    //        qInfo() << "Encoded frame" << sequence->playhead << "- took" << frame_time << "ms (avg:" << avg_time << "ms, remaining:" << remaining_frames << ", ETA:" << eta << ")";
-
-    emit progress_changed(qRound(((double) (global::sequence->playhead_-start_frame) / (double) (end_frame-start_frame)) * 100), eta);
+    emit progress_changed(qRound((static_cast<double>(global::sequence->playhead_ - start_frame) / static_cast<double>(end_frame - start_frame)) * 100), eta);
     global::sequence->playhead_++;
     frame_count++;
   }
@@ -506,6 +507,9 @@ void ExportThread::run()
     swr_free(&swr_ctx);
     av_frame_free(&swr_frame);
   }
+
+  ctxt->doneCurrent();
+  ctxt->moveToThread(QCoreApplication::instance()->thread());
   exporting = false;
 }
 
