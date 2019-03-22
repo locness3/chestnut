@@ -476,7 +476,6 @@ bool Clip::open(const bool open_multithreaded) {
     multithreaded = open_multithreaded;
     if (multithreaded) {
       if (open_lock.tryLock()) {
-        //                QObject::connect(this, SIGNAL(finished()), this, SLOT(deleteLater())); //TODO: this needs resolving
         this->start((timeline_info.isVideo()) ? QThread::HighPriority : QThread::TimeCriticalPriority);
       }
     } else {

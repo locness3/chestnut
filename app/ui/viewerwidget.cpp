@@ -136,8 +136,6 @@ void ViewerWidget::show_context_menu() {
   QAction* save_frame_as_image = menu.addAction(tr("Save Frame as Image..."));
   connect(save_frame_as_image, SIGNAL(triggered(bool)), this, SLOT(save_frame()));
 
-  /*QAction* show_fullscreen_action = menu.addAction(tr("Show Fullscreen"));
-    connect(show_fullscreen_action, SIGNAL(triggered()), this, SLOT(show_fullscreen()));*/
   QMenu* fullscreen_menu = menu.addMenu(tr("Show Fullscreen"));
   QList<QScreen*> screens = QGuiApplication::screens();
   if (window != nullptr && window->isVisible()) {
@@ -256,7 +254,6 @@ void ViewerWidget::initializeGL() {
 void ViewerWidget::frame_update() {
   if (auto sqn = viewer->getSequence()) {
     const auto render_audio = (viewer->playing || audio_rendering);
-
     // send context to other thread for drawing
     if (waveform) {
       update();
@@ -455,7 +452,7 @@ void ViewerWidget::draw_waveform_func() {
 void ViewerWidget::draw_title_safe_area() {
   double halfWidth = 0.5;
   double halfHeight = 0.5;
-  double viewportAr = (double) width() / (double) height();
+  double viewportAr = static_cast<double>(width()) / static_cast<double>(height());
   double halfAr = viewportAr*0.5;
 
   if (e_config.use_custom_title_safe_ratio && e_config.custom_title_safe_ratio > 0) {
@@ -584,7 +581,8 @@ void ViewerWidget::draw_gizmos() {
   glColor4f(color[0], color[1], color[2], color[3]);
 }
 
-void ViewerWidget::paintGL() {
+void ViewerWidget::paintGL()
+{
   if (waveform) {
     draw_waveform_func();
   } else {

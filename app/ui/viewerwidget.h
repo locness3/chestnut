@@ -56,7 +56,6 @@ public:
     void delete_function();
     void close_window();
 
-    void paintGL() override;
     void initializeGL() override;
     Viewer* viewer;
     ViewerContainer* container;
@@ -72,6 +71,7 @@ public:
 public slots:
     void set_waveform_scroll(int s);
 protected:
+    void paintGL() override;
     bool event(QEvent *e) override;
     virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
