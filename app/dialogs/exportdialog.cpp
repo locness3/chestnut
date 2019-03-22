@@ -317,7 +317,7 @@ void ExportDialog::format_changed(int index)
 
   AVCodec* codec_info;
   for (int i=0;i<format_vcodecs.size();i++) {
-    codec_info = avcodec_find_encoder(static_cast<AVCodecID>(format_acodecs.at(i)));
+    codec_info = avcodec_find_encoder(static_cast<AVCodecID>(format_vcodecs.at(i)));
     if (codec_info == nullptr) {
       vcodecCombobox->addItem("nullptr");
     } else {
