@@ -15,7 +15,7 @@ class ViewerWindow : public QOpenGLWindow {
 
     void set_texture(GLuint t, double iar, QMutex *imutex);
   private:
-    void paintGL();
+    void paintGL() override;
     GLuint texture;
     double ar;
     QMutex* mutex;

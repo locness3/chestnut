@@ -50,6 +50,7 @@ class ExportDialog : public QDialog
     void comp_type_changed(int index);
 
   private:
+    QString output_dir_;
     QVector<QString> format_strings;
     QVector<int> format_vcodecs;
     QVector<int> format_acodecs;

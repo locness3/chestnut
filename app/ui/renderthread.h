@@ -15,7 +15,7 @@ class RenderThread : public QThread {
     Q_OBJECT
   public:
     RenderThread();
-    virtual ~RenderThread();
+    virtual ~RenderThread() override;
 
     RenderThread(const RenderThread& ) = delete;
     RenderThread& operator=(const RenderThread&) = delete;

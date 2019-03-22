@@ -44,7 +44,7 @@ extern "C" {
 
 class ExportThread : public QThread {
     Q_OBJECT
-public:
+  public:
     ExportThread();
 
     ExportThread(const ExportThread& ) = delete;
@@ -54,17 +54,23 @@ public:
 
     // export parameters
     QString filename;
-    bool video_enabled;
-    int video_codec;
-    int video_width;
-    int video_height;
-    double video_frame_rate;
-    int video_compression_type;
-    double video_bitrate;
-    bool audio_enabled;
-    int audio_codec;
-    int audio_sampling_rate;
-    int audio_bitrate;
+    struct {
+        bool enabled = false;
+        int codec = -1;
+        int width = -1;
+        int height = -1;
+        double frame_rate = 0.0;
+        int compression_type = -1;
+        double bitrate = 0.0;
+    } video_params;
+
+    struct {
+      bool enabled = false;
+      int codec = -1;
+      int sampling_rate = -1;
+      int bitrate = -1;
+    } audio_params;
+
     int64_t start_frame;
     int64_t end_frame;
 
@@ -75,11 +81,11 @@ public:
     bool continueEncode = true;
   protected:
     void run() override;
-signals:
+  signals:
     void progress_changed(int value, qint64 remaining_ms);
-public slots:
+  public slots:
     void wake();
-private:
+  private:
     bool encode(AVFormatContext* ofmt_ctx, AVCodecContext* codec_ctx, AVFrame* frame,
                 AVPacket* packet, AVStream* stream, bool rescale);
     bool setupVideo();
