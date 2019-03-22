@@ -21,7 +21,6 @@
 #include <QFileDialog>
 #include <QThread>
 #include <QMessageBox>
-#include <QOpenGLContext>
 #include <QtMath>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -31,6 +30,7 @@
 #include <QSpinBox>
 #include <QPushButton>
 #include <QProgressBar>
+#include <QStandardPaths>
 
 #include "debug.h"
 #include "panels/panels.h"
@@ -502,7 +502,7 @@ void ExportDialog::export_action() {
     QString filename = QFileDialog::getSaveFileName(
                 this,
                 tr("Export Media"),
-                "",
+                QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).first(),
                 format_strings[formatCombobox->currentIndex()] + " (*." + ext + ")"
             );
     if (!filename.isEmpty()) {
