@@ -130,7 +130,8 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
   connect(buttons, SIGNAL(rejected()), this, SLOT(reject()));
 }
 
-void MediaPropertiesDialog::accept() {
+void MediaPropertiesDialog::accept()
+{
   auto ftg = item->object<Footage>();
 
   ComboAction* ca = new ComboAction();
@@ -177,11 +178,11 @@ void MediaPropertiesDialog::accept() {
     }
 
     // set frame rate conform
-    if (!ftg->video_tracks.front()->infinite_length) {
-      if (!qFuzzyCompare(conform_fr->value(), ftg->video_tracks.front()->video_frame_rate)) {
-        ca->append(new SetDouble(&ftg->speed, ftg->speed, conform_fr->value()/ftg->video_tracks.front()->video_frame_rate));
-        refresh_clips = true;
-      }
+    if (!ftg->video_tracks.front()->infinite_length && !qFuzzyCompare(conform_fr->value(),
+                                                                      ftg->video_tracks.front()->video_frame_rate)) {
+      ca->append(new SetDouble(&ftg->speed, ftg->speed,
+                               conform_fr->value() / ftg->video_tracks.front()->video_frame_rate));
+      refresh_clips = true;
     }
   }
 
@@ -191,7 +192,9 @@ void MediaPropertiesDialog::accept() {
   ca->append(mr);
   ca->appendPost(new CloseAllClipsCommand());
   ca->appendPost(new UpdateFootageTooltip(item));
-  if (refresh_clips) ca->appendPost(new RefreshClips(item));
+  if (refresh_clips) {
+    ca->appendPost(new RefreshClips(item));
+  }
 
   e_undo_stack.push(ca);
 

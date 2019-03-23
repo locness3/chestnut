@@ -43,7 +43,7 @@ class MediaPropertiesDialog : public QDialog {
     QListWidget* track_list;
     QDoubleSpinBox* conform_fr;
   private slots:
-    void accept();
+    void accept() override;
 };
 
 #endif // MEDIAPROPERTIESDIALOG_H

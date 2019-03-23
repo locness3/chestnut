@@ -17,8 +17,13 @@
  */
 #include "exportthread.h"
 
-#include "project/sequence.h"
+#include <QApplication>
+#include <QOffscreenSurface>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLPaintDevice>
+#include <QPainter>
 
+#include "project/sequence.h"
 #include "panels/panels.h"
 #include "panels/timeline.h"
 #include "panels/viewer.h"
@@ -38,11 +43,6 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#include <QApplication>
-#include <QOffscreenSurface>
-#include <QOpenGLFramebufferObject>
-#include <QOpenGLPaintDevice>
-#include <QPainter>
 
 std::atomic_bool ExportThread::exporting{false};
 
@@ -102,7 +102,6 @@ bool ExportThread::setupVideo() {
   }
 
   // allocate context
-  //	vcodec_ctx = video_stream->codec;
   vcodec_ctx = avcodec_alloc_context3(vcodec);
   if (!vcodec_ctx) {
     qCritical() << "Could not allocate video encoding context";
@@ -211,7 +210,6 @@ bool ExportThread::setupAudio() {
   }
 
   // allocate context
-  //	acodec_ctx = audio_stream->codec;
   acodec_ctx = avcodec_alloc_context3(acodec);
   if (!acodec_ctx) {
     qCritical() << "Could not find allocate audio encoding context";
@@ -303,8 +301,6 @@ bool ExportThread::setupContainer() {
     ed->export_error = tr("could not create output format context");
     return false;
   }
-
-  //av_dump_format(fmt_ctx, 0, c_filename, 1);
 
   ret = avio_open(&fmt_ctx->pb,  filename.toUtf8().data(), AVIO_FLAG_WRITE);
   if (ret < 0) {

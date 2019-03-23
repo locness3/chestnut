@@ -593,7 +593,7 @@ void ExportDialog::cancel_render() {
 
 void ExportDialog::vcodec_changed(int index) {
   compressionTypeCombobox->clear();
-  if ((format_vcodecs.size() > 0 && format_vcodecs.at(index) == AV_CODEC_ID_H264)) {
+  if ((format_vcodecs.size() > 0) && (format_vcodecs.at(index) == AV_CODEC_ID_H264)) {
     compressionTypeCombobox->setEnabled(true);
     compressionTypeCombobox->addItem(tr("Quality-based (Constant Rate Factor)"), COMPRESSION_TYPE_CFR);
   } else {
