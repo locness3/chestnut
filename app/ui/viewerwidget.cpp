@@ -120,16 +120,6 @@ void ViewerWidget::set_waveform_scroll(int s) {
   }
 }
 
-
-bool ViewerWidget::event(QEvent *e)
-{
-  if ( (e != nullptr) && (e->type() == QEvent::Paint) && ExportThread::exporting) {
-    // FIXME: when rendering crashes would occur if QOpenGLWidget::event(e) was called
-    return true;
-  }
-  return QOpenGLWidget::event(e);
-}
-
 void ViewerWidget::show_context_menu() {
   QMenu menu(this);
 

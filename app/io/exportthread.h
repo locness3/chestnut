@@ -23,6 +23,10 @@
 #include <QMutex>
 #include <QWaitCondition>
 
+
+#include "ui/renderthread.h"
+#include "panels/viewer.h"
+
 class ExportDialog;
 struct AVFormatContext;
 struct AVCodecContext;
@@ -50,8 +54,6 @@ class ExportThread : public QThread {
     ExportThread(const ExportThread& ) = delete;
     ExportThread& operator=(const ExportThread&) = delete;
 
-    static std::atomic_bool exporting;
-
     // export parameters
     QString filename;
     struct {
@@ -78,7 +80,7 @@ class ExportThread : public QThread {
 
     ExportDialog* ed;
 
-    bool continueEncode = true;
+    std::atomic_bool continue_encode_{true};
   protected:
     void run() override;
   signals:
@@ -116,6 +118,9 @@ class ExportThread : public QThread {
 
     QMutex mutex;
     QWaitCondition waitCond;
+
+    bool setUpContext(RenderThread& rt, Viewer& vwr);
+    void setDownContext(RenderThread& rt, Viewer& vwr) const;
 };
 
 #endif // EXPORTTHREAD_H

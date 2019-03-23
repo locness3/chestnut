@@ -26,9 +26,7 @@
 #include "project/sequence.h"
 #include "panels/panels.h"
 #include "panels/timeline.h"
-#include "panels/viewer.h"
 #include "ui/viewerwidget.h"
-#include "ui/renderthread.h"
 #include "ui/renderfunctions.h"
 #include "playback/playback.h"
 #include "playback/audio.h"
@@ -43,8 +41,6 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-
-std::atomic_bool ExportThread::exporting{false};
 
 ExportThread::ExportThread()
   : QThread(nullptr)
@@ -312,53 +308,80 @@ bool ExportThread::setupContainer() {
   return true;
 }
 
-void ExportThread::run()
+bool ExportThread::setUpContext(RenderThread& rt, Viewer& vwr)
 {
-  exporting = true;
-  e_panel_sequence_viewer->pause();
+  if ( (vwr.viewer_widget == nullptr) || (vwr.viewer_widget->context() == nullptr) || (ed == nullptr) ) {
+    return false;
+  }
+  auto ctxt = vwr.viewer_widget->context();
 
-  auto ctxt = e_panel_sequence_viewer->viewer_widget->context();
+  QObject::disconnect(&rt, SIGNAL(ready()), vwr.viewer_widget, SLOT(queue_repaint()));
+  QObject::connect(&rt, SIGNAL(ready()), this, SLOT(wake()));
+
+  vwr.pause();
+  vwr.seek(start_frame);
+  vwr.reset_all_audio();
+
   ctxt->moveToThread(this);
 
   if (!ctxt->makeCurrent(&surface)) {
     qCritical() << "Make current failed";
     ed->export_error = tr("could not make OpenGL context current");
+    return false;
+  }
+  return true;
+}
+
+
+void ExportThread::setDownContext(RenderThread& rt, Viewer& vwr) const
+{
+  if (vwr.viewer_widget == nullptr || vwr.viewer_widget->context() == nullptr) {
     return;
   }
 
-  continueEncode = setupContainer();
+  auto ctxt = vwr.viewer_widget->context();
+  ctxt->doneCurrent();
+  ctxt->moveToThread(QCoreApplication::instance()->thread());
+  QObject::connect(&rt, SIGNAL(ready()), vwr.viewer_widget, SLOT(queue_repaint()));
+}
 
-  if (video_params.enabled && continueEncode) {
-    continueEncode = setupVideo();
+void ExportThread::run()
+{
+  RenderThread* renderer = e_panel_sequence_viewer->viewer_widget->get_renderer();
+  if (renderer == nullptr) {
+    qCritical() << "No render thread available";
+    return;
   }
 
-  if (audio_params.enabled && continueEncode) {
-    continueEncode = setupAudio();
+
+  continue_encode_ = setUpContext(*renderer, *e_panel_sequence_viewer);
+  continue_encode_ = continue_encode_ && setupContainer();
+
+  if (video_params.enabled && continue_encode_) {
+    continue_encode_ = setupVideo();
   }
 
-  if (continueEncode) {
+  if (audio_params.enabled && continue_encode_) {
+    continue_encode_ = setupAudio();
+  }
+
+  if (continue_encode_) {
     ret = avformat_write_header(fmt_ctx, nullptr);
     if (ret < 0) {
       qCritical() << "Could not write output file header." << ret;
       ed->export_error = tr("could not write output file header (%1)").arg(QString::number(ret));
-      continueEncode = false;
+      continue_encode_ = false;
     }
   }
 
-  e_panel_sequence_viewer->seek(start_frame);
-  e_panel_sequence_viewer->reset_all_audio();
 
   long file_audio_samples = 0;
   qint64 start_time, frame_time, avg_time, eta, total_time = 0;
   long remaining_frames, frame_count = 1;
 
-  RenderThread* renderer = e_panel_sequence_viewer->viewer_widget->get_renderer();
-  disconnect(renderer, SIGNAL(ready()), e_panel_sequence_viewer->viewer_widget, SLOT(queue_repaint()));
-  connect(renderer, SIGNAL(ready()), this, SLOT(wake()));
-
   mutex.lock();
 
-  while (global::sequence->playhead_ <= end_frame && continueEncode) {
+  while (global::sequence->playhead_ <= end_frame && continue_encode_) {
     start_time = QDateTime::currentMSecsSinceEpoch();
 
     if (audio_params.enabled) {
@@ -370,9 +393,9 @@ void ExportThread::run()
         // TODO optimize by rendering the next frame while encoding the last
         renderer->start_render(nullptr, global::sequence, nullptr, video_frame->data[0]);
         waitCond.wait(&mutex);
-        if (!continueEncode) break;
+        if (!continue_encode_) break;
       } while (renderer->did_texture_fail());
-      if (!continueEncode) break;
+      if (!continue_encode_) break;
     }
 
     // encode last frame while rendering next frame
@@ -383,11 +406,11 @@ void ExportThread::run()
       sws_frame->pts = qRound(timecode_secs/av_q2d(video_stream->time_base));
 
       // send to encoder
-      if (!encode(fmt_ctx, vcodec_ctx, sws_frame, &video_pkt, video_stream, false)) continueEncode = false;
+      if (!encode(fmt_ctx, vcodec_ctx, sws_frame, &video_pkt, video_stream, false)) continue_encode_ = false;
     }
     if (audio_params.enabled) {
       // do we need to encode more audio samples?
-      while (continueEncode && file_audio_samples <= (timecode_secs* audio_params.sampling_rate)) {
+      while (continue_encode_ && file_audio_samples <= (timecode_secs* audio_params.sampling_rate)) {
         // copy samples from audio buffer to AVFrame
         int adjusted_read = audio_ibuffer_read%audio_ibuffer_size;
         int copylen = qMin(aframe_bytes, audio_ibuffer_size-adjusted_read);
@@ -408,7 +431,7 @@ void ExportThread::run()
         swr_frame->pts = file_audio_samples;
 
         // send to encoder
-        if (!encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true)) continueEncode = false;
+        if (!encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true)) continue_encode_ = false;
 
         file_audio_samples += swr_frame->nb_samples;
       }
@@ -426,12 +449,10 @@ void ExportThread::run()
     frame_count++;
   }
 
-  disconnect(renderer, SIGNAL(ready()), this, SLOT(wake()));
-  connect(renderer, SIGNAL(ready()), e_panel_sequence_viewer->viewer_widget, SLOT(queue_repaint()));
 
   mutex.unlock();
 
-  if (continueEncode) {
+  if (continue_encode_) {
     if (video_params.enabled) {
       vpkt_alloc = true;
     }
@@ -443,20 +464,20 @@ void ExportThread::run()
 
   global::mainWindow->set_rendering_state(false);
 
-  if (audio_params.enabled && continueEncode) {
+  if (audio_params.enabled && continue_encode_) {
     // flush swresample
     do {
       swr_convert_frame(swr_ctx, swr_frame, nullptr);
       if (swr_frame->nb_samples == 0) break;
       swr_frame->pts = file_audio_samples;
-      if (!encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true)) continueEncode = false;
+      if (!encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true)) continue_encode_ = false;
       file_audio_samples += swr_frame->nb_samples;
     } while (swr_frame->nb_samples > 0);
   }
 
   bool continueVideo = true;
   bool continueAudio = true;
-  if (continueEncode) {
+  if (continue_encode_) {
     // flush remaining packets
     while (continueVideo && continueAudio) {
       if (continueVideo && video_params.enabled) {
@@ -471,7 +492,7 @@ void ExportThread::run()
     if (ret < 0) {
       qCritical() << "Could not write output file trailer." << ret;
       ed->export_error = tr("could not write output file trailer (%1)").arg(QString::number(ret));
-      continueEncode = false;
+      continue_encode_ = false;
     }
 
     emit progress_changed(100, 0);
@@ -504,9 +525,7 @@ void ExportThread::run()
     av_frame_free(&swr_frame);
   }
 
-  ctxt->doneCurrent();
-  ctxt->moveToThread(QCoreApplication::instance()->thread());
-  exporting = false;
+  setDownContext(*renderer, *e_panel_sequence_viewer);
 }
 
 void ExportThread::wake()

@@ -72,7 +72,6 @@ public slots:
     void set_waveform_scroll(int s);
 protected:
     void paintGL() override;
-    bool event(QEvent *e) override;
     virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;

@@ -580,13 +580,14 @@ void ExportDialog::update_progress_bar(int value, qint64 remaining_ms) {
   int seconds = qFloor(remaining_ms*0.001)%60;
   int minutes = qFloor(remaining_ms/60000)%60;
   int hours = qFloor(remaining_ms/3600000);
-  progressBar->setFormat("%p% (ETA: " + QString::number(hours) + ":" + QString::number(minutes).rightJustified(2, '0') + ":" + QString::number(seconds).rightJustified(2, '0') + ")");
+  progressBar->setFormat("%p% (ETA: " + QString::number(hours) + ":" + QString::number(minutes).rightJustified(2, '0')
+                         + ":" + QString::number(seconds).rightJustified(2, '0') + ")");
 
   progressBar->setValue(value);
 }
 
 void ExportDialog::cancel_render() {
-  et->continueEncode = false;
+  et->continue_encode_ = false;
   cancelled = true;
   et->wake();
 }
