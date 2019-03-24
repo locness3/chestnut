@@ -44,9 +44,11 @@ class CollapsibleWidget : public QWidget
     Q_OBJECT
   public:
     CollapsibleWidget(QWidget* parent = nullptr);
-
+    virtual ~CollapsibleWidget() override;
     CollapsibleWidget(const CollapsibleWidget& ) = delete;
+    CollapsibleWidget(const CollapsibleWidget&& ) = delete;
     CollapsibleWidget& operator=(const CollapsibleWidget&) = delete;
+    CollapsibleWidget& operator=(const CollapsibleWidget&&) = delete;
 
     void setContents(QWidget* c);
     void setText(const QString &);

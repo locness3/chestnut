@@ -44,7 +44,7 @@ class QGridLayout;
 class QPushButton;
 class QMouseEvent;
 
-struct Clip;
+class Clip;
 class Effect;
 class CheckboxEx;
 

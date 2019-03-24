@@ -281,10 +281,18 @@ void EffectControls::deselect_all_effects(QWidget* sender) {
   e_panel_sequence_viewer->viewer_widget->update();
 }
 
-void EffectControls::open_effect(QVBoxLayout* layout, EffectPtr e) {
+void EffectControls::open_effect(QVBoxLayout* const layout, const EffectPtr& e)
+{
   CollapsibleWidget* container = e->container;
   layout->addWidget(container);
   connect(container, SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
+
+  // TODO: this doesn't always get it right e.g. Render::text
+  QList<int> sizes;
+  sizes.append(effects_area->width() + 8); //TODO: remove fudge value. This could be due to padding in parent widget
+  sizes.append(keyframeView->width());
+  splitter_->setSizes(sizes);
+
 }
 
 void EffectControls::setup_ui() {
@@ -294,11 +302,11 @@ void EffectControls::setup_ui() {
   hlayout->setSpacing(0);
   hlayout->setMargin(0);
 
-  QSplitter* splitter = new QSplitter(contents);
-  splitter->setOrientation(Qt::Horizontal);
-  splitter->setChildrenCollapsible(false);
+  splitter_ = new QSplitter(contents);
+  splitter_->setOrientation(Qt::Horizontal);
+  splitter_->setChildrenCollapsible(false);
 
-  scrollArea = new QScrollArea(splitter);
+  scrollArea = new QScrollArea(splitter_);
   scrollArea->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
   scrollArea->setFrameShape(QFrame::NoFrame);
   scrollArea->setFrameShadow(QFrame::Plain);
@@ -422,8 +430,8 @@ void EffectControls::setup_ui() {
   scrollAreaLayout->addWidget(effects_area);
 
   scrollArea->setWidget(scrollAreaWidgetContents);
-  splitter->addWidget(scrollArea);
-  QWidget* keyframeArea = new QWidget(splitter);
+  splitter_->addWidget(scrollArea);
+  QWidget* keyframeArea = new QWidget(splitter_);
   QSizePolicy keyframe_sp;
   keyframe_sp.setHorizontalPolicy(QSizePolicy::Minimum);
   keyframe_sp.setVerticalPolicy(QSizePolicy::Preferred);
@@ -459,9 +467,9 @@ void EffectControls::setup_ui() {
 
   keyframeAreaLayout->addWidget(horizontalScrollBar);
 
-  splitter->addWidget(keyframeArea);
+  splitter_->addWidget(keyframeArea);
 
-  hlayout->addWidget(splitter);
+  hlayout->addWidget(splitter_);
 
   setWidget(contents);
 }
@@ -578,7 +586,16 @@ bool EffectControls::is_focused() {
 
 EffectsArea::EffectsArea(QWidget* parent) :
   QWidget(parent)
-{}
+{
+
+}
+
+EffectsArea::~EffectsArea()
+{
+  parent_widget = nullptr;
+  keyframe_area = nullptr;
+  header = nullptr;
+}
 
 void EffectsArea::resizeEvent(QResizeEvent*) {
   //    parent_widget->setMinimumWidth(sizeHint().width());

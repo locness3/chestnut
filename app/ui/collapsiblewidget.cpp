@@ -64,6 +64,11 @@ CollapsibleWidget::CollapsibleWidget(QWidget* parent) : QWidget(parent) {
   contents = nullptr;
 }
 
+CollapsibleWidget::~CollapsibleWidget()
+{
+
+}
+
 void CollapsibleWidget::header_click(bool s, bool deselect) {
   selected = s;
   title_bar->selected = s;
@@ -134,7 +139,7 @@ void CollapsibleWidgetHeader::paintEvent(QPaintEvent *event) {
   QWidget::paintEvent(event);
   QPainter p(this);
   p.setPen(Qt::white);
-  int line_x = width() * 0.01;
+  int line_x = width() / 100;
   int line_y = height() - 1;
   p.drawLine(line_x, line_y, width() - line_x - line_x, line_y);
 }

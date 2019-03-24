@@ -21,6 +21,7 @@
 #include <QDockWidget>
 #include <QUndoCommand>
 #include <QMutex>
+#include <QSplitter>
 
 #include "project/effect.h"
 
@@ -38,15 +39,18 @@ class QHBoxLayout;
 
 class EffectsArea : public QWidget {
   public:
-    EffectsArea(QWidget* parent = nullptr);
-
+    explicit EffectsArea(QWidget* parent = nullptr);
+    ~EffectsArea() override;
     EffectsArea(const EffectsArea& ) = delete;
+    EffectsArea(const EffectsArea&& ) = delete;
     EffectsArea& operator=(const EffectsArea&) = delete;
+    EffectsArea& operator=(const EffectsArea&&) = delete;
 
-    void resizeEvent(QResizeEvent *event);
-    QScrollArea* parent_widget;
-    KeyframeView* keyframe_area;
-    TimelineHeader* header;
+    QScrollArea* parent_widget = nullptr;
+    KeyframeView* keyframe_area = nullptr;
+    TimelineHeader* header = nullptr;
+  protected:
+    void resizeEvent(QResizeEvent *event) override;
 };
 
 class EffectControls : public QDockWidget
@@ -58,7 +62,9 @@ class EffectControls : public QDockWidget
     virtual ~EffectControls();
 
     EffectControls(const EffectControls& ) = delete;
+    EffectControls(const EffectControls&& ) = delete;
     EffectControls& operator=(const EffectControls&) = delete;
+    EffectControls& operator=(const EffectControls&&) = delete;
 
     void set_clips(QVector<int>& clips, int mode);
     void clear_effects(bool clear_cache);
@@ -99,9 +105,10 @@ class EffectControls : public QDockWidget
     void show_effect_menu(int type, int subtype);
     void load_effects();
     void load_keyframes();
-    void open_effect(QVBoxLayout* hlayout, EffectPtr e);
+    void open_effect(QVBoxLayout* const hlayout, const EffectPtr& e);
 
     void setup_ui();
+
 
     int effect_menu_type;
     int effect_menu_subtype;
@@ -117,6 +124,7 @@ class EffectControls : public QDockWidget
     QWidget* audio_effect_area;
     QWidget* vcontainer;
     QWidget* acontainer;
+    QSplitter* splitter_ = nullptr;
 };
 
 #endif // EFFECTCONTROLS_H
