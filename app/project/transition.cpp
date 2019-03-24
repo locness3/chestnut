@@ -55,7 +55,7 @@ Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
   length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
 
   LabelSlider* length_ui_ele = static_cast<LabelSlider*>(length_field->ui_element);
-  length_ui_ele->set_display_type(LABELSLIDER_FRAMENUMBER);
+  length_ui_ele->set_display_type(SliderType::FRAMENUMBER);
   length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->frameRate());
 }
 

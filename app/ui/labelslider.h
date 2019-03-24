@@ -21,9 +21,11 @@
 #include <QLabel>
 #include <QUndoCommand>
 
-#define LABELSLIDER_NORMAL 0
-#define LABELSLIDER_FRAMENUMBER 1
-#define LABELSLIDER_PERCENT 2
+enum class SliderType {
+    NORMAL = 0,
+    FRAMENUMBER = 1,
+    PERCENT = 2
+};
 
 class LabelSlider : public QLabel
 {
@@ -31,7 +33,7 @@ class LabelSlider : public QLabel
   public:
     LabelSlider(QWidget* parent = nullptr);
     void set_frame_rate(double d);
-    void set_display_type(int type);
+    void set_display_type(SliderType type);
     void set_value(const double val, const bool userSet);
     void set_default_value(double v);
     void set_minimum_value(double v);
@@ -69,7 +71,7 @@ class LabelSlider : public QLabel
 
     bool set;
 
-    int display_type;
+    SliderType display_type;
 
     double frame_rate;
   signals:

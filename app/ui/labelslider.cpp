@@ -37,7 +37,7 @@ LabelSlider::LabelSlider(QWidget* parent) : QLabel(parent) {
   setCursor(Qt::SizeHorCursor);
   internal_value = -1;
   set = false;
-  display_type = LABELSLIDER_NORMAL;
+  display_type = SliderType::NORMAL;
 
   set_default_value(0);
 }
@@ -46,7 +46,7 @@ void LabelSlider::set_frame_rate(double d) {
   frame_rate = d;
 }
 
-void LabelSlider::set_display_type(int type) {
+void LabelSlider::set_display_type(SliderType type) {
   display_type = type;
   setText(valueToString(internal_value));
 }
@@ -82,8 +82,8 @@ QString LabelSlider::valueToString(double v) {
     return "---";
   } else {
     switch (display_type) {
-      case LABELSLIDER_FRAMENUMBER: return frame_to_timecode(v, e_config.timecode_view, frame_rate);
-      case LABELSLIDER_PERCENT: return QString::number((v*100), 'f', decimal_places) + "%";
+      case SliderType::FRAMENUMBER: return frame_to_timecode(v, e_config.timecode_view, frame_rate);
+      case SliderType::PERCENT: return QString::number((v*100), 'f', decimal_places) + "%";
       default:
         // unhandled label slider type
         break;
@@ -181,7 +181,7 @@ void LabelSlider::mouseReleaseEvent(QMouseEvent*) {
       emit valueChanged();
     } else {
       double d = internal_value;
-      if (display_type == LABELSLIDER_FRAMENUMBER) {
+      if (display_type == SliderType::FRAMENUMBER) {
         QString s = QInputDialog::getText(
                       this,
                       tr("Set Value"),
@@ -197,14 +197,14 @@ void LabelSlider::mouseReleaseEvent(QMouseEvent*) {
               this,
               tr("Set Value"),
               tr("New value:"),
-              (display_type == LABELSLIDER_PERCENT) ? internal_value * 100 : internal_value,
+              (display_type == SliderType::PERCENT) ? internal_value * 100 : internal_value,
               (min_enabled) ? min_value : INT_MIN,
               (max_enabled) ? max_value : INT_MAX,
               decimal_places,
               &ok
               );
         if (!ok) return;
-        if (display_type == LABELSLIDER_PERCENT) d *= 0.01;
+        if (display_type == SliderType::PERCENT) d *= 0.01;
       }
       if (!qFuzzyCompare(d, internal_value)) {
         set_previous_value();

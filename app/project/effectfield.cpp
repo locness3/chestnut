@@ -17,7 +17,6 @@
  */
 #include "effectfield.h"
 
-#include "ui/labelslider.h"
 #include "ui/colorbutton.h"
 #include "ui/texteditex.h"
 #include "ui/checkboxex.h"

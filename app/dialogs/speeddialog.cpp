@@ -47,7 +47,7 @@ SpeedDialog::SpeedDialog(QWidget *parent) : QDialog(parent) {
     grid->addWidget(new QLabel(tr("Speed:")), 0, 0);
     percent = new LabelSlider();
     percent->decimal_places = 2;
-    percent->set_display_type(LABELSLIDER_PERCENT);
+    percent->set_display_type(SliderType::PERCENT);
     percent->set_default_value(1);
     grid->addWidget(percent, 0, 1);
 
@@ -58,7 +58,7 @@ SpeedDialog::SpeedDialog(QWidget *parent) : QDialog(parent) {
 
     grid->addWidget(new QLabel(tr("Duration:")), 2, 0);
     duration = new LabelSlider();
-    duration->set_display_type(LABELSLIDER_FRAMENUMBER);
+    duration->set_display_type(SliderType::FRAMENUMBER);
     duration->set_frame_rate(global::sequence->frameRate());
     grid->addWidget(duration, 2, 1);
 

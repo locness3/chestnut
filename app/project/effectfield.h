@@ -18,20 +18,14 @@
 #ifndef EFFECTFIELD_H
 #define EFFECTFIELD_H
 
-//#define EffectFieldType::DOUBLE 0
-//#define EffectFieldType::COLOR 1
-//#define EffectFieldType::STRING 2
-//#define EffectFieldType::BOOL 3
-//#define EffectFieldType::COMBO 4
-//#define EffectFieldType::FONT 5
-//#define EffectFieldType::FILE 6
 
 #include <QObject>
 #include <QVariant>
 #include <QVector>
 #include <memory>
 
-#include "keyframe.h"
+#include "ui/labelslider.h"
+#include "project/keyframe.h"
 
 class EffectRow;
 class ComboAction;
