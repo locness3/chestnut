@@ -75,6 +75,7 @@ public:
     void set_double_default_value(double v);
     void set_double_minimum_value(double v);
     void set_double_maximum_value(double v);
+    void set_double_step_value(const double v);
 
     QString get_string_value(double timecode, bool async = false);
     void set_string_value(const QString &s);

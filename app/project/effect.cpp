@@ -978,6 +978,8 @@ void Effect::setupControlWidget(const EffectMeta& em)
                           field->set_double_minimum_value(attr.value().toDouble());
                         } else if (attr.name() == "max") {
                           field->set_double_maximum_value(attr.value().toDouble());
+                        } else if (attr.name() == "step") {
+                          field->set_double_step_value(attr.value().toDouble());
                         }
                       }
                       break;

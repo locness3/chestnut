@@ -36,6 +36,7 @@ class LabelSlider : public QLabel
     void set_default_value(double v);
     void set_minimum_value(double v);
     void set_maximum_value(double v);
+    void set_step_value(const double v);
     double value();
     bool is_set();
     bool is_dragging();
@@ -45,9 +46,9 @@ class LabelSlider : public QLabel
     void set_color(QString c = 0);
     int decimal_places;
   protected:
-    void mousePressEvent(QMouseEvent *ev);
-    void mouseMoveEvent(QMouseEvent *ev);
-    void mouseReleaseEvent(QMouseEvent *ev);
+    void mousePressEvent(QMouseEvent *ev) override;
+    void mouseMoveEvent(QMouseEvent *ev) override;
+    void mouseReleaseEvent(QMouseEvent *ev) override;
   private:
     double default_value;
     double internal_value;
@@ -58,6 +59,8 @@ class LabelSlider : public QLabel
     double min_value;
     bool max_enabled;
     double max_value;
+    double step_value_ = 1.0;
+    bool step_enabled_ = false;
 
     bool drag_start;
     bool drag_proc;

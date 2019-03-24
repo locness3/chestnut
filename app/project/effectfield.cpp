@@ -362,6 +362,12 @@ void EffectField::set_double_maximum_value(double v) {
   static_cast<LabelSlider*>(ui_element)->set_maximum_value(v);
 }
 
+
+void EffectField::set_double_step_value(const double v)
+{
+  static_cast<LabelSlider*>(ui_element)->set_step_value(v);
+}
+
 void EffectField::add_combo_item(const QString& name, const QVariant& data) {
   static_cast<ComboBoxEx*>(ui_element)->addItem(name, data);
 }

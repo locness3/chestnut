@@ -85,7 +85,7 @@ QString LabelSlider::valueToString(double v) {
       case LABELSLIDER_FRAMENUMBER: return frame_to_timecode(v, e_config.timecode_view, frame_rate);
       case LABELSLIDER_PERCENT: return QString::number((v*100), 'f', decimal_places) + "%";
       default:
-        qWarning() << "Unhandled label slider type" << display_type;
+        // unhandled label slider type
         break;
     }
     return QString::number(v, 'f', decimal_places);
@@ -128,6 +128,13 @@ void LabelSlider::set_maximum_value(double v) {
   max_enabled = true;
 }
 
+
+void LabelSlider::set_step_value(const double v)
+{
+  step_value_ = v;
+  step_enabled_ = true;
+}
+
 void LabelSlider::mousePressEvent(QMouseEvent *ev) {
   drag_start_value = internal_value;
   if (ev->modifiers() & Qt::AltModifier) {
@@ -150,8 +157,15 @@ void LabelSlider::mouseMoveEvent(QMouseEvent* event) {
   if (drag_start) {
     drag_proc = true;
     double diff = (cursor().pos().x()-drag_start_x) + (drag_start_y-cursor().pos().y());
-    if (event->modifiers() & Qt::ControlModifier) diff *= 0.01;
-    if (display_type == LABELSLIDER_PERCENT) diff *= 0.01;
+    if (event->modifiers() & Qt::ControlModifier) {
+      diff *= 0.01;
+    }
+    if (display_type == SliderType::PERCENT) {
+      diff *= 0.01;
+    }
+    if (step_enabled_){
+      diff *= step_value_;
+    }
     set_value(internal_value + diff, true);
     cursor().setPos(drag_start_x, drag_start_y);
   }
