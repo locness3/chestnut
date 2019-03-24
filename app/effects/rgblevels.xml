@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<effect name="RGB Levels" category="Color">
+
+<row name="Red">
+	<field type="double" min="0" default="0" max="255" id="red_min"/>
+	<field type="double" min="0" default="1" max="10" step="0.1" id="red_gamma"/>
+	<field type="double" min="0" default="255" max="255" id="red_max"/>
+</row>
+
+<row name="Green">
+	<field type="double" min="0" default="0" max="255" id="green_min"/>
+	<field type="double" min="0" default="1" max="10" step="0.1" id="green_gamma"/>
+	<field type="double" min="0" default="255" max="255" id="green_max"/>
+</row>
+
+<row name="Blue">
+	<field type="double" min="0" default="0" max="255" id="blue_min"/>
+	<field type="double" min="0" default="1" max="10" step="0.1" id="blue_gamma"/>
+	<field type="double" min="0" default="255" max="255" id="blue_max"/>
+</row>
+	<shader vert="common.vert" frag="rgblevels.frag"/>
+
+</effect>

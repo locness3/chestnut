@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<effect name="Grayscale" category="Color">
+    <row name="Maximum">
+        <field type="bool" min="0" default="100" max="100" id="maxi"/>
+    </row>
+    <row name="Average">
+        <field type="bool" min="0" default="100" max="100" id="avg"/>
+    </row>
+    <row name="Luminosity">
+        <field type="bool" min="0" default="100" max="100" id="luma"/>
+    </row>
+    <row name="Lightness">
+        <field type="bool" min="0" default="100" max="100" id="light"/>
+    </row>
+    <shader vert="common.vert" frag="grayscale.frag"/>
+</effect>
