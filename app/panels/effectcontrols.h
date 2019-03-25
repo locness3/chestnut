@@ -124,7 +124,6 @@ class EffectControls : public QDockWidget
     QWidget* audio_effect_area;
     QWidget* vcontainer;
     QWidget* acontainer;
-    QSplitter* splitter_ = nullptr;
 };
 
 #endif // EFFECTCONTROLS_H

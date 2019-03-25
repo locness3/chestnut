@@ -286,13 +286,6 @@ void EffectControls::open_effect(QVBoxLayout* const layout, const EffectPtr& e)
   CollapsibleWidget* container = e->container;
   layout->addWidget(container);
   connect(container, SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
-
-  // TODO: this doesn't always get it right e.g. Render::text
-  QList<int> sizes;
-  sizes.append(effects_area->width() + 8); //TODO: remove fudge value. This could be due to padding in parent widget
-  sizes.append(keyframeView->width());
-  splitter_->setSizes(sizes);
-
 }
 
 void EffectControls::setup_ui() {
@@ -302,11 +295,11 @@ void EffectControls::setup_ui() {
   hlayout->setSpacing(0);
   hlayout->setMargin(0);
 
-  splitter_ = new QSplitter(contents);
-  splitter_->setOrientation(Qt::Horizontal);
-  splitter_->setChildrenCollapsible(false);
+  auto splitter = new QSplitter(contents);
+  splitter->setOrientation(Qt::Horizontal);
+  splitter->setChildrenCollapsible(false);
 
-  scrollArea = new QScrollArea(splitter_);
+  scrollArea = new QScrollArea(splitter);
   scrollArea->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Expanding);
   scrollArea->setFrameShape(QFrame::NoFrame);
   scrollArea->setFrameShadow(QFrame::Plain);
@@ -430,8 +423,8 @@ void EffectControls::setup_ui() {
   scrollAreaLayout->addWidget(effects_area);
 
   scrollArea->setWidget(scrollAreaWidgetContents);
-  splitter_->addWidget(scrollArea);
-  QWidget* keyframeArea = new QWidget(splitter_);
+  splitter->addWidget(scrollArea);
+  QWidget* keyframeArea = new QWidget(splitter);
   QSizePolicy keyframe_sp;
   keyframe_sp.setHorizontalPolicy(QSizePolicy::Minimum);
   keyframe_sp.setVerticalPolicy(QSizePolicy::Preferred);
@@ -467,9 +460,9 @@ void EffectControls::setup_ui() {
 
   keyframeAreaLayout->addWidget(horizontalScrollBar);
 
-  splitter_->addWidget(keyframeArea);
+  splitter->addWidget(keyframeArea);
 
-  hlayout->addWidget(splitter_);
+  hlayout->addWidget(splitter);
 
   setWidget(contents);
 }
@@ -597,8 +590,7 @@ EffectsArea::~EffectsArea()
   header = nullptr;
 }
 
-void EffectsArea::resizeEvent(QResizeEvent*) {
-  //    parent_widget->setMinimumWidth(sizeHint().width());
-  //    parent_widget->resize(sizeHint().width(), parent_widget->height());
-  //    parent_widget->updateGeometry();
+void EffectsArea::resizeEvent(QResizeEvent*)
+{
+  parent_widget->setMinimumWidth(sizeHint().width());
 }
