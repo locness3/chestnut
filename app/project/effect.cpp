@@ -60,10 +60,10 @@
 #include <QApplication>
 
 namespace {
-  const auto EFFECT_EXT = "*.xml";
-  const auto EFFECT_PATH_ENV = "CHESTNUT_EFFECTS_PATH";
-  const auto SYSTEM_EFFECT_PATH = "../share/chestnut/effects";
-  const auto LOCAL_EFFECT_PATH = "effects";
+const auto EFFECT_EXT = "*.xml";
+const auto EFFECT_PATH_ENV = "CHESTNUT_EFFECTS_PATH";
+const auto SYSTEM_EFFECT_PATH = "../share/chestnut/effects";
+const auto LOCAL_EFFECT_PATH = "effects";
 }
 
 bool shaders_are_enabled = true;
@@ -77,20 +77,20 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em) {
   } else if (em->internal >= 0 && em->internal < EFFECT_INTERNAL_COUNT) {
     // must be an internal effect
     switch (em->internal) {
-      case EFFECT_INTERNAL_TRANSFORM: return std::make_shared<TransformEffect>(c, em);
-      case EFFECT_INTERNAL_TEXT: return std::make_shared<TextEffect>(c, em);
-      case EFFECT_INTERNAL_TIMECODE: return std::make_shared<TimecodeEffect>(c, em);
-      case EFFECT_INTERNAL_SOLID: return std::make_shared<SolidEffect>(c, em);
-      case EFFECT_INTERNAL_NOISE: return std::make_shared<AudioNoiseEffect>(c, em);
-      case EFFECT_INTERNAL_VOLUME: return std::make_shared<VolumeEffect>(c, em);
-      case EFFECT_INTERNAL_PAN: return std::make_shared<PanEffect>(c, em);
-      case EFFECT_INTERNAL_TONE: return std::make_shared<ToneEffect>(c, em);
-      case EFFECT_INTERNAL_SHAKE: return std::make_shared<ShakeEffect>(c, em);
-      case EFFECT_INTERNAL_CORNERPIN: return std::make_shared<CornerPinEffect>(c, em);
-      case EFFECT_INTERNAL_FILLLEFTRIGHT: return std::make_shared<FillLeftRightEffect>(c, em);
-      default:
-        qWarning() << "Unknown Effect Type" << em->internal;
-        break;
+    case EFFECT_INTERNAL_TRANSFORM: return std::make_shared<TransformEffect>(c, em);
+    case EFFECT_INTERNAL_TEXT: return std::make_shared<TextEffect>(c, em);
+    case EFFECT_INTERNAL_TIMECODE: return std::make_shared<TimecodeEffect>(c, em);
+    case EFFECT_INTERNAL_SOLID: return std::make_shared<SolidEffect>(c, em);
+    case EFFECT_INTERNAL_NOISE: return std::make_shared<AudioNoiseEffect>(c, em);
+    case EFFECT_INTERNAL_VOLUME: return std::make_shared<VolumeEffect>(c, em);
+    case EFFECT_INTERNAL_PAN: return std::make_shared<PanEffect>(c, em);
+    case EFFECT_INTERNAL_TONE: return std::make_shared<ToneEffect>(c, em);
+    case EFFECT_INTERNAL_SHAKE: return std::make_shared<ShakeEffect>(c, em);
+    case EFFECT_INTERNAL_CORNERPIN: return std::make_shared<CornerPinEffect>(c, em);
+    case EFFECT_INTERNAL_FILLLEFTRIGHT: return std::make_shared<FillLeftRightEffect>(c, em);
+    default:
+      qWarning() << "Unknown Effect Type" << em->internal;
+      break;
     }//switch
   } else {
     qCritical() << "Invalid effect data";
@@ -465,33 +465,33 @@ void Effect::set_enabled(const bool b) {
 
 QVariant load_data_from_string(const EffectFieldType type, const QString& string) {
   switch (type) {
-    case EffectFieldType::DOUBLE: return string.toDouble();
-    case EffectFieldType::COLOR: return QColor(string);
-    case EffectFieldType::BOOL: return (string == "1");
-    case EffectFieldType::COMBO: return string.toInt();
-    case EffectFieldType::STRING:
-    case EffectFieldType::FONT:
-    case EffectFieldType::FILE_T:
-      return string;
-    default:
-      qWarning() << "Effect type not handled" << static_cast<int>(type);
-      break;
+  case EffectFieldType::DOUBLE: return string.toDouble();
+  case EffectFieldType::COLOR: return QColor(string);
+  case EffectFieldType::BOOL: return (string == "1");
+  case EffectFieldType::COMBO: return string.toInt();
+  case EffectFieldType::STRING:
+  case EffectFieldType::FONT:
+  case EffectFieldType::FILE_T:
+    return string;
+  default:
+    qWarning() << "Effect type not handled" << static_cast<int>(type);
+    break;
   }
   return QVariant();
 }
 
 QString save_data_to_string(const EffectFieldType type, const QVariant& data) {
   switch (type) {
-    case EffectFieldType::DOUBLE: return QString::number(data.toDouble());
-    case EffectFieldType::COLOR: return data.value<QColor>().name();
-    case EffectFieldType::BOOL: return QString::number(data.toBool());
-    case EffectFieldType::COMBO: return QString::number(data.toInt());
-    case EffectFieldType::STRING:
-    case EffectFieldType::FONT:
-    case EffectFieldType::FILE_T:
-      return data.toString();
-    default:
-      break;
+  case EffectFieldType::DOUBLE: return QString::number(data.toDouble());
+  case EffectFieldType::COLOR: return data.value<QColor>().name();
+  case EffectFieldType::BOOL: return QString::number(data.toBool());
+  case EffectFieldType::COMBO: return QString::number(data.toInt());
+  case EffectFieldType::STRING:
+  case EffectFieldType::FONT:
+  case EffectFieldType::FILE_T:
+    return data.toString();
+  default:
+    break;
   }
   return QString();
 }
@@ -747,29 +747,33 @@ void Effect::process_shader(double timecode, GLTextureCoords&) {
       EffectField* field = row->field(j);
       if (!field->id.isEmpty()) {
         switch (field->type) {
-          case EffectFieldType::DOUBLE:
-            glslProgram->setUniformValue(field->id.toUtf8().constData(), GLfloat(field->get_double_value(timecode)));
-            break;
-          case EffectFieldType::COLOR:
-            glslProgram->setUniformValue(
-                  field->id.toUtf8().constData(),
-                  GLfloat(field->get_color_value(timecode).redF()),
-                  GLfloat(field->get_color_value(timecode).greenF()),
-                  GLfloat(field->get_color_value(timecode).blueF())
-                  );
-            break;
-          case EffectFieldType::STRING: break; // can you even send a string to a uniform value?
-          case EffectFieldType::BOOL:
-            glslProgram->setUniformValue(field->id.toUtf8().constData(), field->get_bool_value(timecode));
-            break;
-          case EffectFieldType::COMBO:
-            glslProgram->setUniformValue(field->id.toUtf8().constData(), field->get_combo_index(timecode));
-            break;
-          case EffectFieldType::FONT: break; // can you even send a string to a uniform value?
-          case EffectFieldType::FILE_T: break; // can you even send a string to a uniform value?
-          default:
-            qWarning() << "Unknown EffectField type" << static_cast<int>(field->type);
-            break;
+        case EffectFieldType::DOUBLE:
+          glslProgram->setUniformValue(field->id.toUtf8().constData(), GLfloat(field->get_double_value(timecode)));
+          break;
+        case EffectFieldType::COLOR:
+          glslProgram->setUniformValue(
+                field->id.toUtf8().constData(),
+                GLfloat(field->get_color_value(timecode).redF()),
+                GLfloat(field->get_color_value(timecode).greenF()),
+                GLfloat(field->get_color_value(timecode).blueF())
+                );
+          break;
+        case EffectFieldType::BOOL:
+          glslProgram->setUniformValue(field->id.toUtf8().constData(), field->get_bool_value(timecode));
+          break;
+        case EffectFieldType::COMBO:
+          glslProgram->setUniformValue(field->id.toUtf8().constData(), field->get_combo_index(timecode));
+          break;
+        case EffectFieldType::FONT:
+          [[fallthrough]];
+        case EffectFieldType::FILE_T:
+          [[fallthrough]];
+        case EffectFieldType::STRING:
+          // not possible to send a string to a uniform value
+          break;
+        default:
+          qWarning() << "Unknown EffectField type" << static_cast<int>(field->type);
+          break;
         }
       }
     }//for
@@ -970,92 +974,92 @@ void Effect::setupControlWidget(const EffectMeta& em)
                   EffectField* field = row->add_field(fieldType, attrId);
                   connect(field, SIGNAL(changed()), this, SLOT(field_changed()));
                   switch (fieldType) {
-                    case EffectFieldType::DOUBLE:
-                      for (const auto& attr : attributes) {
-                        if (attr.name() == "default") {
-                          field->set_double_default_value(attr.value().toDouble());
-                        } else if (attr.name() == "min") {
-                          field->set_double_minimum_value(attr.value().toDouble());
-                        } else if (attr.name() == "max") {
-                          field->set_double_maximum_value(attr.value().toDouble());
-                        } else if (attr.name() == "step") {
-                          field->set_double_step_value(attr.value().toDouble());
-                        }
+                  case EffectFieldType::DOUBLE:
+                    for (const auto& attr : attributes) {
+                      if (attr.name() == "default") {
+                        field->set_double_default_value(attr.value().toDouble());
+                      } else if (attr.name() == "min") {
+                        field->set_double_minimum_value(attr.value().toDouble());
+                      } else if (attr.name() == "max") {
+                        field->set_double_maximum_value(attr.value().toDouble());
+                      } else if (attr.name() == "step") {
+                        field->set_double_step_value(attr.value().toDouble());
                       }
-                      break;
-                    case EffectFieldType::COLOR:
-                    {
-                      QColor color;
-                      for (const auto& attr : attributes) {
-                        if (attr.name() == "r") {
-                          color.setRed(attr.value().toInt());
-                        } else if (attr.name() == "g") {
-                          color.setGreen(attr.value().toInt());
-                        } else if (attr.name() == "b") {
-                          color.setBlue(attr.value().toInt());
-                        } else if (attr.name() == "rf") {
-                          color.setRedF(attr.value().toDouble());
-                        } else if (attr.name() == "gf") {
-                          color.setGreenF(attr.value().toDouble());
-                        } else if (attr.name() == "bf") {
-                          color.setBlueF(attr.value().toDouble());
-                        } else if (attr.name() == "hex") {
-                          color.setNamedColor(attr.value().toString());
-                        }
-                      }
-                      field->set_color_value(color);
                     }
-                      break;
-                    case EffectFieldType::STRING:
-                      for (const auto& attr : attributes) {
-                        if (attr.name() == "default") {
-                          field->set_string_value(attr.value().toString());
-                        }
+                    break;
+                  case EffectFieldType::COLOR:
+                  {
+                    QColor color;
+                    for (const auto& attr : attributes) {
+                      if (attr.name() == "r") {
+                        color.setRed(attr.value().toInt());
+                      } else if (attr.name() == "g") {
+                        color.setGreen(attr.value().toInt());
+                      } else if (attr.name() == "b") {
+                        color.setBlue(attr.value().toInt());
+                      } else if (attr.name() == "rf") {
+                        color.setRedF(attr.value().toDouble());
+                      } else if (attr.name() == "gf") {
+                        color.setGreenF(attr.value().toDouble());
+                      } else if (attr.name() == "bf") {
+                        color.setBlueF(attr.value().toDouble());
+                      } else if (attr.name() == "hex") {
+                        color.setNamedColor(attr.value().toString());
                       }
-                      break;
-                    case EffectFieldType::BOOL:
-                      for (const auto& attr : attributes) {
-                        if (attr.name() == "default") {
-                          field->set_bool_value(attr.value() == "1");
-                        }
+                    }
+                    field->set_color_value(color);
+                  }
+                    break;
+                  case EffectFieldType::STRING:
+                    for (const auto& attr : attributes) {
+                      if (attr.name() == "default") {
+                        field->set_string_value(attr.value().toString());
                       }
-                      break;
-                    case EffectFieldType::COMBO:
-                    {
-                      int combo_index = 0;
-                      for (const auto& attr : attributes) {
-                        if (attr.name() == "default") {
-                          combo_index = attr.value().toInt();
-                          break;
-                        }
+                    }
+                    break;
+                  case EffectFieldType::BOOL:
+                    for (const auto& attr : attributes) {
+                      if (attr.name() == "default") {
+                        field->set_bool_value(attr.value() == "1");
                       }
-                      while (!reader.atEnd() && !(reader.name() == "field" && reader.isEndElement())) {
+                    }
+                    break;
+                  case EffectFieldType::COMBO:
+                  {
+                    int combo_index = 0;
+                    for (const auto& attr : attributes) {
+                      if (attr.name() == "default") {
+                        combo_index = attr.value().toInt();
+                        break;
+                      }
+                    }
+                    while (!reader.atEnd() && !(reader.name() == "field" && reader.isEndElement())) {
+                      reader.readNext();
+                      if (reader.name() == "option" && reader.isStartElement()) {
                         reader.readNext();
-                        if (reader.name() == "option" && reader.isStartElement()) {
-                          reader.readNext();
-                          field->add_combo_item(reader.text().toString(), 0);
-                        }
+                        field->add_combo_item(reader.text().toString(), 0);
                       }
-                      field->set_combo_index(combo_index);
                     }
-                      break;
-                    case EffectFieldType::FONT:
-                      for (const auto& attr : attributes) {
-                        if (attr.name() == "default") {
-                          field->set_font_name(attr.value().toString());
-                        }
+                    field->set_combo_index(combo_index);
+                  }
+                    break;
+                  case EffectFieldType::FONT:
+                    for (const auto& attr : attributes) {
+                      if (attr.name() == "default") {
+                        field->set_font_name(attr.value().toString());
                       }
-                      break;
-                    case EffectFieldType::FILE_T:
-                      for (const auto& attr : attributes) {
-                        if (attr.name() == "filename") {
-                          field->set_filename(attr.value().toString());
-                        }
+                    }
+                    break;
+                  case EffectFieldType::FILE_T:
+                    for (const auto& attr : attributes) {
+                      if (attr.name() == "filename") {
+                        field->set_filename(attr.value().toString());
                       }
-                      break;
-                    default:
-                      qWarning() << "Unknown EffectField type" << static_cast<int>(fieldType);
-                      break;
+                    }
+                    break;
+                  default:
+                    qWarning() << "Unknown EffectField type" << static_cast<int>(fieldType);
+                    break;
                   }//switch
                 }
               }
