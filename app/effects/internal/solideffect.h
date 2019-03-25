@@ -18,27 +18,26 @@
 #ifndef SOLIDEFFECT_H
 #define SOLIDEFFECT_H
 
+#include <QImage>
+
 #include "project/effect.h"
 
 class QOpenGLTexture;
-#include <QImage>
 
 class SolidEffect : public Effect {
     Q_OBJECT
   public:
+    SolidEffect() = delete;
     SolidEffect(ClipPtr c, const EffectMeta *em);
-
-    SolidEffect(const SolidEffect& ) = delete;
-    SolidEffect& operator=(const SolidEffect&) = delete;
-
-    void redraw(double timecode);
+  protected:
+    void redraw(double timecode) override;
   private slots:
-    void ui_update(int);
+    void ui_update(int index);
   private:
-    EffectField* solid_type;
-    EffectField* solid_color_field;
-    EffectField* opacity_field;
-    EffectField* checkerboard_size_field;
+    EffectField* solid_type = nullptr;
+    EffectField* solid_color_field = nullptr;
+    EffectField* opacity_field = nullptr;
+    EffectField* checkerboard_size_field = nullptr;
 };
 
 #endif // SOLIDEFFECT_H

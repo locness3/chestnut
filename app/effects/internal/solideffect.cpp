@@ -27,21 +27,26 @@
 #include "project/clip.h"
 #include "project/sequence.h"
 
-#define SOLID_TYPE_COLOR 0
-#define SOLID_TYPE_BARS 1
-#define SOLID_TYPE_CHECKERBOARD 2
 
-#define SMPTE_BARS 7
-#define SMPTE_STRIP_COUNT 3
-#define SMPTE_LOWER_BARS 4
+
+namespace  {
+  const int SMPTE_BARS = 7;
+  const int SMPTE_STRIP_COUNT = 3;
+  const int SMPTE_LOWER_BARS = 4;
+  enum class SolidType {
+    COLOR = 0,
+    BARS = 1,
+    CHECKERBOARD = 2
+  };
+}
 
 SolidEffect::SolidEffect(ClipPtr  c, const EffectMeta* em) : Effect(c, em) {
   enable_superimpose = true;
 
   solid_type = add_row(tr("Type"))->add_field(EffectFieldType::COMBO, "type");
-  solid_type->add_combo_item(tr("Solid Color"), SOLID_TYPE_COLOR);
-  solid_type->add_combo_item(tr("SMPTE Bars"), SOLID_TYPE_BARS);
-  solid_type->add_combo_item(tr("Checkerboard"), SOLID_TYPE_CHECKERBOARD);
+  solid_type->add_combo_item(tr("Solid Color"), static_cast<int>(SolidType::COLOR));
+  solid_type->add_combo_item(tr("SMPTE Bars"), static_cast<int>(SolidType::BARS));
+  solid_type->add_combo_item(tr("Checkerboard"), static_cast<int>(SolidType::CHECKERBOARD));
 
   opacity_field = add_row(tr("Opacity"))->add_field(EffectFieldType::DOUBLE, "opacity");
   opacity_field->set_double_minimum_value(0);
@@ -59,32 +64,31 @@ SolidEffect::SolidEffect(ClipPtr  c, const EffectMeta* em) : Effect(c, em) {
   QComboBox* solid_type_combo = static_cast<QComboBox*>(solid_type->get_ui_element());
   QObject::connect(solid_type_combo, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_update(int)));
   ui_update(solid_type_combo->currentIndex());
-
-  /*vertPath = ":/shaders/common.vert";
-  fragPath = ":/shaders/solideffect.frag";*/
 }
 
-void SolidEffect::redraw(double timecode) {
-  int w = img.width();
-  int h = img.height();
-  int alpha = qRound(opacity_field->get_double_value(timecode)*2.55);
-  const auto solidType = solid_type->get_combo_data(timecode).toInt();
+void SolidEffect::redraw(double timecode)
+{
+  const auto w = img.width();
+  const auto h = img.height();
+  const auto alpha = qRound(opacity_field->get_double_value(timecode) * 2.55);
+  const auto solidType = static_cast<SolidType>(solid_type->get_combo_data(timecode).toInt());
+
   switch (solidType) {
-    case SOLID_TYPE_COLOR:
+    case SolidType::COLOR:
     {
       QColor solidColor = solid_color_field->get_color_value(timecode);
       solidColor.setAlpha(alpha);
       img.fill(solidColor);
     }
       break;
-    case SOLID_TYPE_BARS:
+    case SolidType::BARS:
     {
       // draw smpte bars
       QPainter p(&img);
       img.fill(Qt::transparent);
-      int bar_width = qCeil((double) w / 7.0);
-      int first_bar_height = qCeil((double) h / 3.0 * 2.0);
-      int second_bar_height = qCeil((double) h / 12.5);
+      int bar_width = qCeil(static_cast<double>(w) / 7.0);
+      int first_bar_height = qCeil(static_cast<double>(h) / 3.0 * 2.0);
+      int second_bar_height = qCeil(static_cast<double>(h) / 12.5);
       int third_bar_y = first_bar_height + second_bar_height;
       int third_bar_height = h - third_bar_y;
       int third_bar_width = 0;
@@ -114,7 +118,7 @@ void SolidEffect::redraw(double timecode) {
             second_color = QColor(0, 192, 192);
             break;
           case 5:
-            third_bar_width = qRound((double) bar_x / (double) SMPTE_LOWER_BARS);
+            third_bar_width = qRound(static_cast<double>(bar_x) / SMPTE_LOWER_BARS);
 
             first_color = QColor(192, 0, 0);
             second_color = QColor(19, 19, 19);
@@ -176,7 +180,7 @@ void SolidEffect::redraw(double timecode) {
       }
     }
       break;
-    case SOLID_TYPE_CHECKERBOARD:
+    case SolidType::CHECKERBOARD:
     {
       // draw checkboard
       QPainter p(&img);
@@ -202,12 +206,14 @@ void SolidEffect::redraw(double timecode) {
     }
       break;
     default:
-      qWarning() << "Unhandled transition type" << solidType;
+      qWarning() << "Unhandled transition type" << static_cast<int>(solidType);
       break;
   } //switch
 }
 
-void SolidEffect::ui_update(int i) {
-  solid_color_field->set_enabled(i == SOLID_TYPE_COLOR || i == SOLID_TYPE_CHECKERBOARD);
-  checkerboard_size_field->set_enabled(i == SOLID_TYPE_CHECKERBOARD);
+void SolidEffect::ui_update(int index)
+{
+  const auto sType = static_cast<SolidType>(index);
+  solid_color_field->set_enabled( (sType == SolidType::COLOR) || (sType == SolidType::CHECKERBOARD) );
+  checkerboard_size_field->set_enabled(sType == SolidType::CHECKERBOARD);
 }
