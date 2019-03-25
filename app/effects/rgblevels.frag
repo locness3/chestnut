@@ -24,8 +24,10 @@ float adjust(float val, float min_val, float gamma_val, float max_val)
     } else if (val >= max_val/255) {
         val = 1.0;
     } else {
-        val = val - (min_val/255) + ((255-max_val)/255);
         // linearly scale and apply gamma
+        float tmp = val/255;
+        float range = max_val - min_val;
+        val = tmp * range;
         val = val * gamma_val;
     }
     return val;
