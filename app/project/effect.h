@@ -68,7 +68,7 @@ struct EffectMeta {
 extern bool shaders_are_enabled;
 extern QVector<EffectMeta> effects;
 
-double log_volume(double linear);
+double log_volume(const double linear);
 void init_effects();
 std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta *em);
 const EffectMeta* get_internal_meta(int internal_id, int type);
@@ -93,7 +93,6 @@ const EffectMeta* get_internal_meta(int internal_id, int type);
 #define EFFECT_INTERNAL_TONE 6
 #define EFFECT_INTERNAL_SHAKE 7
 #define EFFECT_INTERNAL_TIMECODE 8
-#define EFFECT_INTERNAL_MASK 9
 #define EFFECT_INTERNAL_FILLLEFTRIGHT 10
 #define EFFECT_INTERNAL_VST 11
 #define EFFECT_INTERNAL_CORNERPIN 12
@@ -117,7 +116,7 @@ struct GLTextureCoords {
     CartesianCoordinate<float> texture_[4]; // 0->3 top-left, top-right, bottom-right, bottom-left
 };
 
-qint16 mix_audio_sample(qint16 a, qint16 b);
+qint16 mix_audio_sample(const qint16 a, const qint16 b);
 
 
 class Effect : public QObject, public project::SequenceItem {
@@ -143,7 +142,6 @@ public:
      */
     EffectGizmoPtr add_gizmo(const GizmoType _type);
     EffectGizmoPtr gizmo(const int index);
-    int gizmo_count();
 
     bool is_enabled();
     void set_enabled(const bool b);
@@ -249,6 +247,15 @@ private:
     int get_index_in_clip();
     void validate_meta_path();
     void setupControlWidget(const EffectMeta& em);
+    void setupDoubleWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
+    void setupColorWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
+    void setupStringWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
+    void setupBoolWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
+    void setupComboWidget(const QXmlStreamAttributes& attributes, EffectField& field, QXmlStreamReader& reader) const;
+    void setupFontWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
+    void setupFileWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
+    std::tuple<EffectFieldType, QString> getFieldType(const QXmlStreamAttributes& attributes) const;
+    void extractShaderDetails(const QXmlStreamAttributes& attributes);
 };
 
 //TODO: be in Effect
