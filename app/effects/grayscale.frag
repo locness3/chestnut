@@ -29,7 +29,7 @@ float averageVal(vec3 pixel)
 
 float luminosityVal(vec3 pixel)
 {
-  return (0.21 * pixel.r) + (0.72 * pixel.g) + (0.07 * pixel.b);
+  return (0.2126 * pixel.r) + (0.7152 * pixel.g) + (0.0722 * pixel.b);
 }
 
 float lightnessVal(vec3 pixel)
