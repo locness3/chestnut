@@ -1,5 +1,5 @@
 QT       += core gui multimedia opengl
-CONFIG += c++14
+CONFIG += c++17
 
 QMAKE_CXXFLAGS_DEBUG += -O0 -g3 -Wextra -Winit-self -Wshadow -Wnon-virtual-dtor -pedantic -Wfloat-equal -Wundef
 QMAKE_CXXFLAGS_RELEASE += -g1
