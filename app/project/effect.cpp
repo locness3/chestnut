@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  *
@@ -68,7 +68,8 @@ bool shaders_are_enabled = true;
 QVector<EffectMeta> effects;
 
 
-EffectPtr create_effect(ClipPtr c, const EffectMeta* em) {
+EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
+{
   if (!em->filename.isEmpty()) {
     // load effect from file
     return std::make_shared<Effect>(c, em);
@@ -94,7 +95,8 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em) {
     qCritical() << "Invalid effect data";
     QMessageBox::critical(global::mainWindow,
                           QCoreApplication::translate("Effect", "Invalid effect"),
-                          QCoreApplication::translate("Effect", "No candidate for effect '%1'. This effect may be corrupt. Try reinstalling it for Chestnut.").arg(em->name));
+                          QCoreApplication::translate("Effect", "No candidate for effect '%1'. This effect may be corrupt. "
+                                                      "Try reinstalling it for Chestnut.").arg(em->name));
   }
   return nullptr;
 }
@@ -374,9 +376,14 @@ EffectGizmoPtr Effect::add_gizmo(const GizmoType type)
   return gizmo;
 }
 
-EffectGizmoPtr Effect::gizmo(const int index)
+const EffectGizmoPtr& Effect::gizmo(const int index)
 {
   return gizmos.at(index);
+}
+
+int Effect::gizmo_count() const
+{
+  return gizmos.size();
 }
 
 void Effect::refresh()

@@ -141,7 +141,8 @@ public:
      * @return the newly created EffectGizmo
      */
     EffectGizmoPtr add_gizmo(const GizmoType _type);
-    EffectGizmoPtr gizmo(const int index);
+    const EffectGizmoPtr& gizmo(const int index);
+    int gizmo_count() const;
 
     bool is_enabled();
     void set_enabled(const bool b);
