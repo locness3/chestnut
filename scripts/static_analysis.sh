@@ -4,5 +4,8 @@ PATH+=:/home/jon/Downloads/sonar-scanner-3.3.0.1492-linux/bin/:/home/jon/Downloa
 export PATH
 
 exec build-wrapper-linux-x86-64 --out-dir bw-output make clean all
+
+pushd app/
+
 exec sonar-scanner
 
