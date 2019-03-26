@@ -29,7 +29,7 @@ CONFIG += link_pkgconfig
 PKGCONFIG += libavutil libavformat libavcodec libavfilter libswscale libswresample
 
 
-LIBS += -L../$${DESTDIR}/ -lchestnut
+LIBS += -L../$${DESTDIR}/ -lchestnut -lgomp
 CONFIG(coverage) {
     LIBS += -lgcov
 }

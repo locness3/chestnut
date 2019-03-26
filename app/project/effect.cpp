@@ -46,6 +46,7 @@
 #include "effects/internal/shakeeffect.h"
 #include "effects/internal/cornerpineffect.h"
 #include "effects/internal/fillleftrighteffect.h"
+#include "effects/internal/temporalsmootheffect.h"
 
 #include <QCheckBox>
 #include <QGridLayout>
@@ -87,6 +88,7 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
       case EFFECT_INTERNAL_SHAKE: return std::make_shared<ShakeEffect>(c, em);
       case EFFECT_INTERNAL_CORNERPIN: return std::make_shared<CornerPinEffect>(c, em);
       case EFFECT_INTERNAL_FILLLEFTRIGHT: return std::make_shared<FillLeftRightEffect>(c, em);
+      case EFFECT_INTERNAL_TEMPORAL: return std::make_shared<TemporalSmoothEffect>(c, em);
       default:
         qWarning() << "Unknown Effect Type" << em->internal;
         break;
@@ -153,6 +155,10 @@ void load_internal_effects()
 
   em.name = "Shake";
   em.internal = EFFECT_INTERNAL_SHAKE;
+  effects.append(em);
+
+  em.name = "Temporal Smooth";
+  em.internal = EFFECT_INTERNAL_TEMPORAL;
   effects.append(em);
 
   em.name = "Text";

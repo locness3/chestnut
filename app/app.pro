@@ -105,7 +105,8 @@ SOURCES += \
     ui/renderfunctions.cpp \
     ui/viewerwindow.cpp \
     project/projectfilter.cpp \
-    project/timelineinfo.cpp
+    project/timelineinfo.cpp \
+    effects/internal/temporalsmootheffect.cpp
 
 HEADERS += \
     ui/mainwindow.h \
@@ -202,7 +203,8 @@ HEADERS += \
     ui/renderfunctions.h \
     ui/viewerwindow.h \
     project/projectfilter.h \
-    project/timelineinfo.h
+    project/timelineinfo.h \
+    effects/internal/temporalsmootheffect.h
 
 DISTFILES +=
 
