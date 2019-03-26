@@ -87,13 +87,20 @@ TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
     shadow_opacity->set_double_minimum_value(0);
     shadow_opacity->set_double_maximum_value(100);
 
+    set_font_combobox->setDefaultValue(0);
     size_val->set_double_default_value(48);
     text_val->set_string_value(tr("Sample Text"));
+    text_val->setDefaultValue(tr("Sample Text"));
     halign_field->set_combo_index(1);
+    halign_field->setDefaultValue(1);
     valign_field->set_combo_index(1);
+    valign_field->setDefaultValue(1);
     word_wrap_field->set_bool_value(true);
+    word_wrap_field->setDefaultValue(true);
     outline_color->set_color_value(Qt::black);
+    outline_color->setDefaultValue(Qt::black);
     shadow_color->set_color_value(Qt::black);
+    shadow_color->setDefaultValue(Qt::black);
     shadow_opacity->set_double_default_value(100);
     shadow_softness->set_double_default_value(5);
     shadow_distance->set_double_default_value(5);
