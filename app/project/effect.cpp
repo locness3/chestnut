@@ -302,6 +302,7 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
 {
   // set up base UI
   connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
+  connect(container->reset_button_, &QPushButton::clicked, this, &Effect::reset);
   ui = new QWidget();
   ui_layout = new QGridLayout();
   ui_layout->setSpacing(4);
@@ -447,6 +448,24 @@ void Effect::move_down()
   command->clip = parent_clip;
   command->from = get_index_in_clip();
   command->to = command->from + 1;
+  e_undo_stack.push(command);
+  update_ui(true);
+}
+
+void Effect::reset()
+{
+  ResetEffectCommand* command = new ResetEffectCommand();
+  for (const auto& row : rows) {
+    for (auto i=0; i < row->fieldCount(); ++i) {
+      auto field = row->field(i);
+      if (field == nullptr) {
+        continue;
+      }
+
+      command->fields_.push_back(std::make_tuple(field, field->get_current_data(), field->getDefaultData()));
+    }
+  }
+
   e_undo_stack.push(command);
   update_ui(true);
 }
@@ -952,6 +971,7 @@ void Effect::setupDoubleWidget(const QXmlStreamAttributes& attributes, EffectFie
 {
   for (const auto& attr : attributes) {
     if (attr.name() == "default") {
+      field.setDefaultValue(attr.value().toDouble());
       field.set_double_default_value(attr.value().toDouble());
     } else if (attr.name() == "min") {
       field.set_double_minimum_value(attr.value().toDouble());
@@ -983,6 +1003,7 @@ void Effect::setupColorWidget(const QXmlStreamAttributes& attributes, EffectFiel
       color.setNamedColor(attr.value().toString());
     }
   }
+  field.setDefaultValue(color);
   field.set_color_value(color);
 }
 
@@ -990,6 +1011,7 @@ void Effect::setupStringWidget(const QXmlStreamAttributes& attributes, EffectFie
 {
   for (const auto& attr : attributes) {
     if (attr.name() == "default") {
+      field.setDefaultValue(attr.value().toString());
       field.set_string_value(attr.value().toString());
     }
   }
@@ -999,6 +1021,7 @@ void Effect::setupBoolWidget(const QXmlStreamAttributes& attributes, EffectField
 {
   for (const auto& attr : attributes) {
     if (attr.name() == "default") {
+      field.setDefaultValue(attr.value() == "1");
       field.set_bool_value(attr.value() == "1");
     }
   }
@@ -1020,6 +1043,7 @@ void Effect::setupComboWidget(const QXmlStreamAttributes& attributes, EffectFiel
       field.add_combo_item(reader.text().toString(), 0);
     }
   }
+  field.setDefaultValue(combo_index);
   field.set_combo_index(combo_index);
 }
 
@@ -1027,6 +1051,7 @@ void Effect::setupFontWidget(const QXmlStreamAttributes& attributes, EffectField
 {
   for (const auto& attr : attributes) {
     if (attr.name() == "default") {
+      field.setDefaultValue(attr.value().toString());
       field.set_font_name(attr.value().toString());
     }
   }
@@ -1036,6 +1061,7 @@ void Effect::setupFileWidget(const QXmlStreamAttributes& attributes, EffectField
 {
   for (const auto& attr : attributes) {
     if (attr.name() == "filename") {
+      field.setDefaultValue(attr.value().toString());
       field.set_filename(attr.value().toString());
     }
   }

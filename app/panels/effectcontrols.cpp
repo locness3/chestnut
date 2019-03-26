@@ -77,7 +77,21 @@ EffectControls::EffectControls(QWidget *parent) :
   connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), verticalScrollBar, SLOT(setValue(int)));
 }
 
-EffectControls::~EffectControls() {}
+EffectControls::~EffectControls()
+{
+  //TODO: check these ptrs to see if they need dealloc
+  horizontalScrollBar = nullptr;
+  verticalScrollBar = nullptr;
+  headers = nullptr;
+  effects_area = nullptr;
+  scrollArea = nullptr;
+  lblMultipleClipsSelected = nullptr;
+  keyframeView = nullptr;
+  video_effect_area = nullptr;
+  audio_effect_area = nullptr;
+  vcontainer = nullptr;
+  acontainer = nullptr;
+}
 
 bool EffectControls::keyframe_focus() {
   return headers->hasFocus() || keyframeView->hasFocus();

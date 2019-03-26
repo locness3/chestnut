@@ -49,7 +49,7 @@ extern QUndoStack e_undo_stack;
 class ComboAction : public QUndoCommand {
 public:
     ComboAction();
-    virtual ~ComboAction();
+    virtual ~ComboAction() override;
     virtual void undo() override;
     virtual void redo() override;
     void append(QUndoCommand* u);
@@ -646,10 +646,21 @@ private:
     bool old_project_changed;
 };
 
+class ResetEffectCommand: public QUndoCommand {
+public:
+  ResetEffectCommand();
+  virtual void undo() override;
+  virtual void redo() override;
+  std::vector<std::tuple<EffectField*, QVariant, QVariant>> fields_;
+
+private:
+  void doCmd(const bool undo_cmd);
+
+};
+
 class RemoveClipsFromClipboard : public QUndoCommand {
 public:
     RemoveClipsFromClipboard(int index);
-    virtual ~RemoveClipsFromClipboard();
     virtual void undo() override;
     virtual void redo() override;
 private:

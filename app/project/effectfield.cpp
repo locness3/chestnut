@@ -196,7 +196,7 @@ void EffectField::get_keyframe_data(double timecode, int &before, int &after, do
 }
 
 bool EffectField::hasKeyframes() {
-  return (parent_row->isKeyframing() && keyframes.size() > 0);
+  return (parent_row->isKeyframing() && (keyframes.size() > 0));
 }
 
 QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
@@ -327,6 +327,12 @@ void EffectField::make_key_from_change(ComboAction* ca) {
     // set undo
     ca->append(new EffectFieldUndo(this));
   }
+}
+
+
+const QVariant& EffectField::getDefaultData() const
+{
+  return default_data_;
 }
 
 QWidget* EffectField::get_ui_element() {

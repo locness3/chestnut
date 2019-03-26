@@ -56,6 +56,7 @@ class CollapsibleWidget : public QWidget
     bool is_expanded();
 
     CheckboxEx* enabled_check;
+    QPushButton* reset_button_ = nullptr;
     bool selected;
     QWidget* contents;
     CollapsibleWidgetHeader* title_bar;

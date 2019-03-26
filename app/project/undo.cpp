@@ -1100,15 +1100,41 @@ void MoveEffectCommand::redo() {
   global::mainWindow->setWindowModified(true);
 }
 
+ResetEffectCommand::ResetEffectCommand()
+{
+
+}
+
+void ResetEffectCommand::undo()
+{
+  doCmd(true);
+}
+
+void ResetEffectCommand::redo()
+{
+  doCmd(false);
+}
+
+
+void ResetEffectCommand::doCmd(const bool undo_cmd)
+{
+  for (auto field_entry: fields_) {
+    auto[field, before, after] = field_entry;
+    const auto val = undo_cmd ? before : after;
+    if (field != nullptr) {
+      field->set_current_data(val);
+    }
+  }
+}
+
 RemoveClipsFromClipboard::RemoveClipsFromClipboard(int index) :
   pos(index),
   old_project_changed(global::mainWindow->isWindowModified()),
   done(false)
-{}
-
-RemoveClipsFromClipboard::~RemoveClipsFromClipboard() {
+{
 
 }
+
 
 void RemoveClipsFromClipboard::undo() {
   e_clipboard.insert(pos, clip);

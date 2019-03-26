@@ -51,10 +51,19 @@ CollapsibleWidget::CollapsibleWidget(QWidget* parent) : QWidget(parent) {
   collapse_button->setIconSize(QSize(8, 8));
   collapse_button->setStyleSheet("QPushButton { border: none; }");
   setText(tr("<untitled>"));
+
+  reset_button_ = new QPushButton();
+  reset_button_->setToolTip(tr("Reset parameters to default"));
+  reset_button_->setFlat(true);
+  reset_button_->setText("R");
+  reset_button_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
   title_bar_layout->addWidget(collapse_button);
   title_bar_layout->addWidget(enabled_check);
+  title_bar_layout->addWidget(reset_button_);
   title_bar_layout->addWidget(header);
   title_bar_layout->addStretch();
+
   layout->addWidget(title_bar);
 
   connect(title_bar, SIGNAL(select(bool, bool)), this, SLOT(header_click(bool, bool)));

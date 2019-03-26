@@ -56,6 +56,11 @@ public:
     EffectFieldType type;
     QString id;
 
+    template<typename T>
+    void setDefaultValue(const T val) {
+      default_data_.setValue(val);
+    }
+
     QVariant get_previous_data();
     QVariant get_current_data();
     double frameToTimecode(const long frame);
@@ -99,14 +104,17 @@ public:
     QWidget* ui_element = nullptr;
 
     void make_key_from_change(ComboAction* ca);
+    const QVariant& getDefaultData() const;
 public slots:
     void ui_element_change();
 private:
     bool hasKeyframes();
+    QVariant default_data_;
 signals:
     void changed();
     void toggled(bool);
     void clicked();
+
 };
 
 #endif // EFFECTFIELD_H

@@ -130,7 +130,7 @@ public:
     Effect& operator=(const Effect&) = delete;
     Effect& operator=(const Effect&&) = delete;
 
-    EffectRowPtr add_row(const QString &_name, bool savable = true, bool keyframable = true);
+    EffectRowPtr add_row(const QString &name_, bool savable = true, bool keyframable = true);
     EffectRowPtr row(const int i);
     const QVector<EffectRowPtr>& getRows() const;
 
@@ -199,7 +199,7 @@ public:
     ClipPtr parent_clip; //TODO: make weak
     const EffectMeta* meta;
     int id;
-    QString _name;
+    QString name_;
     CollapsibleWidget* container = nullptr;
 
 public slots:
@@ -209,6 +209,7 @@ private slots:
     void delete_self();
     void move_up();
     void move_down();
+    void reset();
 protected:
     // superimpose functions
     virtual void redraw(double timecode);
@@ -259,7 +260,7 @@ private:
     void extractShaderDetails(const QXmlStreamAttributes& attributes);
 };
 
-//TODO: be in Effect
+
 class EffectInit : public QThread {
 public:
     EffectInit();

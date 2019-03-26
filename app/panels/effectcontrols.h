@@ -59,7 +59,7 @@ class EffectControls : public QDockWidget
 
   public:
     explicit EffectControls(QWidget *parent = nullptr);
-    virtual ~EffectControls();
+    virtual ~EffectControls() override;
 
     EffectControls(const EffectControls& ) = delete;
     EffectControls(const EffectControls&& ) = delete;
@@ -100,7 +100,7 @@ class EffectControls : public QDockWidget
 
     void deselect_all_effects(QWidget*);
   protected:
-    void resizeEvent(QResizeEvent *event);
+    void resizeEvent(QResizeEvent *event) override;
   private:
     void show_effect_menu(int type, int subtype);
     void load_effects();
