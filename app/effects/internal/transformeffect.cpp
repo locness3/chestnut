@@ -64,6 +64,7 @@ TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em
 
   EffectRowPtr rotation_row = add_row(tr("Rotation"));
   rotation = rotation_row->add_field(EffectFieldType::DOUBLE, "rotation");
+  rotation->set_double_default_value(0);
 
   EffectRowPtr anchor_point_row = add_row(tr("Anchor Point"));
   anchor_x_box = anchor_point_row->add_field(EffectFieldType::DOUBLE, "anchorx"); // anchor point X
@@ -134,7 +135,9 @@ TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em
 
   // set defaults
   uniform_scale_field->set_bool_value(true);
+  uniform_scale_field->setDefaultValue(true);
   blend_mode_box->set_combo_index(0);
+  blend_mode_box->setDefaultValue(0);
   set = false;
   TransformEffect::refresh();
 }
@@ -153,11 +156,6 @@ void TransformEffect::refresh() {
   if (parent_clip != nullptr && parent_clip->sequence != nullptr) {
     double new_default_pos_x = parent_clip->sequence->width()/2;
     double new_default_pos_y = parent_clip->sequence->height()/2;
-
-    /*if (set) {
-            adjust_field(position_x, default_pos_x, new_default_pos_x);
-            adjust_field(position_y, default_pos_y, new_default_pos_y);
-        }*/
 
     double default_pos_x = new_default_pos_x;
     double default_pos_y = new_default_pos_y;

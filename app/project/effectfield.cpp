@@ -356,6 +356,7 @@ void EffectField::set_double_value(double v) {
 }
 
 void EffectField::set_double_default_value(double v) {
+  setDefaultValue(v);
   static_cast<LabelSlider*>(ui_element)->set_default_value(v);
 }
 
