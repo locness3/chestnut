@@ -7,6 +7,7 @@ class TemporalSmoothEffect : public Effect
 {
   public:
     TemporalSmoothEffect(ClipPtr c, const EffectMeta* em);
+    ~TemporalSmoothEffect() override;
     virtual void process_image(double timecode, uint8_t* data, int size) override;
   private:
     EffectField* frame_length_;
