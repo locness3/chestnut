@@ -40,6 +40,9 @@
 #include "dialogs/texteditdialog.h"
 #include "ui/mainwindow.h"
 
+constexpr auto VERT_PATH = "common.vert";
+constexpr auto FRAG_PATH = "dropshadow.frag";
+
 TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
     Effect(c, em)
 {
@@ -113,8 +116,8 @@ TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
     connect(shadow_bool, SIGNAL(toggled(bool)), this, SLOT(shadow_enable(bool)));
     connect(outline_bool, SIGNAL(toggled(bool)), this, SLOT(outline_enable(bool)));
 
-    vertPath = "common.vert";
-    fragPath = "dropshadow.frag";
+    vertPath = VERT_PATH;
+    fragPath = FRAG_PATH;
 }
 
 void TextEffect::redraw(double timecode) {

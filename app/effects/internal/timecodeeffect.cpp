@@ -59,9 +59,11 @@ TimecodeEffect::TimecodeEffect(ClipPtr c, const EffectMeta* em) :
 
   color_val = add_row(tr("Color"))->add_field(EffectFieldType::COLOR, "color", 2);
   color_val->set_color_value(Qt::white);
+  color_val->setDefaultValue(Qt::white);
 
   color_bg_val = add_row(tr("Background Color"))->add_field(EffectFieldType::COLOR, "bgcolor", 2);
   color_bg_val->set_color_value(Qt::black);
+  color_bg_val->setDefaultValue(Qt::black);
 
   bg_alpha = add_row(tr("Background Opacity"))->add_field(EffectFieldType::DOUBLE, "bgalpha", 2);
   bg_alpha->set_double_minimum_value(0);
