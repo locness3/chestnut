@@ -53,7 +53,7 @@ HEADERS += \
 
 INCLUDEPATH += ../app/
 
-LIBS += -L../app/$${DESTDIR}/ -lchestnut
+LIBS += -L../app/$${DESTDIR}/ -lchestnut  -lgomp
 PRE_TARGETDEPS += ../app/$${DESTDIR}/libchestnut.a
 
 CONFIG(coverage) {
