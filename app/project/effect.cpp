@@ -59,6 +59,7 @@
 #include <QtMath>
 #include <QMenu>
 #include <QApplication>
+#include <thread>
 
 constexpr auto EFFECT_EXT = "*.xml";
 constexpr auto EFFECT_PATH_ENV = "CHESTNUT_EFFECTS_PATH";
@@ -272,22 +273,19 @@ void load_shader_effects(QVector<EffectMeta>& effect_list)
   }//for
 }
 
-void init_effects() {
-  EffectInit* init_thread = new EffectInit();
-  QObject::connect(init_thread, SIGNAL(finished()), init_thread, SLOT(deleteLater()));
-  init_thread->start();
-}
-
-EffectInit::EffectInit() {
+void init_effects()
+{
   e_panel_effect_controls->effects_loaded.lock();
-}
+  auto lmb = []() {
+    qInfo() << "Initializing effects...";
+    load_internal_effects();
+    load_shader_effects(effects);
+    qInfo() << "Finished initializing effects";
+  };
+  std::thread t(lmb);
+  t.join();
 
-void EffectInit::run() {
-  qInfo() << "Initializing effects...";
-  load_internal_effects();
-  load_shader_effects(effects);
   e_panel_effect_controls->effects_loaded.unlock();
-  qInfo() << "Finished initializing effects";
 }
 
 

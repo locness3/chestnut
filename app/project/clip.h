@@ -25,6 +25,7 @@
 #include <QOpenGLTexture>
 #include <memory>
 #include <QMetaType>
+#include <QThread>
 
 #include "project/effect.h"
 #include "project/sequence.h"

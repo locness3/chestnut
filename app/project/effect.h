@@ -26,7 +26,6 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QMutex>
-#include <QThread>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <memory>
@@ -261,12 +260,5 @@ private:
     void extractShaderDetails(const QXmlStreamAttributes& attributes);
 };
 
-
-class EffectInit : public QThread {
-public:
-    EffectInit();
-protected:
-    void run();
-};
 
 #endif // EFFECT_H
