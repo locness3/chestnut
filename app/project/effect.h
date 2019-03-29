@@ -98,9 +98,6 @@ const EffectMeta* get_internal_meta(const int internal_id, const int type);
 #define EFFECT_INTERNAL_TEMPORAL 13
 #define EFFECT_INTERNAL_COUNT 14
 
-#define KEYFRAME_TYPE_LINEAR 0
-#define KEYFRAME_TYPE_BEZIER 1
-#define KEYFRAME_TYPE_HOLD 2
 
 template <typename T>
 struct CartesianCoordinate {

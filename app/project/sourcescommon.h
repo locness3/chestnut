@@ -50,7 +50,7 @@ private slots:
     void rename_interval();
     void item_renamed(MediaPtr item);
 private:
-    QAbstractItemView* view;
+    QAbstractItemView* view = nullptr;
     MediaPtr editing_item;
     QModelIndex editing_index;
     QModelIndexList selected_items;

@@ -20,9 +20,13 @@
 
 #include <QPainter>
 
-#define KEYFRAME_SIZE 6
-#define KEYFRAME_COLOR 160
+#include "project/keyframe.h"
 
-void draw_keyframe(QPainter &p, int type, int x, int y, bool darker, int r = KEYFRAME_COLOR, int g = KEYFRAME_COLOR, int b = KEYFRAME_COLOR);
+constexpr int KEYFRAME_SIZE = 6;
+constexpr int KEYFRAME_COLOR = 160;
+
+
+void draw_keyframe(QPainter &p, const KeyframeType type, const int x, const int y, const bool darker,
+                   const int r = KEYFRAME_COLOR, const int g = KEYFRAME_COLOR, const int b = KEYFRAME_COLOR);
 
 #endif // KEYFRAMEDRAWING_H

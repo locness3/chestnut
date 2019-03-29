@@ -23,13 +23,6 @@
 #include "undo.h"
 #include "panels/panels.h"
 
-EffectKeyframe::EffectKeyframe() {
-    pre_handle_x = -40;
-    pre_handle_y = 0;
-    post_handle_x = 40;
-    post_handle_y = 0;
-}
-
 void delete_keyframes(QVector<EffectField*>& selected_key_fields, QVector<int> &selected_keys) {
     QVector<EffectField*> fields;
     QVector<int> key_indices;
@@ -50,8 +43,8 @@ void delete_keyframes(QVector<EffectField*>& selected_key_fields, QVector<int> &
         }
     }
 
-    if (fields.size() > 0) {
-        ComboAction* ca = new ComboAction();
+    if (!fields.empty()) {
+        auto ca = new ComboAction();
         for (int i=0;i<key_indices.size();i++) {
             ca->append(new KeyframeDelete(fields.at(i), key_indices.at(i)));
         }

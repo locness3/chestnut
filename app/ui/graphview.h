@@ -111,7 +111,7 @@ class GraphView : public QWidget {
     bool click_add_proc;
     EffectField* click_add_field;
     int click_add_key;
-    int click_add_type;
+    KeyframeType click_add_type;
   private slots:
     void show_context_menu(const QPoint& pos);
     void reset_view();

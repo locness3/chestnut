@@ -66,16 +66,17 @@ KeyframeView::KeyframeView(QWidget *parent) :
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu(const QPoint&)));
 }
 
-void KeyframeView::show_context_menu(const QPoint& pos) {
-  if (selected_fields.size() > 0) {
+void KeyframeView::show_context_menu(const QPoint& pos)
+{
+  if (selected_fields.empty()) {
     QMenu menu(this);
 
     QAction* linear = menu.addAction(tr("Linear"));
-    linear->setData(KEYFRAME_TYPE_LINEAR);
+    linear->setData(static_cast<int>(KeyframeType::LINEAR));
     QAction* bezier = menu.addAction(tr("Bezier"));
-    bezier->setData(KEYFRAME_TYPE_BEZIER);
+    bezier->setData(static_cast<int>(KeyframeType::BEZIER));
     QAction* hold = menu.addAction(tr("Hold"));
-    hold->setData(KEYFRAME_TYPE_HOLD);
+    hold->setData(static_cast<int>(KeyframeType::HOLD));
     menu.addSeparator();
     menu.addAction("Graph Editor");
 
@@ -92,7 +93,8 @@ void KeyframeView::menu_set_key_type(QAction* a) {
     ComboAction* ca = new ComboAction();
     for (int i=0;i<selected_fields.size();i++) {
       EffectField* f = selected_fields.at(i);
-      ca->append(new SetInt(&f->keyframes[selected_keyframes.at(i)].type, a->data().toInt()));
+      ca->append(new SetInt(reinterpret_cast<int*>(&f->keyframes[selected_keyframes.at(i)].type),
+                 a->data().toInt()));
     }
     e_undo_stack.push(ca);
     update_ui(false);

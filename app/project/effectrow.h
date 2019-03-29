@@ -33,8 +33,9 @@ class ClickableLabel;
 class EffectRow : public QObject {
     Q_OBJECT
 public:
-    EffectRow(Effect* parent, const bool save, QGridLayout* uilayout, const QString& n, const int row, const bool keyframable = true);
-    virtual ~EffectRow();
+    EffectRow(Effect* parent, const bool save, QGridLayout& uilayout, const QString& n, const int row,
+              const bool keyframable = true);
+    virtual ~EffectRow() override;
 
     EffectRow(const EffectRow& ) = delete;
     EffectRow& operator=(const EffectRow&) = delete;
@@ -62,7 +63,7 @@ private slots:
     void set_keyframe_enabled(bool);
 private:
     bool keyframing;
-    QGridLayout* ui;
+    QGridLayout& ui;
     QString name;
     int ui_row;
     QVector<EffectField*> fields;

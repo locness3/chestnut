@@ -17,6 +17,8 @@
  */
 #include "effectfield.h"
 
+#include <QDateTime>
+
 #include "ui/colorbutton.h"
 #include "ui/texteditex.h"
 #include "ui/checkboxex.h"
@@ -26,15 +28,14 @@
 
 #include "io/config.h"
 
-#include "effectrow.h"
-#include "effect.h"
+#include "project/effectrow.h"
+#include "project/effect.h"
 
 #include "project/undo.h"
 #include "project/clip.h"
 #include "project/sequence.h"
 
 #include "io/math.h"
-#include <QDateTime>
 
 #include "debug.h"
 
@@ -172,7 +173,9 @@ void EffectField::get_keyframe_data(double timecode, int &before, int &after, do
       before = i;
       after = i;
       return;
-    } else if (eval_keyframe_time < frame && eval_keyframe_time > before_keyframe_time) {
+    }
+
+    if (eval_keyframe_time < frame && eval_keyframe_time > before_keyframe_time) {
       before_keyframe_index = i;
       before_keyframe_time = eval_keyframe_time;
     } else if (eval_keyframe_time > frame && eval_keyframe_time < after_keyframe_time) {
@@ -220,19 +223,19 @@ QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
           double before_dbl = before_key.data.toDouble();
           double after_dbl = after_key.data.toDouble();
 
-          if (before_key.type == KEYFRAME_TYPE_HOLD) {
+          if (before_key.type == KeyframeType::HOLD) {
             // hold
             value = before_dbl;
-          } else if (before_key.type == KEYFRAME_TYPE_BEZIER || after_key.type == KEYFRAME_TYPE_BEZIER) {
+          } else if (before_key.type == KeyframeType::BEZIER || after_key.type == KeyframeType::BEZIER) {
             // bezier interpolation
-            if (before_key.type == KEYFRAME_TYPE_BEZIER && after_key.type == KEYFRAME_TYPE_BEZIER) {
+            if (before_key.type == KeyframeType::BEZIER && after_key.type == KeyframeType::BEZIER) {
               // cubic bezier
               double t = cubic_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->frameRate(),
                                         before_key.time, before_key.time+before_key.post_handle_x,
                                         after_key.time+after_key.pre_handle_x, after_key.time);
               value = cubic_from_t(before_dbl, before_dbl+before_key.post_handle_y,
                                    after_dbl+after_key.pre_handle_y, after_dbl, t);
-            } else if (after_key.type == KEYFRAME_TYPE_LINEAR) { // quadratic bezier
+            } else if (after_key.type == KeyframeType::LINEAR) { // quadratic bezier
               // last keyframe is the bezier one
               double t = quad_t_from_x(timecode*parent_row->parent_effect->parent_clip->sequence->frameRate(),
                                        before_key.time, before_key.time+before_key.post_handle_x, after_key.time);

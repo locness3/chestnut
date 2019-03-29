@@ -53,8 +53,8 @@ SourcesCommon::SourcesCommon(Project* parent) :
 void SourcesCommon::create_seq_from_selected() {
   if (!selected_items.isEmpty()) {
     QVector<MediaPtr> media_list;
-    for (int i=0;i<selected_items.size();i++) {
-      media_list.append(project_parent->item_to_media(selected_items.at(i)));
+    for (const auto& item : selected_items) {
+      media_list.append(project_parent->item_to_media(item));
     }
 
     auto* const ca = new ComboAction();
@@ -80,7 +80,7 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
   QMenu* new_menu = menu.addMenu(tr("New"));
   global::mainWindow->make_new_menu(new_menu);
 
-  if (items.size() > 0) {
+  if (!items.empty()) {
     if (auto mda = project_parent->item_to_media(items.front())) {
       if (items.size() == 1) {
         // replace footage
@@ -88,14 +88,7 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
         if (type == MediaType::FOOTAGE) {
           QAction* replace_action = menu.addAction(tr("Replace/Relink Media"));
           QObject::connect(replace_action, SIGNAL(triggered(bool)), project_parent, SLOT(replace_selected_file()));
-
-#if defined(Q_OS_WIN)
-          QAction* reveal_in_explorer = menu.addAction(tr("Reveal in Explorer"));
-#elif defined(Q_OS_MAC)
-          QAction* reveal_in_explorer = menu.addAction(tr("Reveal in Finder"));
-#else
           QAction* reveal_in_explorer = menu.addAction(tr("Reveal in File Manager"));
-#endif
           QObject::connect(reveal_in_explorer, SIGNAL(triggered(bool)), this, SLOT(reveal_in_browser()));
         } else if (type != MediaType::FOLDER) {
           QAction* replace_clip_media = menu.addAction(tr("Replace Clips Using This Media"));

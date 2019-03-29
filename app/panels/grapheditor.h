@@ -20,6 +20,8 @@
 
 #include <QDockWidget>
 
+#include "project/keyframe.h"
+
 class GraphView;
 class TimelineHeader;
 class QPushButton;
@@ -57,7 +59,7 @@ class GraphEditor : public QDockWidget {
     QPushButton* bezier_button;
     QPushButton* hold_button;
   private slots:
-    void set_key_button_enabled(bool e, int type);
+    void set_key_button_enabled(bool e, const KeyframeType type);
     void passthrough_slider_value();
     void set_keyframe_type();
     void set_field_visibility(bool b);

@@ -111,7 +111,8 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
  * @param cpy
  */
 Sequence::Sequence(const Sequence& cpy)
-  : selections_(cpy.selections_),
+  : project::ProjectItem (cpy),
+    selections_(cpy.selections_),
     clips_(cpy.clips_),
     save_id_(cpy.save_id_),
     workarea_(cpy.workarea_),

@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,21 +21,29 @@
 #include <QVariant>
 #include <memory>
 
+enum class KeyframeType{
+  LINEAR = 0,
+  BEZIER = 1,
+  HOLD = 2,
+  UNKNOWN,
+  MIXED
+};
+
 class EffectField;
 
 class EffectKeyframe {
-public:
-	EffectKeyframe();
+  public:
+    EffectKeyframe() = default;
 
-	long time;
-	int type;
-	QVariant data;
+    long time;
+    KeyframeType type;
+    QVariant data;
 
-	// only for bezier type
-	double pre_handle_x;
-	double pre_handle_y;
-	double post_handle_x;
-	double post_handle_y;
+    // only for bezier type
+    double pre_handle_x = -40;
+    double pre_handle_y = 0;
+    double post_handle_x = 40;
+    double post_handle_y = 0;
 };
 
 void delete_keyframes(QVector<EffectField*>& selected_key_fields, QVector<int> &selected_keys);

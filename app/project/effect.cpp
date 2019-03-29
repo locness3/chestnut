@@ -76,7 +76,8 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
   if (!em->filename.isEmpty()) {
     // load effect from file
     return std::make_shared<Effect>(c, em);
-  } else if (em->internal >= 0 && em->internal < EFFECT_INTERNAL_COUNT) {
+  }
+  if (em->internal >= 0 && em->internal < EFFECT_INTERNAL_COUNT) {
     // must be an internal effect
     switch (em->internal) {
       case EFFECT_INTERNAL_TRANSFORM: return std::make_shared<TransformEffect>(c, em);
@@ -350,8 +351,11 @@ void Effect::copy_field_keyframes(const std::shared_ptr<Effect>& e)
 
 EffectRowPtr Effect::add_row(const QString& name, bool savable, bool keyframable)
 {
-  EffectRowPtr row = std::make_shared<EffectRow>(this, savable, ui_layout, name, rows.size(), keyframable);
-  rows.append(row);
+  EffectRowPtr row;
+  if (ui_layout != nullptr) {
+    row = std::make_shared<EffectRow>(this, savable, *ui_layout, name, rows.size(), keyframable);
+    rows.append(row);
+  }
   return row;
 }
 
@@ -612,7 +616,7 @@ void Effect::load(QXmlStreamReader& stream)
                 } else if (attr.name() == "frame") {
                   key.time = attr.value().toLong();
                 } else if (attr.name() == "type") {
-                  key.type = attr.value().toInt();
+                  key.type = static_cast<KeyframeType>(attr.value().toInt());
                 } else if (attr.name() == "prehx") {
                   key.pre_handle_x = attr.value().toDouble();
                 } else if (attr.name() == "prehy") {
@@ -667,7 +671,7 @@ void Effect::save(QXmlStreamWriter& stream)
         stream.writeStartElement("key");
         stream.writeAttribute("value", save_data_to_string(field->type, key.data));
         stream.writeAttribute("frame", QString::number(key.time));
-        stream.writeAttribute("type", QString::number(key.type));
+        stream.writeAttribute("type", QString::number(static_cast<int>(key.type)));
         stream.writeAttribute("prehx", QString::number(key.pre_handle_x));
         stream.writeAttribute("prehy", QString::number(key.pre_handle_y));
         stream.writeAttribute("posthx", QString::number(key.post_handle_x));
@@ -964,8 +968,8 @@ bool Effect::valueHasChanged(const double timecode)
         index++;
       }
     }
-    return changed;
   }
+  return changed;
 }
 
 void Effect::delete_texture() {
