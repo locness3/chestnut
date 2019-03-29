@@ -50,6 +50,11 @@ class ComboAction : public QUndoCommand {
 public:
     ComboAction();
     virtual ~ComboAction() override;
+    ComboAction(const ComboAction&) = delete;
+    ComboAction(const ComboAction&&) = delete;
+    ComboAction& operator=(const ComboAction&) = delete;
+    ComboAction& operator=(const ComboAction&&) = delete;
+
     virtual void undo() override;
     virtual void redo() override;
     void append(QUndoCommand* u);

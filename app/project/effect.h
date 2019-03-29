@@ -70,7 +70,7 @@ extern QVector<EffectMeta> effects;
 double log_volume(const double linear);
 void init_effects();
 std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta *em);
-const EffectMeta* get_internal_meta(int internal_id, int type);
+const EffectMeta* get_internal_meta(const int internal_id, const int type);
 
 //TODO: enum the defines
 #define EFFECT_TYPE_INVALID 0
@@ -172,8 +172,6 @@ public:
     int getIterations();
     void setIterations(int i);
 
-    const char* ffmpeg_filter;
-
     virtual void process_image(double timecode, uint8_t* data, int size);
     virtual void process_shader(double timecode, GLTextureCoords&);
     virtual void process_coords(double timecode, GLTextureCoords& coords, int data);
@@ -198,7 +196,7 @@ public:
 
     ClipPtr parent_clip; //TODO: make weak
     const EffectMeta* meta;
-    int id;
+    int id = -1;
     QString name_;
     CollapsibleWidget* container = nullptr;
 

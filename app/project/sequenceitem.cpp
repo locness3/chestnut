@@ -9,12 +9,6 @@ SequenceItem::SequenceItem()
 
 }
 
-SequenceItem::~SequenceItem()
-{
-
-}
-
-
 SequenceItem::SequenceItem(const project::SequenceItemType sequenceType)
   : name_(),
     type_(sequenceType)

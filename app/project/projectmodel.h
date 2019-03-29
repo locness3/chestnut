@@ -49,13 +49,13 @@ public:
 
     MediaPtr getItem(const QModelIndex &index) const;
 
-    bool appendChild(MediaPtr parent, MediaPtr child);
-    void moveChild(MediaPtr child, MediaPtr to);
+    bool appendChild(MediaPtr parent, const MediaPtr& child);
+    void moveChild(const MediaPtr& child, MediaPtr to);
     void removeChild(MediaPtr parent, const MediaPtr& m);
     MediaPtr child(const int index, MediaPtr parent = nullptr);
     int childCount(MediaPtr parent = nullptr);
-    void set_icon(MediaPtr m, const QIcon &ico);
-    QModelIndex add(MediaPtr mda);
+    void set_icon(const MediaPtr& m, const QIcon &ico);
+    QModelIndex add(const MediaPtr& mda);
     MediaPtr get(const QModelIndex& idx);
     const MediaPtr get(const QModelIndex& idx) const;
 
@@ -68,7 +68,7 @@ private:
      * @param item    Object to manage
      * @return  true==item exists in map
      */
-    bool insert(MediaPtr item);
+    bool insert(const MediaPtr& item);
 
     QModelIndex create_index(const int row, const int col, const MediaPtr& mda) const;
     QModelIndex create_index(const int row, const MediaPtr& mda) const;

@@ -16,7 +16,7 @@ namespace project {
     public:
         SequenceItem();
         explicit SequenceItem(const SequenceItemType sequenceType);
-        virtual ~SequenceItem();
+        virtual ~SequenceItem() = default;
         SequenceItem(const SequenceItem&) = delete;
         SequenceItem(const SequenceItem&&) = delete;
         SequenceItem& operator=(const SequenceItem&) = delete;

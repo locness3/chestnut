@@ -58,7 +58,7 @@ class Media : public std::enable_shared_from_this<Media>
 public:
 
     Media();
-    explicit Media(MediaPtr iparent);
+    explicit Media(const MediaPtr& iparent);
     ~Media();
 
     Media(const Media& cpy) = delete;
@@ -74,11 +74,11 @@ public:
      */
     int32_t id() const;
     void clearObject();
-    bool setFootage(FootagePtr ftg);
-    bool setSequence(SequencePtr sqn);
+    bool setFootage(const FootagePtr& ftg);
+    bool setSequence(const SequencePtr& sqn);
     void setFolder();
     void setIcon(const QIcon &ico);
-    void setParent(MediaWPtr p);
+    void setParent(const MediaWPtr& p);
     void updateTooltip(const QString& error = 0);
     MediaType type() const;
     const QString& name();
@@ -88,7 +88,7 @@ public:
     int32_t samplingRate(const int32_t stream = -1);
 
     // item functions
-    void appendChild(MediaPtr child);
+    void appendChild(const MediaPtr& child);
     bool setData(const int32_t column, const QVariant &value);
     MediaPtr child(const int32_t row);
     int32_t childCount() const;

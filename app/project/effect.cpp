@@ -99,15 +99,16 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
     QMessageBox::critical(global::mainWindow,
                           QCoreApplication::translate("Effect", "Invalid effect"),
                           QCoreApplication::translate("Effect", "No candidate for effect '%1'. This effect may be corrupt. "
-                                                      "Try reinstalling it for Chestnut.").arg(em->name));
+                                                                "Try reinstalling it for Chestnut.").arg(em->name));
   }
   return nullptr;
 }
 
-const EffectMeta* get_internal_meta(int internal_id, int type) {
-  for (int i=0;i< effects.size();i++) {
-    if (effects.at(i).internal == internal_id && effects.at(i).type == type) {
-      return &effects.at(i);
+const EffectMeta* get_internal_meta(const int internal_id, const int type)
+{
+  for (const auto& eff : effects) {
+    if ( (eff.internal == internal_id) && (eff.type == type) ) {
+      return &eff;
     }
   }
   return nullptr;
@@ -218,7 +219,7 @@ bool addEffect(QXmlStreamReader& reader,
   QString effect_name = "";
   QString effect_cat = "";
   const QXmlStreamAttributes attribs = reader.attributes();
-  for (auto attrib : attribs) {
+  for (const auto& attrib : attribs) {
     if (attrib.name() == "name") {
       effect_name = attrib.value().toString();
     } else if (attrib.name() == "category") {
@@ -250,7 +251,7 @@ void load_shader_effects(QVector<EffectMeta>& effect_list)
       continue;
     }
     const QList<QString> entries = effects_dir.entryList(QStringList(EFFECT_EXT), QDir::Files);
-    for (auto entry : entries) {
+    for (const auto& entry : entries) {
       QFile file(effects_path + "/" + entry);
       if (!file.open(QIODevice::ReadOnly)) {
         qCritical() << "Could not open" << entry;

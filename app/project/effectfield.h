@@ -93,7 +93,7 @@ public:
     void set_font_name(const QString& s);
 
     QColor get_color_value(double timecode, bool async = false);
-    void set_color_value(QColor color);
+    void set_color_value(const QColor& color);
 
     QString get_filename(double timecode, bool async = false);
     void set_filename(const QString& s);

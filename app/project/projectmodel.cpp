@@ -29,10 +29,8 @@ namespace
 }
 
 ProjectModel::ProjectModel(QObject *parent)
-  : QAbstractItemModel(parent),
-    project_items()
+  : QAbstractItemModel(parent)
 {
-  // allocating memory via make_shared is exception safe, unlike using 'new'
   insert(std::make_shared<Media>());
 }
 
@@ -102,11 +100,11 @@ QModelIndex ProjectModel::index(int row, int column, const QModelIndex &parent) 
   const auto parentItem = parent.isValid() ? getItem(parent) : project_items.first();
 
   auto childItem = parentItem->child(row);
+  QModelIndex idx;
   if (childItem) {
-    return create_index(row, column, childItem);
-  } else {
-    return QModelIndex();
+    idx = create_index(row, column, childItem);
   }
+  return idx;
 }
 
 
@@ -204,7 +202,7 @@ MediaPtr ProjectModel::getItem(const QModelIndex &index) const
   return project_items.first();
 }
 
-void ProjectModel::set_icon(MediaPtr m, const QIcon &ico)
+void ProjectModel::set_icon(const MediaPtr& m, const QIcon &ico)
 {
   insert(m);
   const auto index = create_index(m->row(), m);
@@ -213,7 +211,7 @@ void ProjectModel::set_icon(MediaPtr m, const QIcon &ico)
 
 }
 
-QModelIndex ProjectModel::add(MediaPtr mda)
+QModelIndex ProjectModel::add(const MediaPtr& mda)
 {
   insert(mda);
   return create_index(mda->row(), mda);
@@ -231,7 +229,7 @@ const MediaPtr ProjectModel::get(const QModelIndex& idx) const
   return project_items.value(idx.internalId());
 }
 
-bool ProjectModel::appendChild(MediaPtr parent, MediaPtr child)
+bool ProjectModel::appendChild(MediaPtr parent, const MediaPtr& child)
 {
   if (project_items.empty()) {
     return false;
@@ -250,7 +248,7 @@ bool ProjectModel::appendChild(MediaPtr parent, MediaPtr child)
   return true;
 }
 
-void ProjectModel::moveChild(MediaPtr child, MediaPtr to)
+void ProjectModel::moveChild(const MediaPtr& child, MediaPtr to)
 {
   if (to == nullptr) {
     to = project_items.first();
@@ -302,7 +300,7 @@ int ProjectModel::childCount(MediaPtr parent)
  * @param item    Object to manage
  * @return  true==item exists in map
  */
-bool ProjectModel::insert(MediaPtr item)
+bool ProjectModel::insert(const MediaPtr& item)
 {
   auto exists = false;
 

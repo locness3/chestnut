@@ -50,7 +50,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
 {
   bool got_video_values = false;
   bool got_audio_values = false;
-  for (auto mda : media_list){
+  for (const auto& mda : media_list){
     if (mda == nullptr) {
       qCritical() << "Null MediaPtr";
       continue;
@@ -62,7 +62,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
         if (!ftg->ready || got_video_values) {
           break;
         }
-        for (const auto ms : ftg->video_tracks) {
+        for (const auto& ms : ftg->video_tracks) {
           width_ = ms->video_width;
           height_ = ms->video_height;
           if (!qFuzzyCompare(ms->video_frame_rate, 0.0)) {
@@ -106,29 +106,24 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
 
 }
 
-
-Sequence::~Sequence() {
-}
-
 /**
  * @brief Copy constructor
  * @param cpy
  */
-Sequence::Sequence(const Sequence& cpy) :
-  ProjectItem(),
-  selections_(cpy.selections_),
-  clips_(cpy.clips_),
-  save_id_(cpy.save_id_),
-  workarea_(cpy.workarea_),
-  transitions_(cpy.transitions_),
-  markers_(cpy.markers_),
-  playhead_(cpy.playhead_),
-  wrapper_sequence_(cpy.wrapper_sequence_),
-  width_(cpy.width_),
-  height_(cpy.height_),
-  frame_rate_(cpy.frame_rate_),
-  audio_frequency_(cpy.audio_frequency_),
-  audio_layout_(cpy.audio_layout_)
+Sequence::Sequence(const Sequence& cpy)
+  : selections_(cpy.selections_),
+    clips_(cpy.clips_),
+    save_id_(cpy.save_id_),
+    workarea_(cpy.workarea_),
+    transitions_(cpy.transitions_),
+    markers_(cpy.markers_),
+    playhead_(cpy.playhead_),
+    wrapper_sequence_(cpy.wrapper_sequence_),
+    width_(cpy.width_),
+    height_(cpy.height_),
+    frame_rate_(cpy.frame_rate_),
+    audio_frequency_(cpy.audio_frequency_),
+    audio_layout_(cpy.audio_layout_)
 {
 
 }
@@ -160,7 +155,7 @@ std::shared_ptr<Sequence> Sequence::copy()
 int64_t Sequence::endFrame() const
 {
   auto end = 0L;
-  for (auto clp : clips_) {
+  for (const auto& clp : clips_) {
     if (clp && (clp->timeline_info.out > end) ) {
       end = clp->timeline_info.out;
     }
@@ -168,7 +163,7 @@ int64_t Sequence::endFrame() const
   return end;
 }
 
-void Sequence::hardDeleteTransition(ClipPtr c, const int32_t type)
+void Sequence::hardDeleteTransition(const ClipPtr& c, const int32_t type)
 {
   auto transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
   if (transition_index < 0) {
@@ -178,7 +173,7 @@ void Sequence::hardDeleteTransition(ClipPtr c, const int32_t type)
 
   auto transition_for_delete = transitions_.at(transition_index);
   if (auto secondary = transition_for_delete->secondary_clip.lock()) {
-    for (auto comp : clips_) {
+    for (const auto& comp : clips_) {
       if ( (!comp) && (c != comp) ) {
         continue;
       }
@@ -281,7 +276,7 @@ void Sequence::setAudioLayout(const int32_t layout)
 void Sequence::closeActiveClips(const int32_t depth)
 {
   if (depth > RECURSION_LIMIT) return;
-  for (auto c : clips_) {
+  for (const auto& c : clips_) {
     if (!c) {
       qWarning() << "Null Clip ptr";
       continue;
@@ -301,7 +296,7 @@ std::pair<int64_t, int64_t> Sequence::trackLimits() const
   int64_t video_limit = 0;
   int64_t audio_limit = 0;
 
-  for (auto clp : clips_) {
+  for (const auto& clp : clips_) {
     if (clp == nullptr) {
       continue;
     }

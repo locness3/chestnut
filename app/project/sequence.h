@@ -41,7 +41,7 @@ public:
 
     Sequence() = default;
     Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName);
-    virtual ~Sequence() override;
+    virtual ~Sequence() override = default;
     Sequence(const Sequence&& cpy) = delete;
     Sequence& operator=(const Sequence&) = delete;
     Sequence& operator=(const Sequence&&) = delete;
@@ -50,7 +50,7 @@ public:
     std::shared_ptr<Sequence> copy();
     std::pair<int64_t,int64_t> trackLimits() const;
     int64_t endFrame() const;
-    void hardDeleteTransition(ClipPtr c, const int32_t type);
+    void hardDeleteTransition(const ClipPtr& c, const int32_t type);
 
     bool setWidth(const int32_t val);
     int32_t width() const;

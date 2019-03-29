@@ -30,7 +30,7 @@ extern "C" {
 
 
 Footage::Footage()
-  : ProjectItem(),
+  : save_id(-1),
     ready(false),
     invalid(false),
     speed(1.0),
@@ -59,7 +59,7 @@ void Footage::reset()
 
 bool Footage::isImage() const
 {
-  return (!video_tracks.empty()) && video_tracks.front()->infinite_length && (audio_tracks.size() == 0);
+  return (!video_tracks.empty()) && video_tracks.front()->infinite_length && (audio_tracks.empty());
 }
 
 long Footage::get_length_in_frames(const double frame_rate) const {

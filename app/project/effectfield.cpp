@@ -47,7 +47,7 @@ EffectField::EffectField(EffectRow *parent, const EffectFieldType t, const QStri
   switch (t) {
     case EffectFieldType::DOUBLE:
     {
-      LabelSlider* ls = new LabelSlider();
+      auto ls = new LabelSlider();
       ui_element = ls;
       connect(ls, SIGNAL(valueChanged()), this, SLOT(ui_element_change()));
       connect(ls, SIGNAL(clicked()), this, SIGNAL(clicked()));
@@ -55,14 +55,14 @@ EffectField::EffectField(EffectRow *parent, const EffectFieldType t, const QStri
       break;
     case EffectFieldType::COLOR:
     {
-      ColorButton* cb = new ColorButton();
+      auto cb = new ColorButton();
       ui_element = cb;
       connect(cb, SIGNAL(color_changed()), this, SLOT(ui_element_change()));
     }
       break;
     case EffectFieldType::STRING:
     {
-      TextEditEx* edit = new TextEditEx();
+      auto edit = new TextEditEx();
       edit->setFixedHeight(edit->fontMetrics().lineSpacing()* e_config.effect_textbox_lines);
       edit->setUndoRedoEnabled(true);
       ui_element = edit;
@@ -71,7 +71,7 @@ EffectField::EffectField(EffectRow *parent, const EffectFieldType t, const QStri
       break;
     case EffectFieldType::BOOL:
     {
-      CheckboxEx* cb = new CheckboxEx();
+      auto cb = new CheckboxEx();
       ui_element = cb;
       connect(cb, SIGNAL(clicked(bool)), this, SLOT(ui_element_change()));
       connect(cb, SIGNAL(toggled(bool)), this, SIGNAL(toggled(bool)));
@@ -79,21 +79,21 @@ EffectField::EffectField(EffectRow *parent, const EffectFieldType t, const QStri
       break;
     case EffectFieldType::COMBO:
     {
-      ComboBoxEx* cb = new ComboBoxEx();
+      auto cb = new ComboBoxEx();
       ui_element = cb;
       connect(cb, SIGNAL(activated(int)), this, SLOT(ui_element_change()));
     }
       break;
     case EffectFieldType::FONT:
     {
-      FontCombobox* fcb = new FontCombobox();
+      auto fcb = new FontCombobox();
       ui_element = fcb;
       connect(fcb, SIGNAL(activated(int)), this, SLOT(ui_element_change()));
     }
       break;
     case EffectFieldType::FILE_T:
     {
-      EmbeddedFileChooser* efc = new EmbeddedFileChooser();
+      auto efc = new EmbeddedFileChooser();
       ui_element = efc;
       connect(efc, SIGNAL(changed()), this, SLOT(ui_element_change()));
     }
@@ -106,13 +106,13 @@ EffectField::EffectField(EffectRow *parent, const EffectFieldType t, const QStri
 
 QVariant EffectField::get_previous_data() {
   switch (type) {
-    case EffectFieldType::DOUBLE: return static_cast<LabelSlider*>(ui_element)->getPreviousValue();
-    case EffectFieldType::COLOR: return static_cast<ColorButton*>(ui_element)->getPreviousValue();
-    case EffectFieldType::STRING: return static_cast<TextEditEx*>(ui_element)->getPreviousValue();
-    case EffectFieldType::BOOL: return !static_cast<QCheckBox*>(ui_element)->isChecked();
-    case EffectFieldType::COMBO: return static_cast<ComboBoxEx*>(ui_element)->getPreviousIndex();
-    case EffectFieldType::FONT: return static_cast<FontCombobox*>(ui_element)->getPreviousValue();
-    case EffectFieldType::FILE_T: return static_cast<EmbeddedFileChooser*>(ui_element)->getPreviousValue();
+    case EffectFieldType::DOUBLE: return dynamic_cast<LabelSlider*>(ui_element)->getPreviousValue();
+    case EffectFieldType::COLOR: return dynamic_cast<ColorButton*>(ui_element)->getPreviousValue();
+    case EffectFieldType::STRING: return dynamic_cast<TextEditEx*>(ui_element)->getPreviousValue();
+    case EffectFieldType::BOOL: return !dynamic_cast<QCheckBox*>(ui_element)->isChecked();
+    case EffectFieldType::COMBO: return dynamic_cast<ComboBoxEx*>(ui_element)->getPreviousIndex();
+    case EffectFieldType::FONT: return dynamic_cast<FontCombobox*>(ui_element)->getPreviousValue();
+    case EffectFieldType::FILE_T: return dynamic_cast<EmbeddedFileChooser*>(ui_element)->getPreviousValue();
     default:
       qWarning() << "Unknown Effect Field Type" << static_cast<int>(type);
       break;
@@ -122,13 +122,13 @@ QVariant EffectField::get_previous_data() {
 
 QVariant EffectField::get_current_data() {
   switch (type) {
-    case EffectFieldType::DOUBLE: return static_cast<LabelSlider*>(ui_element)->value();
-    case EffectFieldType::COLOR: return static_cast<ColorButton*>(ui_element)->get_color();
-    case EffectFieldType::STRING: return static_cast<TextEditEx*>(ui_element)->getPlainTextEx();
-    case EffectFieldType::BOOL: return static_cast<QCheckBox*>(ui_element)->isChecked();
-    case EffectFieldType::COMBO: return static_cast<ComboBoxEx*>(ui_element)->currentIndex();
-    case EffectFieldType::FONT: return static_cast<FontCombobox*>(ui_element)->currentText();
-    case EffectFieldType::FILE_T: return static_cast<EmbeddedFileChooser*>(ui_element)->getFilename();
+    case EffectFieldType::DOUBLE: return dynamic_cast<LabelSlider*>(ui_element)->value();
+    case EffectFieldType::COLOR: return dynamic_cast<ColorButton*>(ui_element)->get_color();
+    case EffectFieldType::STRING: return dynamic_cast<TextEditEx*>(ui_element)->getPlainTextEx();
+    case EffectFieldType::BOOL: return dynamic_cast<QCheckBox*>(ui_element)->isChecked();
+    case EffectFieldType::COMBO: return dynamic_cast<ComboBoxEx*>(ui_element)->currentIndex();
+    case EffectFieldType::FONT: return dynamic_cast<FontCombobox*>(ui_element)->currentText();
+    case EffectFieldType::FILE_T: return dynamic_cast<EmbeddedFileChooser*>(ui_element)->getFilename();
     default:
       qWarning() << "Unknown Effect Field Type" << static_cast<int>(type);
       break;
@@ -146,13 +146,13 @@ long EffectField::timecodeToFrame(double timecode) {
 
 void EffectField::set_current_data(const QVariant& data) {
   switch (type) {
-    case EffectFieldType::DOUBLE: return static_cast<LabelSlider*>(ui_element)->set_value(data.toDouble(), false);
-    case EffectFieldType::COLOR: return static_cast<ColorButton*>(ui_element)->set_color(data.value<QColor>());
-    case EffectFieldType::STRING: return static_cast<TextEditEx*>(ui_element)->setPlainTextEx(data.toString());
-    case EffectFieldType::BOOL: return static_cast<QCheckBox*>(ui_element)->setChecked(data.toBool());
-    case EffectFieldType::COMBO: return static_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(data.toInt());
-    case EffectFieldType::FONT: return static_cast<FontCombobox*>(ui_element)->setCurrentTextEx(data.toString());
-    case EffectFieldType::FILE_T: return static_cast<EmbeddedFileChooser*>(ui_element)->setFilename(data.toString());
+    case EffectFieldType::DOUBLE: return dynamic_cast<LabelSlider*>(ui_element)->set_value(data.toDouble(), false);
+    case EffectFieldType::COLOR: return dynamic_cast<ColorButton*>(ui_element)->set_color(data.value<QColor>());
+    case EffectFieldType::STRING: return dynamic_cast<TextEditEx*>(ui_element)->setPlainTextEx(data.toString());
+    case EffectFieldType::BOOL: return dynamic_cast<QCheckBox*>(ui_element)->setChecked(data.toBool());
+    case EffectFieldType::COMBO: return dynamic_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(data.toInt());
+    case EffectFieldType::FONT: return dynamic_cast<FontCombobox*>(ui_element)->setCurrentTextEx(data.toString());
+    case EffectFieldType::FILE_T: return dynamic_cast<EmbeddedFileChooser*>(ui_element)->setFilename(data.toString());
     default:
         qWarning() << "Unknown Effect Field Type" << static_cast<int>(type);
         break;
@@ -196,7 +196,7 @@ void EffectField::get_keyframe_data(double timecode, int &before, int &after, do
 }
 
 bool EffectField::hasKeyframes() {
-  return (parent_row->isKeyframing() && (keyframes.size() > 0));
+  return (parent_row->isKeyframing() && (!keyframes.empty()));
 }
 
 QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
@@ -251,7 +251,7 @@ QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
         if (async) {
           return value;
         }
-        static_cast<LabelSlider*>(ui_element)->set_value(value, false);
+        dynamic_cast<LabelSlider*>(ui_element)->set_value(value, false);
       }
         break;
       case EffectFieldType::COLOR:
@@ -269,38 +269,38 @@ QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
         if (async) {
           return value;
         }
-        static_cast<ColorButton*>(ui_element)->set_color(value);
+        dynamic_cast<ColorButton*>(ui_element)->set_color(value);
       }
         break;
       case EffectFieldType::STRING:
         if (async) {
           return before_data;
         }
-        static_cast<TextEditEx*>(ui_element)->setPlainTextEx(before_data.toString());
+        dynamic_cast<TextEditEx*>(ui_element)->setPlainTextEx(before_data.toString());
         break;
       case EffectFieldType::BOOL:
         if (async) {
           return before_data;
         }
-        static_cast<QCheckBox*>(ui_element)->setChecked(before_data.toBool());
+        dynamic_cast<QCheckBox*>(ui_element)->setChecked(before_data.toBool());
         break;
       case EffectFieldType::COMBO:
         if (async) {
           return before_data;
         }
-        static_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(before_data.toInt());
+        dynamic_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(before_data.toInt());
         break;
       case EffectFieldType::FONT:
         if (async) {
           return before_data;
         }
-        static_cast<FontCombobox*>(ui_element)->setCurrentTextEx(before_data.toString());
+        dynamic_cast<FontCombobox*>(ui_element)->setCurrentTextEx(before_data.toString());
         break;
       case EffectFieldType::FILE_T:
         if (async) {
           return before_data;
         }
-        static_cast<EmbeddedFileChooser*>(ui_element)->setFilename(before_data.toString());
+        dynamic_cast<EmbeddedFileChooser*>(ui_element)->setFilename(before_data.toString());
         break;
       default:
         qWarning() << "Unhandled Effect Field" << static_cast<int>(type);
@@ -311,7 +311,7 @@ QVariant EffectField::validate_keyframe_data(double timecode, bool async) {
 }
 
 void EffectField::ui_element_change() {
-  bool dragging_double = (type == EffectFieldType::DOUBLE && static_cast<LabelSlider*>(ui_element)->is_dragging());
+  bool dragging_double = (type == EffectFieldType::DOUBLE && dynamic_cast<LabelSlider*>(ui_element)->is_dragging());
   const auto ca = dragging_double ? nullptr : new ComboAction();
   make_key_from_change(ca);
   if (!dragging_double) {
@@ -348,34 +348,34 @@ double EffectField::get_double_value(double timecode, bool async) {
     return validate_keyframe_data(timecode, true).toDouble();
   }
   validate_keyframe_data(timecode);
-  return static_cast<LabelSlider*>(ui_element)->value();
+  return dynamic_cast<LabelSlider*>(ui_element)->value();
 }
 
 void EffectField::set_double_value(double v) {
-  static_cast<LabelSlider*>(ui_element)->set_value(v, false);
+  dynamic_cast<LabelSlider*>(ui_element)->set_value(v, false);
 }
 
 void EffectField::set_double_default_value(double v) {
   setDefaultValue(v);
-  static_cast<LabelSlider*>(ui_element)->set_default_value(v);
+  dynamic_cast<LabelSlider*>(ui_element)->set_default_value(v);
 }
 
 void EffectField::set_double_minimum_value(double v) {
-  static_cast<LabelSlider*>(ui_element)->set_minimum_value(v);
+  dynamic_cast<LabelSlider*>(ui_element)->set_minimum_value(v);
 }
 
 void EffectField::set_double_maximum_value(double v) {
-  static_cast<LabelSlider*>(ui_element)->set_maximum_value(v);
+  dynamic_cast<LabelSlider*>(ui_element)->set_maximum_value(v);
 }
 
 
 void EffectField::set_double_step_value(const double v)
 {
-  static_cast<LabelSlider*>(ui_element)->set_step_value(v);
+  dynamic_cast<LabelSlider*>(ui_element)->set_step_value(v);
 }
 
 void EffectField::add_combo_item(const QString& name, const QVariant& data) {
-  static_cast<ComboBoxEx*>(ui_element)->addItem(name, data);
+  dynamic_cast<ComboBoxEx*>(ui_element)->addItem(name, data);
 }
 
 int EffectField::get_combo_index(double timecode, bool async) {
@@ -383,25 +383,25 @@ int EffectField::get_combo_index(double timecode, bool async) {
     return validate_keyframe_data(timecode, true).toInt();
   }
   validate_keyframe_data(timecode);
-  return static_cast<ComboBoxEx*>(ui_element)->currentIndex();
+  return dynamic_cast<ComboBoxEx*>(ui_element)->currentIndex();
 }
 
 QVariant EffectField::get_combo_data(double timecode) {
   validate_keyframe_data(timecode);
-  return static_cast<ComboBoxEx*>(ui_element)->currentData();
+  return dynamic_cast<ComboBoxEx*>(ui_element)->currentData();
 }
 
 QString EffectField::get_combo_string(double timecode) {
   validate_keyframe_data(timecode);
-  return static_cast<ComboBoxEx*>(ui_element)->currentText();
+  return dynamic_cast<ComboBoxEx*>(ui_element)->currentText();
 }
 
 void EffectField::set_combo_index(int index) {
-  static_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(index);
+  dynamic_cast<ComboBoxEx*>(ui_element)->setCurrentIndexEx(index);
 }
 
 void EffectField::set_combo_string(const QString& s) {
-  static_cast<ComboBoxEx*>(ui_element)->setCurrentTextEx(s);
+  dynamic_cast<ComboBoxEx*>(ui_element)->setCurrentTextEx(s);
 }
 
 bool EffectField::get_bool_value(double timecode, bool async) {
@@ -409,11 +409,11 @@ bool EffectField::get_bool_value(double timecode, bool async) {
     return validate_keyframe_data(timecode, true).toBool();
   }
   validate_keyframe_data(timecode);
-  return static_cast<QCheckBox*>(ui_element)->isChecked();
+  return dynamic_cast<QCheckBox*>(ui_element)->isChecked();
 }
 
 void EffectField::set_bool_value(bool b) {
-  static_cast<QCheckBox*>(ui_element)->setChecked(b);
+  dynamic_cast<QCheckBox*>(ui_element)->setChecked(b);
 }
 
 QString EffectField::get_string_value(double timecode, bool async) {
@@ -421,11 +421,11 @@ QString EffectField::get_string_value(double timecode, bool async) {
     return validate_keyframe_data(timecode, true).toString();
   }
   validate_keyframe_data(timecode);
-  return static_cast<TextEditEx*>(ui_element)->getPlainTextEx();
+  return dynamic_cast<TextEditEx*>(ui_element)->getPlainTextEx();
 }
 
 void EffectField::set_string_value(const QString& s) {
-  static_cast<TextEditEx*>(ui_element)->setPlainTextEx(s);
+  dynamic_cast<TextEditEx*>(ui_element)->setPlainTextEx(s);
 }
 
 QString EffectField::get_font_name(double timecode, bool async) {
@@ -433,11 +433,11 @@ QString EffectField::get_font_name(double timecode, bool async) {
     return validate_keyframe_data(timecode, true).toString();
   }
   validate_keyframe_data(timecode);
-  return static_cast<FontCombobox*>(ui_element)->currentText();
+  return dynamic_cast<FontCombobox*>(ui_element)->currentText();
 }
 
 void EffectField::set_font_name(const QString& s) {
-  static_cast<FontCombobox*>(ui_element)->setCurrentText(s);
+  dynamic_cast<FontCombobox*>(ui_element)->setCurrentText(s);
 }
 
 QColor EffectField::get_color_value(double timecode, bool async) {
@@ -445,11 +445,11 @@ QColor EffectField::get_color_value(double timecode, bool async) {
     return validate_keyframe_data(timecode, true).value<QColor>();
   }
   validate_keyframe_data(timecode);
-  return static_cast<ColorButton*>(ui_element)->get_color();
+  return dynamic_cast<ColorButton*>(ui_element)->get_color();
 }
 
-void EffectField::set_color_value(QColor color) {
-  static_cast<ColorButton*>(ui_element)->set_color(color);
+void EffectField::set_color_value(const QColor& color) {
+  dynamic_cast<ColorButton*>(ui_element)->set_color(color);
 }
 
 QString EffectField::get_filename(double timecode, bool async) {
@@ -457,9 +457,9 @@ QString EffectField::get_filename(double timecode, bool async) {
     return validate_keyframe_data(timecode, true).toString();
   }
   validate_keyframe_data(timecode);
-  return static_cast<EmbeddedFileChooser*>(ui_element)->getFilename();
+  return dynamic_cast<EmbeddedFileChooser*>(ui_element)->getFilename();
 }
 
 void EffectField::set_filename(const QString &s) {
-  static_cast<EmbeddedFileChooser*>(ui_element)->setFilename(s);
+  dynamic_cast<EmbeddedFileChooser*>(ui_element)->setFilename(s);
 }

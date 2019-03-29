@@ -16,7 +16,7 @@ namespace project {
   class TimelineInfo
   {
     public:
-      TimelineInfo();
+      TimelineInfo() = default;
       bool isVideo() const;
 
       bool enabled = true;

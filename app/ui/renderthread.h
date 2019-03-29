@@ -18,7 +18,9 @@ class RenderThread : public QThread {
     virtual ~RenderThread() override;
 
     RenderThread(const RenderThread& ) = delete;
+    RenderThread(const RenderThread&& ) = delete;
     RenderThread& operator=(const RenderThread&) = delete;
+    RenderThread& operator=(const RenderThread&&) = delete;
 
     QMutex mutex;
     GLuint frameBuffer;

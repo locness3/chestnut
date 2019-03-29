@@ -2,11 +2,6 @@
 
 using project::TimelineInfo;
 
-TimelineInfo::TimelineInfo()
-{
-
-}
-
 
 bool TimelineInfo::isVideo() const
 {
