@@ -150,7 +150,7 @@ public:
     virtual void refresh();
 
     std::shared_ptr<Effect> copy(ClipPtr c);
-    void copy_field_keyframes(std::shared_ptr<Effect> e);
+    void copy_field_keyframes(const std::shared_ptr<Effect>& e);
 
     virtual void load(QXmlStreamReader& stream);
     virtual void custom_load(QXmlStreamReader& stream);
@@ -240,9 +240,9 @@ private:
     QGridLayout* ui_layout;
     QWidget* ui;
     bool bound;
-
-    bool valueHasChanged(double timecode);
     QVector<QVariant> cachedValues;
+
+    bool valueHasChanged(const double timecode);
     void delete_texture();
     int get_index_in_clip();
     void validate_meta_path();

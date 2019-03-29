@@ -60,6 +60,7 @@
 #include <QMenu>
 #include <QApplication>
 #include <thread>
+#include <utility>
 
 constexpr auto EFFECT_EXT = "*.xml";
 constexpr auto EFFECT_PATH_ENV = "CHESTNUT_EFFECTS_PATH";
@@ -296,7 +297,7 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
   enable_coords(false),
   enable_superimpose(false),
   enable_image(false),
-  parent_clip(c),
+  parent_clip(std::move(c)),
   meta(em),
   container(new CollapsibleWidget()),
   glslProgram(nullptr),
@@ -332,7 +333,7 @@ Effect::~Effect()
 }
 
 
-void Effect::copy_field_keyframes(std::shared_ptr<Effect> e)
+void Effect::copy_field_keyframes(const std::shared_ptr<Effect>& e)
 {
   for (int i=0;i<rows.size();i++) {
     EffectRowPtr row(rows.at(i));
@@ -430,7 +431,7 @@ void Effect::show_context_menu(const QPoint& pos) {
 
 void Effect::delete_self()
 {
-  EffectDeleteCommand* command = new EffectDeleteCommand();
+  auto command = new EffectDeleteCommand();
   command->clips.append(parent_clip);
   command->fx.append(get_index_in_clip());
   e_undo_stack.push(command);
@@ -439,7 +440,7 @@ void Effect::delete_self()
 
 void Effect::move_up()
 {
-  MoveEffectCommand* command = new MoveEffectCommand();
+  auto command = new MoveEffectCommand();
   command->clip = parent_clip;
   command->from = get_index_in_clip();
   command->to = command->from - 1;
@@ -449,7 +450,7 @@ void Effect::move_up()
 
 void Effect::move_down()
 {
-  MoveEffectCommand* command = new MoveEffectCommand();
+  auto command = new MoveEffectCommand();
   command->clip = parent_clip;
   command->from = get_index_in_clip();
   command->to = command->from + 1;
@@ -459,7 +460,7 @@ void Effect::move_down()
 
 void Effect::reset()
 {
-  ResetEffectCommand* command = new ResetEffectCommand();
+  auto command = new ResetEffectCommand();
   for (const auto& row : rows) {
     for (auto i=0; i < row->fieldCount(); ++i) {
       auto field = row->field(i);
@@ -467,7 +468,7 @@ void Effect::reset()
         continue;
       }
 
-      command->fields_.push_back(std::make_tuple(field, field->get_current_data(), field->getDefaultData()));
+      command->fields_.emplace_back(std::make_tuple(field, field->get_current_data(), field->getDefaultData()));
     }
   }
 
@@ -647,35 +648,35 @@ void Effect::custom_load(QXmlStreamReader& /*stream*/)
   // Does nothing
 }
 
-void Effect::save(QXmlStreamWriter& stream) {
+void Effect::save(QXmlStreamWriter& stream)
+{
   stream.writeAttribute("name", meta->name);
   stream.writeAttribute("enabled", QString::number(is_enabled()));
 
-  for (int i=0;i<rows.size();i++) {
-    EffectRowPtr row(rows.at(i));
-    if (row->savable) {
-      stream.writeStartElement("row"); // row
-      for (int j=0;j<row->fieldCount();j++) {
-        EffectField* field = row->field(j);
-        stream.writeStartElement("field"); // field
-        stream.writeAttribute("id", field->id);
-        stream.writeAttribute("value", save_data_to_string(field->type, field->get_current_data()));
-        for (int k=0;k<field->keyframes.size();k++) {
-          const EffectKeyframe& key = field->keyframes.at(k);
-          stream.writeStartElement("key");
-          stream.writeAttribute("value", save_data_to_string(field->type, key.data));
-          stream.writeAttribute("frame", QString::number(key.time));
-          stream.writeAttribute("type", QString::number(key.type));
-          stream.writeAttribute("prehx", QString::number(key.pre_handle_x));
-          stream.writeAttribute("prehy", QString::number(key.pre_handle_y));
-          stream.writeAttribute("posthx", QString::number(key.post_handle_x));
-          stream.writeAttribute("posthy", QString::number(key.post_handle_y));
-          stream.writeEndElement(); // key
-        }
-        stream.writeEndElement(); // field
-      }
-      stream.writeEndElement(); // row
+  for (const auto& row : rows) {
+    if (!row->savable) {
+      continue;
     }
+    stream.writeStartElement("row"); // row
+    for (int j=0;j<row->fieldCount();j++) {
+      EffectField* field = row->field(j);
+      stream.writeStartElement("field"); // field
+      stream.writeAttribute("id", field->id);
+      stream.writeAttribute("value", save_data_to_string(field->type, field->get_current_data()));
+      for (const auto& key : field->keyframes) {
+        stream.writeStartElement("key");
+        stream.writeAttribute("value", save_data_to_string(field->type, key.data));
+        stream.writeAttribute("frame", QString::number(key.time));
+        stream.writeAttribute("type", QString::number(key.type));
+        stream.writeAttribute("prehx", QString::number(key.pre_handle_x));
+        stream.writeAttribute("prehy", QString::number(key.pre_handle_y));
+        stream.writeAttribute("posthx", QString::number(key.post_handle_x));
+        stream.writeAttribute("posthy", QString::number(key.post_handle_y));
+        stream.writeEndElement(); // key
+      }
+      stream.writeEndElement(); // field
+    }
+    stream.writeEndElement(); // row
   }
 }
 
@@ -683,15 +684,16 @@ bool Effect::is_open() {
   return isOpen;
 }
 
-void Effect::validate_meta_path() {
+void Effect::validate_meta_path()
+{
   if (!meta->path.isEmpty() || (vertPath.isEmpty() && fragPath.isEmpty())) return;
   QList<QString> effects_paths = get_effects_paths();
   const QString& test_fn = vertPath.isEmpty() ? fragPath : vertPath;
-  for (int i=0;i<effects_paths.size();i++) {
-    if (QFileInfo::exists(effects_paths.at(i) + "/" + test_fn)) {
+  for (const auto& effects_path : effects_paths) {
+    if (QFileInfo::exists(effects_path + "/" + test_fn)) {
       for (int j=0;j<effects.size();j++) {
         if (&effects.at(j) == meta) {
-          effects[j].path = effects_paths.at(i);
+          effects[j].path = effects_path;
           return;
         }
       }
@@ -785,18 +787,18 @@ void Effect::process_image(double, uint8_t *, int)
 
 EffectPtr Effect::copy(ClipPtr c)
 {
-  EffectPtr copy = create_effect(c, meta);
+  EffectPtr copy =create_effect(std::move(c), meta);
   copy->set_enabled(is_enabled());
   copy_field_keyframes(copy);
   return copy;
 }
 
-void Effect::process_shader(double timecode, GLTextureCoords&) {
+void Effect::process_shader(double timecode, GLTextureCoords&)
+{
   glslProgram->setUniformValue("resolution", parent_clip->width(), parent_clip->height());
   glslProgram->setUniformValue("time", GLfloat(timecode));
 
-  for (int i=0;i<rows.size();i++) {
-    EffectRowPtr row(rows.at(i));
+  for (const auto& row: rows) {
     for (int j=0;j<row->fieldCount();j++) {
       EffectField* field = row->field(j);
       if (!field->id.isEmpty()) {
@@ -878,30 +880,31 @@ void Effect::gizmo_draw(double, GLTextureCoords &)
 
 void Effect::gizmo_move(EffectGizmoPtr &gizmo, const int x_movement, const int y_movement, const double timecode, const bool done)
 {
-  for (int i=0;i<gizmos.size();i++) {
-    if (gizmos.at(i) == gizmo) {
-      const auto ca = done ? new ComboAction : nullptr;
-      if (gizmo->x_field1 != nullptr) {
-        gizmo->x_field1->set_double_value(gizmo->x_field1->get_double_value(timecode) + x_movement*gizmo->x_field_multi1);
-        gizmo->x_field1->make_key_from_change(ca);
-      }
-      if (gizmo->y_field1 != nullptr) {
-        gizmo->y_field1->set_double_value(gizmo->y_field1->get_double_value(timecode) + y_movement*gizmo->y_field_multi1);
-        gizmo->y_field1->make_key_from_change(ca);
-      }
-      if (gizmo->x_field2 != nullptr) {
-        gizmo->x_field2->set_double_value(gizmo->x_field2->get_double_value(timecode) + x_movement*gizmo->x_field_multi2);
-        gizmo->x_field2->make_key_from_change(ca);
-      }
-      if (gizmo->y_field2 != nullptr) {
-        gizmo->y_field2->set_double_value(gizmo->y_field2->get_double_value(timecode) + y_movement*gizmo->y_field_multi2);
-        gizmo->y_field2->make_key_from_change(ca);
-      }
-      if (done) {
-        e_undo_stack.push(ca);
-      }
-      break;
+  for (auto& giz : gizmos) {
+    if (giz != gizmo) {
+      continue;
     }
+    const auto ca = done ? new ComboAction : nullptr;
+    if (gizmo->x_field1 != nullptr) {
+      gizmo->x_field1->set_double_value(gizmo->x_field1->get_double_value(timecode) + x_movement*gizmo->x_field_multi1);
+      gizmo->x_field1->make_key_from_change(ca);
+    }
+    if (gizmo->y_field1 != nullptr) {
+      gizmo->y_field1->set_double_value(gizmo->y_field1->get_double_value(timecode) + y_movement*gizmo->y_field_multi1);
+      gizmo->y_field1->make_key_from_change(ca);
+    }
+    if (gizmo->x_field2 != nullptr) {
+      gizmo->x_field2->set_double_value(gizmo->x_field2->get_double_value(timecode) + x_movement*gizmo->x_field_multi2);
+      gizmo->x_field2->make_key_from_change(ca);
+    }
+    if (gizmo->y_field2 != nullptr) {
+      gizmo->y_field2->set_double_value(gizmo->y_field2->get_double_value(timecode) + y_movement*gizmo->y_field_multi2);
+      gizmo->y_field2->make_key_from_change(ca);
+    }
+    if (done) {
+      e_undo_stack.push(ca);
+    }
+    break;
   }
 }
 
@@ -928,7 +931,7 @@ void Effect::gizmo_world_to_screen()
 }
 
 bool Effect::are_gizmos_enabled() const {
-  return (gizmos.size() > 0);
+  return (!gizmos.empty());
 }
 
 void Effect::redraw(double)
@@ -936,17 +939,18 @@ void Effect::redraw(double)
   qInfo() << "Method does nothing";
 }
 
-bool Effect::valueHasChanged(double timecode) {
-  if (cachedValues.size() == 0) {
+bool Effect::valueHasChanged(const double timecode)
+{
+  bool changed = false;
+  if (cachedValues.empty()) {
     for (int i=0;i<row_count();i++) {
       EffectRowPtr crow(row(i));
       for (int j=0;j<crow->fieldCount();j++) {
         cachedValues.append(crow->field(j)->get_current_data());
       }
     }
-    return true;
+    changed = true;
   } else {
-    bool changed = false;
     int index = 0;
     for (int i=0;i<row_count();i++) {
       EffectRowPtr crow(row(i));
