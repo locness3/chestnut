@@ -106,28 +106,6 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
 
 }
 
-/**
- * @brief Copy constructor
- * @param cpy
- */
-Sequence::Sequence(const Sequence& cpy)
-  : project::ProjectItem (cpy),
-    selections_(cpy.selections_),
-    clips_(cpy.clips_),
-    save_id_(cpy.save_id_),
-    workarea_(cpy.workarea_),
-    transitions_(cpy.transitions_),
-    markers_(cpy.markers_),
-    playhead_(cpy.playhead_),
-    wrapper_sequence_(cpy.wrapper_sequence_),
-    width_(cpy.width_),
-    height_(cpy.height_),
-    frame_rate_(cpy.frame_rate_),
-    audio_frequency_(cpy.audio_frequency_),
-    audio_layout_(cpy.audio_layout_)
-{
-
-}
 
 std::shared_ptr<Sequence> Sequence::copy()
 {

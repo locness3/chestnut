@@ -46,7 +46,7 @@ public:
     Sequence& operator=(const Sequence&) = delete;
     Sequence& operator=(const Sequence&&) = delete;
 
-    Sequence(const Sequence& cpy);
+    Sequence(const Sequence& cpy) = default;
     std::shared_ptr<Sequence> copy();
     std::pair<int64_t,int64_t> trackLimits() const;
     int64_t endFrame() const;

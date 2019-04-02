@@ -180,34 +180,34 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
     } media_handling;
 
     // temporary variables
-    int load_id;
+    int load_id{};
     bool undeletable;
-    bool reached_end;
-    bool is_open;
+    bool reached_end{};
+    bool is_open{};
     bool replaced;
     std::atomic_bool ignore_reverse{false};
-    int pix_fmt;
+    int pix_fmt{};
 
     // caching functions
     bool use_existing_frame;
-    bool multithreaded;
+    bool multithreaded{};
     QWaitCondition can_cache;
-    int max_queue_size;
+    int max_queue_size{};
     QVector<AVFrame*> queue;
     QMutex queue_lock;
     QMutex lock;
     QMutex open_lock;
-    int64_t last_invalid_ts;
+    int64_t last_invalid_ts{};
 
     // converters/filters
     AVFilterGraph* filter_graph;
-    AVFilterContext* buffersink_ctx;
-    AVFilterContext* buffersrc_ctx;
+    AVFilterContext* buffersink_ctx{};
+    AVFilterContext* buffersrc_ctx{};
 
     // video playback variables
     QOpenGLFramebufferObject** fbo;
     std::unique_ptr<QOpenGLTexture> texture = nullptr;
-    long texture_frame;
+    long texture_frame{};
 
     struct AudioPlaybackInfo {
         // audio playback variables
@@ -236,7 +236,7 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
 
 
     std::atomic_bool finished_opening{false};
-    bool pkt_written;
+    bool pkt_written{};
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 

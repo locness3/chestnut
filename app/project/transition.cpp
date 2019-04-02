@@ -44,7 +44,7 @@ namespace{
   const long MINIMUM_TRANSITION_LENGTH = 0;
 }
 
-Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
+Transition::Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em) :
   Effect(c, em),
   secondary_clip(s),
   length(DEFAULT_TRANSITION_LENGTH)
@@ -54,12 +54,13 @@ Transition::Transition(ClipPtr c, ClipPtr s, const EffectMeta* em) :
   length_field->set_double_default_value(DEFAULT_TRANSITION_LENGTH);
   length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
 
-  LabelSlider* length_ui_ele = static_cast<LabelSlider*>(length_field->ui_element);
+  auto length_ui_ele = dynamic_cast<LabelSlider*>(length_field->ui_element);
   length_ui_ele->set_display_type(SliderType::FRAMENUMBER);
   length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->frameRate());
 }
 
-int Transition::copy(ClipPtr c, ClipPtr s) {
+int Transition::copy(const ClipPtr& c, const ClipPtr& s)
+{
   return create_transition(c, s, meta, length);
 }
 
@@ -80,7 +81,7 @@ long Transition::get_length() const {
 }
 
 void Transition::set_length_from_slider() {
-  set_length(length_field->get_double_value(0));
+  set_length(qRound(length_field->get_double_value(0)));
   update_ui(false);
 }
 
@@ -88,7 +89,9 @@ TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* e
   if (!em->filename.isEmpty()) {
     // load effect from file
     return std::make_shared<Transition>(c, s, em);
-  } else if (em->internal >= 0 && em->internal < TRANSITION_INTERNAL_COUNT) {
+  }
+
+  if (em->internal >= 0 && em->internal < TRANSITION_INTERNAL_COUNT) {
     // must be an internal effect
     switch (em->internal) {
       case TRANSITION_INTERNAL_CROSSDISSOLVE: return std::make_shared<CrossDissolveTransition>(c, s, em);
@@ -111,7 +114,7 @@ TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* e
   return nullptr;
 }
 
-int create_transition(ClipPtr c, ClipPtr s, const EffectMeta* em, long length) {
+int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em, long length) {
   auto t = get_transition_from_meta(c, s, em);
   if (t != nullptr) {
     if (length >= 0) {

@@ -45,12 +45,10 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
-namespace {
-  const bool WAIT_ON_CLOSE = true;
-  const AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;
-  const int AUDIO_SAMPLES = 2048;
-  const int AUDIO_BUFFER_PADDING = 2048;
-}
+constexpr bool WAIT_ON_CLOSE = true;
+constexpr AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;
+constexpr int AUDIO_SAMPLES = 2048;
+constexpr int AUDIO_BUFFER_PADDING = 2048;
 
 double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sample_rate) {
   return (static_cast<double>(nb_bytes >> 1) / nb_channels / sample_rate);
@@ -58,12 +56,9 @@ double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sam
 
 Clip::Clip(SequencePtr s) :
   SequenceItem(project::SequenceItemType::CLIP),
-  sequence(s),
-  timeline_info(),
-  effects(),
+  sequence(std::move(s)),
   opening_transition(-1),
   closing_transition(-1),
-  media_handling(),
   undeletable(false),
   replaced(false),
   ignore_reverse(false),
@@ -111,9 +106,8 @@ ClipPtr Clip::copy(SequencePtr s) {
   copyClip->timeline_info.maintain_audio_pitch = timeline_info.maintain_audio_pitch;
   copyClip->timeline_info.reverse = timeline_info.reverse;
 
-  for (int i=0; i<effects.size(); i++) {
-    //TODO:hmm
-    copyClip->effects.append(effects.at(i)->copy(copyClip));
+  for (auto& eff : effects) {
+    copyClip->effects.append(eff->copy(copyClip));
   }
 
   copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
@@ -150,11 +144,8 @@ bool Clip::isActive(const long playhead) {
  */
 bool Clip::usesCacher() const
 {
-  if (( (timeline_info.media == nullptr) && (timeline_info.track_ >= 0) )
-      || ( (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE))) {
-    return true;
-  }
-  return false;
+  return (( (timeline_info.media == nullptr) && (timeline_info.track_ >= 0) )
+      || ( (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE)));
 }
 
 /**
@@ -172,7 +163,7 @@ bool Clip::openWorker() {
       media_handling.frame->nb_samples = AUDIO_SAMPLES;
       av_frame_make_writable(media_handling.frame);
       if (av_frame_get_buffer(media_handling.frame, 0)) {
-        dout << "[ERROR] Could not allocate buffer for tone clip";
+        qCritical() << "Could not allocate buffer for tone clip";
       }
       audio_playback.reset = true;
     }
@@ -201,7 +192,7 @@ bool Clip::openWorker() {
     if (errCode != 0) {
       char err[1024];
       av_strerror(errCode, err, 1024);
-      dout << "[ERROR] Could not open" << filename << "-" << err;
+      qCritical() << "Could not open" << filename << "-" << err;
       return false;
     }
 
@@ -209,7 +200,7 @@ bool Clip::openWorker() {
     if (errCode < 0) {
       char err[1024];
       av_strerror(errCode, err, 1024);
-      dout << "[ERROR] Could not open" << filename << "-" << err;
+       qCritical() << "Could not open" << filename << "-" << err;
       return false;
     }
 
@@ -366,12 +357,12 @@ bool Clip::openWorker() {
 
       enum AVSampleFormat sample_fmts[] = { SAMPLE_FORMAT,  static_cast<AVSampleFormat>(-1) };
       if (av_opt_set_int_list(buffersink_ctx, "sample_fmts", sample_fmts, -1, AV_OPT_SEARCH_CHILDREN) < 0) {
-        dout << "[ERROR] Could not set output sample format";
+        qCritical() << "Could not set output sample format";
       }
 
       int64_t channel_layouts[] = { AV_CH_LAYOUT_STEREO, static_cast<AVSampleFormat>(-1) };
       if (av_opt_set_int_list(buffersink_ctx, "channel_layouts", channel_layouts, -1, AV_OPT_SEARCH_CHILDREN) < 0) {
-        dout << "[ERROR] Could not set output sample format";
+        qCritical() << "Could not set output sample format";
       }
 
       int target_sample_rate = current_audio_freq();
@@ -386,7 +377,6 @@ bool Clip::openWorker() {
 
         char speed_param[10];
 
-        //				if (playback_speed != 1.0) {
         double base = (playback_speed > 1.0) ? 2.0 : 0.5;
 
         double speedlog = log(playback_speed) / log(base);
@@ -417,7 +407,7 @@ bool Clip::openWorker() {
 
       int sample_rates[] = { target_sample_rate, 0 };
       if (av_opt_set_int_list(buffersink_ctx, "sample_rates", sample_rates, 0, AV_OPT_SEARCH_CHILDREN) < 0) {
-        dout << "[ERROR] Could not set output sample rates";
+        qCritical() << "Could not set output sample rates";
       }
 
       avfilter_graph_config(filter_graph, nullptr);
@@ -428,8 +418,8 @@ bool Clip::openWorker() {
     media_handling.frame = av_frame_alloc();
   }
 
-  for (int i=0;i<effects.size();i++) {
-    effects.at(i)->open();
+  for (const auto& eff : effects) {
+    eff->open();
   }
 
   finished_opening = true;
@@ -509,11 +499,9 @@ void Clip::close(const bool wait) {
       texture = nullptr;
     }
 
-    for (auto eff : effects) {
-      if (eff != nullptr) {
-        if (eff->is_open()) {
-          eff->close();
-        }
+    for (const auto& eff : effects) {
+      if ( (eff != nullptr) && eff->is_open()) {
+        eff->close();
       }
     }
 
@@ -575,7 +563,7 @@ bool Clip::cache(const long playhead, const bool do_reset, const bool scrubbing,
     cache_info.reset = do_reset;
     cache_info.nests = nests;
     cache_info.scrubbing = scrubbing;
-    if (cache_info.reset && queue.size() > 0) {
+    if (cache_info.reset && !queue.empty()) {
       cache_info.interrupt = true;
     }
 
@@ -588,7 +576,8 @@ bool Clip::cache(const long playhead, const bool do_reset, const bool scrubbing,
 
 
 
-void Clip::reset() {
+void Clip::reset()
+{
   audio_playback.just_reset = false;
   is_open = false;
   finished_opening = false;
@@ -606,45 +595,46 @@ void Clip::reset() {
   texture = nullptr;
 }
 
-void Clip::resetAudio() {
+void Clip::resetAudio()
+{
   if (timeline_info.media == nullptr || timeline_info.media->type() == MediaType::FOOTAGE) {
     audio_playback.reset = true;
     audio_playback.frame_sample_index = -1;
     audio_playback.buffer_write = 0;
   } else if (timeline_info.media->type() == MediaType::SEQUENCE) {
     SequencePtr nested_sequence = timeline_info.media->object<Sequence>();
-    for (int i=0;i<nested_sequence->clips_.size();i++) {
-      ClipPtr c(nested_sequence->clips_.at(i));
-      if (c != nullptr) {
-        c->resetAudio(); //FIXME: no recursion depth check
+    for (const auto& clp : nested_sequence->clips_) {
+      if (clp != nullptr) {
+        clp->resetAudio(); //FIXME: no recursion depth check
       }
     }
   }
 }
 
-void Clip::refresh() {
+void Clip::refresh()
+{
   // validates media if it was replaced
   if (replaced && timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
     FootagePtr m = timeline_info.media->object<Footage>();
 
-    if (timeline_info.isVideo() && m->video_tracks.size() > 0)  {
+    if (timeline_info.isVideo() && !m->video_tracks.empty())  {
       timeline_info.media_stream = m->video_tracks.front()->file_index;
-    } else if (timeline_info.track_ >= 0 && m->audio_tracks.size() > 0) {
+    } else if ( (timeline_info.track_ >= 0) && !m->audio_tracks.empty()) {
       timeline_info.media_stream = m->audio_tracks.front()->file_index;
     }
   }
   replaced = false;
 
   // reinitializes all effects... just in case
-  for (int i=0;i<effects.size();i++) {
-    effects.at(i)->refresh();
+  for (const auto& eff : effects) {
+    eff->refresh();
   }
 
   recalculateMaxLength();
 }
 
 void Clip::clearQueue() {
-  while (queue.size() > 0) {
+  while (!queue.empty()) {
     av_frame_free(&queue.first());
     queue.removeFirst();
   }
@@ -662,24 +652,24 @@ void Clip::removeEarliestFromQueue() {
   queue.removeAt(earliest_frame);
 }
 
-TransitionPtr Clip::openingTransition() {
+TransitionPtr Clip::openingTransition()
+{
   if (opening_transition > -1) {
     if (this->sequence == nullptr) {
       return e_clipboard_transitions.at(opening_transition);
-    } else {
-      return this->sequence->transitions_.at(opening_transition);
     }
+    return this->sequence->transitions_.at(opening_transition);
   }
   return nullptr;
 }
 
-TransitionPtr Clip::closingTransition() {
+TransitionPtr Clip::closingTransition()
+{
   if (closing_transition > -1) {
     if (this->sequence == nullptr) {
       return e_clipboard_transitions.at(closing_transition);
-    } else {
-      return this->sequence->transitions_.at(closing_transition);
     }
+    return this->sequence->transitions_.at(closing_transition);
   }
   return nullptr;
 }
@@ -688,7 +678,8 @@ TransitionPtr Clip::closingTransition() {
  * @brief set frame cache to a position
  * @param playhead
  */
-void Clip::frame(const long playhead, bool& texture_failed) {
+void Clip::frame(const long playhead, bool& texture_failed)
+{
   if (finished_opening && (media_handling.stream != nullptr) ) {
     auto ftg = timeline_info.media->object<Footage>();
     if (!ftg) return;
@@ -713,7 +704,7 @@ void Clip::frame(const long playhead, bool& texture_failed) {
     bool use_cache = true;
 
     queue_lock.lock();
-    if (queue.size() > 0) {
+    if (!queue.empty()) {
       if (ms->infinite_length) {
         target_frame = queue.at(0);
       } else {
@@ -726,7 +717,8 @@ void Clip::frame(const long playhead, bool& texture_failed) {
           if (queue.at(i)->pts == target_pts) {
             closest_frame = i;
             break;
-          } else if (queue.at(i)->pts > queue.at(closest_frame)->pts && queue.at(i)->pts < target_pts) {
+          }
+          if (queue.at(i)->pts > queue.at(closest_frame)->pts && queue.at(i)->pts < target_pts) {
             closest_frame = i;
           }
         }
@@ -738,17 +730,15 @@ void Clip::frame(const long playhead, bool& texture_failed) {
 
         int previous_frame_count = 0;
         if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
-          minimum_ts -= (second_pts*e_config.previous_queue_size);
+          minimum_ts -= (second_pts * e_config.previous_queue_size);
         }
 
-        //dout << "closest frame was" << closest_frame << "with" << target_frame->pts << "/" << target_pts;
         for (int i=0;i<queue.size();i++) {
           if (queue.at(i)->pts > target_frame->pts && queue.at(i)->pts < next_pts) {
             next_pts = queue.at(i)->pts;
           }
           if (queue.at(i) != target_frame && ((queue.at(i)->pts > minimum_ts) == timeline_info.reverse)) {
             if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
-              //dout << "removed frame at" << i << "because its pts was" << queue.at(i)->pts << "compared to" << target_frame->pts;
               av_frame_free(&queue[i]); // may be a little heavy for the main thread?
               queue.removeAt(i);
               i--;

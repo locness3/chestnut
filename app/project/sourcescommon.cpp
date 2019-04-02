@@ -165,7 +165,8 @@ void SourcesCommon::mousePressEvent(QMouseEvent *) {
   stop_rename_timer();
 }
 
-void SourcesCommon::item_click(MediaPtr m, const QModelIndex& index) {
+void SourcesCommon::item_click(const MediaPtr& m, const QModelIndex& index)
+{
   if (editing_item == m) {
     rename_timer.start();
   } else {
@@ -185,7 +186,7 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& 
   if (project_parent == nullptr) {
     return;
   }
-  if (items.size() == 0) {
+  if (items.empty()) {
     project_parent->import_dialog();
   } else if (items.size() == 1) {
     auto item = project_parent->item_to_media(items.front());
@@ -220,9 +221,10 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
     QList<QUrl> urls = mimeData->urls();
     if (!urls.isEmpty()) {
       QStringList paths;
-      for (int i=0;i<urls.size();i++) {
-        paths.append(urls.at(i).toLocalFile());
+      for (const auto& url : urls ) {
+        paths.append(url.toLocalFile());
       }
+
       bool replace = false;
       if ( (urls.size() == 1)
            && drop_item.isValid()
@@ -280,8 +282,8 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
           }
         }
       }
-      if (move_items.size() > 0) {
-        MediaMove* mm = new MediaMove();
+      if (!move_items.empty()) {
+        auto mm = new MediaMove();
         mm->to = m;
         mm->items = move_items;
         e_undo_stack.push(mm);
@@ -331,9 +333,10 @@ void SourcesCommon::rename_interval() {
   }
 }
 
-void SourcesCommon::item_renamed(MediaPtr item) {
+void SourcesCommon::item_renamed(const MediaPtr& item)
+{
   if (editing_item == item) {
-    MediaRename* mr = new MediaRename(item, "idk");
+    auto mr = new MediaRename(item, "idk");
     e_undo_stack.push(mr);
     editing_item = nullptr;
   }

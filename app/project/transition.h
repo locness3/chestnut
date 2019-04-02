@@ -34,19 +34,19 @@
 #define TRANSITION_INTERNAL_CUBE 4
 #define TRANSITION_INTERNAL_COUNT 5
 
-int create_transition(ClipPtr c, ClipPtr s, const EffectMeta* em, long length = -1);
+int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em, long length = -1);
 
 
 
 class Transition : public Effect {
     Q_OBJECT
   public:
-    Transition(ClipPtr c, ClipPtr s, const EffectMeta* em);
+    Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em);
 
     Transition(const Transition& ) = delete;
     Transition& operator=(const Transition&) = delete;
 
-    int copy(ClipPtr c, ClipPtr s);
+    int copy(const ClipPtr& c, const ClipPtr& s);
     ClipWPtr secondary_clip;
     void set_length(const long value);
     long get_true_length() const;

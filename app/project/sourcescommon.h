@@ -42,13 +42,13 @@ public:
     void mouseDoubleClickEvent(QMouseEvent* e, const QModelIndexList& items);
     void dropEvent(QWidget *parent, QDropEvent* e, const QModelIndex& drop_item, const QModelIndexList &items);
 
-    void item_click(MediaPtr m, const QModelIndex &index);
+    void item_click(const MediaPtr& m, const QModelIndex &index);
     void setCurrentView(QAbstractItemView* currentView);
 private slots:
     void create_seq_from_selected();
     void reveal_in_browser();
     void rename_interval();
-    void item_renamed(MediaPtr item);
+    void item_renamed(const MediaPtr& item);
 private:
     QAbstractItemView* view = nullptr;
     MediaPtr editing_item;
