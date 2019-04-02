@@ -13,6 +13,8 @@ class EffectTest : public QObject
 
   private slots:
     void testCaseSetupWidget();
+    void testCaseIsEnabled();
+    void testCaseSetEnabled();
 };
 
 #endif // EFFECTTEST_H

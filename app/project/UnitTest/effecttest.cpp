@@ -20,3 +20,22 @@ void EffectTest::testCaseSetupWidget()
   QVERIFY(eff.vertPath.size() == 0);
 
 }
+
+
+void EffectTest::testCaseIsEnabled()
+{
+  auto clp = std::make_shared<Clip>(std::make_shared<Sequence>());
+  Effect eff(clp, nullptr);
+  QVERIFY(eff.is_enabled() == true);
+}
+
+
+void EffectTest::testCaseSetEnabled()
+{
+  auto clp = std::make_shared<Clip>(std::make_shared<Sequence>());
+  Effect eff(clp, nullptr);
+  eff.set_enabled(false);
+  QVERIFY(eff.is_enabled() == false);
+  eff.set_enabled(true);
+  QVERIFY(eff.is_enabled() == true);
+}
