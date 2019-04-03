@@ -35,6 +35,7 @@
 #include "effectrow.h"
 #include "effectgizmo.h"
 #include "project/sequenceitem.h"
+#include "gsl/span"
 
 class CollapsibleWidget;
 class QLabel;
@@ -169,7 +170,7 @@ public:
     int getIterations();
     void setIterations(int i);
 
-    virtual void process_image(double timecode, uint8_t* data, int size);
+    virtual void process_image(double timecode, gsl::span<uint8_t>& data);
     virtual void process_shader(double timecode, GLTextureCoords&);
     virtual void process_coords(double timecode, GLTextureCoords& coords, int data);
     virtual GLuint process_superimpose(double timecode);
@@ -222,7 +223,7 @@ protected:
 
     // superimpose effect
     QImage img;
-    QOpenGLTexture* texture;
+    std::unique_ptr<QOpenGLTexture> texture_{};
 
     // enable effect to update constantly
     bool enable_always_update;
@@ -240,7 +241,6 @@ private:
     QVector<QVariant> cachedValues;
 
     bool valueHasChanged(const double timecode);
-    void delete_texture();
     int get_index_in_clip();
     void validate_meta_path();
     void setupControlWidget(const EffectMeta& em);

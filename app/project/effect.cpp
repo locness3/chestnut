@@ -302,7 +302,6 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
   meta(em),
   container(new CollapsibleWidget()),
   glslProgram(nullptr),
-  texture(nullptr),
   enable_always_update(false),
   isOpen(false),
   bound(false)
@@ -747,7 +746,7 @@ void Effect::open()
   }
 
   if (enable_superimpose) {
-    texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+    texture_ = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
   }
 }
 
@@ -755,7 +754,6 @@ void Effect::close() {
   if (!isOpen) {
     qWarning() << "Tried to close an effect that was already closed";
   }
-  delete_texture();
   if (glslProgram != nullptr) {
     delete glslProgram;
     glslProgram = nullptr;
@@ -784,7 +782,7 @@ void Effect::endEffect() {
   bound = false;
 }
 
-void Effect::process_image(double, uint8_t *, int)
+void Effect::process_image(double, gsl::span<uint8_t>& data)
 {
   // Does nothing
 }
@@ -859,15 +857,14 @@ GLuint Effect::process_superimpose(double timecode) {
     redraw(timecode);
   }
 
-  if (texture != nullptr) {
-    if (recreate_texture || texture->width() != img.width() || texture->height() != img.height()) {
-      delete_texture();
-      texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
-      texture->setData(img);
+  if (texture_ != nullptr) {
+    if (recreate_texture || texture_->width() != img.width() || texture_->height() != img.height()) {
+      texture_ = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
+      texture_->setData(img);
     } else {
-      texture->setData(0, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, img.constBits());
+      texture_->setData(0, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, img.constBits());
     }
-    return texture->textureId();
+    return texture_->textureId();
   }
   return 0;
 }
@@ -971,14 +968,6 @@ bool Effect::valueHasChanged(const double timecode)
   }
   return changed;
 }
-
-void Effect::delete_texture() {
-  if (texture != nullptr) {
-    delete texture;
-    texture = nullptr;
-  }
-}
-
 
 void Effect::setupDoubleWidget(const QXmlStreamAttributes& attributes, EffectField& field) const
 {

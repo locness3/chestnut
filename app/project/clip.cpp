@@ -820,7 +820,8 @@ void Clip::frame(const long playhead, bool& texture_failed)
             memcpy(data, target_frame->data[0], frame_size);
             copied = true;
           }
-          e->process_image(timecode(playhead), data, frame_size);
+          auto img = gsl::span<uint8_t>(data, frame_size);
+          e->process_image(timecode(playhead), img);
         }
       }
 
