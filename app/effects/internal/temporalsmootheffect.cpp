@@ -1,7 +1,10 @@
 #include "temporalsmootheffect.h"
 #include <omp.h>
+#include <cmath>
 
-TemporalSmoothEffect::TemporalSmoothEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em)
+#include "gsl/span"
+
+TemporalSmoothEffect::TemporalSmoothEffect(ClipPtr c, const EffectMeta* em) : Effect(std::move(c), em)
 {
   enable_image = true;
   frame_length_ = add_row(tr("Frame Length"))->add_field(EffectFieldType::DOUBLE, "length");
@@ -40,17 +43,18 @@ uint8_t median(const int ix, const QVector<uint8_t*>& data)
 {
   const auto sz = data.size();
   uint8_t vals[10];
-  for (auto i = 0; i < sz; ++i) {
+  auto lim = sz > 10 ? 10 : sz;
+  for (auto i = 0; i < lim; ++i) {
     vals[i] = data[i][ix];
   }
-  std::sort(vals, vals+sz);
+  std::sort(vals, vals+lim);
   uint8_t val;
   if (sz % 2 == 0) {
-    uint16_t tmp = vals[static_cast<size_t>(sz/2)];
-    tmp += vals[static_cast<size_t>((static_cast<double>(sz)/2) + 0.5)];
-    val = static_cast<uint8_t>((static_cast<double>(tmp) / 2) + 0.5);
+    uint16_t tmp = gsl::at(vals, sz/2);
+    tmp += gsl::at(vals ,lround(static_cast<double>(sz)/2));
+    val = static_cast<uint8_t>(lround(static_cast<double>(tmp) / 2));
   } else {
-    val = vals[static_cast<size_t>(sz/2)];
+    val = gsl::at(vals, sz/2);
   }
   return val;
 }
@@ -85,7 +89,7 @@ void TemporalSmoothEffect::process_image(double timecode, uint8_t* data, int siz
     qCritical() << "Ui Elements null";
     return;
   }
-  const auto length = static_cast<int>(frame_length_->get_double_value(timecode) + 0.5);
+  const auto length = lround(frame_length_->get_double_value(timecode));
 
   while (frames_.size() > length - 1) { // -1 as new frame is about to be added
     delete[] frames_.front();

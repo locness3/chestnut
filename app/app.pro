@@ -204,7 +204,11 @@ HEADERS += \
     ui/viewerwindow.h \
     project/projectfilter.h \
     project/timelineinfo.h \
-    effects/internal/temporalsmootheffect.h
+    effects/internal/temporalsmootheffect.h \
+    gsl/span \
+    gsl/gsl_assert \
+    gsl/gsl_byte \
+    gsl/gsl_util
 
 DISTFILES +=
 
