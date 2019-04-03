@@ -51,12 +51,12 @@ uint8_t median(const int ix, const VectorSpanBytes& data)
   uint8_t val;
   if (sz % 2 == 0) {
     // sum pixels "around" the middle and avg
-    uint16_t tmp = gsl::at(vals, sz/2);
-    tmp += gsl::at(vals ,lround(static_cast<double>(sz)/2));
+    uint16_t tmp = vals.at(sz/2);
+    tmp += vals.at(lround(static_cast<double>(sz)/2));
     val = static_cast<uint8_t>(lround(static_cast<double>(tmp) / 2));
   } else {
     // use middle val
-    val = gsl::at(vals, sz/2);
+    val = vals.at(sz/2);
   }
   return val;
 }
