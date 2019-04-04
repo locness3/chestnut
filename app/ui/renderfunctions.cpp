@@ -137,7 +137,6 @@ GLuint compose_sequence(Viewer* viewer,
     if (video && (nests.last()->fbo != nullptr) ) {
       nests.last()->fbo[0]->bind();
       glClear(GL_COLOR_BUFFER_BIT);
-      //			nests.last()->fbo[0]->release();
       ctx->functions()->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, current_fbo);
     }
   }
@@ -149,7 +148,6 @@ GLuint compose_sequence(Viewer* viewer,
   for (auto clp : lcl_seq->clips_) {
     // if clip starts within one second and/or hasn't finished yet
     if (clp != nullptr) {
-      //			if (!(!nests.isEmpty() && !same_sign(c->track, nests.last()->track))) {
       if ((clp->timeline_info.isVideo()) == video) {
         auto clip_is_active = false;
 
@@ -280,7 +278,6 @@ GLuint compose_sequence(Viewer* viewer,
           if (clp->timeline_info.media == nullptr) {
             clp->fbo[fbo_switcher]->bind();
             glClear(GL_COLOR_BUFFER_BIT);
-            //						c->fbo[fbo_switcher]->release();
             ctx->functions()->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, current_fbo);
             composite_texture = clp->fbo[fbo_switcher]->texture();
           } else {
@@ -358,10 +355,8 @@ GLuint compose_sequence(Viewer* viewer,
 
           if (selected_effect != nullptr) {
             gizmos = selected_effect;
-            //						(*gizmos) = selected_effect;
           } else if (clp->isSelected(true)) {
             gizmos = first_gizmo_effect;
-            //						(*gizmos) = first_gizmo_effect;
           }
 
           if (clp->openingTransition() != nullptr) {

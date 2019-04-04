@@ -17,6 +17,25 @@
  */
 #include "viewerwidget.h"
 
+#include <QPainter>
+#include <QAudioOutput>
+#include <QOpenGLShaderProgram>
+#include <QtMath>
+#include <QOpenGLFramebufferObject>
+#include <QMouseEvent>
+#include <QMimeData>
+#include <QDrag>
+#include <QMenu>
+#include <QOffscreenSurface>
+#include <QFileDialog>
+#include <QPolygon>
+#include <QDesktopWidget>
+#include <QInputDialog>
+#include <QApplication>
+#include <QScreen>
+#include <QMessageBox>
+#include <iostream>
+
 #include "panels/panels.h"
 #include "panels/viewer.h"
 #include "panels/timeline.h"
@@ -43,23 +62,7 @@
 #include "ui/mainwindow.h"
 #include "io/exportthread.h"
 
-#include <QPainter>
-#include <QAudioOutput>
-#include <QOpenGLShaderProgram>
-#include <QtMath>
-#include <QOpenGLFramebufferObject>
-#include <QMouseEvent>
-#include <QMimeData>
-#include <QDrag>
-#include <QMenu>
-#include <QOffscreenSurface>
-#include <QFileDialog>
-#include <QPolygon>
-#include <QDesktopWidget>
-#include <QInputDialog>
-#include <QApplication>
-#include <QScreen>
-#include <QMessageBox>
+
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -96,15 +99,20 @@ ViewerWidget::ViewerWidget(QWidget *parent) :
   renderer->start(QThread::HighPriority);
   connect(renderer, SIGNAL(ready()), this, SLOT(queue_repaint()));
   connect(renderer, SIGNAL(finished()), renderer, SLOT(deleteLater()));
+  connect(renderer, &RenderThread::frameGrabbed, this, &ViewerWidget::frameGrabbed);
 }
 
-ViewerWidget::~ViewerWidget() {
+ViewerWidget::~ViewerWidget()
+{
   if (window != nullptr) {
     window->close();
     delete window;
   }
-  renderer->cancel();
-  delete renderer;
+
+  if (renderer != nullptr) {
+    renderer->cancel();
+    delete renderer;
+  }
 }
 
 void ViewerWidget::delete_function() {
@@ -163,7 +171,8 @@ void ViewerWidget::show_context_menu() {
   menu.exec(QCursor::pos());
 }
 
-void ViewerWidget::save_frame() {
+void ViewerWidget::save_frame()
+{
   QFileDialog fd(this);
   fd.setAcceptMode(QFileDialog::AcceptSave);
   fd.setFileMode(QFileDialog::AnyFile);
@@ -171,17 +180,18 @@ void ViewerWidget::save_frame() {
   fd.setNameFilter("Portable Network Graphic (*.png);;JPEG (*.jpg);;Windows Bitmap (*.bmp);;Portable Pixmap (*.ppm);;X11 Bitmap (*.xbm);;X11 Pixmap (*.xpm)");
 
   if (fd.exec()) {
-    QString fn = fd.selectedFiles().at(0);
+    frame_file_name_ = fd.selectedFiles().front();
     QString selected_ext = fd.selectedNameFilter().mid(fd.selectedNameFilter().indexOf(QRegExp("\\*.[a-z][a-z][a-z]")) + 1, 4);
-    if (!fn.endsWith(selected_ext,  Qt::CaseInsensitive)) {
-      fn += selected_ext;
+    if (!frame_file_name_.endsWith(selected_ext,  Qt::CaseInsensitive)) {
+      frame_file_name_ += selected_ext;
     }
-
-    renderer->start_render(context(), viewer->getSequence(), fn);
+    save_frame_ = true;
+    renderer->start_render(context(), viewer->getSequence(), true);
   }
 }
 
-void ViewerWidget::queue_repaint() {
+void ViewerWidget::queue_repaint()
+{
   update();
 }
 
@@ -229,6 +239,16 @@ void ViewerWidget::set_menu_zoom(QAction* action) {
   }
 }
 
+
+void ViewerWidget::frameGrabbed(QImage img)
+{
+  if (save_frame_) {
+    img.save(frame_file_name_);
+    save_frame_ = false;
+    frame_file_name_.clear();
+  }
+}
+
 void ViewerWidget::retry() {
   update();
 }
@@ -241,7 +261,8 @@ void ViewerWidget::initializeGL() {
   window = new ViewerWindow(context());
 }
 
-void ViewerWidget::frame_update() {
+void ViewerWidget::frame_update()
+{
   if (auto sqn = viewer->getSequence()) {
     const auto render_audio = (viewer->playing || audio_rendering);
     // send context to other thread for drawing
@@ -249,6 +270,7 @@ void ViewerWidget::frame_update() {
       update();
     } else {
       doneCurrent();
+
       renderer->start_render(context(), sqn);
     }
 
@@ -261,19 +283,10 @@ RenderThread *ViewerWidget::get_renderer() {
   return renderer;
 }
 
-//void ViewerWidget::resizeGL(int w, int h)
-//{
-//}
-
-/*void ViewerWidget::paintEvent(QPaintEvent *e) {
-    if (!rendering) {
-        QOpenGLWidget::paintEvent(e);
-    }
-}*/
-
 void ViewerWidget::seek_from_click(int x) {
   viewer->seek(getFrameFromScreenPoint(waveform_zoom, x+waveform_scroll));
 }
+
 
 void ViewerWidget::context_destroy() {
   makeCurrent();

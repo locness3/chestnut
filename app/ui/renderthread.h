@@ -27,8 +27,7 @@ class RenderThread : public QThread {
     GLuint texColorBuffer;
     EffectPtr gizmos;
     void paint();
-    void start_render(QOpenGLContext* share, SequenceWPtr s, const QString &save = nullptr,
-                      GLvoid *pixels = nullptr, int idivider = 0);
+    void start_render(QOpenGLContext* share, SequenceWPtr s, const bool grab=false);
     bool did_texture_fail();
     void cancel();
   protected:
@@ -38,6 +37,7 @@ class RenderThread : public QThread {
     void delete_ctx();
   signals:
     void ready();
+    void frameGrabbed(QImage img);
   private:
     // cleanup functions
     void delete_texture();
@@ -48,14 +48,13 @@ class RenderThread : public QThread {
     QOpenGLContext* share_ctx;
     QOpenGLContext* ctx;
     SequenceWPtr seq;
-    int divider;
+    int divider{};
     int tex_width;
     int tex_height;
     bool queued;
     bool texture_failed;
     bool running;
-    QString save_fn;
-    GLvoid *pixel_buffer;
+    bool frame_grabbing_{};
 };
 
 #endif // RENDERTHREAD_H

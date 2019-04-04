@@ -91,6 +91,8 @@ private:
     EffectGizmoPtr selected_gizmo;
     RenderThread* renderer;
     ViewerWindow* window;
+    QString frame_file_name_{};
+    bool save_frame_{false};
 private slots:
     void context_destroy();
     void retry();
@@ -101,6 +103,8 @@ private slots:
     void set_fit_zoom();
     void set_custom_zoom();
     void set_menu_zoom(QAction *action);
+    void frameGrabbed(QImage img);
+
 };
 
 #endif // VIEWERWIDGET_H

@@ -391,7 +391,7 @@ void ExportThread::run()
     if (video_params.enabled) {
       do {
         // TODO optimize by rendering the next frame while encoding the last
-        renderer->start_render(nullptr, global::sequence, nullptr, video_frame->data[0]);
+        renderer->start_render(nullptr, global::sequence);
         waitCond.wait(&mutex);
         if (!continue_encode_) break;
       } while (renderer->did_texture_fail());

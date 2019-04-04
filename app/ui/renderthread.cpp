@@ -12,10 +12,8 @@
 RenderThread::RenderThread() :
   frameBuffer(0),
   texColorBuffer(0),
-  gizmos(),
   share_ctx(nullptr),
   ctx(nullptr),
-  seq(),
   tex_width(-1),
   tex_height(-1),
   queued(false),
@@ -25,7 +23,8 @@ RenderThread::RenderThread() :
   surface.create();
 }
 
-RenderThread::~RenderThread() {
+RenderThread::~RenderThread()
+{
   surface.destroy();
 }
 
@@ -64,16 +63,12 @@ void RenderThread::run() {
             delete_texture();
             glGenTextures(1, &texColorBuffer);
             glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-            glTexImage2D(
-                  GL_TEXTURE_2D, 0, GL_RGB, sequenceNow->width(), sequenceNow->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr
-                  );
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, sequenceNow->width(), sequenceNow->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
             tex_width = sequenceNow->width();
             tex_height = sequenceNow->width();
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            ctx->functions()->glFramebufferTexture2D(
-                  GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0
-                  );
+            ctx->functions()->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
             glBindTexture(GL_TEXTURE_2D, 0);
           }
 
@@ -81,7 +76,6 @@ void RenderThread::run() {
           paint();
 
           // flush changes
-          //				glFlush();
           glFinish();
 
           // release
@@ -98,7 +92,8 @@ void RenderThread::run() {
   mutex.unlock();
 }
 
-void RenderThread::paint() {
+void RenderThread::paint()
+{
   glLoadIdentity();
 
   texture_failed = false;
@@ -118,25 +113,19 @@ void RenderThread::paint() {
     SequencePtr sequenceNow = seq.lock();
     compose_sequence(nullptr, ctx, sequenceNow, nests, true, false, gizmos, texture_failed, false);
 
-    if (!save_fn.isEmpty()) {
+    if (frame_grabbing_) {
       if (texture_failed) {
         // texture failed, try again
         queued = true;
       } else {
-        ctx->functions()->glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer);
+        //TODO: http://www.songho.ca/opengl/gl_pbo.html
         QImage img(tex_width, tex_height, QImage::Format_RGBA8888);
+        ctx->functions()->glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer);
         glReadPixels(0, 0, tex_width, tex_height, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
-        img.save(save_fn);
         ctx->functions()->glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-        save_fn = "";
+        emit frameGrabbed(img);
+        frame_grabbing_ = false;
       }
-    }
-
-    if (pixel_buffer != nullptr) {
-      ctx->functions()->glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer);
-      glReadPixels(0, 0, tex_width, tex_height, GL_RGBA, GL_UNSIGNED_BYTE, pixel_buffer);
-      ctx->functions()->glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-      pixel_buffer = nullptr;
     }
 
     glDisable(GL_DEPTH);
@@ -145,8 +134,9 @@ void RenderThread::paint() {
   }
 }
 
-void RenderThread::start_render(QOpenGLContext *share, SequenceWPtr s, const QString& save, GLvoid* pixels, int /*idivider*/) {
-  seq = s;
+void RenderThread::start_render(QOpenGLContext *share, SequenceWPtr s, const bool grab)
+{
+  seq = std::move(s);
 
   // stall any dependent actions
   texture_failed = true;
@@ -161,8 +151,7 @@ void RenderThread::start_render(QOpenGLContext *share, SequenceWPtr s, const QSt
     ctx->moveToThread(this);
   }
 
-  save_fn = save;
-  pixel_buffer = pixels;
+  frame_grabbing_ = grab;
 
   queued = true;
   waitCond.wakeAll();
@@ -180,9 +169,7 @@ void RenderThread::cancel() {
 
 void RenderThread::delete_texture() {
   if (texColorBuffer > 0) {
-    ctx->functions()->glFramebufferTexture2D(
-          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0
-          );
+    ctx->functions()->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
     glDeleteTextures(1, &texColorBuffer);
   }
   texColorBuffer = 0;
