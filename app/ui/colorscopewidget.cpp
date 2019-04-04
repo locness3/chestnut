@@ -52,4 +52,28 @@ void ColorScopeWidget::paintEvent(QPaintEvent*/*event*/)
     }
   }
 
+  // paint surrounding box
+  QPen pen(Qt::black);
+  painter.setPen(pen);
+  painter.drawRect(0, 0, width(), height()-1);
+
+  //FIXME: do this in 1 loop and don't paint minor over major
+  // major lines
+  pen.setColor(QColor(0,0,0, 128));
+  painter.setPen(pen);
+  int h_step = height() / 4;
+  for (auto h = h_step; h < height(); h+=h_step) {
+    painter.drawLine(0, height() - h, width(), height() -  h);
+  }
+
+  // minor lines
+  QVector<qreal> dashes;
+  dashes << 3 << 3;
+  pen.setDashPattern(dashes);
+  painter.setPen(pen);
+  h_step = height() / 8;
+  for (auto h = h_step; h < height(); h+=h_step) {
+    painter.drawLine(0, height() - h, width(), height() -  h);
+  }
+
 }
