@@ -2,6 +2,7 @@
 #define SCOPEVIEWER_H
 
 #include <QDockWidget>
+#include <QComboBox>
 
 #include "ui/colorscopewidget.h"
 
@@ -22,11 +23,15 @@ namespace panels
 
     private:
       ui::ColorScopeWidget* color_scope_{nullptr};
+      QComboBox* waveform_combo_{nullptr};
 
       /*
        * Populate this viewer with its widgets
        */
       void setup();
+
+    private slots:
+      void indexChanged(int index);
   };
 }
 

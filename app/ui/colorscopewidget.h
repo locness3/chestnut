@@ -15,6 +15,7 @@ namespace ui {
        * @param img Image to be drawn from
        */
       void updateImage(QImage img);
+      int mode_{0};
     protected:
       void paintEvent(QPaintEvent *event) override;
     private:

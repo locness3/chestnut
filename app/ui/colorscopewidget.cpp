@@ -16,6 +16,7 @@ namespace {
   const QPen b_pen(QColor(0,0,255,PEN_ALPHA));
   const QPen bk_pen(Qt::black);
   const QPen bka_pen(QColor(0,0,0, 128));
+  const QPen luma_pen(QColor(160,160,160, PEN_ALPHA));
 }
 
 ColorScopeWidget::ColorScopeWidget(QWidget *parent) : QWidget(parent)
@@ -45,25 +46,33 @@ void ColorScopeWidget::paintEvent(QPaintEvent*/*event*/)
 
   // FIXME: far too slow to be done for every pixel
   // with QImage::setPixel the blending of values is lost
+  if (mode_ == 1) {
+    painter.setPen(luma_pen);
+  }
   for (auto w = 0; w < width(); ++w) {
     for (auto h = 0; h < img_.height(); h+=HORIZONTAL_STEP) {
       // draw pixel value (per channel) on y-axis at x-position
       val = img_.pixel(w * w_step, h);
-      pos = qRed(val);
-      painter.setPen(r_pen);
-      painter.drawPoint(w, height() - pos);
-      pos = qGreen(val);
-      painter.setPen(g_pen);
-      painter.drawPoint(w, height() - pos);
-      pos = qBlue(val);
-      painter.setPen(b_pen);
-      painter.drawPoint(w, height() - pos);
+      if (mode_ == 0) {
+        pos = qRed(val);
+        painter.setPen(r_pen);
+        painter.drawPoint(w, height() - pos);
+        pos = qGreen(val);
+        painter.setPen(g_pen);
+        painter.drawPoint(w, height() - pos);
+        pos = qBlue(val);
+        painter.setPen(b_pen);
+        painter.drawPoint(w, height() - pos);
+      } else if (mode_ == 1) {
+        pos = qGray(val); // TODO: check this is actual luminosity
+        painter.drawPoint(w, height() - pos);
+      }
     }
   }
 
   // paint surrounding box
   painter.setPen(bk_pen);
-  painter.drawRect(0, 0, width(), height()-1);
+  painter.drawRect(0, 0, width() -1, height()-1);
 
   // paint grid-lines
   QVector<qreal> dashes;
@@ -79,6 +88,6 @@ void ColorScopeWidget::paintEvent(QPaintEvent*/*event*/)
     } else {
       painter.setPen(minor_pen);
     }
-    painter.drawLine(0, height() - h, width(), height() -  h);
+    painter.drawLine(1, height() - h, width() - 1, height() -  h);
   }
 }

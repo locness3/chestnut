@@ -35,7 +35,6 @@ void ScopeViewer::frameGrabbed(const QImage& img)
  */
 void ScopeViewer::setup()
 {
-  //TODO: add buttons to disable/enable channels
   setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
   setWindowTitle(tr("Scope Viewer"));
@@ -46,10 +45,29 @@ void ScopeViewer::setup()
   auto layout = new QVBoxLayout();
   main_widget->setLayout(layout);
 
+  auto h_layout = new QHBoxLayout();
+  waveform_combo_ = new QComboBox();
+  QStringList items = {"RGB", "Luma"};
+  waveform_combo_->addItems(items);
+  connect(waveform_combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(indexChanged(int)));
+  h_layout->addWidget(waveform_combo_);
+
+  auto spacer = new QSpacerItem(0,0, QSizePolicy::Expanding);
+  h_layout->addSpacerItem(spacer);
+  layout->addLayout(h_layout);
+
   color_scope_ = new ui::ColorScopeWidget();
   layout->addWidget(color_scope_);
   color_scope_->setMinimumSize(PANEL_WIDTH, 256);
+  color_scope_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
-  auto spacer = new QSpacerItem(20,20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  spacer = new QSpacerItem(20,20, QSizePolicy::Minimum, QSizePolicy::Expanding);
   layout->addSpacerItem(spacer);
+}
+
+
+void ScopeViewer::indexChanged(int index)
+{
+  color_scope_->mode_ = index;
+  color_scope_->update();
 }
