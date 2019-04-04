@@ -3,6 +3,7 @@
 
 #include <QDockWidget>
 #include <QVBoxLayout>
+#include <QToolButton>
 
 #include "ui/histogramwidget.h"
 
@@ -29,12 +30,22 @@ namespace panels
       ui::HistogramWidget* histogram_red_{nullptr};
       ui::HistogramWidget* histogram_green_{nullptr};
       ui::HistogramWidget* histogram_blue_{nullptr};
+      QToolButton* gray_button_{nullptr};
+      QToolButton* red_button_{nullptr};
+      QToolButton* green_button_{nullptr};
+      QToolButton* blue_button_{nullptr};
       bool full_resolution_{false};
 
       /*
        * Populate this viewer with its widgets
        */
       void setup();
+
+    private slots:
+      /*
+       * Handle a checkable button state change
+       */
+      void buttonChecked(bool checked);
   };
 
 }

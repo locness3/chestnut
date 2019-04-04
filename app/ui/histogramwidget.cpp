@@ -16,6 +16,9 @@ HistogramWidget::HistogramWidget(QWidget *parent)
 
 void HistogramWidget::paintEvent(QPaintEvent */*event*/)
 {
+  if (!isVisible()) {
+    return;
+  }
   auto max_val = 0; // for scaling results
   //FIXME: find a better way around this
   for (auto i = 1; i < 254; ++i) { //exclude max + min. skewing result
