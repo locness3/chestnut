@@ -28,7 +28,7 @@ void HistogramWidget::paintEvent(QPaintEvent */*event*/)
   }
 
   QPainter painter(this);
-  painter.setRenderHint(QPainter::Antialiasing);
+  painter.setRenderHint(QPainter::HighQualityAntialiasing);
   QPen pen;
   const auto h = height();
 

@@ -119,20 +119,17 @@ void HistogramViewer::setup()
 
   histogram_red_ = new ui::HistogramWidget();
   layout_->addWidget(histogram_red_);
-  histogram_red_->color_ = Qt::red;
-  histogram_red_->color_.setAlpha(HIST_COLOR_ALPHA);
+  histogram_red_->color_ = QColor(250, 0, 0, HIST_COLOR_ALPHA);
   histogram_red_->setMinimumSize(HIST_MIN_WIDTH, HIST_MIN_HEIGHT);
 
   histogram_green_ = new ui::HistogramWidget();
   layout_->addWidget(histogram_green_);
-  histogram_green_->color_ = Qt::green;
-  histogram_green_->color_.setAlpha(HIST_COLOR_ALPHA);
+  histogram_green_->color_ = QColor(0, 250, 0, HIST_COLOR_ALPHA);
   histogram_green_->setMinimumSize(HIST_MIN_WIDTH, HIST_MIN_HEIGHT);
 
   histogram_blue_ = new ui::HistogramWidget();
   layout_->addWidget(histogram_blue_);
-  histogram_blue_->color_ = Qt::blue;
-  histogram_blue_->color_.setAlpha(HIST_COLOR_ALPHA);
+  histogram_blue_->color_ = QColor(0, 0, 250, HIST_COLOR_ALPHA);
   histogram_blue_->setMinimumSize(HIST_MIN_WIDTH, HIST_MIN_HEIGHT);
 
   auto spacer = new QSpacerItem(20,20, QSizePolicy::Minimum, QSizePolicy::Expanding);
