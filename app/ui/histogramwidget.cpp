@@ -38,7 +38,7 @@ void HistogramWidget::paintEvent(QPaintEvent */*event*/)
     for (int i = 0; i < MAX_PIXELS; ++i) {
       scaled = static_cast<double>(values_[i]) / max_val;
       scaled = qMin(scaled, static_cast<double>(h));
-      j = static_cast<int32_t>(h - qRound((scaled * h)));
+      j = static_cast<int32_t>(h - qRound(scaled * h));
       painter.drawLine(i+1, h, i+1, j);
     }
   } else {

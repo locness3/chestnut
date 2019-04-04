@@ -17,6 +17,7 @@ namespace ui {
       void updateImage(QImage img);
     protected:
       void paintEvent(QPaintEvent *event) override;
+    private:
       QImage img_;
   };
 }
