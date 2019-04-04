@@ -26,6 +26,8 @@ void ScopeViewer::frameGrabbed(const QImage& img)
     return;
   }
   color_scope_->updateImage(img);
+  // Frame may have been retrieved after an effect change
+  color_scope_->update();
 }
 
 /*

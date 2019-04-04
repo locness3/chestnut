@@ -53,6 +53,11 @@ void HistogramViewer::frameGrabbed(const QImage& img)
       histogram_blue_->values_[qBlue(clr)] += 1;
     }
   }
+  // Frame may have been retrieved after an effect change
+  histogram_->update();
+  histogram_red_->update();
+  histogram_green_->update();
+  histogram_blue_->update();
 }
 
 /*
