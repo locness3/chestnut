@@ -2,6 +2,7 @@
 
 #include <QPainter>
 #include <QPen>
+#include <cmath>
 
 using ui::ColorScopeWidget;
 
@@ -9,6 +10,10 @@ constexpr int HORIZONTAL_STEP = 8;
 constexpr int PEN_ALPHA = 24;
 constexpr int MINOR_GRID_STEP = 8;
 constexpr int MAJOR_GRID_STEP = MINOR_GRID_STEP / 2;
+
+constexpr double LUMA_RED_COEFF = 0.2126;
+constexpr double LUMA_GREEN_COEFF = 0.7152;
+constexpr double LUMA_BLUE_COEFF = 0.0722;
 
 namespace {
   const QPen r_pen(QColor(255,0,0,PEN_ALPHA));
@@ -64,7 +69,7 @@ void ColorScopeWidget::paintEvent(QPaintEvent*/*event*/)
         painter.setPen(b_pen);
         painter.drawPoint(w, height() - pos);
       } else if (mode_ == 1) {
-        pos = qGray(val); // TODO: check this is actual luminosity
+        pos = lround(qRed(val) * LUMA_RED_COEFF) + lround(qGreen(val) * LUMA_GREEN_COEFF) + lround(qBlue(val) * LUMA_BLUE_COEFF);
         painter.drawPoint(w, height() - pos);
       }
     }
