@@ -41,6 +41,7 @@
 #include "panels/timeline.h"
 #include "panels/project.h"
 #include "panels/histogramviewer.h"
+#include "panels/scopeviewer.h"
 #include "project/sequence.h"
 #include "project/clip.h"
 #include "project/effect.h"
@@ -282,6 +283,14 @@ void ViewerWidget::frame_update()
         // not visible
         disconnect(renderer, &RenderThread::frameGrabbed, e_panel_histogram_viewer, &panels::HistogramViewer::frameGrabbed);
       }
+
+      if (e_panel_scope_viewer != nullptr && e_panel_scope_viewer->isVisible()) {
+        grab = true;
+        connect(renderer, &RenderThread::frameGrabbed, e_panel_scope_viewer, &panels::ScopeViewer::frameGrabbed);
+      } else {
+        disconnect(renderer, &RenderThread::frameGrabbed, e_panel_scope_viewer, &panels::ScopeViewer::frameGrabbed);
+      }
+
       renderer->start_render(context(), sqn, grab);
     }
 

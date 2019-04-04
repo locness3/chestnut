@@ -29,6 +29,7 @@ class QDockWidget;
 class QScrollBar;
 namespace panels{
   class HistogramViewer;
+  class ScopeViewer;
 }
 
 extern Project* e_panel_project;
@@ -39,6 +40,7 @@ extern Timeline* e_panel_timeline;
 extern GraphEditor* e_panel_graph_editor;
 
 extern panels::HistogramViewer* e_panel_histogram_viewer;
+extern panels::ScopeViewer* e_panel_scope_viewer;
 
 void update_ui(bool modified);
 QDockWidget* get_focused_panel();

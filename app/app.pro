@@ -108,7 +108,9 @@ SOURCES += \
     project/timelineinfo.cpp \
     effects/internal/temporalsmootheffect.cpp \
     panels/histogramviewer.cpp \
-    ui/histogramwidget.cpp
+    ui/histogramwidget.cpp \
+    ui/colorscopewidget.cpp \
+    panels/scopeviewer.cpp
 
 HEADERS += \
     ui/mainwindow.h \
@@ -212,7 +214,9 @@ HEADERS += \
     gsl/gsl_byte \
     gsl/gsl_util \
     panels/histogramviewer.h \
-    ui/histogramwidget.h
+    ui/histogramwidget.h \
+    ui/colorscopewidget.h \
+    panels/scopeviewer.h
 
 DISTFILES +=
 

@@ -27,6 +27,7 @@
 #include "io/config.h"
 #include "grapheditor.h"
 #include "histogramviewer.h"
+#include "scopeviewer.h"
 #include "debug.h"
 
 #include <QScrollBar>
@@ -39,6 +40,7 @@ Viewer* e_panel_footage_viewer = nullptr;
 Timeline* e_panel_timeline = nullptr;
 GraphEditor* e_panel_graph_editor = nullptr;
 panels::HistogramViewer* e_panel_histogram_viewer = nullptr;
+panels::ScopeViewer* e_panel_scope_viewer = nullptr;
 
 void update_effect_controls() {
   // SEND CLIPS TO EFFECT CONTROLS
@@ -149,6 +151,8 @@ QDockWidget* get_focused_panel()
       w = e_panel_graph_editor;
     } else if (e_panel_histogram_viewer->underMouse()) {
       w = e_panel_histogram_viewer;
+    } else if (e_panel_scope_viewer->underMouse()) {
+      w = e_panel_scope_viewer;
     }
   }
 
@@ -190,6 +194,8 @@ void alloc_panels(QWidget* parent)
   e_panel_graph_editor->setObjectName("graph_editor");
   e_panel_histogram_viewer = new panels::HistogramViewer(parent);
   e_panel_histogram_viewer->setObjectName("histogram viewer");
+  e_panel_scope_viewer = new panels::ScopeViewer(parent);
+  e_panel_scope_viewer->setObjectName("scope viewer");
 }
 
 void free_panels()
@@ -206,6 +212,8 @@ void free_panels()
   e_panel_timeline = nullptr;
   delete e_panel_histogram_viewer;
   e_panel_histogram_viewer = nullptr;
+  delete e_panel_scope_viewer;
+  e_panel_scope_viewer = nullptr;
 }
 
 void scroll_to_frame_internal(QScrollBar* bar, long frame, double zoom, int area_width)
