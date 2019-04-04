@@ -34,7 +34,8 @@ SOURCES += \
     ../app/project/UnitTest/undotest.cpp \
     ../app/project/UnitTest/projectmodeltest.cpp \
     ../app/project/UnitTest/mediahandlertest.cpp \
-    ../app/project/UnitTest/effecttest.cpp
+    ../app/project/UnitTest/effecttest.cpp \
+    ../app/panels/unittest/histogramviewertest.cpp
 
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
@@ -49,7 +50,8 @@ HEADERS += \
     ../app/project/UnitTest/undotest.h \
     ../app/project/UnitTest/projectmodeltest.h \
     ../app/project/UnitTest/mediahandlertest.h \
-    ../app/project/UnitTest/effecttest.h
+    ../app/project/UnitTest/effecttest.h \
+    ../app/panels/unittest/histogramviewertest.h
 
 INCLUDEPATH += ../app/
 

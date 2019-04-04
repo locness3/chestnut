@@ -37,7 +37,7 @@ class RenderThread : public QThread {
     void delete_ctx();
   signals:
     void ready();
-    void frameGrabbed(QImage img);
+    void frameGrabbed(const QImage& img);
   private:
     // cleanup functions
     void delete_texture();

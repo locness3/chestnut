@@ -39,6 +39,7 @@
 #include "panels/viewer.h"
 #include "panels/timeline.h"
 #include "panels/grapheditor.h"
+#include "panels/histogramviewer.h"
 
 #include "dialogs/aboutdialog.h"
 #include "dialogs/newsequencedialog.h"
@@ -101,6 +102,7 @@ void MainWindow::setup_layout(bool reset) {
     e_panel_sequence_viewer->show();
     e_panel_timeline->show();
     e_panel_graph_editor->hide();
+    e_panel_histogram_viewer->hide();
 
     addDockWidget(Qt::TopDockWidgetArea, e_panel_project);
     addDockWidget(Qt::TopDockWidgetArea, e_panel_footage_viewer);
@@ -109,6 +111,7 @@ void MainWindow::setup_layout(bool reset) {
     addDockWidget(Qt::TopDockWidgetArea, e_panel_sequence_viewer);
     addDockWidget(Qt::BottomDockWidgetArea, e_panel_timeline);
     e_panel_graph_editor->setFloating(true);
+    e_panel_histogram_viewer->setFloating(true);
 
     // workaround for strange Qt dock bug (see https://bugreports.qt.io/browse/QTBUG-65592)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -818,6 +821,11 @@ void MainWindow::setup_menus() {
     window_sequenceviewer_action->setProperty("id", "panelsequenceviewer");
     window_sequenceviewer_action->setCheckable(true);
     window_sequenceviewer_action->setData(reinterpret_cast<quintptr>(e_panel_sequence_viewer));
+
+    QAction* window_histogramviewer_action = window_menu->addAction(tr("Histogram Viewer"), this, SLOT(toggle_panel_visibility()));
+    window_histogramviewer_action->setProperty("id", "panelhistogramviewer");
+    window_histogramviewer_action->setCheckable(true);
+    window_histogramviewer_action->setData(reinterpret_cast<quintptr>(e_panel_histogram_viewer));
 
     window_menu->addSeparator();
 

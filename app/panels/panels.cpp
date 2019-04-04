@@ -26,17 +26,19 @@
 #include "project/transition.h"
 #include "io/config.h"
 #include "grapheditor.h"
+#include "histogramviewer.h"
 #include "debug.h"
 
 #include <QScrollBar>
 #include <QCoreApplication>
 
-Project* e_panel_project = 0;
-EffectControls* e_panel_effect_controls = 0;
-Viewer* e_panel_sequence_viewer = 0;
-Viewer* e_panel_footage_viewer = 0;
-Timeline* e_panel_timeline = 0;
-GraphEditor* e_panel_graph_editor = 0;
+Project* e_panel_project = nullptr;
+EffectControls* e_panel_effect_controls = nullptr;
+Viewer* e_panel_sequence_viewer = nullptr;
+Viewer* e_panel_footage_viewer = nullptr;
+Timeline* e_panel_timeline = nullptr;
+GraphEditor* e_panel_graph_editor = nullptr;
+panels::HistogramViewer* e_panel_histogram_viewer = nullptr;
 
 void update_effect_controls() {
   // SEND CLIPS TO EFFECT CONTROLS
@@ -129,7 +131,8 @@ void update_ui(bool modified) {
   e_panel_graph_editor->update_panel();
 }
 
-QDockWidget *get_focused_panel() {
+QDockWidget* get_focused_panel()
+{
   QDockWidget* w = nullptr;
   if (e_config.hover_focus) {
     if (e_panel_project->underMouse()) {
@@ -144,8 +147,11 @@ QDockWidget *get_focused_panel() {
       w = e_panel_timeline;
     } else if (e_panel_graph_editor->view_is_under_mouse()) {
       w = e_panel_graph_editor;
+    } else if (e_panel_histogram_viewer->underMouse()) {
+      w = e_panel_histogram_viewer;
     }
   }
+
   if (w == nullptr) {
     if (e_panel_project->is_focused()) {
       w = e_panel_project;
@@ -164,7 +170,8 @@ QDockWidget *get_focused_panel() {
   return w;
 }
 
-void alloc_panels(QWidget* parent) {
+void alloc_panels(QWidget* parent)
+{
   // TODO maybe replace these with non-pointers later on?
   e_panel_sequence_viewer = new Viewer(parent);
   e_panel_sequence_viewer->setObjectName("seq_viewer");
@@ -181,9 +188,12 @@ void alloc_panels(QWidget* parent) {
   e_panel_timeline->setObjectName("timeline");
   e_panel_graph_editor = new GraphEditor(parent);
   e_panel_graph_editor->setObjectName("graph_editor");
+  e_panel_histogram_viewer = new panels::HistogramViewer(parent);
+  e_panel_histogram_viewer->setObjectName("histogram viewer");
 }
 
-void free_panels() {
+void free_panels()
+{
   delete e_panel_sequence_viewer;
   e_panel_sequence_viewer = nullptr;
   delete e_panel_footage_viewer;
@@ -194,12 +204,15 @@ void free_panels() {
   e_panel_effect_controls = nullptr;
   delete e_panel_timeline;
   e_panel_timeline = nullptr;
+  delete e_panel_histogram_viewer;
+  e_panel_histogram_viewer = nullptr;
 }
 
-void scroll_to_frame_internal(QScrollBar* bar, long frame, double zoom, int area_width) {
-  int screen_point = getScreenPointFromFrame(zoom, frame) - bar->value();
-  int min_x = area_width*0.1;
-  int max_x = area_width-min_x;
+void scroll_to_frame_internal(QScrollBar* bar, long frame, double zoom, int area_width)
+{
+  const int screen_point = getScreenPointFromFrame(zoom, frame) - bar->value();
+  const auto min_x = static_cast<int>(area_width * 0.1);
+  const int max_x = area_width - min_x;
   if (screen_point < min_x) {
     bar->setValue(getScreenPointFromFrame(zoom, frame) - min_x);
   } else if (screen_point > max_x) {

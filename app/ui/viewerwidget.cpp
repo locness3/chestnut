@@ -40,6 +40,7 @@
 #include "panels/viewer.h"
 #include "panels/timeline.h"
 #include "panels/project.h"
+#include "panels/histogramviewer.h"
 #include "project/sequence.h"
 #include "project/clip.h"
 #include "project/effect.h"
@@ -249,11 +250,13 @@ void ViewerWidget::frameGrabbed(QImage img)
   }
 }
 
-void ViewerWidget::retry() {
+void ViewerWidget::retry()
+{
   update();
 }
 
-void ViewerWidget::initializeGL() {
+void ViewerWidget::initializeGL()
+{
   initializeOpenGLFunctions();
 
   connect(context(), SIGNAL(aboutToBeDestroyed()), this, SLOT(context_destroy()), Qt::DirectConnection);
@@ -271,7 +274,15 @@ void ViewerWidget::frame_update()
     } else {
       doneCurrent();
 
-      renderer->start_render(context(), sqn);
+      auto grab = false;
+      if (e_panel_histogram_viewer != nullptr && e_panel_histogram_viewer->isVisible()) { //FIXME: isVisible is not correct usage
+        grab = true;
+        connect(renderer, &RenderThread::frameGrabbed, e_panel_histogram_viewer, &panels::HistogramViewer::frameGrabbed);
+      } else if (e_panel_histogram_viewer != nullptr) {
+        // not visible
+        disconnect(renderer, &RenderThread::frameGrabbed, e_panel_histogram_viewer, &panels::HistogramViewer::frameGrabbed);
+      }
+      renderer->start_render(context(), sqn, grab);
     }
 
     // render the audio

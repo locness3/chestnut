@@ -782,7 +782,7 @@ void Effect::endEffect() {
   bound = false;
 }
 
-void Effect::process_image(double, gsl::span<uint8_t>& data)
+void Effect::process_image(double, gsl::span<uint8_t>& /*data*/)
 {
   // Does nothing
 }
