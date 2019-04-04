@@ -53,12 +53,6 @@ void HistogramViewer::frameGrabbed(const QImage& img)
       histogram_blue_->values_[qBlue(clr)] += 1;
     }
   }
-
-  // Paint all the histograms with new values
-  histogram_->update();
-  histogram_red_->update();
-  histogram_green_->update();
-  histogram_blue_->update();
 }
 
 /*

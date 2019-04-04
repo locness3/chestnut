@@ -131,6 +131,8 @@ void update_ui(bool modified) {
   e_panel_timeline->repaint_timeline();
   e_panel_sequence_viewer->update_viewer();
   e_panel_graph_editor->update_panel();
+  e_panel_histogram_viewer->update();
+  e_panel_scope_viewer->update();
 }
 
 QDockWidget* get_focused_panel()

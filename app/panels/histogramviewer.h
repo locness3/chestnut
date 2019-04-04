@@ -32,8 +32,8 @@ namespace panels
       bool full_resolution_{false};
 
       /*
-   * Populate this viewer with its widgets
-   */
+       * Populate this viewer with its widgets
+       */
       void setup();
   };
 
