@@ -9,7 +9,7 @@ constexpr int MAX_PIXELS = 256;
 HistogramWidget::HistogramWidget(QWidget *parent)
   : QWidget(parent)
 {
-  values_.fill(0, MAX_PIXELS);
+  values_.fill(0);
 }
 
 

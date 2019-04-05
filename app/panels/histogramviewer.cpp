@@ -39,10 +39,10 @@ void HistogramViewer::frameGrabbed(const QImage& img)
 
   // build histogram
   // clear previous values
-  histogram_->values_.fill(0, 256);
-  histogram_red_->values_.fill(0, 256);
-  histogram_green_->values_.fill(0, 256);
-  histogram_blue_->values_.fill(0, 256);
+  histogram_->values_.fill(0);
+  histogram_red_->values_.fill(0);
+  histogram_green_->values_.fill(0);
+  histogram_blue_->values_.fill(0);
 
   // a full-resolution histogram shouldn't be done during playback
   const auto div = full_resolution_ ? 1 : HIST_GEN_STEP; //TODO: create a way to enable full_resolution
@@ -50,10 +50,10 @@ void HistogramViewer::frameGrabbed(const QImage& img)
   for (auto w = 0; w < img.width(); w+=div){
     for (auto h = 0; h < img.height(); h+=div) {
       clr = img.pixel(w, h);
-      histogram_->values_[qGray(clr)] += 1;
-      histogram_red_->values_[qRed(clr)] += 1;
-      histogram_green_->values_[qGreen(clr)] += 1;
-      histogram_blue_->values_[qBlue(clr)] += 1;
+      histogram_->values_[static_cast<size_t>(qGray(clr))]++;
+      histogram_red_->values_[static_cast<size_t>(qRed(clr))]++;
+      histogram_green_->values_[static_cast<size_t>(qGreen(clr))]++;
+      histogram_blue_->values_[static_cast<size_t>(qBlue(clr))]++;
     }
   }
   // Frame may have been retrieved after an effect change
