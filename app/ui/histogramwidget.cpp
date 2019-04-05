@@ -20,8 +20,7 @@ void HistogramWidget::paintEvent(QPaintEvent */*event*/)
     return;
   }
   auto max_val = 0; // for scaling results
-  //FIXME: find a better way around this
-  for (auto i = 1; i < 254; ++i) { //exclude max + min. skewing result
+  for (auto i = 0UL; i < COLORS_PER_CHANNEL; ++i) {
     if (values_[i] > max_val) {
       max_val = values_[i];
     }
@@ -39,7 +38,7 @@ void HistogramWidget::paintEvent(QPaintEvent */*event*/)
     double scaled = 0.0;
     int32_t j;
     for (int i = 0; i < MAX_PIXELS; ++i) {
-      scaled = static_cast<double>(values_[i]) / max_val;
+      scaled = static_cast<double>(values_[static_cast<size_t>(i)]) / max_val;
       scaled = qMin(scaled, static_cast<double>(h));
       j = static_cast<int32_t>(h - qRound(scaled * h));
       painter.drawLine(i+1, h, i+1, j);

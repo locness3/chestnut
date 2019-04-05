@@ -29,7 +29,7 @@ EffectGizmo::EffectGizmo(const GizmoType type) :
     x_field_multi2(1.0),
     y_field2(nullptr),
     y_field_multi2(1.0),
-    _type(type),
+    type_(type),
     cursor(-1)
 {
     int point_count = (type == GizmoType::POLY) ? 4 : 1;
@@ -62,7 +62,7 @@ int EffectGizmo::get_point_count() {
 }
 
 GizmoType EffectGizmo::get_type() const {
-    return _type;
+    return type_;
 }
 
 int EffectGizmo::get_cursor() const {

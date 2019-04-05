@@ -18,8 +18,6 @@
 #ifndef EFFECTGIZMO_H
 #define EFFECTGIZMO_H
 
-#define GIZMO_DOT_SIZE 2.5
-#define GIZMO_TARGET_SIZE 5.0
 
 #include <QString>
 #include <QRect>
@@ -31,6 +29,8 @@
 
 #include "project/effectfield.h"
 
+constexpr float GIZMO_DOT_SIZE = 2.5;
+constexpr float GIZMO_TARGET_SIZE = 5.0;
 
 enum class GizmoType {
     DOT = 0,
@@ -69,7 +69,7 @@ public:
     int get_cursor() const;
     void set_cursor(const int value);
 private:
-    GizmoType _type;
+    GizmoType type_;
     int cursor;
 };
 

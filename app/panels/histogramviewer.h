@@ -34,12 +34,16 @@ namespace panels
       QToolButton* red_button_{nullptr};
       QToolButton* green_button_{nullptr};
       QToolButton* blue_button_{nullptr};
+      QToolButton* clip_button_{nullptr};
       bool full_resolution_{false};
 
       /*
        * Populate this viewer with its widgets
        */
       void setup();
+
+    signals:
+      void drawClippedPixels(const bool state);
 
     private slots:
       /*
