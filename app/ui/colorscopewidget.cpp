@@ -26,7 +26,7 @@ using io::color_conversion::rgbToLuma;
 
 ColorScopeWidget::ColorScopeWidget(QWidget *parent) : QWidget(parent)
 {
-
+  setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 }
 
 /**
@@ -45,7 +45,8 @@ void ColorScopeWidget::paintEvent(QPaintEvent*/*event*/)
   // clear last paint
   painter.eraseRect(0, 0, width(), img_.height());
 
-  const auto w_step = img_.width() / width();
+  const auto w_step = static_cast<double>(img_.width()) / width();
+  const auto h_step = static_cast<double>(height()) / 256;
   QRgb val;
 
   // FIXME: far too slow to be done for every pixel
@@ -56,16 +57,16 @@ void ColorScopeWidget::paintEvent(QPaintEvent*/*event*/)
   for (auto w = 0; w < width(); ++w) {
     for (auto h = 0; h < img_.height(); h+=HORIZONTAL_STEP) {
       // draw pixel value (per channel) on y-axis at x-position
-      val = img_.pixel(w * w_step, h);
+      val = img_.pixel(static_cast<int32_t>(lround(w * w_step)), h);
       if (mode_ == 0) {
         painter.setPen(r_pen);
-        painter.drawPoint(w, height() - qRed(val));
+        painter.drawPoint(w, height() - static_cast<int32_t>(lround(qRed(val)*h_step)));
         painter.setPen(g_pen);
-        painter.drawPoint(w, height() - qGreen(val));
+        painter.drawPoint(w, height() - static_cast<int32_t>(lround(qGreen(val)*h_step)));
         painter.setPen(b_pen);
-        painter.drawPoint(w, height() - qBlue(val));
+        painter.drawPoint(w, height() - static_cast<int32_t>(lround(qBlue(val)*h_step)));
       } else if (mode_ == 1) {
-        painter.drawPoint(w, height() - rgbToLuma(val));
+        painter.drawPoint(w, height() - static_cast<int32_t>(lround(rgbToLuma(val)*h_step)));
       }
     }
   }
@@ -74,13 +75,14 @@ void ColorScopeWidget::paintEvent(QPaintEvent*/*event*/)
   painter.setPen(bk_pen);
   painter.drawRect(0, 0, width() -1, height()-1);
 
+  // FIXME: major lines do not get drawn on heights of odd numbers
   // paint grid-lines
   QVector<qreal> dashes;
   dashes << 3 << 3;
   QPen minor_pen(bka_pen);
   minor_pen.setDashPattern(dashes);
-  const int major_step = height() / MAJOR_GRID_STEP;
-  const int minor_step = height() / MINOR_GRID_STEP;
+  const int32_t major_step = static_cast<int32_t>(lround(static_cast<double>(height()) / MAJOR_GRID_STEP));
+  const int32_t minor_step = static_cast<int32_t>(lround(static_cast<double>(height()) / MINOR_GRID_STEP));
 
   for (auto h = minor_step; h < height(); h+=minor_step) {
     if (h % major_step == 0) {

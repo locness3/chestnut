@@ -68,7 +68,6 @@ void HistogramViewer::frameGrabbed(const QImage& img)
  */
 void HistogramViewer::setup()
 {
-  //TODO: add buttons to disable/enable channels
   setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
   setWindowTitle(tr("Histogram Viewer"));
@@ -132,7 +131,7 @@ void HistogramViewer::setup()
   histogram_blue_->color_ = QColor(0, 0, 250, HIST_COLOR_ALPHA);
   histogram_blue_->setMinimumSize(HIST_MIN_WIDTH, HIST_MIN_HEIGHT);
 
-  auto spacer = new QSpacerItem(20,20, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  auto spacer = new QSpacerItem(0,0, QSizePolicy::Fixed, QSizePolicy::Expanding);
   layout_->addSpacerItem(spacer);
 }
 

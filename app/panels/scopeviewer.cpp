@@ -7,8 +7,8 @@
 using panels::ScopeViewer;
 
 
-constexpr int PANEL_WIDTH = 640;
-constexpr int PANEL_HEIGHT = 480;
+constexpr int PANEL_WIDTH = 320;
+constexpr int PANEL_HEIGHT = 240;
 
 ScopeViewer::ScopeViewer(QWidget* parent) : QDockWidget(parent)
 {
@@ -58,11 +58,7 @@ void ScopeViewer::setup()
 
   color_scope_ = new ui::ColorScopeWidget();
   layout->addWidget(color_scope_);
-  color_scope_->setMinimumSize(PANEL_WIDTH, 256);
-  color_scope_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-
-  spacer = new QSpacerItem(20,20, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  layout->addSpacerItem(spacer);
+  color_scope_->setMinimumSize(PANEL_WIDTH, PANEL_HEIGHT);
 }
 
 
