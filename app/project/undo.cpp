@@ -507,7 +507,7 @@ AddClipCommand::AddClipCommand(SequencePtr  s, QVector<ClipPtr  >& add) :
 
 
 void AddClipCommand::undo() {
-  e_panel_effect_controls->clear_effects(true);
+  PanelManager::fxControls().clear_effects(true);
   for (int i=0;i<clips.size();i++) {
     ClipPtr   c = seq->clips_.last();
     PanelManager::timeLine().deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
@@ -701,7 +701,7 @@ void EffectDeleteCommand::undo()
     ClipPtr   c = clips.at(i);
     c->effects.insert(fx.at(i), deleted_objects.at(i));
   }
-  e_panel_effect_controls->reload_clips();
+  PanelManager::fxControls().reload_clips();
   done = false;
   global::mainWindow->setWindowModified(old_project_changed);
 }
@@ -716,7 +716,7 @@ void EffectDeleteCommand::redo() {
     deleted_objects.append(e);
     c->effects.removeAt(fx_id);
   }
-  e_panel_effect_controls->reload_clips();
+  PanelManager::fxControls().reload_clips();
   done = true;
   global::mainWindow->setWindowModified(true);
 }
@@ -1187,7 +1187,7 @@ void ReloadEffectsCommand::undo() {
 }
 
 void ReloadEffectsCommand::redo() {
-  e_panel_effect_controls->reload_clips();
+  PanelManager::fxControls().reload_clips();
 }
 
 RippleAction::RippleAction(SequencePtr is, const long ipoint, const long ilength, QVector<int> iignore) :

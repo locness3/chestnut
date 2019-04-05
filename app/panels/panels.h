@@ -19,17 +19,13 @@
 #define PANELS_H
 
 class Project;
-class EffectControls;
 class Viewer;
-class Timeline;
-class GraphEditor;
 
 class QWidget;
 class QDockWidget;
 class QScrollBar;
 
 extern Project* e_panel_project;
-extern EffectControls* e_panel_effect_controls;
 extern Viewer* e_panel_sequence_viewer;
 extern Viewer* e_panel_footage_viewer;
 

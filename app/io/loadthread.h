@@ -30,8 +30,16 @@
 class Footage;
 class Clip;
 class LoadDialog;
-class TransitionData;
 struct EffectMeta;
+
+
+struct TransitionData {
+    int id;
+    QString name;
+    long length;
+    ClipPtr  otc;
+    ClipPtr  ctc;
+};
 
 class LoadThread : public QThread
 {

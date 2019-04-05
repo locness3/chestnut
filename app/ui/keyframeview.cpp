@@ -110,18 +110,18 @@ void KeyframeView::paintEvent(QPaintEvent*) {
   rowY.clear();
   rows.clear();
 
-  if (e_panel_effect_controls->selected_clips.size() > 0) {
+  if (!PanelManager::fxControls().selected_clips.empty()) {
     visible_in = LONG_MAX;
     visible_out = 0;
 
-    for (int j=0;j<e_panel_effect_controls->selected_clips.size();j++) {
-      ClipPtr c = global::sequence->clips_.at(e_panel_effect_controls->selected_clips.at(j));
+    for (int j=0;j<PanelManager::fxControls().selected_clips.size();j++) {
+      ClipPtr c = global::sequence->clips_.at(PanelManager::fxControls().selected_clips.at(j));
       visible_in = qMin(visible_in, c->timeline_info.in.load());
       visible_out = qMax(visible_out, c->timeline_info.out.load());
     }
 
-    for (int j=0;j<e_panel_effect_controls->selected_clips.size();j++) {
-      ClipPtr c = global::sequence->clips_.at(e_panel_effect_controls->selected_clips.at(j));
+    for (int j=0;j<PanelManager::fxControls().selected_clips.size();j++) {
+      ClipPtr c = global::sequence->clips_.at(PanelManager::fxControls().selected_clips.at(j));
       for (int i=0; i < c->effects.size(); i++) {
         EffectPtr e = c->effects.at(i);
         if (e->container->is_expanded()) {
@@ -133,8 +133,9 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 
             QVector<long> key_times;
             int keyframe_y = label->y() + (label->height()>>1)
-                             + mapFrom(e_panel_effect_controls,
-                                       contents->mapTo(e_panel_effect_controls, contents->pos())).y() - e->container->title_bar->height()/* - y_scroll*/;
+                             + mapFrom(&PanelManager::fxControls(),
+                                       contents->mapTo(&PanelManager::fxControls(),
+                                                       contents->pos())).y() - e->container->title_bar->height()/* - y_scroll*/;
             for (int l=0;l<row->fieldCount();l++) {
               EffectField* f = row->field(l);
               for (int k=0;k<f->keyframes.size();k++) {
@@ -156,11 +157,11 @@ void KeyframeView::paintEvent(QPaintEvent*) {
                   if (appearances != row->fieldCount()) {
                     QColor cc = get_curve_color(l, row->fieldCount());
                     draw_keyframe(p, f->keyframes.at(k).type,
-                                  getScreenPointFromFrame(e_panel_effect_controls->zoom, keyframe_frame) - x_scroll,
+                                  getScreenPointFromFrame(PanelManager::fxControls().zoom, keyframe_frame) - x_scroll,
                                   keyframe_y, keyframe_selected, cc.red(), cc.green(), cc.blue());
                   } else {
                     draw_keyframe(p, f->keyframes.at(k).type,
-                                  getScreenPointFromFrame(e_panel_effect_controls->zoom, keyframe_frame) - x_scroll,
+                                  getScreenPointFromFrame(PanelManager::fxControls().zoom, keyframe_frame) - x_scroll,
                                   keyframe_y, keyframe_selected);
                   }
 
@@ -176,14 +177,14 @@ void KeyframeView::paintEvent(QPaintEvent*) {
       }
     }
 
-    int max_width = getScreenPointFromFrame(e_panel_effect_controls->zoom, visible_out - visible_in);
+    int max_width = getScreenPointFromFrame(PanelManager::fxControls().zoom, visible_out - visible_in);
     if (max_width < width()) {
       p.fillRect(QRect(max_width, 0, width(), height()), QColor(0, 0, 0, 64));
     }
-    e_panel_effect_controls->horizontalScrollBar->setMaximum(qMax(max_width - width(), 0));
+    PanelManager::fxControls().horizontalScrollBar->setMaximum(qMax(max_width - width(), 0));
     header->set_visible_in(visible_in);
 
-    int playhead_x = getScreenPointFromFrame(e_panel_effect_controls->zoom, global::sequence->playhead_-visible_in) - x_scroll;
+    int playhead_x = getScreenPointFromFrame(PanelManager::fxControls().zoom, global::sequence->playhead_-visible_in) - x_scroll;
     if (dragging && PanelManager::timeLine().snapped) {
       p.setPen(Qt::white);
     } else {
@@ -230,8 +231,8 @@ void KeyframeView::set_y_scroll(int s) {
 }
 
 void KeyframeView::resize_move(double d) {
-  e_panel_effect_controls->zoom *= d;
-  header->update_zoom(e_panel_effect_controls->zoom);
+  PanelManager::fxControls().zoom *= d;
+  header->update_zoom(PanelManager::fxControls().zoom);
   update();
 }
 
@@ -254,9 +255,9 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
   int field_index = -1;
   int keyframe_index = -1;
   long frame_diff = 0;
-  long frame_min = getFrameFromScreenPoint(e_panel_effect_controls->zoom, mouse_x-KEYFRAME_SIZE);
-  drag_frame_start = getFrameFromScreenPoint(e_panel_effect_controls->zoom, mouse_x);
-  long frame_max = getFrameFromScreenPoint(e_panel_effect_controls->zoom, mouse_x+KEYFRAME_SIZE);
+  long frame_min = getFrameFromScreenPoint(PanelManager::fxControls().zoom, mouse_x-KEYFRAME_SIZE);
+  drag_frame_start = getFrameFromScreenPoint(PanelManager::fxControls().zoom, mouse_x);
+  long frame_max = getFrameFromScreenPoint(PanelManager::fxControls().zoom, mouse_x+KEYFRAME_SIZE);
   for (int i=0;i<rowY.size();i++) {
     if (mouse_y > rowY.at(i) - KEYFRAME_SIZE-KEYFRAME_SIZE && mouse_y < rowY.at(i)+KEYFRAME_SIZE+KEYFRAME_SIZE) {
       EffectRowPtr row = rows.at(i);
@@ -337,8 +338,8 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
     unsetCursor();
   }
   if (scroll_drag) {
-    e_panel_effect_controls->horizontalScrollBar->setValue(e_panel_effect_controls->horizontalScrollBar->value() + rect_select_x - event->pos().x());
-    e_panel_effect_controls->verticalScrollBar->setValue(e_panel_effect_controls->verticalScrollBar->value() + rect_select_y - event->pos().y());
+    PanelManager::fxControls().horizontalScrollBar->setValue(PanelManager::fxControls().horizontalScrollBar->value() + rect_select_x - event->pos().x());
+    PanelManager::fxControls().verticalScrollBar->setValue(PanelManager::fxControls().verticalScrollBar->value() + rect_select_y - event->pos().y());
     rect_select_x = event->pos().x();
     rect_select_y = event->pos().y();
   } else if (mousedown) {
@@ -354,8 +355,8 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
       int min_row = qMin(rect_select_y, event->y())-KEYFRAME_SIZE;
       int max_row = qMax(rect_select_y, event->y())+KEYFRAME_SIZE;
 
-      long frame_start = getFrameFromScreenPoint(e_panel_effect_controls->zoom, rect_select_x+x_scroll);
-      long frame_end = getFrameFromScreenPoint(e_panel_effect_controls->zoom, mouse_x);
+      long frame_start = getFrameFromScreenPoint(PanelManager::fxControls().zoom, rect_select_x+x_scroll);
+      long frame_end = getFrameFromScreenPoint(PanelManager::fxControls().zoom, mouse_x);
       long min_frame = qMin(frame_start, frame_end)-KEYFRAME_SIZE;
       long max_frame = qMax(frame_start, frame_end)+KEYFRAME_SIZE;
 
@@ -378,7 +379,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
       update_keys();
     } else if (keys_selected) {
       // move keyframes
-      long frame_diff = getFrameFromScreenPoint(e_panel_effect_controls->zoom, mouse_x) - drag_frame_start;
+      long frame_diff = getFrameFromScreenPoint(PanelManager::fxControls().zoom, mouse_x) - drag_frame_start;
 
       // snapping to playhead
       PanelManager::timeLine().snapped = false;

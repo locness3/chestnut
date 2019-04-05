@@ -10,11 +10,7 @@ HistogramViewer* PanelManager::histogram_viewer_ = nullptr;
 panels::ScopeViewer* PanelManager::scope_viewer_ = nullptr;
 GraphEditor* PanelManager::graph_editor_ = nullptr;
 Timeline* PanelManager::timeline_ = nullptr;
-
-PanelManager::PanelManager()
-{
-
-}
+EffectControls* PanelManager::fx_controls_ = nullptr;
 
 
 bool PanelManager::setParent(QWidget* parent)
@@ -61,7 +57,33 @@ Timeline& PanelManager::timeLine()
 {
   if (timeline_ == nullptr) {
     timeline_ = new Timeline(parent_);
-    graph_editor_->setObjectName("timeline");
+    timeline_->setObjectName("timeline");
   }
   return *timeline_;
+}
+
+
+EffectControls& PanelManager::fxControls()
+{
+  if (fx_controls_ == nullptr) {
+    fx_controls_ = new EffectControls(parent_);
+    fx_controls_->setObjectName("fx controls");
+    init_effects(); // TODO: remove
+  }
+  return *fx_controls_;
+}
+
+void PanelManager::tearDown()
+{
+  parent_ = nullptr;
+  delete histogram_viewer_;
+  histogram_viewer_ = nullptr;
+  delete scope_viewer_;
+  scope_viewer_ = nullptr;
+  delete graph_editor_;
+  graph_editor_ = nullptr;
+  delete timeline_;
+  timeline_ = nullptr;
+  delete fx_controls_;
+  fx_controls_ = nullptr;
 }

@@ -564,7 +564,7 @@ void Timeline::delete_in_out(bool ripple) {
 
 void Timeline::delete_selection(QVector<Selection>& selections, bool ripple_delete) {
   if (selections.size() > 0) {
-    e_panel_effect_controls->clear_effects(true);
+    PanelManager::fxControls().clear_effects(true);
 
     auto ca = new ComboAction();
 

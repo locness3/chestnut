@@ -72,6 +72,8 @@ bool shaders_are_enabled = true;
 QVector<EffectMeta> effects;
 
 
+using panels::PanelManager;
+
 EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
 {
   if (!em->filename.isEmpty()) {
@@ -279,7 +281,8 @@ void load_shader_effects(QVector<EffectMeta>& effect_list)
 
 void init_effects()
 {
-  e_panel_effect_controls->effects_loaded.lock();
+  // TODO: remove
+  PanelManager::fxControls().effects_loaded.lock();
   auto lmb = []() {
     qInfo() << "Initializing effects...";
     load_internal_effects();
@@ -289,7 +292,7 @@ void init_effects()
   std::thread t(lmb);
   t.join();
 
-  e_panel_effect_controls->effects_loaded.unlock();
+  PanelManager::fxControls().effects_loaded.unlock();
 }
 
 

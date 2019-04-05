@@ -101,7 +101,7 @@ namespace
 void MainWindow::setup_layout(bool reset)
 {
   e_panel_project->show();
-  e_panel_effect_controls->show();
+  PanelManager::fxControls().show();
   e_panel_footage_viewer->show();
   e_panel_sequence_viewer->show();
   PanelManager::timeLine().show();
@@ -111,7 +111,7 @@ void MainWindow::setup_layout(bool reset)
 
   addDockWidget(Qt::TopDockWidgetArea, e_panel_project);
   addDockWidget(Qt::TopDockWidgetArea, e_panel_footage_viewer);
-  tabifyDockWidget(e_panel_footage_viewer, e_panel_effect_controls);
+  tabifyDockWidget(e_panel_footage_viewer, &PanelManager::fxControls());
   e_panel_footage_viewer->raise();
   addDockWidget(Qt::TopDockWidgetArea, e_panel_sequence_viewer);
   addDockWidget(Qt::BottomDockWidgetArea, &PanelManager::timeLine());
@@ -278,7 +278,9 @@ MainWindow::MainWindow(QWidget *parent, const QString &an) :
   init_audio();
 }
 
-MainWindow::~MainWindow() {
+MainWindow::~MainWindow()
+{
+  PanelManager::tearDown();
   free_panels();
   close_debug_file();
 }
@@ -420,12 +422,12 @@ void MainWindow::delete_slot()
     PanelManager::timeLine().headers->delete_markers();
   } else if (PanelManager::timeLine().focused()) {
     PanelManager::timeLine().delete_selection(global::sequence->selections_, false);
-  } else if (e_panel_effect_controls->is_focused()) {
-    e_panel_effect_controls->delete_effects();
+  } else if (PanelManager::fxControls().is_focused()) {
+    PanelManager::fxControls().delete_effects();
   } else if (e_panel_project->is_focused()) {
     e_panel_project->delete_selected_media();
-  } else if (e_panel_effect_controls->keyframe_focus()) {
-    e_panel_effect_controls->delete_selected_keyframes();
+  } else if (PanelManager::fxControls().keyframe_focus()) {
+    PanelManager::fxControls().delete_selected_keyframes();
   } else if (PanelManager::graphEditor().view_is_focused()) {
     PanelManager::graphEditor().delete_selected_keys();
   }
@@ -452,8 +454,8 @@ void MainWindow::zoom_in()
   QDockWidget* focused_panel = get_focused_panel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().set_zoom(true);
-  } else if (focused_panel == e_panel_effect_controls) {
-    e_panel_effect_controls->set_zoom(true);
+  } else if (focused_panel == &PanelManager::fxControls()) {
+    PanelManager::fxControls().set_zoom(true);
   } else if (focused_panel == e_panel_footage_viewer) {
     e_panel_footage_viewer->set_zoom(true);
   } else if (focused_panel == e_panel_sequence_viewer) {
@@ -466,8 +468,8 @@ void MainWindow::zoom_out()
   QDockWidget* focused_panel = get_focused_panel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().set_zoom(false);
-  } else if (focused_panel == e_panel_effect_controls) {
-    e_panel_effect_controls->set_zoom(false);
+  } else if (focused_panel == &PanelManager::fxControls()) {
+    PanelManager::fxControls().set_zoom(false);
   } else if (focused_panel == e_panel_footage_viewer) {
     e_panel_footage_viewer->set_zoom(false);
   } else if (focused_panel == e_panel_sequence_viewer) {
@@ -523,8 +525,8 @@ void MainWindow::cut() {
     QDockWidget* focused_panel = get_focused_panel();
     if (&PanelManager::timeLine() == focused_panel) {
       PanelManager::timeLine().copy(true);
-    } else if (e_panel_effect_controls == focused_panel) {
-      e_panel_effect_controls->copy(true);
+    } else if (&PanelManager::fxControls() == focused_panel) {
+      PanelManager::fxControls().copy(true);
     }
   }
 }
@@ -534,15 +536,15 @@ void MainWindow::copy() {
     QDockWidget* focused_panel = get_focused_panel();
     if (&PanelManager::timeLine() == focused_panel) {
       PanelManager::timeLine().copy(false);
-    } else if (e_panel_effect_controls == focused_panel) {
-      e_panel_effect_controls->copy(false);
+    } else if (&PanelManager::fxControls() == focused_panel) {
+      PanelManager::fxControls().copy(false);
     }
   }
 }
 
 void MainWindow::paste() {
   QDockWidget* focused_panel = get_focused_panel();
-  if ( (&PanelManager::timeLine() == focused_panel || e_panel_effect_controls == focused_panel)
+  if ( (&PanelManager::timeLine() == focused_panel || &PanelManager::fxControls() == focused_panel)
        && global::sequence != nullptr) {
     PanelManager::timeLine().paste(false);
   }
@@ -550,7 +552,7 @@ void MainWindow::paste() {
 
 void MainWindow::new_project() {
   if (can_close_project()) {
-    e_panel_effect_controls->clear_effects(true);
+    PanelManager::fxControls().clear_effects(true);
     e_undo_stack.clear();
     project_url.clear();
     e_panel_project->new_project();
@@ -812,7 +814,7 @@ void MainWindow::setup_menus() {
   QAction* window_effectcontrols_action = window_menu->addAction(tr("Effect Controls"), this, SLOT(toggle_panel_visibility()));
   window_effectcontrols_action->setProperty("id", "paneleffectcontrols");
   window_effectcontrols_action->setCheckable(true);
-  window_effectcontrols_action->setData(reinterpret_cast<quintptr>(e_panel_effect_controls));
+  window_effectcontrols_action->setData(reinterpret_cast<quintptr>(&PanelManager::fxControls()));
 
   QAction* window_timeline_action = window_menu->addAction(tr("Timeline"), this, SLOT(toggle_panel_visibility()));
   window_timeline_action->setProperty("id", "paneltimeline");
@@ -1038,7 +1040,7 @@ void MainWindow::updateTitle(const QString& url) {
 
 void MainWindow::closeEvent(QCloseEvent *e) {
   if (can_close_project()) {
-    e_panel_effect_controls->clear_effects(true);
+    PanelManager::fxControls().clear_effects(true);
 
     set_sequence(nullptr);
 
@@ -1557,7 +1559,7 @@ void MainWindow::nest() {
       PanelManager::timeLine().create_ghosts_from_media(global::sequence, earliest_point, media_list);
       PanelManager::timeLine().add_clips_from_ghosts(ca, global::sequence);
 
-      e_panel_effect_controls->clear_effects(true);
+      PanelManager::fxControls().clear_effects(true);
       global::sequence->selections_.clear();
 
       e_undo_stack.push(ca);
@@ -1589,7 +1591,7 @@ void MainWindow::set_autoscroll() {
 void MainWindow::menu_click_button() {
   QDockWidget* focused_panel = get_focused_panel();
   if (focused_panel == &PanelManager::timeLine()
-      || focused_panel == e_panel_effect_controls
+      || focused_panel == &PanelManager::fxControls()
       || focused_panel == e_panel_footage_viewer
       || focused_panel == e_panel_sequence_viewer)
     reinterpret_cast<QPushButton*>(static_cast<QAction*>(sender())->data().value<quintptr>())->click();

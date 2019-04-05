@@ -50,10 +50,10 @@ void HistogramViewer::frameGrabbed(const QImage& img)
   for (auto w = 0; w < img.width(); w+=div){
     for (auto h = 0; h < img.height(); h+=div) {
       clr = img.pixel(w, h);
-      histogram_->values_[static_cast<size_t>(qGray(clr))]++;
-      histogram_red_->values_[static_cast<size_t>(qRed(clr))]++;
-      histogram_green_->values_[static_cast<size_t>(qGreen(clr))]++;
-      histogram_blue_->values_[static_cast<size_t>(qBlue(clr))]++;
+      histogram_->values_.at(static_cast<size_t>(qGray(clr)))++;
+      histogram_red_->values_.at(static_cast<size_t>(qRed(clr)))++;
+      histogram_green_->values_.at(static_cast<size_t>(qGreen(clr)))++;
+      histogram_blue_->values_.at(static_cast<size_t>(qBlue(clr)))++;
     }
   }
   // Frame may have been retrieved after an effect change

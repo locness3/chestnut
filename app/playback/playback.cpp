@@ -63,7 +63,7 @@ long refactor_frame_number(long framenumber, double source_frame_rate, double ta
 
 
 void set_sequence(SequencePtr s) {
-    e_panel_effect_controls->clear_effects(true);
+    PanelManager::fxControls().clear_effects(true);
     global::sequence = std::move(s);
     e_panel_sequence_viewer->set_main_sequence();
     PanelManager::timeLine().update_sequence();

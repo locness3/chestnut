@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  *
@@ -35,7 +35,6 @@
 #include <QCoreApplication>
 
 Project* e_panel_project = nullptr;
-EffectControls* e_panel_effect_controls = nullptr;
 Viewer* e_panel_sequence_viewer = nullptr;
 Viewer* e_panel_footage_viewer = nullptr;
 
@@ -106,19 +105,19 @@ void update_effect_controls() {
     }
   }
 
-  bool same = (selected_clips.size() == e_panel_effect_controls->selected_clips.size());
+  bool same = (selected_clips.size() == PanelManager::fxControls().selected_clips.size());
   if (same) {
     for (int i=0;i<selected_clips.size();i++) {
-      if (selected_clips.at(i) != e_panel_effect_controls->selected_clips.at(i)) {
+      if (selected_clips.at(i) != PanelManager::fxControls().selected_clips.at(i)) {
         same = false;
         break;
       }
     }
   }
 
-  if (e_panel_effect_controls->multiple != multiple || !same) {
-    e_panel_effect_controls->multiple = multiple;
-    e_panel_effect_controls->set_clips(selected_clips, mode);
+  if (PanelManager::fxControls().multiple != multiple || !same) {
+    PanelManager::fxControls().multiple = multiple;
+    PanelManager::fxControls().set_clips(selected_clips, mode);
   }
 }
 
@@ -127,7 +126,7 @@ void update_ui(const bool modified)
   if (modified) {
     update_effect_controls();
   }
-  e_panel_effect_controls->update_keyframes();
+  PanelManager::fxControls().update_keyframes();
   PanelManager::timeLine().repaint_timeline();
   e_panel_sequence_viewer->update_viewer();
   PanelManager::graphEditor().update_panel();
@@ -139,8 +138,8 @@ QDockWidget* get_focused_panel()
   if (e_config.hover_focus) {
     if (e_panel_project->underMouse()) {
       w = e_panel_project;
-    } else if (e_panel_effect_controls->underMouse()) {
-      w = e_panel_effect_controls;
+    } else if (PanelManager::fxControls().underMouse()) {
+      w = &PanelManager::fxControls();
     } else if (e_panel_sequence_viewer->underMouse()) {
       w = e_panel_sequence_viewer;
     } else if (e_panel_footage_viewer->underMouse()) {
@@ -159,8 +158,8 @@ QDockWidget* get_focused_panel()
   if (w == nullptr) {
     if (e_panel_project->is_focused()) {
       w = e_panel_project;
-    } else if (e_panel_effect_controls->keyframe_focus() || e_panel_effect_controls->is_focused()) {
-      w = e_panel_effect_controls;
+    } else if (PanelManager::fxControls().keyframe_focus() || PanelManager::fxControls().is_focused()) {
+      w = &PanelManager::fxControls();
     } else if (e_panel_sequence_viewer->is_focused()) {
       w = e_panel_sequence_viewer;
     } else if (e_panel_footage_viewer->is_focused()) {
@@ -185,9 +184,8 @@ void alloc_panels(QWidget* parent)
   e_panel_footage_viewer->set_panel_name(QCoreApplication::translate("Viewer", "Media Viewer"));
   e_panel_project = new Project(parent);
   e_panel_project->setObjectName("proj_root");
-  e_panel_effect_controls = new EffectControls(parent);
-  init_effects();
-  e_panel_effect_controls->setObjectName("fx_controls");
+//  e_panel_effect_controls = new EffectControls(parent);
+//  init_effects();
 }
 
 void free_panels()
@@ -198,8 +196,6 @@ void free_panels()
   e_panel_footage_viewer = nullptr;
   delete e_panel_project;
   e_panel_project = nullptr;
-  delete e_panel_effect_controls;
-  e_panel_effect_controls = nullptr;
 }
 
 void scroll_to_frame_internal(QScrollBar* bar, long frame, double zoom, int area_width)

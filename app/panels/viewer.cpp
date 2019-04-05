@@ -281,7 +281,7 @@ void Viewer::seek(long p) {
   bool update_fx = false;
   if (main_sequence) {
     PanelManager::timeLine().scroll_to_frame(p);
-    e_panel_effect_controls->scroll_to_frame(p);
+    PanelManager::fxControls().scroll_to_frame(p);
     if (e_config.seek_also_selects) {
       PanelManager::timeLine().select_from_playhead();
       update_fx = true;

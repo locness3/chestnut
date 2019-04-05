@@ -16,15 +16,31 @@
  *along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "project.h"
-#include "project/footage.h"
 
+#include <QApplication>
+#include <QFileDialog>
+#include <QString>
+#include <QVariant>
+#include <QCharRef>
+#include <QMessageBox>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QPushButton>
+#include <QInputDialog>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+#include <QSizePolicy>
+#include <QVBoxLayout>
+#include <QMenu>
+#include <memory>
+
+#include "project/footage.h"
 #include "panels/panels.h"
-#include "panels/timeline.h"
+#include "panels/panelmanager.h"
 #include "panels/viewer.h"
 #include "playback/playback.h"
 #include "project/effect.h"
 #include "project/transition.h"
-#include "panels/timeline.h"
 #include "project/sequence.h"
 #include "project/clip.h"
 #include "io/previewgenerator.h"
@@ -44,28 +60,13 @@
 #include "project/projectfilter.h"
 #include "debug.h"
 
-#include <QApplication>
-#include <QFileDialog>
-#include <QString>
-#include <QVariant>
-#include <QCharRef>
-#include <QMessageBox>
-#include <QDropEvent>
-#include <QMimeData>
-#include <QPushButton>
-#include <QInputDialog>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
-#include <QSizePolicy>
-#include <QVBoxLayout>
-#include <QMenu>
-#include <memory>
 
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 }
 
+using panels::PanelManager;
 
 ProjectModel project_model;
 
@@ -524,8 +525,10 @@ void Project::delete_selected_media() {
 
   // remove
   if (remove) {
-    e_panel_effect_controls->clear_effects(true);
-    if (global::sequence != nullptr) global::sequence->selections_.clear();
+    PanelManager::fxControls().clear_effects(true);
+    if (global::sequence != nullptr) {
+      global::sequence->selections_.clear();
+    }
 
     // remove media and parents
     for (int m=0; m < parents.size(); m++) {
@@ -853,7 +856,7 @@ void Project::delete_clips_using_selected_media() {
 
 void Project::clear() {
   // clear effects cache
-  e_panel_effect_controls->clear_effects(true);
+  PanelManager::fxControls().clear_effects(true);
 
   // delete sequences first because it's important to close all the clips before deleting the media
   QVector<MediaPtr> sequences = list_all_project_sequences();

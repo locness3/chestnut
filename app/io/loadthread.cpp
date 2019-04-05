@@ -17,10 +17,14 @@
  */
 #include "loadthread.h"
 
-#include "ui/mainwindow.h"
+#include <QFile>
+#include <QMessageBox>
+#include <QTreeWidgetItem>
+
 #include "panels/panels.h"
-#include "panels/effectcontrols.h"
 #include "panels/project.h"
+#include "panels/panelmanager.h"
+#include "ui/mainwindow.h"
 #include "project/footage.h"
 #include "io/config.h"
 #include "project/clip.h"
@@ -34,17 +38,7 @@
 #include "effects/internal/voideffect.h"
 #include "debug.h"
 
-#include <QFile>
-#include <QMessageBox>
-#include <QTreeWidgetItem>
-
-struct TransitionData {
-    int id;
-    QString name;
-    long length;
-    ClipPtr  otc;
-    ClipPtr  ctc;
-};
+using panels::PanelManager;
 
 LoadThread::LoadThread(LoadDialog* l, const bool a)
   : ld(l),
@@ -89,7 +83,7 @@ void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
   }
 
   // wait for effects to be loaded
-  e_panel_effect_controls->effects_loaded.lock();
+  PanelManager::fxControls().effects_loaded.lock();
 
   const EffectMeta* meta = nullptr;
 
@@ -98,9 +92,9 @@ void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
     meta = get_meta_from_name(effect_name);
   }
 
-  e_panel_effect_controls->effects_loaded.unlock();
+  PanelManager::fxControls().effects_loaded.unlock();
 
-  QString tag = stream.name().toString();
+  const auto tag = stream.name().toString();
 
   int type;
   if (tag == "opening") {

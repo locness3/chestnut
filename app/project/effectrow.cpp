@@ -34,6 +34,8 @@
 #include "ui/keyframenavigator.h"
 #include "ui/clickablelabel.h"
 
+using panels::PanelManager;
+
 EffectRow::EffectRow(Effect* parent, const bool save, QGridLayout& uilayout,
                      const QString& n, const int row, const bool keyframable) :
   parent_effect(parent),
@@ -92,10 +94,11 @@ void EffectRow::set_keyframe_enabled(bool enabled) {
     set_keyframe_now(ca);
     e_undo_stack.push(ca);
   } else {
-    if (QMessageBox::question(e_panel_effect_controls,
-                              tr("Disable Keyframes"),
-                              tr("Disabling keyframes will delete all current keyframes. Are you sure you want to do this?"),
-                              QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+    const auto msg = QMessageBox::question(&PanelManager::fxControls(),
+                                           tr("Disable Keyframes"),
+                                           tr("Disabling keyframes will delete all current keyframes. Are you sure you want to do this?"),
+                                           QMessageBox::Yes, QMessageBox::No);
+    if (msg == QMessageBox::Yes) {
       // clear
       auto ca = new ComboAction();
       for (int i=0;i<fieldCount();i++) {
@@ -106,7 +109,7 @@ void EffectRow::set_keyframe_enabled(bool enabled) {
       }
       ca->append(new SetKeyframing(this, false));
       e_undo_stack.push(ca);
-      e_panel_effect_controls->update_keyframes();
+      PanelManager::fxControls().update_keyframes();
     } else {
       setKeyframing(true);
     }
@@ -203,7 +206,7 @@ void EffectRow::add_widget(QWidget* w) {
 void EffectRow::set_keyframe_now(ComboAction* ca)
 {
   long time = global::sequence->playhead_-parent_effect->parent_clip->timeline_info.in
-              + parent_effect->parent_clip->timeline_info.clip_in;
+      + parent_effect->parent_clip->timeline_info.clip_in;
 
   if (!just_made_unsafe_keyframe) {
     EffectKeyframe key;
@@ -255,7 +258,7 @@ void EffectRow::set_keyframe_now(ComboAction* ca)
     just_made_unsafe_keyframe = false;
   }
 
-  e_panel_effect_controls->update_keyframes();
+  PanelManager::fxControls().update_keyframes();
 
 
 
