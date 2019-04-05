@@ -24,6 +24,7 @@
 #include "panels/panels.h"
 #include "panels/timeline.h"
 #include "panels/viewer.h"
+#include "panels/panelmanager.h"
 #include "ui/audiomonitor.h"
 #include "playback/playback.h"
 #include "debug.h"
@@ -38,6 +39,7 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 }
+using panels::PanelManager;
 
 QAudioOutput* audio_output;
 QIODevice* audio_io_device;
@@ -197,11 +199,12 @@ int AudioSenderThread::send_audio_to_output(int offset, int max) {
         s = e_panel_sequence_viewer->getSequence();
     }
     if (s != nullptr) {
-        if (e_panel_timeline->audio_monitor->sample_cache_offset == -1) {
-            e_panel_timeline->audio_monitor->sample_cache_offset = s->playhead_;
+        if (PanelManager::timeLine().audio_monitor->sample_cache_offset == -1) {
+            PanelManager::timeLine().audio_monitor->sample_cache_offset = s->playhead_;
         }
         int channel_count = av_get_channel_layout_nb_channels(s->audioLayout());
-        long sample_cache_playhead = e_panel_timeline->audio_monitor->sample_cache_offset + (e_panel_timeline->audio_monitor->sample_cache.size()/channel_count);
+        long sample_cache_playhead = PanelManager::timeLine().audio_monitor->sample_cache_offset
+            + (PanelManager::timeLine().audio_monitor->sample_cache.size() / channel_count);
         int next_buffer_offset, buffer_offset_adjusted, i;
         int buffer_offset = get_buffer_offset_from_frame(s->frameRate(), sample_cache_playhead);
         if (samples.size() != channel_count) samples.resize(channel_count);
@@ -218,7 +221,7 @@ int AudioSenderThread::send_audio_to_output(int offset, int max) {
                     buffer_offset += 2;
                 }
             }
-            e_panel_timeline->audio_monitor->sample_cache.append(samples);
+            PanelManager::timeLine().audio_monitor->sample_cache.append(samples);
             buffer_offset = next_buffer_offset;
         }
     }

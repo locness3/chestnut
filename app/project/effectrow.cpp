@@ -28,6 +28,7 @@
 #include "panels/effectcontrols.h"
 #include "panels/viewer.h"
 #include "panels/grapheditor.h"
+#include "panels/panelmanager.h"
 #include "effect.h"
 #include "ui/viewerwidget.h"
 #include "ui/keyframenavigator.h"
@@ -174,8 +175,9 @@ void EffectRow::goto_next_key()
   if (key != LONG_MAX) e_panel_sequence_viewer->seek(key);
 }
 
-void EffectRow::focus_row() {
-  e_panel_graph_editor->set_row(this);
+void EffectRow::focus_row()
+{
+  panels::PanelManager::graphEditor().set_row(this);
 }
 
 EffectField* EffectRow::add_field(const EffectFieldType type, const QString& id, int colspan) {

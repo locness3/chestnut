@@ -29,10 +29,11 @@
 #include "timeline.h"
 #include "panels/project.h"
 #include "panels/effectcontrols.h"
+#include "panels/panels.h"
+#include "panels/panelmanager.h"
+#include "io/config.h"
 #include "project/sequence.h"
 #include "project/clip.h"
-#include "panels/panels.h"
-#include "io/config.h"
 #include "project/footage.h"
 #include "project/media.h"
 #include "project/undo.h"
@@ -51,6 +52,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+using panels::PanelManager;
 
 namespace {
   const int FRAMES_IN_ONE_MINUTE = 1798; // 1800 - 2
@@ -278,10 +280,10 @@ void Viewer::seek(long p) {
   seq->playhead_ = p;
   bool update_fx = false;
   if (main_sequence) {
-    e_panel_timeline->scroll_to_frame(p);
+    PanelManager::timeLine().scroll_to_frame(p);
     e_panel_effect_controls->scroll_to_frame(p);
     if (e_config.seek_also_selects) {
-      e_panel_timeline->select_from_playhead();
+      PanelManager::timeLine().select_from_playhead();
       update_fx = true;
     }
   }
@@ -779,7 +781,7 @@ void Viewer::timer_update() {
   previous_playhead = seq->playhead_;
 
   seq->playhead_ = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * seq->frameRate()));
-  if (e_config.seek_also_selects) e_panel_timeline->select_from_playhead();
+  if (e_config.seek_also_selects) PanelManager::timeLine().select_from_playhead();
   update_parents(e_config.seek_also_selects);
 
   long end_frame = get_seq_out();

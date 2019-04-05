@@ -30,22 +30,25 @@
 #include <QIcon>
 
 #include "panels/panels.h"
+#include "panels/project.h"
+#include "panels/timeline.h"
+#include "panels/viewer.h"
+#include "panels/grapheditor.h"
+#include "panels/panelmanager.h"
 #include "project/effect.h"
 #include "project/clip.h"
 #include "project/transition.h"
 #include "ui/collapsiblewidget.h"
 #include "project/sequence.h"
 #include "project/undo.h"
-#include "panels/project.h"
-#include "panels/timeline.h"
-#include "panels/viewer.h"
-#include "panels/grapheditor.h"
 #include "ui/viewerwidget.h"
 #include "io/clipboard.h"
 #include "ui/timelineheader.h"
 #include "ui/keyframeview.h"
 #include "ui/resizablescrollbar.h"
 #include "debug.h"
+
+using panels::PanelManager;
 
 EffectControls::EffectControls(QWidget *parent) :
   QDockWidget(parent),
@@ -256,7 +259,7 @@ void EffectControls::clear_effects(bool clear_cache) {
   deselect_all_effects(nullptr);
 
   // clear graph editor
-  if (e_panel_graph_editor != nullptr) e_panel_graph_editor->set_row(nullptr);
+  PanelManager::graphEditor().set_row(nullptr);
 
   QVBoxLayout* video_layout = static_cast<QVBoxLayout*>(video_effect_area->layout());
   QVBoxLayout* audio_layout = static_cast<QVBoxLayout*>(audio_effect_area->layout());

@@ -17,18 +17,22 @@
  */
 #include "keyframeview.h"
 
+#include <QMouseEvent>
+#include <QtMath>
+#include <QMenu>
+
 #include "project/effect.h"
 #include "ui/collapsiblewidget.h"
 #include "panels/panels.h"
 #include "panels/effectcontrols.h"
+#include "panels/viewer.h"
+#include "panels/panelmanager.h"
+#include "panels/grapheditor.h"
 #include "project/clip.h"
-#include "panels/timeline.h"
 #include "ui/timelineheader.h"
 #include "project/undo.h"
-#include "panels/viewer.h"
 #include "ui/viewerwidget.h"
 #include "project/sequence.h"
-#include "panels/grapheditor.h"
 #include "ui/keyframedrawing.h"
 #include "ui/clickablelabel.h"
 #include "ui/resizablescrollbar.h"
@@ -36,9 +40,7 @@
 #include "project/keyframe.h"
 #include "ui/graphview.h"
 
-#include <QMouseEvent>
-#include <QtMath>
-#include <QMenu>
+using panels::PanelManager;
 
 long KeyframeView::adjust_row_keyframe(EffectRowPtr row, long time) {
   //FIXME: the use of ptrs
@@ -85,10 +87,11 @@ void KeyframeView::show_context_menu(const QPoint& pos)
   }
 }
 
-void KeyframeView::menu_set_key_type(QAction* a) {
+void KeyframeView::menu_set_key_type(QAction* a)
+{
   if (a->data().isNull()) {
     // load graph editor
-    e_panel_graph_editor->show();
+    panels::PanelManager::graphEditor().show();
   } else {
     ComboAction* ca = new ComboAction();
     for (int i=0;i<selected_fields.size();i++) {
@@ -181,7 +184,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
     header->set_visible_in(visible_in);
 
     int playhead_x = getScreenPointFromFrame(e_panel_effect_controls->zoom, global::sequence->playhead_-visible_in) - x_scroll;
-    if (dragging && e_panel_timeline->snapped) {
+    if (dragging && PanelManager::timeLine().snapped) {
       p.setPen(Qt::white);
     } else {
       p.setPen(Qt::red);
@@ -238,7 +241,7 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
   rect_select_w = 0;
   rect_select_h = 0;
 
-  if (e_panel_timeline->tool == TIMELINE_TOOL_HAND || event->buttons() & Qt::MiddleButton) {
+  if (PanelManager::timeLine().tool == TIMELINE_TOOL_HAND || event->buttons() & Qt::MiddleButton) {
     scroll_drag = true;
     return;
   }
@@ -328,7 +331,7 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
 }
 
 void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
-  if (e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
+  if (PanelManager::timeLine().tool == TIMELINE_TOOL_HAND) {
     setCursor(Qt::OpenHandCursor);
   } else {
     unsetCursor();
@@ -378,14 +381,14 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
       long frame_diff = getFrameFromScreenPoint(e_panel_effect_controls->zoom, mouse_x) - drag_frame_start;
 
       // snapping to playhead
-      e_panel_timeline->snapped = false;
-      if (e_panel_timeline->snapping) {
+      PanelManager::timeLine().snapped = false;
+      if (PanelManager::timeLine().snapping) {
         for (int i=0;i<selected_keyframes.size();i++) {
           EffectField* field = selected_fields.at(i);
           ClipPtr c = field->parent_row->parent_effect->parent_clip;
           long key_time = old_key_vals.at(i) + frame_diff - c->timeline_info.clip_in + c->timeline_info.in;
           long key_eval = key_time;
-          if (e_panel_timeline->snap_to_point(global::sequence->playhead_, &key_eval)) {
+          if (PanelManager::timeLine().snap_to_point(global::sequence->playhead_, &key_eval)) {
             frame_diff += (key_eval - key_time);
             break;
           }
@@ -400,10 +403,10 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
           while (!keyframeIsSelected(field, j) && field->keyframes.at(j).time == eval_key + frame_diff) {
             if (last_frame_diff > frame_diff) {
               frame_diff++;
-              e_panel_timeline->snapped = false;
+              PanelManager::timeLine().snapped = false;
             } else {
               frame_diff--;
-              e_panel_timeline->snapped = false;
+              PanelManager::timeLine().snapped = false;
             }
           }
         }
@@ -441,6 +444,6 @@ void KeyframeView::mouseReleaseEvent(QMouseEvent*) {
   dragging = false;
   mousedown = false;
   scroll_drag = false;
-  e_panel_timeline->snapped = false;
+  PanelManager::timeLine().snapped = false;
   update_ui(false);
 }

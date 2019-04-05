@@ -118,7 +118,6 @@ void RenderThread::paint()
         // texture failed, try again
         queued = true;
       } else {
-        //TODO: http://www.songho.ca/opengl/gl_pbo.html
         QImage img(tex_width, tex_height, QImage::Format_RGBA8888);
         ctx->functions()->glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer);
         glReadPixels(0, 0, tex_width, tex_height, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
@@ -190,4 +189,9 @@ void RenderThread::delete_ctx() {
     delete ctx;
   }
   ctx = nullptr;
+}
+
+void RenderThread::drawClippedPixels(const bool state)
+{
+  draw_clipped_ = state;
 }

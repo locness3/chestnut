@@ -30,7 +30,7 @@
 #include "project/footage.h"
 #include "playback/playback.h"
 #include "panels/panels.h"
-#include "panels/timeline.h"
+#include "panels/panelmanager.h"
 #include "project/undo.h"
 #include "project/effect.h"
 #include "project/media.h"
@@ -312,8 +312,9 @@ void SpeedDialog::frame_rate_update() {
     duration->set_value((len_val == -1) ? qSNaN() : len_val, false);
 }
 
-void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, int64_t& ep, long& lr) {
-    e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
+void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, int64_t& ep, long& lr)
+{
+    panels::PanelManager::timeLine().deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
 
     long proposed_out = c->timeline_info.out;
     double multiplier = (c->timeline_info.speed / speed);

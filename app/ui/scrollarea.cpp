@@ -22,14 +22,16 @@
 
 #include "io/config.h"
 #include "panels/panels.h"
-#include "panels/timeline.h"
+#include "panels/panelmanager.h"
 
 ScrollArea::ScrollArea(QWidget* parent) : QScrollArea(parent) {}
 
 void ScrollArea::wheelEvent(QWheelEvent *e) {
     if (e_config.scroll_zooms) {
         e->ignore();
-        if (e->angleDelta().y() != 0) e_panel_timeline->set_zoom(e->angleDelta().y() > 0);
+        if (e->angleDelta().y() != 0) {
+          panels::PanelManager::timeLine().set_zoom(e->angleDelta().y() > 0);
+        }
     } else {
         QScrollArea::wheelEvent(e);
     }

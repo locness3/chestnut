@@ -35,6 +35,7 @@ class RenderThread : public QThread {
   public slots:
     // cleanup functions
     void delete_ctx();
+    void drawClippedPixels(const bool state);
   signals:
     void ready();
     void frameGrabbed(const QImage& img);
@@ -55,6 +56,7 @@ class RenderThread : public QThread {
     bool texture_failed;
     bool running;
     bool frame_grabbing_{};
+    std::atomic_bool draw_clipped_{false};
 };
 
 #endif // RENDERTHREAD_H

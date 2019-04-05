@@ -17,17 +17,6 @@
  */
 #include "sourcescommon.h"
 
-#include "panels/panels.h"
-#include "project/media.h"
-#include "project/undo.h"
-#include "panels/timeline.h"
-#include "panels/project.h"
-#include "project/footage.h"
-#include "panels/viewer.h"
-#include "project/projectfilter.h"
-#include "io/config.h"
-#include "ui/mainwindow.h"
-
 #include <QProcess>
 #include <QMenu>
 #include <QAbstractItemView>
@@ -37,9 +26,18 @@
 #include <QDropEvent>
 #include <QUrl>
 
-namespace {
-  const int RENAME_INTERVAL = 1000;
-}
+#include "panels/panels.h"
+#include "project/media.h"
+#include "project/undo.h"
+#include "panels/panelmanager.h"
+#include "panels/project.h"
+#include "project/footage.h"
+#include "panels/viewer.h"
+#include "project/projectfilter.h"
+#include "io/config.h"
+#include "ui/mainwindow.h"
+
+constexpr int RENAME_INTERVAL = 1000;
 
 SourcesCommon::SourcesCommon(Project* parent) :
   QObject(parent),
@@ -61,8 +59,8 @@ void SourcesCommon::create_seq_from_selected() {
     auto seq = std::make_shared<Sequence>(media_list, e_panel_project->get_next_sequence_name());
 
     // add clips to it
-    e_panel_timeline->create_ghosts_from_media(seq, 0, media_list);
-    e_panel_timeline->add_clips_from_ghosts(ca, seq);
+    panels::PanelManager::timeLine().create_ghosts_from_media(seq, 0, media_list);
+    panels::PanelManager::timeLine().add_clips_from_ghosts(ca, seq);
 
     project_parent->new_sequence(ca, seq, true, nullptr);
     e_undo_stack.push(ca);

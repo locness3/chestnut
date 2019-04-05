@@ -111,7 +111,8 @@ SOURCES += \
     ui/histogramwidget.cpp \
     ui/colorscopewidget.cpp \
     panels/scopeviewer.cpp \
-    io/colorconversions.cpp
+    io/colorconversions.cpp \
+    panels/panelmanager.cpp
 
 HEADERS += \
     ui/mainwindow.h \
@@ -218,7 +219,8 @@ HEADERS += \
     ui/histogramwidget.h \
     ui/colorscopewidget.h \
     panels/scopeviewer.h \
-    io/colorconversions.h
+    io/colorconversions.h \
+    panels/panelmanager.h
 
 DISTFILES +=
 

@@ -28,7 +28,7 @@
 #include "panels/project.h"
 #include "panels/effectcontrols.h"
 #include "panels/viewer.h"
-#include "panels/timeline.h"
+#include "panels/panelmanager.h"
 #include "playback/playback.h"
 #include "ui/sourcetable.h"
 #include "project/effect.h"
@@ -43,6 +43,8 @@
 #include "debug.h"
 
 QUndoStack e_undo_stack;
+
+using panels::PanelManager;
 
 ComboAction::~ComboAction()
 {
@@ -99,7 +101,9 @@ MoveClipAction::MoveClipAction(const ClipPtr& c, const long iin, const long iout
     new_track(itrack),
     relative(irelative),
     old_project_changed(global::mainWindow->isWindowModified())
-{}
+{
+
+}
 
 void MoveClipAction::undo() {
   if (relative) {
@@ -506,7 +510,7 @@ void AddClipCommand::undo() {
   e_panel_effect_controls->clear_effects(true);
   for (int i=0;i<clips.size();i++) {
     ClipPtr   c = seq->clips_.last();
-    e_panel_timeline->deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
+    PanelManager::timeLine().deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
     undone_clips.prepend(c);
     c->close(true);
     seq->clips_.removeLast();

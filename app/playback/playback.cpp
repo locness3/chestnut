@@ -17,6 +17,12 @@
  */
 #include "playback.h"
 
+#include <QtMath>
+#include <QObject>
+#include <QOpenGLTexture>
+#include <QOpenGLPixelTransferOptions>
+#include <QOpenGLFramebufferObject>
+
 #include "project/clip.h"
 #include "project/sequence.h"
 #include "project/footage.h"
@@ -24,8 +30,9 @@
 #include "panels/panels.h"
 #include "panels/timeline.h"
 #include "panels/viewer.h"
-#include "project/effect.h"
 #include "panels/effectcontrols.h"
+#include "panels/panelmanager.h"
+#include "project/effect.h"
 #include "project/media.h"
 #include "io/config.h"
 #include "io/avtogl.h"
@@ -39,15 +46,12 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
-#include <QtMath>
-#include <QObject>
-#include <QOpenGLTexture>
-#include <QOpenGLPixelTransferOptions>
-#include <QOpenGLFramebufferObject>
 
 #ifdef QT_DEBUG
 //#define GCF_DEBUG
 #endif
+
+using panels::PanelManager;
 
 bool e_texture_failed = false;
 bool e_rendering = false;
@@ -60,9 +64,9 @@ long refactor_frame_number(long framenumber, double source_frame_rate, double ta
 
 void set_sequence(SequencePtr s) {
     e_panel_effect_controls->clear_effects(true);
-    global::sequence = s;
+    global::sequence = std::move(s);
     e_panel_sequence_viewer->set_main_sequence();
-    e_panel_timeline->update_sequence();
-    e_panel_timeline->setFocus();
+    PanelManager::timeLine().update_sequence();
+    PanelManager::timeLine().setFocus();
 }
 

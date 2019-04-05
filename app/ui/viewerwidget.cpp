@@ -42,6 +42,7 @@
 #include "panels/project.h"
 #include "panels/histogramviewer.h"
 #include "panels/scopeviewer.h"
+#include "panels/panelmanager.h"
 #include "project/sequence.h"
 #include "project/clip.h"
 #include "project/effect.h"
@@ -73,7 +74,9 @@ extern "C" {
 constexpr int SURFACE_DEPTH = 24;
 constexpr int SURFACE_SAMPLES = 16;
 constexpr double DEFAULT_WAVEFORM_ZOOM = 1.0;
+constexpr float GIZMO_Z = 0.0;
 
+using panels::PanelManager;
 
 ViewerWidget::ViewerWidget(QWidget *parent) :
   QOpenGLWidget(parent),
@@ -101,6 +104,7 @@ ViewerWidget::ViewerWidget(QWidget *parent) :
   connect(renderer, SIGNAL(ready()), this, SLOT(queue_repaint()));
   connect(renderer, SIGNAL(finished()), renderer, SLOT(deleteLater()));
   connect(renderer, &RenderThread::frameGrabbed, this, &ViewerWidget::frameGrabbed);
+  connect(&PanelManager::histogram(), &panels::HistogramViewer::drawClippedPixels, renderer, &RenderThread::drawClippedPixels);
 }
 
 ViewerWidget::~ViewerWidget()
@@ -275,19 +279,19 @@ void ViewerWidget::frame_update()
       doneCurrent();
 
       auto grab = false;
-      if (e_panel_histogram_viewer != nullptr && e_panel_histogram_viewer->isVisible()) { //FIXME: isVisible is not correct usage
+      if (PanelManager::histogram().isVisible()) { //FIXME: isVisible is not correct usage
         grab = true;
-        connect(renderer, &RenderThread::frameGrabbed, e_panel_histogram_viewer, &panels::HistogramViewer::frameGrabbed);
-      } else if (e_panel_histogram_viewer != nullptr) {
+        connect(renderer, &RenderThread::frameGrabbed, &PanelManager::histogram(), &panels::HistogramViewer::frameGrabbed);
+      } else {
         // not visible
-        disconnect(renderer, &RenderThread::frameGrabbed, e_panel_histogram_viewer, &panels::HistogramViewer::frameGrabbed);
+        disconnect(renderer, &RenderThread::frameGrabbed, &PanelManager::histogram(), &panels::HistogramViewer::frameGrabbed);
       }
 
-      if (e_panel_scope_viewer != nullptr && e_panel_scope_viewer->isVisible()) {
+      if (PanelManager::colorScope().isVisible()) {
         grab = true;
-        connect(renderer, &RenderThread::frameGrabbed, e_panel_scope_viewer, &panels::ScopeViewer::frameGrabbed);
+        connect(renderer, &RenderThread::frameGrabbed, &PanelManager::colorScope(), &panels::ScopeViewer::frameGrabbed);
       } else {
-        disconnect(renderer, &RenderThread::frameGrabbed, e_panel_scope_viewer, &panels::ScopeViewer::frameGrabbed);
+        disconnect(renderer, &RenderThread::frameGrabbed, &PanelManager::colorScope(), &panels::ScopeViewer::frameGrabbed);
       }
 
       renderer->start_render(context(), sqn, grab);
@@ -386,7 +390,7 @@ void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
 void ViewerWidget::mousePressEvent(QMouseEvent* event) {
   if (waveform) {
     seek_from_click(event->x());
-  } else if (event->buttons() & Qt::MiddleButton || e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
+  } else if (event->buttons() & Qt::MiddleButton || PanelManager::timeLine().tool == TIMELINE_TOOL_HAND) {
     container->dragScrollPress(event->pos());
   } else {
     drag_start_x = event->pos().x();
@@ -406,13 +410,13 @@ void ViewerWidget::mousePressEvent(QMouseEvent* event) {
 
 void ViewerWidget::mouseMoveEvent(QMouseEvent* event) {
   unsetCursor();
-  if (e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
+  if (PanelManager::timeLine().tool == TIMELINE_TOOL_HAND) {
     setCursor(Qt::OpenHandCursor);
   }
   if (dragging) {
     if (waveform) {
       seek_from_click(event->x());
-    } else if (event->buttons() & Qt::MiddleButton || e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
+    } else if ( (event->buttons() & Qt::MiddleButton) || PanelManager::timeLine().tool == TIMELINE_TOOL_HAND) {
       container->dragScrollMove(event->pos());
     } else if (gizmos == nullptr) {
       QDrag* drag = new QDrag(this);
@@ -435,7 +439,7 @@ void ViewerWidget::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void ViewerWidget::mouseReleaseEvent(QMouseEvent *event) {
-  if (dragging && gizmos != nullptr && !(event->button() == Qt::MiddleButton || e_panel_timeline->tool == TIMELINE_TOOL_HAND)) {
+  if (dragging && gizmos != nullptr && !(event->button() == Qt::MiddleButton || PanelManager::timeLine().tool == TIMELINE_TOOL_HAND)) {
     move_gizmos(event, true);
   }
   dragging = false;
@@ -539,60 +543,77 @@ void ViewerWidget::draw_title_safe_area() {
   glEnd();
 }
 
+void ViewerWidget::drawDot(const EffectGizmoPtr& g)
+{
+  const float dot_size = GIZMO_DOT_SIZE / width() * viewer->getSequence()->width();
+  glBegin(GL_QUADS);
+  glVertex3f(g->screen_pos[0].x()-dot_size, g->screen_pos[0].y()-dot_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x()+dot_size, g->screen_pos[0].y()-dot_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x()+dot_size, g->screen_pos[0].y()+dot_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x()-dot_size, g->screen_pos[0].y()+dot_size, GIZMO_Z);
+  glEnd();
+}
+
+void ViewerWidget::drawLines(const EffectGizmoPtr& g)
+{
+  glBegin(GL_LINES);
+  for (int k=1;k<g->get_point_count();k++) {
+    glVertex3f(g->screen_pos[k-1].x(), g->screen_pos[k-1].y(), GIZMO_Z);
+    glVertex3f(g->screen_pos[k].x(), g->screen_pos[k].y(), GIZMO_Z);
+  }
+  glVertex3f(g->screen_pos[g->get_point_count()-1].x(), g->screen_pos[g->get_point_count()-1].y(), GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y(), GIZMO_Z);
+  glEnd();
+}
+
+void ViewerWidget::drawTarget(const EffectGizmoPtr& g)
+{
+  const float target_size = GIZMO_TARGET_SIZE / width() * viewer->getSequence()->width();
+  glBegin(GL_LINES);
+  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()-target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()-target_size, GIZMO_Z);
+
+  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()-target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()+target_size, GIZMO_Z);
+
+  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()+target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()+target_size, GIZMO_Z);
+
+  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()+target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()-target_size, GIZMO_Z);
+
+  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y(), GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y(), GIZMO_Z);
+
+  glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y()-target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y()+target_size, GIZMO_Z);
+  glEnd();
+}
+
 void ViewerWidget::draw_gizmos()
 {
   float color[4];
   glGetFloatv(GL_CURRENT_COLOR, color);
 
-  float dot_size = GIZMO_DOT_SIZE / width() * viewer->getSequence()->width();
-  float target_size = GIZMO_TARGET_SIZE / width() * viewer->getSequence()->width();
-
   glPushMatrix();
   glLoadIdentity();
   glOrtho(0, viewer->getSequence()->width(), viewer->getSequence()->height(), 0, -1, 10);
-  float gizmo_z = 0.0f;
+
   for (int j=0;j<gizmos->gizmo_count();j++) {
     EffectGizmoPtr g = gizmos->gizmo(j);
-    glColor4f(g->color.redF(), g->color.greenF(), g->color.blueF(), 1.0);
+    glColor4f(static_cast<GLfloat>(g->color.redF()),
+              static_cast<GLfloat>(g->color.greenF()),
+              static_cast<GLfloat>(g->color.blueF()),
+              1.0);
     switch (g->get_type()) {
       case GizmoType::DOT: // draw dot
-        glBegin(GL_QUADS);
-        glVertex3f(g->screen_pos[0].x()-dot_size, g->screen_pos[0].y()-dot_size, gizmo_z);
-        glVertex3f(g->screen_pos[0].x()+dot_size, g->screen_pos[0].y()-dot_size, gizmo_z);
-        glVertex3f(g->screen_pos[0].x()+dot_size, g->screen_pos[0].y()+dot_size, gizmo_z);
-        glVertex3f(g->screen_pos[0].x()-dot_size, g->screen_pos[0].y()+dot_size, gizmo_z);
-        glEnd();
+        drawDot(g);
         break;
       case GizmoType::POLY: // draw lines
-        glBegin(GL_LINES);
-        for (int k=1;k<g->get_point_count();k++) {
-          glVertex3f(g->screen_pos[k-1].x(), g->screen_pos[k-1].y(), gizmo_z);
-          glVertex3f(g->screen_pos[k].x(), g->screen_pos[k].y(), gizmo_z);
-        }
-        glVertex3f(g->screen_pos[g->get_point_count()-1].x(), g->screen_pos[g->get_point_count()-1].y(), gizmo_z);
-        glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y(), gizmo_z);
-        glEnd();
+        drawLines(g);
         break;
       case GizmoType::TARGET: // draw target
-        glBegin(GL_LINES);
-        glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()-target_size, gizmo_z);
-        glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()-target_size, gizmo_z);
-
-        glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()-target_size, gizmo_z);
-        glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()+target_size, gizmo_z);
-
-        glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()+target_size, gizmo_z);
-        glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()+target_size, gizmo_z);
-
-        glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()+target_size, gizmo_z);
-        glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()-target_size, gizmo_z);
-
-        glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y(), gizmo_z);
-        glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y(), gizmo_z);
-
-        glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y()-target_size, gizmo_z);
-        glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y()+target_size, gizmo_z);
-        glEnd();
+        drawTarget(g);
         break;
       default:
         qWarning() << "Unhandled Gizmo type" << static_cast<int>(g->get_type());

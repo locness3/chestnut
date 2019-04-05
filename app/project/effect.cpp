@@ -19,15 +19,16 @@
 
 #include "panels/panels.h"
 #include "panels/viewer.h"
-#include "ui/viewerwidget.h"
-#include "ui/collapsiblewidget.h"
 #include "panels/project.h"
-#include "project/undo.h"
-#include "project/sequence.h"
-#include "project/clip.h"
 #include "panels/timeline.h"
 #include "panels/effectcontrols.h"
 #include "panels/grapheditor.h"
+#include "panels/panelmanager.h"
+#include "ui/viewerwidget.h"
+#include "ui/collapsiblewidget.h"
+#include "project/undo.h"
+#include "project/sequence.h"
+#include "project/clip.h"
 #include "ui/checkboxex.h"
 #include "debug.h"
 #include "io/path.h"
@@ -404,7 +405,7 @@ void Effect::refresh()
 void Effect::field_changed()
 {
   e_panel_sequence_viewer->viewer_widget->frame_update();
-  e_panel_graph_editor->update_panel();
+  panels::PanelManager::graphEditor().update_panel();
 }
 
 void Effect::show_context_menu(const QPoint& pos) {

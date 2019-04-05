@@ -27,22 +27,14 @@ class GraphEditor;
 class QWidget;
 class QDockWidget;
 class QScrollBar;
-namespace panels{
-  class HistogramViewer;
-  class ScopeViewer;
-}
 
 extern Project* e_panel_project;
 extern EffectControls* e_panel_effect_controls;
 extern Viewer* e_panel_sequence_viewer;
 extern Viewer* e_panel_footage_viewer;
-extern Timeline* e_panel_timeline;
-extern GraphEditor* e_panel_graph_editor;
 
-extern panels::HistogramViewer* e_panel_histogram_viewer;
-extern panels::ScopeViewer* e_panel_scope_viewer;
 
-void update_ui(bool modified);
+void update_ui(const bool modified);
 QDockWidget* get_focused_panel();
 void alloc_panels(QWidget *parent);
 void free_panels();

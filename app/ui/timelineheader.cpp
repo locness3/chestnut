@@ -17,15 +17,6 @@
  */
 #include "timelineheader.h"
 
-#include "ui/mainwindow.h"
-#include "panels/panels.h"
-#include "panels/timeline.h"
-#include "project/sequence.h"
-#include "project/undo.h"
-#include "panels/viewer.h"
-#include "io/config.h"
-#include "debug.h"
-
 #include <QPainter>
 #include <QMouseEvent>
 #include <QScrollBar>
@@ -33,11 +24,23 @@
 #include <QMenu>
 #include <QAction>
 
-#define CLICK_RANGE 5
-#define PLAYHEAD_SIZE 6
-#define LINE_MIN_PADDING 50
-#define SUBLINE_MIN_PADDING 50 // TODO play with this
-#define MARKER_SIZE 4
+#include "ui/mainwindow.h"
+#include "panels/panels.h"
+#include "panels/panelmanager.h"
+#include "project/sequence.h"
+#include "project/undo.h"
+#include "panels/viewer.h"
+#include "io/config.h"
+#include "debug.h"
+
+
+constexpr int CLICK_RANGE = 5;
+constexpr int PLAYHEAD_SIZE = 6;
+constexpr int LINE_MIN_PADDING = 50;
+constexpr int SUBLINE_MIN_PADDING = 50; //TODO: play with this
+constexpr int MARKER_SIZE = 4;
+
+using panels::PanelManager;
 
 bool center_scroll_to_playhead(QScrollBar* bar, double zoom, long playhead) {
     // returns true is the scroll was changed, false if not
@@ -86,7 +89,7 @@ int TimelineHeader::getHeaderScreenPointFromFrame(long frame) {
 void TimelineHeader::set_playhead(int mouse_x) {
     long frame = getHeaderFrameFromScreenPoint(mouse_x);
     if (snapping) {
-        e_panel_timeline->snap_to_timeline(&frame, false, true, true);
+        PanelManager::timeLine().snap_to_timeline(&frame, false, true, true);
     }
     if (auto sqn = viewer->getSequence())
     {
@@ -201,7 +204,9 @@ void TimelineHeader::mouseMoveEvent(QMouseEvent* event) {
         if (dragging) {
             if (resizing_workarea) {
                 long frame = getHeaderFrameFromScreenPoint(event->pos().x());
-                if (snapping) e_panel_timeline->snap_to_timeline(&frame, true, true, false);
+                if (snapping) {
+                  PanelManager::timeLine().snap_to_timeline(&frame, true, true, false);
+                }
 
                 if (resizing_workarea_in) {
                     temp_workarea_in = qMax(qMin(temp_workarea_out-1, frame), 0L);
@@ -216,7 +221,7 @@ void TimelineHeader::mouseMoveEvent(QMouseEvent* event) {
                 // snap markers
                 for (int i=0;i<selected_markers.size();i++) {
                     long fmv = selected_marker_original_times.at(i) + frame_movement;
-                    if (snapping && e_panel_timeline->snap_to_timeline(&fmv, true, false, true)) {
+                    if (snapping && PanelManager::timeLine().snap_to_timeline(&fmv, true, false, true)) {
                         frame_movement = fmv - selected_marker_original_times.at(i);
                         break;
                     }
@@ -289,7 +294,7 @@ void TimelineHeader::mouseReleaseEvent(QMouseEvent*) {
             resizing_workarea = false;
             dragging = false;
             dragging_markers = false;
-            e_panel_timeline->snapped = false;
+            PanelManager::timeLine().snapped = false;
             update_parents();
         }
     }

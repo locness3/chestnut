@@ -17,29 +17,6 @@
  */
 #include "timeline.h"
 
-#include "panels/panels.h"
-#include "panels/project.h"
-#include "panels/effectcontrols.h"
-#include "ui/timelinewidget.h"
-#include "project/sequence.h"
-#include "project/clip.h"
-#include "ui/viewerwidget.h"
-#include "playback/audio.h"
-#include "panels/viewer.h"
-#include "playback/playback.h"
-#include "project/undo.h"
-#include "project/media.h"
-#include "io/config.h"
-#include "project/effect.h"
-#include "project/transition.h"
-#include "project/footage.h"
-#include "io/clipboard.h"
-#include "ui/timelineheader.h"
-#include "ui/resizablescrollbar.h"
-#include "ui/audiomonitor.h"
-#include "ui/mainwindow.h"
-#include "debug.h"
-
 #include <QTime>
 #include <QScrollBar>
 #include <QtMath>
@@ -55,14 +32,42 @@
 #include <QSplitter>
 #include <QStatusBar>
 
+#include "panels/panels.h"
+#include "panels/project.h"
+#include "panels/effectcontrols.h"
+#include "panels/viewer.h"
+#include "panels/panelmanager.h"
+#include "ui/timelinewidget.h"
+#include "project/sequence.h"
+#include "project/clip.h"
+#include "ui/viewerwidget.h"
+#include "playback/audio.h"
+#include "playback/playback.h"
+#include "project/undo.h"
+#include "project/media.h"
+#include "io/config.h"
+#include "project/effect.h"
+#include "project/transition.h"
+#include "project/footage.h"
+#include "io/clipboard.h"
+#include "ui/timelineheader.h"
+#include "ui/resizablescrollbar.h"
+#include "ui/audiomonitor.h"
+#include "ui/mainwindow.h"
+#include "debug.h"
+
+
+constexpr auto STILL_IMAGE_FRAMES = 100;
+
 namespace
 {
   const QColor AUDIO_ONLY_COLOR(128, 192, 128);
   const QColor VIDEO_ONLY_COLOR(192, 160, 128);
   const QColor AUDIO_VIDEO_COLOR(128, 128, 192);
   const QColor SEQUENCE_COLOR(192, 128, 128);
-  const auto STILL_IMAGE_FRAMES = 100;
 }
+
+using panels::PanelManager;
 
 bool is_clip_selected(ClipPtr& clip, bool containing) {
   for (int i=0;i<clip->sequence->selections_.size();i++) {
@@ -370,9 +375,9 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
   if (e_config.enable_seek_to_import) {
     e_panel_sequence_viewer->seek(earliest_point);
   }
-  e_panel_timeline->ghosts.clear();
-  e_panel_timeline->importing = false;
-  e_panel_timeline->snapped = false;
+  PanelManager::timeLine().ghosts.clear();
+  PanelManager::timeLine().importing = false;
+  PanelManager::timeLine().snapped = false;
 }
 
 int Timeline::get_track_height_size(bool video) {
@@ -463,7 +468,7 @@ void Timeline::repaint_timeline() {
         && !zoom_just_changed) {
       // auto scroll
       if (e_config.autoscroll == AUTOSCROLL_PAGE_SCROLL) {
-        int playhead_x = e_panel_timeline->getTimelineScreenPointFromFrame(global::sequence->playhead_);
+        const int playhead_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(global::sequence->playhead_);
         if (playhead_x < 0 || playhead_x > (editAreas->width() - videoScrollbar->width())) {
           horizontalScrollBar->setValue(getScreenPointFromFrame(zoom, global::sequence->playhead_));
           draw = false;

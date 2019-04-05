@@ -71,17 +71,11 @@ public:
 public slots:
     void set_waveform_scroll(int s);
 protected:
-    void paintGL() override;
+    virtual void paintGL() override;
     virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
 private:
-    void draw_waveform_func();
-    void draw_title_safe_area();
-    void draw_gizmos();
-    EffectGizmoPtr get_gizmo_from_mouse(int x, int y);
-    void move_gizmos(QMouseEvent *event, bool done);
-    void seek_from_click(int x);
     bool dragging;
     EffectPtr gizmos;
     int drag_start_x;
@@ -93,6 +87,18 @@ private:
     ViewerWindow* window;
     QString frame_file_name_{};
     bool save_frame_{false};
+
+    void draw_waveform_func();
+    void draw_title_safe_area();
+    void draw_gizmos();
+    EffectGizmoPtr get_gizmo_from_mouse(int x, int y);
+    void move_gizmos(QMouseEvent *event, bool done);
+    void seek_from_click(int x);
+
+    void drawDot(const EffectGizmoPtr& g);
+    void drawLines(const EffectGizmoPtr& g);
+    void drawTarget(const EffectGizmoPtr& g);
+
 private slots:
     void context_destroy();
     void retry();

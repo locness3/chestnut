@@ -24,7 +24,7 @@
 #include <cfloat>
 
 #include "panels/panels.h"
-#include "panels/timeline.h"
+#include "panels/panelmanager.h"
 #include "panels/viewer.h"
 #include "project/sequence.h"
 #include "project/effectrow.h"
@@ -37,16 +37,14 @@
 
 #include "debug.h"
 
-namespace {
-  const auto GRAPH_ZOOM_SPEED = 0.05;
-  const auto GRAPH_SIZE = 100;
-  const auto BEZIER_HANDLE_SIZE = 3;
-  const auto BEZIER_LINE_SIZE = 2;
+constexpr double GRAPH_ZOOM_SPEED = 0.05;
+constexpr int GRAPH_SIZE = 100;
+constexpr int BEZIER_HANDLE_SIZE = 3;
+constexpr int BEZIER_LINE_SIZE = 2;
 
-  const auto BEZIER_HANDLE_NONE = 1;
-  const auto BEZIER_HANDLE_PRE = 2;
-  const auto BEZIER_HANDLE_POST = 3;
-}
+constexpr int BEZIER_HANDLE_NONE = 1;
+constexpr int BEZIER_HANDLE_PRE = 2;
+constexpr int BEZIER_HANDLE_POST = 3;
 
 QColor get_curve_color(int index, int length) {
   QColor c;
@@ -456,9 +454,12 @@ void GraphView::mousePressEvent(QMouseEvent *event) {
 }
 
 void GraphView::mouseMoveEvent(QMouseEvent *event) {
-  if (!mousedown || !click_add) unsetCursor();
+  if (!mousedown || !click_add) {
+    unsetCursor();
+  }
+
   if (mousedown) {
-    if (event->buttons() & Qt::MiddleButton || e_panel_timeline->tool == TIMELINE_TOOL_HAND) {
+    if ( (event->buttons() & Qt::MiddleButton) || panels::PanelManager::timeLine().tool == TIMELINE_TOOL_HAND) {
       set_scroll_x(x_scroll + start_x - event->pos().x());
       set_scroll_y(y_scroll + event->pos().y() - start_y);
       start_x = event->pos().x();

@@ -29,6 +29,7 @@
 #include "histogramviewer.h"
 #include "scopeviewer.h"
 #include "debug.h"
+#include "panels/panelmanager.h"
 
 #include <QScrollBar>
 #include <QCoreApplication>
@@ -37,10 +38,8 @@ Project* e_panel_project = nullptr;
 EffectControls* e_panel_effect_controls = nullptr;
 Viewer* e_panel_sequence_viewer = nullptr;
 Viewer* e_panel_footage_viewer = nullptr;
-Timeline* e_panel_timeline = nullptr;
-GraphEditor* e_panel_graph_editor = nullptr;
-panels::HistogramViewer* e_panel_histogram_viewer = nullptr;
-panels::ScopeViewer* e_panel_scope_viewer = nullptr;
+
+using panels::PanelManager;
 
 void update_effect_controls() {
   // SEND CLIPS TO EFFECT CONTROLS
@@ -123,14 +122,15 @@ void update_effect_controls() {
   }
 }
 
-void update_ui(bool modified) {
+void update_ui(const bool modified)
+{
   if (modified) {
     update_effect_controls();
   }
   e_panel_effect_controls->update_keyframes();
-  e_panel_timeline->repaint_timeline();
+  PanelManager::timeLine().repaint_timeline();
   e_panel_sequence_viewer->update_viewer();
-  e_panel_graph_editor->update_panel();
+  PanelManager::graphEditor().update_panel();
 }
 
 QDockWidget* get_focused_panel()
@@ -145,14 +145,14 @@ QDockWidget* get_focused_panel()
       w = e_panel_sequence_viewer;
     } else if (e_panel_footage_viewer->underMouse()) {
       w = e_panel_footage_viewer;
-    } else if (e_panel_timeline->underMouse()) {
-      w = e_panel_timeline;
-    } else if (e_panel_graph_editor->view_is_under_mouse()) {
-      w = e_panel_graph_editor;
-    } else if (e_panel_histogram_viewer->underMouse()) {
-      w = e_panel_histogram_viewer;
-    } else if (e_panel_scope_viewer->underMouse()) {
-      w = e_panel_scope_viewer;
+    } else if (PanelManager::timeLine().underMouse()) {
+      w = &PanelManager::timeLine();
+    } else if (PanelManager::graphEditor().view_is_under_mouse()) {
+      w = &PanelManager::graphEditor();
+    } else if (PanelManager::histogram().underMouse()) {
+      w = &PanelManager::histogram();
+    } else if (PanelManager::colorScope().underMouse()) {
+      w = &PanelManager::colorScope();
     }
   }
 
@@ -165,10 +165,10 @@ QDockWidget* get_focused_panel()
       w = e_panel_sequence_viewer;
     } else if (e_panel_footage_viewer->is_focused()) {
       w = e_panel_footage_viewer;
-    } else if (e_panel_timeline->focused()) {
-      w = e_panel_timeline;
-    } else if (e_panel_graph_editor->view_is_focused()) {
-      w = e_panel_graph_editor;
+    } else if (PanelManager::timeLine().focused()) {
+      w = &PanelManager::timeLine();
+    } else if (PanelManager::graphEditor().view_is_focused()) {
+      w = &PanelManager::graphEditor();
     }
   }
   return w;
@@ -188,14 +188,6 @@ void alloc_panels(QWidget* parent)
   e_panel_effect_controls = new EffectControls(parent);
   init_effects();
   e_panel_effect_controls->setObjectName("fx_controls");
-  e_panel_timeline = new Timeline(parent);
-  e_panel_timeline->setObjectName("timeline");
-  e_panel_graph_editor = new GraphEditor(parent);
-  e_panel_graph_editor->setObjectName("graph_editor");
-  e_panel_histogram_viewer = new panels::HistogramViewer(parent);
-  e_panel_histogram_viewer->setObjectName("histogram viewer");
-  e_panel_scope_viewer = new panels::ScopeViewer(parent);
-  e_panel_scope_viewer->setObjectName("scope viewer");
 }
 
 void free_panels()
@@ -208,12 +200,6 @@ void free_panels()
   e_panel_project = nullptr;
   delete e_panel_effect_controls;
   e_panel_effect_controls = nullptr;
-  delete e_panel_timeline;
-  e_panel_timeline = nullptr;
-  delete e_panel_histogram_viewer;
-  e_panel_histogram_viewer = nullptr;
-  delete e_panel_scope_viewer;
-  e_panel_scope_viewer = nullptr;
 }
 
 void scroll_to_frame_internal(QScrollBar* bar, long frame, double zoom, int area_width)
