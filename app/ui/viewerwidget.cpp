@@ -70,12 +70,10 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
+constexpr int SURFACE_DEPTH = 24;
+constexpr int SURFACE_SAMPLES = 16;
+constexpr double DEFAULT_WAVEFORM_ZOOM = 1.0;
 
-namespace {
-  const int RETRY_INTERVAL = 50;
-  const int SURFACE_DEPTH = 24;
-  const double DEFAULT_WAVEFORM_ZOOM = 1.0;
-}
 
 ViewerWidget::ViewerWidget(QWidget *parent) :
   QOpenGLWidget(parent),
@@ -92,6 +90,7 @@ ViewerWidget::ViewerWidget(QWidget *parent) :
 
   QSurfaceFormat format;
   format.setDepthBufferSize(SURFACE_DEPTH);
+  format.setSamples(SURFACE_SAMPLES);
   setFormat(format);
 
   setContextMenuPolicy(Qt::CustomContextMenu);
@@ -540,7 +539,8 @@ void ViewerWidget::draw_title_safe_area() {
   glEnd();
 }
 
-void ViewerWidget::draw_gizmos() {
+void ViewerWidget::draw_gizmos()
+{
   float color[4];
   glGetFloatv(GL_CURRENT_COLOR, color);
 
@@ -617,6 +617,7 @@ void ViewerWidget::paintGL()
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_MULTISAMPLE);
 
     // set color multipler to straight white
     glColor4f(1.0, 1.0, 1.0, 1.0);
