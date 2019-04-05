@@ -4,16 +4,13 @@
 #include <QPen>
 #include <cmath>
 
-using ui::ColorScopeWidget;
+#include "io/colorconversions.h"
+
 
 constexpr int HORIZONTAL_STEP = 8;
 constexpr int PEN_ALPHA = 24;
 constexpr int MINOR_GRID_STEP = 8;
 constexpr int MAJOR_GRID_STEP = MINOR_GRID_STEP / 2;
-
-constexpr double LUMA_RED_COEFF = 0.2126;
-constexpr double LUMA_GREEN_COEFF = 0.7152;
-constexpr double LUMA_BLUE_COEFF = 0.0722;
 
 namespace {
   const QPen r_pen(QColor(255,0,0,PEN_ALPHA));
@@ -23,6 +20,9 @@ namespace {
   const QPen bka_pen(QColor(0,0,0, 128));
   const QPen luma_pen(QColor(160,160,160, PEN_ALPHA));
 }
+
+using ui::ColorScopeWidget;
+using io::color_conversion::rgbToLuma;
 
 ColorScopeWidget::ColorScopeWidget(QWidget *parent) : QWidget(parent)
 {
@@ -46,7 +46,6 @@ void ColorScopeWidget::paintEvent(QPaintEvent*/*event*/)
   painter.eraseRect(0, 0, width(), img_.height());
 
   const auto w_step = img_.width() / width();
-  int pos;
   QRgb val;
 
   // FIXME: far too slow to be done for every pixel
@@ -59,18 +58,14 @@ void ColorScopeWidget::paintEvent(QPaintEvent*/*event*/)
       // draw pixel value (per channel) on y-axis at x-position
       val = img_.pixel(w * w_step, h);
       if (mode_ == 0) {
-        pos = qRed(val);
         painter.setPen(r_pen);
-        painter.drawPoint(w, height() - pos);
-        pos = qGreen(val);
+        painter.drawPoint(w, height() - qRed(val));
         painter.setPen(g_pen);
-        painter.drawPoint(w, height() - pos);
-        pos = qBlue(val);
+        painter.drawPoint(w, height() - qGreen(val));
         painter.setPen(b_pen);
-        painter.drawPoint(w, height() - pos);
+        painter.drawPoint(w, height() - qBlue(val));
       } else if (mode_ == 1) {
-        pos = lround(qRed(val) * LUMA_RED_COEFF) + lround(qGreen(val) * LUMA_GREEN_COEFF) + lround(qBlue(val) * LUMA_BLUE_COEFF);
-        painter.drawPoint(w, height() - pos);
+        painter.drawPoint(w, height() - rgbToLuma(val));
       }
     }
   }
