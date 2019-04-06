@@ -424,7 +424,7 @@ QVariant Media::data(const int32_t column, const int32_t role)
             const double rate = frameRate();
             QString ret_str;
             if ( (!ftg->video_tracks.empty()) && !qIsNull(rate)) {
-              ret_str = QString::number(rate) + " FPS";
+              ret_str = QString::number(rate, FRAME_RATE_ARG_FORMAT, FRAME_RATE_DECIMAL_POINTS) + " FPS";
             } else if (!ftg->audio_tracks.empty()) {
               ret_str = QString::number(samplingRate()) + " Hz";
             }
