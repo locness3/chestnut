@@ -17,7 +17,6 @@
  */
 #include "projectmodel.h"
 
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 #include "ui/viewerwidget.h"
 #include "project/media.h"

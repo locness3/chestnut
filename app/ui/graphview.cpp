@@ -23,9 +23,7 @@
 #include <QMenu>
 #include <cfloat>
 
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
-#include "panels/viewer.h"
 #include "project/sequence.h"
 #include "project/effectrow.h"
 #include "project/effectfield.h"
@@ -45,6 +43,8 @@ constexpr int BEZIER_LINE_SIZE = 2;
 constexpr int BEZIER_HANDLE_NONE = 1;
 constexpr int BEZIER_HANDLE_PRE = 2;
 constexpr int BEZIER_HANDLE_POST = 3;
+
+using panels::PanelManager;
 
 QColor get_curve_color(int index, int length) {
   QColor c;
@@ -366,7 +366,7 @@ void GraphView::mousePressEvent(QMouseEvent *event) {
       key.type = click_add_type;
       click_add_key = click_add_field->keyframes.size();
       click_add_field->keyframes.append(key);
-      update_ui(false);
+      PanelManager::refreshPanels(false);
       click_add_proc = true;
     } else {
       for (int i=0;i<row->fieldCount();i++) {
@@ -467,7 +467,7 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
     } else if (click_add_proc) {
       click_add_field->keyframes[click_add_key].time = get_value_x(event->pos().x());
       click_add_field->keyframes[click_add_key].data = get_value_y(event->pos().y());
-      update_ui(false);
+      PanelManager::refreshPanels(false);
     } else if (rect_select) {
       rect_select_w = event->pos().x() - rect_select_x;
       rect_select_h = event->pos().y() - rect_select_y;
@@ -509,7 +509,7 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
           }
         }
         moved_keys = true;
-        update_ui(false);
+        PanelManager::refreshPanels(false);
         break;
       case BEZIER_HANDLE_PRE:
       case BEZIER_HANDLE_POST:
@@ -545,7 +545,7 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
         key.post_handle_y = new_post_handle_y;
 
         moved_keys = true;
-        update_ui(false);
+        PanelManager::refreshPanels(false);
       }
         break;
       default:
@@ -787,7 +787,7 @@ void GraphView::set_selected_keyframe_type(int type) {
       ca->append(new SetInt(reinterpret_cast<int*>(&key.type), type));
     }
     e_undo_stack.push(ca);
-    update_ui(false);
+    PanelManager::refreshPanels(false);
   }
 }
 

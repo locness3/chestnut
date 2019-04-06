@@ -32,10 +32,6 @@
 #include <QSplitter>
 #include <QStatusBar>
 
-#include "panels/panels.h"
-#include "panels/project.h"
-#include "panels/effectcontrols.h"
-#include "panels/viewer.h"
 #include "panels/panelmanager.h"
 #include "ui/timelinewidget.h"
 #include "project/sequence.h"
@@ -415,7 +411,7 @@ void Timeline::add_transition() {
     delete ca;
   }
 
-  update_ui(true);
+  PanelManager::refreshPanels(true);
 }
 
 int Timeline::calculate_track_height(int track, int value) {
@@ -448,7 +444,7 @@ void Timeline::update_sequence() {
     setWindowTitle(title + tr("<none>"));
   } else {
     setWindowTitle(title + global::sequence->name());
-    update_ui(false);
+    PanelManager::refreshPanels(false);
   }
 }
 
@@ -561,7 +557,7 @@ void Timeline::delete_in_out(bool ripple) {
     if (ripple) ripple_clips(ca, global::sequence, global::sequence->workarea_.in_, global::sequence->workarea_.in_ - global::sequence->workarea_.out_);
     ca->append(new SetTimelineInOutCommand(global::sequence, false, 0, 0));
     e_undo_stack.push(ca);
-    update_ui(true);
+    PanelManager::refreshPanels(true);
   }
 }
 
@@ -626,7 +622,7 @@ void Timeline::delete_selection(QVector<Selection>& selections, bool ripple_dele
 
     e_undo_stack.push(ca);
 
-    update_ui(true);
+    PanelManager::refreshPanels(true);
   }
 }
 
@@ -1023,7 +1019,7 @@ void Timeline::paste(bool insert) {
 
       e_undo_stack.push(ca);
 
-      update_ui(true);
+      PanelManager::refreshPanels(true);
 
       if (e_config.paste_seeks) {
         PanelManager::sequenceViewer().seek(paste_end);
@@ -1100,7 +1096,7 @@ void Timeline::paste(bool insert) {
       } else {
         delete ca;
       }
-      update_ui(true);
+      PanelManager::refreshPanels(true);
     }
   }
 }
@@ -1202,7 +1198,7 @@ void Timeline::ripple_to_in_point(bool in, bool ripple) {
       if (push_undo) {
         e_undo_stack.push(ca);
 
-        update_ui(true);
+        PanelManager::refreshPanels(true);
 
         if ( (seek != global::sequence->playhead_) && ripple) {
           PanelManager::sequenceViewer().seek(seek);
@@ -1344,7 +1340,7 @@ void Timeline::split_at_playhead() {
 
   if (split_selected) {
     e_undo_stack.push(ca);
-    update_ui(true);
+    PanelManager::refreshPanels(true);
   } else {
     delete ca;
   }

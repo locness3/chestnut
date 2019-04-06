@@ -17,12 +17,20 @@
  */
 #include "effect.h"
 
-#include "panels/panels.h"
-#include "panels/viewer.h"
-#include "panels/project.h"
-#include "panels/timeline.h"
-#include "panels/effectcontrols.h"
-#include "panels/grapheditor.h"
+#include <QCheckBox>
+#include <QGridLayout>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+#include <QMessageBox>
+#include <QOpenGLContext>
+#include <QDir>
+#include <QPainter>
+#include <QtMath>
+#include <QMenu>
+#include <QApplication>
+#include <thread>
+#include <utility>
+
 #include "panels/panelmanager.h"
 #include "ui/viewerwidget.h"
 #include "ui/collapsiblewidget.h"
@@ -49,19 +57,6 @@
 #include "effects/internal/fillleftrighteffect.h"
 #include "effects/internal/temporalsmootheffect.h"
 
-#include <QCheckBox>
-#include <QGridLayout>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
-#include <QMessageBox>
-#include <QOpenGLContext>
-#include <QDir>
-#include <QPainter>
-#include <QtMath>
-#include <QMenu>
-#include <QApplication>
-#include <thread>
-#include <utility>
 
 constexpr auto EFFECT_EXT = "*.xml";
 constexpr auto EFFECT_PATH_ENV = "CHESTNUT_EFFECTS_PATH";
@@ -70,7 +65,6 @@ constexpr auto LOCAL_EFFECT_PATH = "effects";
 
 bool shaders_are_enabled = true;
 QVector<EffectMeta> effects;
-
 
 using panels::PanelManager;
 
@@ -443,7 +437,7 @@ void Effect::delete_self()
   command->clips.append(parent_clip);
   command->fx.append(get_index_in_clip());
   e_undo_stack.push(command);
-  update_ui(true);
+  PanelManager::refreshPanels(true);
 }
 
 void Effect::move_up()
@@ -453,7 +447,7 @@ void Effect::move_up()
   command->from = get_index_in_clip();
   command->to = command->from - 1;
   e_undo_stack.push(command);
-  update_ui(true);
+  PanelManager::refreshPanels(true);
 }
 
 void Effect::move_down()
@@ -463,7 +457,7 @@ void Effect::move_down()
   command->from = get_index_in_clip();
   command->to = command->from + 1;
   e_undo_stack.push(command);
-  update_ui(true);
+  PanelManager::refreshPanels(true);
 }
 
 void Effect::reset()
@@ -481,7 +475,7 @@ void Effect::reset()
   }
 
   e_undo_stack.push(command);
-  update_ui(true);
+  PanelManager::refreshPanels(true);
 }
 
 /**

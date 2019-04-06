@@ -33,17 +33,13 @@
 #include "io/math.h"
 #include "ui/labelslider.h"
 #include "ui/comboboxex.h"
-#include "panels/project.h"
 #include "debug.h"
 
-#include "panels/panels.h"
-#include "panels/viewer.h"
-#include "ui/viewerwidget.h"
 
-#define BLEND_MODE_NORMAL 0
-#define BLEND_MODE_SCREEN 1
-#define BLEND_MODE_MULTIPLY 2
-#define BLEND_MODE_OVERLAY 3
+constexpr int BLEND_MODE_NORMAL = 0;
+constexpr int BLEND_MODE_SCREEN = 1;
+constexpr int BLEND_MODE_MULTIPLY = 2;
+constexpr int BLEND_MODE_OVERLAY = 3;
 
 TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em) {
   enable_coords = true;

@@ -73,31 +73,30 @@ void init_effects();
 std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta *em);
 const EffectMeta* get_internal_meta(const int internal_id, const int type);
 
-//TODO: enum the defines
-#define EFFECT_TYPE_INVALID 0
-#define EFFECT_TYPE_VIDEO 1
-#define EFFECT_TYPE_AUDIO 2
-#define EFFECT_TYPE_EFFECT 3
-#define EFFECT_TYPE_TRANSITION 4
+constexpr int EFFECT_TYPE_INVALID = 0;
+constexpr int EFFECT_TYPE_VIDEO = 1;
+constexpr int EFFECT_TYPE_AUDIO = 2;
+constexpr int EFFECT_TYPE_EFFECT = 3;
+constexpr int EFFECT_TYPE_TRANSITION = 4;
 
-#define EFFECT_KEYFRAME_LINEAR 0
-#define EFFECT_KEYFRAME_HOLD 1
-#define EFFECT_KEYFRAME_BEZIER 2
+constexpr int EFFECT_KEYFRAME_LINEAR = 0;
+constexpr int EFFECT_KEYFRAME_HOLD = 1;
+constexpr int EFFECT_KEYFRAME_BEZIER = 2;
 
-#define EFFECT_INTERNAL_TRANSFORM 0
-#define EFFECT_INTERNAL_TEXT 1
-#define EFFECT_INTERNAL_SOLID 2
-#define EFFECT_INTERNAL_NOISE 3
-#define EFFECT_INTERNAL_VOLUME 4
-#define EFFECT_INTERNAL_PAN 5
-#define EFFECT_INTERNAL_TONE 6
-#define EFFECT_INTERNAL_SHAKE 7
-#define EFFECT_INTERNAL_TIMECODE 8
-#define EFFECT_INTERNAL_FILLLEFTRIGHT 10
-#define EFFECT_INTERNAL_VST 11
-#define EFFECT_INTERNAL_CORNERPIN 12
-#define EFFECT_INTERNAL_TEMPORAL 13
-#define EFFECT_INTERNAL_COUNT 14
+constexpr int EFFECT_INTERNAL_TRANSFORM = 0;
+constexpr int EFFECT_INTERNAL_TEXT = 1;
+constexpr int EFFECT_INTERNAL_SOLID = 2;
+constexpr int EFFECT_INTERNAL_NOISE = 3;
+constexpr int EFFECT_INTERNAL_VOLUME = 4;
+constexpr int EFFECT_INTERNAL_PAN = 5;
+constexpr int EFFECT_INTERNAL_TONE = 6;
+constexpr int EFFECT_INTERNAL_SHAKE = 7;
+constexpr int EFFECT_INTERNAL_TIMECODE = 8;
+constexpr int EFFECT_INTERNAL_FILLLEFTRIGHT = 10;
+constexpr int EFFECT_INTERNAL_VST = 11;
+constexpr int EFFECT_INTERNAL_CORNERPIN = 12;
+constexpr int EFFECT_INTERNAL_TEMPORAL = 13;
+constexpr int EFFECT_INTERNAL_COUNT = 14;
 
 
 template <typename T>

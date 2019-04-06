@@ -27,7 +27,6 @@
 #include <QLineEdit>
 #include <QDialogButtonBox>
 
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 #include "project/sequence.h"
 #include "project/undo.h"

@@ -24,10 +24,6 @@
 
 #include "project/clip.h"
 #include "project/sequence.h"
-#include "panels/panels.h"
-#include "panels/project.h"
-#include "panels/effectcontrols.h"
-#include "panels/viewer.h"
 #include "panels/panelmanager.h"
 #include "playback/playback.h"
 #include "ui/sourcetable.h"
@@ -681,7 +677,7 @@ void ReplaceClipMediaCommand::undo() {
 void ReplaceClipMediaCommand::redo() {
   replace(false);
 
-  update_ui(true);
+  PanelManager::refreshPanels(true);
   MainWindow::instance().setWindowModified(true);
 }
 

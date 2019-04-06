@@ -27,9 +27,6 @@
 
 #include "playback/audio.h"
 #include "timeline.h"
-#include "panels/project.h"
-#include "panels/effectcontrols.h"
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 #include "io/config.h"
 #include "project/sequence.h"
@@ -467,7 +464,7 @@ void Viewer::update_header_zoom()
 
 void Viewer::update_parents(bool reload_fx) {
   if (main_sequence) {
-    update_ui(reload_fx);
+    PanelManager::refreshPanels(reload_fx);
   } else {
     update_viewer();
   }

@@ -36,12 +36,6 @@
 #include <QMessageBox>
 #include <iostream>
 
-#include "panels/panels.h"
-#include "panels/viewer.h"
-#include "panels/timeline.h"
-#include "panels/project.h"
-#include "panels/histogramviewer.h"
-#include "panels/scopeviewer.h"
 #include "panels/panelmanager.h"
 #include "project/sequence.h"
 #include "project/clip.h"

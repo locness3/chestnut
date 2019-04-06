@@ -33,7 +33,6 @@
 #include <QStandardPaths>
 
 #include "debug.h"
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 #include "ui/viewerwidget.h"
 #include "project/sequence.h"
@@ -358,7 +357,7 @@ void ExportDialog::render_thread_finished() {
   prep_ui_for_render(false);
   PanelManager::sequenceViewer().viewer_widget->makeCurrent();
   PanelManager::sequenceViewer().viewer_widget->initializeGL();
-  update_ui(false);
+  PanelManager::refreshPanels(false);
   if (progressBar->value() == 100) accept();
 }
 

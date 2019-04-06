@@ -17,10 +17,15 @@
  */
 #include "replaceclipmediadialog.h"
 
-#include "ui/sourcetable.h"
-#include "panels/panels.h"
-#include "panels/timeline.h"
+#include <QVBoxLayout>
+#include <QTreeView>
+#include <QLabel>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QCheckBox>
+
 #include "panels/project.h"
+#include "ui/sourcetable.h"
 #include "project/sequence.h"
 #include "project/clip.h"
 #include "playback/playback.h"
@@ -28,12 +33,6 @@
 #include "project/undo.h"
 #include "project/media.h"
 
-#include <QVBoxLayout>
-#include <QTreeView>
-#include <QLabel>
-#include <QPushButton>
-#include <QMessageBox>
-#include <QCheckBox>
 
 namespace{
   const int DIALOG_WIDTH = 300;

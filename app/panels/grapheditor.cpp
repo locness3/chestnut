@@ -31,7 +31,6 @@
 #include "project/effectfield.h"
 #include "project/effectrow.h"
 #include "project/clip.h"
-#include "panels.h"
 #include "panelmanager.h"
 #include "debug.h"
 

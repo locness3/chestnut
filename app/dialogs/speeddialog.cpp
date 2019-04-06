@@ -29,7 +29,6 @@
 #include "project/sequence.h"
 #include "project/footage.h"
 #include "playback/playback.h"
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 #include "project/undo.h"
 #include "project/effect.h"
@@ -425,6 +424,6 @@ void SpeedDialog::accept() {
 
     e_undo_stack.push(ca);
 
-    update_ui(true);
+    panels::PanelManager::refreshPanels(true);
     QDialog::accept();
 }

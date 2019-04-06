@@ -33,14 +33,6 @@
 #include "ui/timelineheader.h"
 #include "ui/defaultshortcut.h"
 
-#include "panels/panels.h"
-#include "panels/project.h"
-#include "panels/effectcontrols.h"
-#include "panels/viewer.h"
-#include "panels/timeline.h"
-#include "panels/grapheditor.h"
-#include "panels/histogramviewer.h"
-#include "panels/scopeviewer.h"
 #include "panels/panelmanager.h"
 
 #include "dialogs/aboutdialog.h"
@@ -448,7 +440,7 @@ void MainWindow::delete_slot()
 
 void MainWindow::select_all()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().select_all();
   } else if (focused_panel == &PanelManager::graphEditor()) {
@@ -456,7 +448,8 @@ void MainWindow::select_all()
   }
 }
 
-void MainWindow::new_sequence() {
+void MainWindow::new_sequence()
+{
   NewSequenceDialog nsd(this);
   nsd.set_sequence_name(PanelManager::projectViewer().get_next_sequence_name());
   nsd.exec();
@@ -465,7 +458,7 @@ void MainWindow::new_sequence() {
 void MainWindow::zoom_in()
 {
   // FIXME:
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().set_zoom(true);
   } else if (focused_panel == &PanelManager::fxControls()) {
@@ -480,7 +473,7 @@ void MainWindow::zoom_in()
 void MainWindow::zoom_out()
 {
   //FIXME:
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().set_zoom(false);
   } else if (focused_panel == &PanelManager::fxControls()) {
@@ -513,13 +506,13 @@ void MainWindow::editMenu_About_To_Be_Shown() {
 void MainWindow::undo() {
   if (!PanelManager::timeLine().importing) { // workaround to prevent crash (and also users should never need to do this)
     e_undo_stack.undo();
-    update_ui(true);
+    PanelManager::refreshPanels(true);
   }
 }
 
 void MainWindow::redo() {
   e_undo_stack.redo();
-  update_ui(true);
+  PanelManager::refreshPanels(true);
 }
 
 void MainWindow::open_speed_dialog() {
@@ -537,7 +530,7 @@ void MainWindow::open_speed_dialog() {
 
 void MainWindow::cut() {
   if (global::sequence != nullptr) {
-    QDockWidget* focused_panel = get_focused_panel();
+    QDockWidget* focused_panel = PanelManager::getFocusedPanel();
     if (&PanelManager::timeLine() == focused_panel) {
       PanelManager::timeLine().copy(true);
     } else if (&PanelManager::fxControls() == focused_panel) {
@@ -548,7 +541,7 @@ void MainWindow::cut() {
 
 void MainWindow::copy() {
   if (global::sequence != nullptr) {
-    QDockWidget* focused_panel = get_focused_panel();
+    QDockWidget* focused_panel = PanelManager::getFocusedPanel();
     if (&PanelManager::timeLine() == focused_panel) {
       PanelManager::timeLine().copy(false);
     } else if (&PanelManager::fxControls() == focused_panel) {
@@ -558,7 +551,7 @@ void MainWindow::copy() {
 }
 
 void MainWindow::paste() {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if ( (&PanelManager::timeLine() == focused_panel || &PanelManager::fxControls() == focused_panel)
        && global::sequence != nullptr) {
     PanelManager::timeLine().paste(false);
@@ -573,7 +566,7 @@ void MainWindow::new_project()
     project_url.clear();
     PanelManager::projectViewer().new_project();
     updateTitle("");
-    update_ui(false);
+    PanelManager::refreshPanels(false);
     PanelManager::projectViewer().tree_view->update();
   }
 }
@@ -1139,7 +1132,7 @@ void MainWindow::reset_layout()
 
 void MainWindow::go_to_in()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
     PanelManager::footageViewer().go_to_in();
   } else {
@@ -1149,7 +1142,7 @@ void MainWindow::go_to_in()
 
 void MainWindow::go_to_out()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
     PanelManager::footageViewer().go_to_out();
   } else {
@@ -1159,7 +1152,7 @@ void MainWindow::go_to_out()
 
 void MainWindow::go_to_start()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
     PanelManager::footageViewer().go_to_start();
   } else {
@@ -1169,7 +1162,7 @@ void MainWindow::go_to_start()
 
 void MainWindow::prev_frame()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
     PanelManager::footageViewer().previous_frame();
   } else {
@@ -1179,7 +1172,7 @@ void MainWindow::prev_frame()
 
 void MainWindow::next_frame()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
     PanelManager::footageViewer().next_frame();
   } else {
@@ -1189,7 +1182,7 @@ void MainWindow::next_frame()
 
 void MainWindow::go_to_end()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
     PanelManager::footageViewer().go_to_end();
   } else {
@@ -1199,7 +1192,7 @@ void MainWindow::go_to_end()
 
 void MainWindow::playpause()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
     PanelManager::footageViewer().toggle_play();
   } else {
@@ -1209,7 +1202,7 @@ void MainWindow::playpause()
 
 void MainWindow::prev_cut()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (global::sequence != nullptr
       && (&PanelManager::timeLine() == focused_panel || &PanelManager::sequenceViewer() == focused_panel)) {
     PanelManager::timeLine().previous_cut();
@@ -1218,7 +1211,7 @@ void MainWindow::prev_cut()
 
 void MainWindow::next_cut()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (global::sequence != nullptr
       && (&PanelManager::timeLine() == focused_panel || &PanelManager::sequenceViewer() == focused_panel)) {
     PanelManager::timeLine().next_cut();
@@ -1558,7 +1551,7 @@ void MainWindow::toggle_enable_clips() {
     }
     if (push_undo) {
       e_undo_stack.push(ca);
-      update_ui(true);
+      PanelManager::refreshPanels(true);
     } else {
       delete ca;
     }
@@ -1567,7 +1560,7 @@ void MainWindow::toggle_enable_clips() {
 
 void MainWindow::edit_to_in_point()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().ripple_to_in_point(true, false);
   }
@@ -1575,7 +1568,7 @@ void MainWindow::edit_to_in_point()
 
 void MainWindow::edit_to_out_point()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().ripple_to_in_point(false, false);
   }
@@ -1638,12 +1631,12 @@ void MainWindow::nest()
 
     e_undo_stack.push(ca);
 
-    update_ui(true);
+    PanelManager::refreshPanels(true);
   }
 }
 
 void MainWindow::paste_insert() {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine() && global::sequence != nullptr) {
     PanelManager::timeLine().paste(true);
   }
@@ -1653,7 +1646,7 @@ void MainWindow::toggle_bool_action() {
   auto action = static_cast<QAction*>(sender());
   bool* variable = reinterpret_cast<bool*>(action->data().value<quintptr>());
   *variable = !(*variable);
-  update_ui(false);
+  PanelManager::refreshPanels(false);
 }
 
 void MainWindow::set_autoscroll()
@@ -1664,7 +1657,7 @@ void MainWindow::set_autoscroll()
 
 void MainWindow::menu_click_button()
 {
-  QDockWidget* focused_panel = get_focused_panel();
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()
       || focused_panel == &PanelManager::fxControls()
       || focused_panel == &PanelManager::footageViewer()
@@ -1681,5 +1674,5 @@ void MainWindow::toggle_panel_visibility() {
 void MainWindow::set_timecode_view() {
   auto action = static_cast<QAction*>(sender());
   e_config.timecode_view = action->data().toInt();
-  update_ui(false);
+  PanelManager::refreshPanels(false);
 }

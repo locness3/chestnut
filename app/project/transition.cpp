@@ -17,12 +17,16 @@
  */
 #include "transition.h"
 
+#include <QMessageBox>
+#include <QCoreApplication>
+
 #include "ui/mainwindow.h"
 #include "clip.h"
 #include "sequence.h"
 #include "debug.h"
-
 #include "io/clipboard.h"
+#include "ui/labelslider.h"
+#include "panels/panelmanager.h"
 
 #include "effects/internal/crossdissolvetransition.h"
 #include "effects/internal/linearfadetransition.h"
@@ -30,19 +34,10 @@
 #include "effects/internal/logarithmicfadetransition.h"
 #include "effects/internal/cubetransition.h"
 
-#include "ui/labelslider.h"
 
-#include "panels/panels.h"
-#include "panels/timeline.h"
+constexpr long DEFAULT_TRANSITION_LENGTH = 30;
+constexpr long MINIMUM_TRANSITION_LENGTH = 0;
 
-#include <QMessageBox>
-#include <QCoreApplication>
-
-
-namespace{
-  const long DEFAULT_TRANSITION_LENGTH = 30;
-  const long MINIMUM_TRANSITION_LENGTH = 0;
-}
 
 Transition::Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em) :
   Effect(c, em),
@@ -56,7 +51,8 @@ Transition::Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em)
 
   auto length_ui_ele = dynamic_cast<LabelSlider*>(length_field->ui_element);
   length_ui_ele->set_display_type(SliderType::FRAMENUMBER);
-  length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->frameRate());
+  length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr
+                                ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->frameRate());
 }
 
 int Transition::copy(const ClipPtr& c, const ClipPtr& s)
@@ -80,9 +76,10 @@ long Transition::get_length() const {
   return length;
 }
 
-void Transition::set_length_from_slider() {
+void Transition::set_length_from_slider()
+{
   set_length(qRound(length_field->get_double_value(0)));
-  update_ui(false);
+  panels::PanelManager::refreshPanels(false);
 }
 
 TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* em) {

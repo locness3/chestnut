@@ -17,24 +17,21 @@
  */
 #include "audio.h"
 
-#include "project/sequence.h"
-
-#include "io/config.h"
-#include "panels/project.h"
-#include "panels/panels.h"
-#include "panels/timeline.h"
-#include "panels/viewer.h"
-#include "panels/panelmanager.h"
-#include "ui/audiomonitor.h"
-#include "playback/playback.h"
-#include "debug.h"
-
 #include <QApplication>
 #include <QAudioOutput>
 #include <QAudioInput>
 #include <QtMath>
 #include <QFile>
 #include <QDir>
+
+#include "project/sequence.h"
+
+#include "io/config.h"
+#include "panels/panelmanager.h"
+#include "ui/audiomonitor.h"
+#include "playback/playback.h"
+#include "debug.h"
+
 
 extern "C" {
 #include <libavcodec/avcodec.h>

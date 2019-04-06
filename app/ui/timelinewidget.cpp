@@ -33,18 +33,14 @@
 #include <QStatusBar>
 
 #include "playback/audio.h"
-#include "panels/panels.h"
 #include "io/config.h"
 #include "project/sequence.h"
 #include "project/transition.h"
 #include "project/clip.h"
-#include "panels/project.h"
 #include "panels/panelmanager.h"
 #include "project/footage.h"
 #include "ui/sourcetable.h"
 #include "ui/sourceiconview.h"
-#include "panels/effectcontrols.h"
-#include "panels/viewer.h"
 #include "project/undo.h"
 #include "ui/mainwindow.h"
 #include "ui/viewerwidget.h"
@@ -277,7 +273,7 @@ void TimelineWidget::rename_clip() {
       rcc->new_name = s;
       rcc->clips = selected_clips;
       e_undo_stack.push(rcc);
-      update_ui(true);
+      PanelManager::refreshPanels(true);
     }
   }
 }
@@ -403,7 +399,7 @@ void TimelineWidget::dragMoveEvent(QDragMoveEvent *event) {
       QPoint pos = event->pos();
       update_ghosts(pos, event->keyboardModifiers() & Qt::ShiftModifier);
       PanelManager::timeLine().move_insert = ((event->keyboardModifiers() & Qt::ControlModifier) && (PanelManager::timeLine().tool == TIMELINE_TOOL_POINTER || PanelManager::timeLine().importing));
-      update_ui(false);
+      PanelManager::refreshPanels(false);
     }
   }
 }
@@ -435,7 +431,7 @@ void TimelineWidget::dragLeaveEvent(QDragLeaveEvent* event) {
     PanelManager::timeLine().importing_files = false;
     PanelManager::timeLine().ghosts.clear();
     PanelManager::timeLine().importing = false;
-    update_ui(false);
+    PanelManager::refreshPanels(false);
   }
 }
 
@@ -557,7 +553,7 @@ void TimelineWidget::dropEvent(QDropEvent* event) {
 
     setFocus();
 
-    update_ui(true);
+    PanelManager::refreshPanels(true);
   }
 }
 
@@ -572,7 +568,7 @@ void TimelineWidget::mouseDoubleClickEvent(QMouseEvent *event) {
       s.out = clip->timeline_info.out;
       s.track = clip->timeline_info.track_;
       global::sequence->selections_.append(s);
-      update_ui(false);
+      PanelManager::refreshPanels(false);
     }
   }
 }
@@ -758,7 +754,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
 
             PanelManager::timeLine().rect_select_init = true;
           }
-          update_ui(false);
+          PanelManager::refreshPanels(false);
         }
       }
         break;
@@ -775,7 +771,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
       {
         PanelManager::timeLine().splitting = true;
         PanelManager::timeLine().split_tracks.append(PanelManager::timeLine().drag_track_start);
-        update_ui(false);
+        PanelManager::refreshPanels(false);
       }
         break;
       case TIMELINE_TOOL_TRANSITION:
@@ -1226,7 +1222,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
       pre_clips.clear();
       post_clips.clear();
 
-      update_ui(true);
+      PanelManager::refreshPanels(true);
     }
     PanelManager::timeLine().hand_moving = false;
   }
@@ -1992,7 +1988,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
 
         PanelManager::timeLine().moving_proc = true;
       }
-      update_ui(false);
+      PanelManager::refreshPanels(false);
     } else if (PanelManager::timeLine().splitting) {
       int track_start = qMin(PanelManager::timeLine().cursor_track, PanelManager::timeLine().drag_track_start);
       int track_end = qMax(PanelManager::timeLine().cursor_track, PanelManager::timeLine().drag_track_start);
@@ -2016,7 +2012,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
           }
         }
       }
-      update_ui(false);
+      PanelManager::refreshPanels(false);
     } else if (PanelManager::timeLine().rect_select_init) {
       if (PanelManager::timeLine().rect_select_proc) {
         PanelManager::timeLine().rect_select_w = event->pos().x() - PanelManager::timeLine().rect_select_x;

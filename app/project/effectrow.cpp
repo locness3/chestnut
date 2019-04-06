@@ -24,10 +24,6 @@
 #include "project/undo.h"
 #include "project/clip.h"
 #include "project/sequence.h"
-#include "panels/panels.h"
-#include "panels/effectcontrols.h"
-#include "panels/viewer.h"
-#include "panels/grapheditor.h"
 #include "panels/panelmanager.h"
 #include "effect.h"
 #include "ui/viewerwidget.h"
@@ -159,7 +155,7 @@ void EffectRow::toggle_key() {
     }
   }
   e_undo_stack.push(ca);
-  update_ui(false);
+  PanelManager::refreshPanels(false);
 }
 
 void EffectRow::goto_next_key()

@@ -21,8 +21,6 @@
 #include <QMessageBox>
 #include <QTreeWidgetItem>
 
-#include "panels/panels.h"
-#include "panels/project.h"
 #include "panels/panelmanager.h"
 #include "ui/mainwindow.h"
 #include "project/footage.h"
@@ -703,7 +701,7 @@ void LoadThread::success_func() {
 
   MainWindow::instance().setWindowModified(autorecovery);
   if (open_seq != nullptr) set_sequence(open_seq);
-  update_ui(false);
+  PanelManager::refreshPanels(false);
 }
 
 void LoadThread::create_effect_ui(

@@ -23,11 +23,7 @@
 
 #include "project/effect.h"
 #include "ui/collapsiblewidget.h"
-#include "panels/panels.h"
-#include "panels/effectcontrols.h"
-#include "panels/viewer.h"
 #include "panels/panelmanager.h"
-#include "panels/grapheditor.h"
 #include "project/clip.h"
 #include "ui/timelineheader.h"
 #include "project/undo.h"
@@ -42,7 +38,8 @@
 
 using panels::PanelManager;
 
-long KeyframeView::adjust_row_keyframe(EffectRowPtr row, long time) {
+long KeyframeView::adjust_row_keyframe(EffectRowPtr row, long time)
+{
   //FIXME: the use of ptrs
   return time
       - row->parent_effect->parent_clip->timeline_info.clip_in
@@ -100,7 +97,7 @@ void KeyframeView::menu_set_key_type(QAction* a)
                  a->data().toInt()));
     }
     e_undo_stack.push(ca);
-    update_ui(false);
+    PanelManager::refreshPanels(false);
   }
 }
 
@@ -423,7 +420,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
 
       dragging = true;
 
-      update_ui(false);
+      PanelManager::refreshPanels(false);
     }
   }
 }
@@ -446,5 +443,5 @@ void KeyframeView::mouseReleaseEvent(QMouseEvent*) {
   mousedown = false;
   scroll_drag = false;
   PanelManager::timeLine().snapped = false;
-  update_ui(false);
+  PanelManager::refreshPanels(false);
 }

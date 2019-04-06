@@ -35,7 +35,6 @@
 #include <memory>
 
 #include "project/footage.h"
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 #include "panels/viewer.h"
 #include "playback/playback.h"
@@ -589,7 +588,7 @@ void Project::delete_selected_media() {
 
     // redraw clips
     if (redraw) {
-      update_ui(true);
+      PanelManager::refreshPanels(true);
     }
   } else {
     delete ca;
@@ -858,7 +857,7 @@ void Project::delete_clips_using_selected_media() {
     }
     if (deleted) {
       e_undo_stack.push(ca);
-      update_ui(true);
+      PanelManager::refreshPanels(true);
     } else {
       delete ca;
     }
@@ -1339,7 +1338,7 @@ void MediaThrobber::stop(const int icon_type, const bool replace) {
   }//for
 
   // redraw clips
-  update_ui(replace);
+  PanelManager::refreshPanels(replace);
 
   PanelManager::projectViewer().tree_view->viewport()->update();
   item->throbber = nullptr;

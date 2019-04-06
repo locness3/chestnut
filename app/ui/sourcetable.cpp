@@ -16,20 +16,6 @@
  *along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "sourcetable.h"
-#include "panels/project.h"
-
-#include "project/footage.h"
-#include "panels/timeline.h"
-#include "panels/viewer.h"
-#include "panels/panels.h"
-#include "playback/playback.h"
-#include "project/undo.h"
-#include "project/sequence.h"
-#include "ui/mainwindow.h"
-#include "io/config.h"
-#include "project/media.h"
-#include "project/sourcescommon.h"
-#include "debug.h"
 
 #include <QDragEnterEvent>
 #include <QMimeData>
@@ -41,6 +27,18 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QProcess>
+
+#include "panels/project.h"
+#include "project/footage.h"
+#include "playback/playback.h"
+#include "project/undo.h"
+#include "project/sequence.h"
+#include "ui/mainwindow.h"
+#include "io/config.h"
+#include "project/media.h"
+#include "project/sourcescommon.h"
+#include "debug.h"
+
 
 SourceTable::SourceTable(QWidget* parent) : QTreeView(parent) {
   setSortingEnabled(true);

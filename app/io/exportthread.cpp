@@ -24,7 +24,6 @@
 #include <QPainter>
 
 #include "project/sequence.h"
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 #include "ui/viewerwidget.h"
 #include "ui/renderfunctions.h"

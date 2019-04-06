@@ -29,11 +29,6 @@
 #include <QVBoxLayout>
 #include <QIcon>
 
-#include "panels/panels.h"
-#include "panels/project.h"
-#include "panels/timeline.h"
-#include "panels/viewer.h"
-#include "panels/grapheditor.h"
 #include "panels/panelmanager.h"
 #include "project/effect.h"
 #include "project/clip.h"
@@ -125,7 +120,7 @@ void EffectControls::menu_select(QAction* q) {
   }
   e_undo_stack.push(ca);
   if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
-    update_ui(true);
+    PanelManager::refreshPanels(true);
   } else {
     reload_clips();
     PanelManager::sequenceViewer().viewer_widget->frame_update();

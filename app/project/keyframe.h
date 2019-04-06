@@ -19,12 +19,11 @@
 #define KEYFRAME_H
 
 #include <QVariant>
-#include <memory>
 
 enum class KeyframeType{
   LINEAR = 0,
-  BEZIER = 1,
-  HOLD = 2,
+  BEZIER,
+  HOLD,
   UNKNOWN,
   MIXED
 };

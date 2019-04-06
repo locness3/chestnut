@@ -24,7 +24,7 @@ class ScrollArea : public QScrollArea
 {
 public:
     ScrollArea(QWidget* parent = nullptr);
-    void wheelEvent(QWheelEvent *);
+    void wheelEvent(QWheelEvent *) override;
 };
 
 #endif // SCROLLAREA_H

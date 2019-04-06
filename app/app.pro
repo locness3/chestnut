@@ -33,7 +33,6 @@ SOURCES += \
     ui/viewercontainer.cpp \
     dialogs/exportdialog.cpp \
     ui/collapsiblewidget.cpp \
-    panels/panels.cpp \
     io/exportthread.cpp \
     ui/timelineheader.cpp \
     io/previewgenerator.cpp \
@@ -135,7 +134,6 @@ HEADERS += \
     ui/viewercontainer.h \
     dialogs/exportdialog.h \
     ui/collapsiblewidget.h \
-    panels/panels.h \
     io/exportthread.h \
     ui/timelinetools.h \
     ui/timelineheader.h \

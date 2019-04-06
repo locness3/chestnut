@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,18 +21,21 @@
 #include <QDebug>
 
 #include "io/config.h"
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 
-ScrollArea::ScrollArea(QWidget* parent) : QScrollArea(parent) {}
+ScrollArea::ScrollArea(QWidget* parent) : QScrollArea(parent)
+{
 
-void ScrollArea::wheelEvent(QWheelEvent *e) {
-    if (e_config.scroll_zooms) {
-        e->ignore();
-        if (e->angleDelta().y() != 0) {
-          panels::PanelManager::timeLine().set_zoom(e->angleDelta().y() > 0);
-        }
-    } else {
-        QScrollArea::wheelEvent(e);
+}
+
+void ScrollArea::wheelEvent(QWheelEvent *e)
+{
+  if (e_config.scroll_zooms) {
+    e->ignore();
+    if (e->angleDelta().y() != 0) {
+      panels::PanelManager::timeLine().set_zoom(e->angleDelta().y() > 0);
     }
+  } else {
+    QScrollArea::wheelEvent(e);
+  }
 }

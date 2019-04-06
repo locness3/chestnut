@@ -25,11 +25,9 @@
 #include <QAction>
 
 #include "ui/mainwindow.h"
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 #include "project/sequence.h"
 #include "project/undo.h"
-#include "panels/viewer.h"
 #include "io/config.h"
 #include "debug.h"
 

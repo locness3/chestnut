@@ -10,6 +10,8 @@
 #include "panels/project.h"
 #include "panels/viewer.h"
 
+void scroll_to_frame_internal(QScrollBar* bar, const long frame, const double zoom, const int area_width);
+
 namespace panels {
 
   class PanelManager
@@ -17,6 +19,9 @@ namespace panels {
     public:
       // eh, really a singleton/factory
       PanelManager() = default;
+
+      static void refreshPanels(const bool modified);
+      static QDockWidget* getFocusedPanel();
 
       static bool setParent(QWidget* parent);
       static HistogramViewer& histogram();

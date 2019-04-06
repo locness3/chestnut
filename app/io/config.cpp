@@ -21,7 +21,6 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
-#include "panels/panels.h"
 #include "panels/panelmanager.h"
 
 #include "debug.h"

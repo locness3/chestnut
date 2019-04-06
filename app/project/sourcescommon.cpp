@@ -26,13 +26,9 @@
 #include <QDropEvent>
 #include <QUrl>
 
-#include "panels/panels.h"
 #include "project/media.h"
 #include "project/undo.h"
 #include "panels/panelmanager.h"
-#include "panels/project.h"
-#include "project/footage.h"
-#include "panels/viewer.h"
 #include "project/projectfilter.h"
 #include "io/config.h"
 #include "ui/mainwindow.h"
