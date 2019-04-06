@@ -54,6 +54,7 @@
 
 
 constexpr auto STILL_IMAGE_FRAMES = 100;
+constexpr int RECORD_MSG_TIMEOUT = 10000;
 
 namespace
 {
@@ -1529,29 +1530,29 @@ void Timeline::add_btn_click() {
 
   QAction* titleMenuItem = new QAction(&add_menu);
   titleMenuItem->setText(tr("Title..."));
-  titleMenuItem->setData(ADD_OBJ_TITLE);
+  titleMenuItem->setData(static_cast<int>(AddObjectType::TITLE));
   add_menu.addAction(titleMenuItem);
 
   QAction* solidMenuItem = new QAction(&add_menu);
   solidMenuItem->setText(tr("Solid Color..."));
-  solidMenuItem->setData(ADD_OBJ_SOLID);
+  solidMenuItem->setData(static_cast<int>(AddObjectType::SOLID));
   add_menu.addAction(solidMenuItem);
 
   QAction* barsMenuItem = new QAction(&add_menu);
   barsMenuItem->setText(tr("Bars..."));
-  barsMenuItem->setData(ADD_OBJ_BARS);
+  barsMenuItem->setData(static_cast<int>(AddObjectType::BARS));
   add_menu.addAction(barsMenuItem);
 
   add_menu.addSeparator();
 
   QAction* toneMenuItem = new QAction(&add_menu);
   toneMenuItem->setText(tr("Tone..."));
-  toneMenuItem->setData(ADD_OBJ_TONE);
+  toneMenuItem->setData(static_cast<int>(AddObjectType::TONE));
   add_menu.addAction(toneMenuItem);
 
   QAction* noiseMenuItem = new QAction(&add_menu);
   noiseMenuItem->setText(tr("Noise..."));
-  noiseMenuItem->setData(ADD_OBJ_NOISE);
+  noiseMenuItem->setData(static_cast<int>(AddObjectType::NOISE));
   add_menu.addAction(noiseMenuItem);
 
   connect(&add_menu, SIGNAL(triggered(QAction*)), this, SLOT(add_menu_item(QAction*)));
@@ -1561,7 +1562,7 @@ void Timeline::add_btn_click() {
 
 void Timeline::add_menu_item(QAction* action) {
   creating = true;
-  creating_object = action->data().toInt();
+  creating_object = static_cast<AddObjectType>(action->data().toInt());
 }
 
 void Timeline::setScroll(int s) {
@@ -1570,7 +1571,8 @@ void Timeline::setScroll(int s) {
   repaint_timeline();
 }
 
-void Timeline::record_btn_click() {
+void Timeline::record_btn_click()
+{
   if (project_url.isEmpty()) {
     QMessageBox::critical(this,
                           tr("Unsaved Project"),
@@ -1578,10 +1580,10 @@ void Timeline::record_btn_click() {
                           QMessageBox::Ok);
   } else {
     creating = true;
-    creating_object = ADD_OBJ_AUDIO;
+    creating_object = AddObjectType::AUDIO;
     MainWindow::instance().statusBar()->showMessage(
           tr("Click on the timeline where you want to start recording (drag to limit the recording to a certain timeframe)"),
-          10000);
+          RECORD_MSG_TIMEOUT);
   }
 }
 
@@ -1628,7 +1630,7 @@ void Timeline::transition_menu_select(QAction* a) {
 
   decheck_tool_buttons(sender());
   timeline_area->setCursor(Qt::CrossCursor);
-  tool = TIMELINE_TOOL_TRANSITION;
+  tool = TimelineToolType::TRANSITION;
   toolTransitionButton->setChecked(true);
 }
 
@@ -1661,7 +1663,7 @@ void Timeline::setup_ui() {
   toolArrowButton->setIcon(arrow_icon);
   toolArrowButton->setCheckable(true);
   toolArrowButton->setToolTip(tr("Pointer Tool") + " (V)");
-  toolArrowButton->setProperty("tool", TIMELINE_TOOL_POINTER);
+  toolArrowButton->setProperty("tool", static_cast<int>(TimelineToolType::POINTER));
   connect(toolArrowButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
   tool_buttons_layout->addWidget(toolArrowButton);
 
@@ -1672,7 +1674,7 @@ void Timeline::setup_ui() {
   toolEditButton->setIcon(icon1);
   toolEditButton->setCheckable(true);
   toolEditButton->setToolTip(tr("Edit Tool") + " (X)");
-  toolEditButton->setProperty("tool", TIMELINE_TOOL_EDIT);
+  toolEditButton->setProperty("tool", static_cast<int>(TimelineToolType::EDIT));
   connect(toolEditButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
   tool_buttons_layout->addWidget(toolEditButton);
 
@@ -1683,7 +1685,7 @@ void Timeline::setup_ui() {
   toolRippleButton->setIcon(icon2);
   toolRippleButton->setCheckable(true);
   toolRippleButton->setToolTip(tr("Ripple Tool") + " (B)");
-  toolRippleButton->setProperty("tool", TIMELINE_TOOL_RIPPLE);
+  toolRippleButton->setProperty("tool", static_cast<int>(TimelineToolType::RIPPLE));
   connect(toolRippleButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
   tool_buttons_layout->addWidget(toolRippleButton);
 
@@ -1694,7 +1696,7 @@ void Timeline::setup_ui() {
   toolRazorButton->setIcon(icon4);
   toolRazorButton->setCheckable(true);
   toolRazorButton->setToolTip(tr("Razor Tool") + " (C)");
-  toolRazorButton->setProperty("tool", TIMELINE_TOOL_RAZOR);
+  toolRazorButton->setProperty("tool", static_cast<int>(TimelineToolType::RAZOR));
   connect(toolRazorButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
   tool_buttons_layout->addWidget(toolRazorButton);
 
@@ -1705,7 +1707,7 @@ void Timeline::setup_ui() {
   toolSlipButton->setIcon(icon5);
   toolSlipButton->setCheckable(true);
   toolSlipButton->setToolTip(tr("Slip Tool") + " (Y)");
-  toolSlipButton->setProperty("tool", TIMELINE_TOOL_SLIP);
+  toolSlipButton->setProperty("tool", static_cast<int>(TimelineToolType::SLIP));
   connect(toolSlipButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
   tool_buttons_layout->addWidget(toolSlipButton);
 
@@ -1716,7 +1718,7 @@ void Timeline::setup_ui() {
   toolSlideButton->setIcon(icon6);
   toolSlideButton->setCheckable(true);
   toolSlideButton->setToolTip(tr("Slide Tool") + " (U)");
-  toolSlideButton->setProperty("tool", TIMELINE_TOOL_SLIDE);
+  toolSlideButton->setProperty("tool", static_cast<int>(TimelineToolType::SLIDE));
   connect(toolSlideButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
   tool_buttons_layout->addWidget(toolSlideButton);
 
@@ -1727,7 +1729,7 @@ void Timeline::setup_ui() {
   toolHandButton->setIcon(icon7);
   toolHandButton->setCheckable(true);
   toolHandButton->setToolTip(tr("Hand Tool") + " (H)");
-  toolHandButton->setProperty("tool", TIMELINE_TOOL_HAND);
+  toolHandButton->setProperty("tool", static_cast<int>(TimelineToolType::HAND));
   connect(toolHandButton, SIGNAL(clicked(bool)), this, SLOT(set_tool()));
   tool_buttons_layout->addWidget(toolHandButton);
 
@@ -1894,14 +1896,14 @@ void move_clip(ComboAction* ca, ClipPtr c, long iin, long iout, long iclip_in, i
 void Timeline::set_tool() {
   QPushButton* button = static_cast<QPushButton*>(sender());
   decheck_tool_buttons(button);
-  tool = button->property("tool").toInt();
+  tool = static_cast<TimelineToolType>(button->property("tool").toInt());
   creating = false;
   switch (tool) {
-    case TIMELINE_TOOL_EDIT:
-    case TIMELINE_TOOL_RAZOR:
+    case TimelineToolType::EDIT:
+    case TimelineToolType::RAZOR:
       timeline_area->setCursor(Qt::IBeamCursor);
       break;
-    case TIMELINE_TOOL_HAND:
+    case TimelineToolType::HAND:
       timeline_area->setCursor(Qt::OpenHandCursor);
       break;
     default:

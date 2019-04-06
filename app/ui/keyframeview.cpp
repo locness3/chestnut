@@ -239,7 +239,7 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
   rect_select_w = 0;
   rect_select_h = 0;
 
-  if (PanelManager::timeLine().tool == TIMELINE_TOOL_HAND || event->buttons() & Qt::MiddleButton) {
+  if (PanelManager::timeLine().tool == TimelineToolType::HAND || event->buttons() & Qt::MiddleButton) {
     scroll_drag = true;
     return;
   }
@@ -329,7 +329,7 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
 }
 
 void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
-  if (PanelManager::timeLine().tool == TIMELINE_TOOL_HAND) {
+  if (PanelManager::timeLine().tool == TimelineToolType::HAND) {
     setCursor(Qt::OpenHandCursor);
   } else {
     unsetCursor();

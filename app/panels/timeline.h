@@ -25,19 +25,23 @@
 #include <QScrollBar>
 
 
-#include "ui/timelinetools.h"
+#include "ui/timelinewidget.h"
 #include "project/selection.h"
 #include "project/sequence.h"
 #include "project/media.h"
 
-#define TRACK_DEFAULT_HEIGHT 40
+constexpr int TRACK_DEFAULT_HEIGHT = 40;
 
-#define ADD_OBJ_TITLE 0
-#define ADD_OBJ_SOLID 1
-#define ADD_OBJ_BARS 2
-#define ADD_OBJ_TONE 3
-#define ADD_OBJ_NOISE 4
-#define ADD_OBJ_AUDIO 5
+
+enum class AddObjectType {
+  TITLE = 0,
+  SOLID,
+  BARS,
+  TONE,
+  NOISE,
+  AUDIO
+};
+
 
 class SourceTable;
 class ViewerWidget;
@@ -45,14 +49,13 @@ class ComboAction;
 class Effect;
 class Transition;
 class TimelineHeader;
-class TimelineWidget;
 class ResizableScrollBar;
 class AudioMonitor;
 struct EffectMeta;
 
 class Clip;
 class Footage;
-struct FootageStream;
+class FootageStream;
 
 int getScreenPointFromFrame(double zoom, long frame);
 long getFrameFromScreenPoint(double zoom, int x);
@@ -134,7 +137,7 @@ class Timeline : public QDockWidget
     void set_marker();
 
     // shared information
-    int tool;
+    TimelineToolType tool;
     long cursor_frame;
     int cursor_track;
     double zoom;
@@ -191,7 +194,7 @@ class Timeline : public QDockWidget
 
     // creating variables
     bool creating;
-    int creating_object;
+    AddObjectType creating_object;
 
     // transition variables
     bool transition_tool_init;

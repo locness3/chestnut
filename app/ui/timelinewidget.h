@@ -23,19 +23,32 @@
 #include <QScrollBar>
 #include <QPainter>
 
-#include "timelinetools.h"
 #include "project/sequence.h"
 #include "project/media.h"
 
-#define GHOST_THICKNESS 2 // thiccccc
-#define CLIP_TEXT_PADDING 3
+constexpr int GHOST_THICKNESS = 2;
+constexpr int CLIP_TEXT_PADDING = 3;
 
-#define TRACK_MIN_HEIGHT 30
-#define TRACK_HEIGHT_INCREMENT 10
+constexpr int TRACK_MIN_HEIGHT = 30;
+constexpr int TRACK_HEIGHT_INCREMENT = 10;
 
+
+enum class TimelineToolType {
+  POINTER = 0,
+  EDIT,
+  RAZOR,
+  RIPPLE,
+  ROLLING,
+  SLIP,
+  SLIDE,
+  HAND,
+  ZOOM,
+  MENU,
+  TRANSITION
+};
 
 class Clip;
-struct FootageStream;
+class FootageStream;
 class Timeline;
 class TimelineAction;
 class SetSelectionsCommand;

@@ -458,7 +458,7 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
   }
 
   if (mousedown) {
-    if ( (event->buttons() & Qt::MiddleButton) || panels::PanelManager::timeLine().tool == TIMELINE_TOOL_HAND) {
+    if ( (event->buttons() & Qt::MiddleButton) || panels::PanelManager::timeLine().tool == TimelineToolType::HAND) {
       set_scroll_x(x_scroll + start_x - event->pos().x());
       set_scroll_y(y_scroll + event->pos().y() - start_y);
       start_x = event->pos().x();

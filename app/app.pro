@@ -135,7 +135,6 @@ HEADERS += \
     dialogs/exportdialog.h \
     ui/collapsiblewidget.h \
     io/exportthread.h \
-    ui/timelinetools.h \
     ui/timelineheader.h \
     io/previewgenerator.h \
     ui/labelslider.h \
