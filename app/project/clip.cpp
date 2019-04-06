@@ -25,11 +25,11 @@
 #include "io/config.h"
 #include "playback/playback.h"
 #include "playback/audio.h"
-#include "panels/project.h"
 #include "project/sequence.h"
+#include "panels/project.h"
 #include "panels/timeline.h"
 #include "panels/panels.h"
-#include "panels/viewer.h"
+#include "panels/panelmanager.h"
 #include "project/media.h"
 #include "io/clipboard.h"
 #include "io/avtogl.h"
@@ -49,6 +49,8 @@ constexpr bool WAIT_ON_CLOSE = true;
 constexpr AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;
 constexpr int AUDIO_SAMPLES = 2048;
 constexpr int AUDIO_BUFFER_PADDING = 2048;
+
+using panels::PanelManager;
 
 double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sample_rate) {
   return (static_cast<double>(nb_bytes >> 1) / nb_channels / sample_rate);
@@ -1535,8 +1537,8 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
   } //while
 
   // frame processed, trigger timeline movement
-  QMetaObject::invokeMethod(e_panel_footage_viewer, "play_wake", Qt::QueuedConnection);
-  QMetaObject::invokeMethod(e_panel_sequence_viewer, "play_wake", Qt::QueuedConnection);
+  QMetaObject::invokeMethod(&PanelManager::footageViewer(), "play_wake", Qt::QueuedConnection);
+  QMetaObject::invokeMethod(&PanelManager::sequenceViewer(), "play_wake", Qt::QueuedConnection);
 }
 
 void Clip::cache_video_worker(const long playhead) {

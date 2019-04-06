@@ -118,9 +118,11 @@ ViewerWidget::~ViewerWidget()
     renderer->cancel();
     delete renderer;
   }
+  delete_function();
 }
 
-void ViewerWidget::delete_function() {
+void ViewerWidget::delete_function()
+{
   if (viewer != nullptr && viewer->getSequence()) {
     viewer->getSequence()->closeActiveClips();
   }

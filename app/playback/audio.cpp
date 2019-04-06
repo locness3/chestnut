@@ -165,7 +165,7 @@ void AudioSenderThread::run() {
         cond.wait(&lock);
         if (close) {
             break;
-        } else if (e_panel_sequence_viewer->playing || e_panel_footage_viewer->playing || audio_scrub) {
+        } else if (PanelManager::sequenceViewer().playing || PanelManager::footageViewer().playing || audio_scrub) {
             int written_bytes = 0;
 
             int adjusted_read_index = audio_ibuffer_read%audio_ibuffer_size;
@@ -195,8 +195,8 @@ int AudioSenderThread::send_audio_to_output(int offset, int max) {
     /*if (panel_footage_viewer->playing) {
         s = panel_footage_viewer->seq;
     }*/
-    if (e_panel_sequence_viewer->playing) {
-        s = e_panel_sequence_viewer->getSequence();
+    if (PanelManager::sequenceViewer().playing) {
+        s = PanelManager::sequenceViewer().getSequence();
     }
     if (s != nullptr) {
         if (PanelManager::timeLine().audio_monitor->sample_cache_offset == -1) {

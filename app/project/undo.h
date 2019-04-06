@@ -242,7 +242,6 @@ private:
 class AddMediaCommand : public QUndoCommand {
 public:
     AddMediaCommand(MediaPtr iitem, MediaPtr iparent);
-    virtual ~AddMediaCommand();
     virtual void undo() override;
     virtual void redo() override;
 private:

@@ -176,7 +176,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
         int proj_version = stream.readElementText().toInt();
         if (proj_version < MIN_SAVE_VERSION && proj_version > SAVE_VERSION) {
           if (QMessageBox::warning(
-                global::mainWindow,
+                &MainWindow::instance(),
                 tr("Version Mismatch"),
                 tr("This project was saved in a different version of Chestnut and may not be fully "
                    "compatible with this version. Would you like to attempt loading it anyway?"),
@@ -196,7 +196,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
             switch (type) {
               case static_cast<int>(MediaType::FOLDER):
               {
-                MediaPtr folder = e_panel_project->new_folder(nullptr);
+                MediaPtr folder = PanelManager::projectViewer().new_folder(nullptr);
                 folder->temp_id2 = 0;
                 for (int j=0;j<stream.attributes().size();j++) {
                   const QXmlStreamAttribute& attr = stream.attributes().at(j);
@@ -267,7 +267,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                 item->setFootage(ftg);
 
                 if (folder == 0) {
-                  project_model.appendChild(nullptr, item);
+                  Project::model().appendChild(nullptr, item);
                 } else {
                   find_loaded_folder_by_id(folder)->appendChild(item);
                 }
@@ -466,7 +466,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                     if (!found) {
                       correct_clip->linked.removeAt(j);
                       j--;
-                      if (QMessageBox::warning(global::mainWindow,
+                      if (QMessageBox::warning(&MainWindow::instance(),
                                                tr("Invalid Clip Link"),
                                                tr("This project contains an invalid clip link. It may be corrupt. Would you like to continue loading it?"),
                                                QMessageBox::Yes,
@@ -516,7 +516,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                   }
                 }
 
-                MediaPtr m = e_panel_project->new_sequence(nullptr, s, false, parent);
+                MediaPtr m = PanelManager::projectViewer().new_sequence(nullptr, s, false, parent);
 
                 loaded_sequences.append(m);
               }
@@ -607,7 +607,7 @@ void LoadThread::run() {
       MediaPtr folder = loaded_folders.at(i);
       int parent = folder->temp_id2;
       if (folder->temp_id2 == 0) {
-        project_model.appendChild(nullptr, folder);
+        Project::model().appendChild(nullptr, folder);
       } else {
         find_loaded_folder_by_id(parent)->appendChild(folder);
       }
@@ -652,7 +652,7 @@ void LoadThread::run() {
     emit success(); // run in main thread
 
     for (int i=0;i<loaded_media_items.size();i++) {
-      e_panel_project->start_preview_generator(loaded_media_items.at(i), true);
+      PanelManager::projectViewer().start_preview_generator(loaded_media_items.at(i), true);
     }
   }
 
@@ -669,12 +669,12 @@ void LoadThread::cancel() {
 void LoadThread::error_func() {
   if (xml_error) {
     qCritical() << "Error parsing XML." << error_str;
-    QMessageBox::critical(global::mainWindow,
+    QMessageBox::critical(&MainWindow::instance(),
                           tr("XML Parsing Error"),
                           tr("Couldn't load '%1'. %2").arg(project_url, error_str),
                           QMessageBox::Ok);
   } else {
-    QMessageBox::critical(global::mainWindow,
+    QMessageBox::critical(&MainWindow::instance(),
                           tr("Project Load Error"),
                           tr("Error loading project: %1").arg(error_str),
                           QMessageBox::Ok);
@@ -696,12 +696,12 @@ void LoadThread::success_func() {
       orig_filename.insert(insert_index, " (" + recover_text + ")");
       counter++;
     }
-    global::mainWindow->updateTitle(orig_filename);
+    MainWindow::instance().updateTitle(orig_filename);
   } else {
-    e_panel_project->add_recent_project(project_url);
+    PanelManager::projectViewer().add_recent_project(project_url);
   }
 
-  global::mainWindow->setWindowModified(autorecovery);
+  MainWindow::instance().setWindowModified(autorecovery);
   if (open_seq != nullptr) set_sequence(open_seq);
   update_ui(false);
 }

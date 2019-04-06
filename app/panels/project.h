@@ -44,16 +44,13 @@ class SourceIconView;
 class QPushButton;
 class SourcesCommon;
 
-// FIXME: singular enum type
-#define LOAD_TYPE_VERSION 69
-#define LOAD_TYPE_URL 70
+constexpr int LOAD_TYPE_VERSION = 69;
+constexpr int LOAD_TYPE_URL = 70;
 
 extern QString autorecovery_filename;
 extern QString project_url;
 extern QStringList recent_projects;
 extern QString recent_proj_file;
-
-extern ProjectModel project_model;
 
 QString get_channel_layout_name(int channels, uint64_t layout);
 QString get_interlacing_name(const ScanMethod interlacing);
@@ -66,6 +63,8 @@ public:
 
     Project(const Project& ) = delete;
     Project& operator=(const Project&) = delete;
+
+    static ProjectModel& model();
 
     bool is_focused();
     void clear();
@@ -137,6 +136,7 @@ private:
     QWidget* icon_view_container;
     QPushButton* directory_up;
     QVector<MediaPtr> last_imported_media;
+    static std::unique_ptr<ProjectModel> model_;
 private slots:
     void update_view_type();
     void set_icon_view();

@@ -34,8 +34,7 @@
 
 #include "debug.h"
 #include "panels/panels.h"
-#include "panels/viewer.h"
-#include "panels/timeline.h"
+#include "panels/panelmanager.h"
 #include "ui/viewerwidget.h"
 #include "project/sequence.h"
 #include "io/exportthread.h"
@@ -70,6 +69,9 @@ enum ExportFormats {
   FORMAT_WMV,
   FORMAT_SIZE
 };
+
+
+using panels::PanelManager;
 
 ExportDialog::ExportDialog(QWidget *parent)
   : QDialog(parent),
@@ -354,8 +356,8 @@ void ExportDialog::render_thread_finished() {
           );
   }
   prep_ui_for_render(false);
-  e_panel_sequence_viewer->viewer_widget->makeCurrent();
-  e_panel_sequence_viewer->viewer_widget->initializeGL();
+  PanelManager::sequenceViewer().viewer_widget->makeCurrent();
+  PanelManager::sequenceViewer().viewer_widget->initializeGL();
   update_ui(false);
   if (progressBar->value() == 100) accept();
 }
@@ -534,13 +536,13 @@ void ExportDialog::export_action() {
 
     global::sequence->closeActiveClips();
 
-    global::mainWindow->set_rendering_state(true);
+    MainWindow::instance().set_rendering_state(true);
 
-    global::mainWindow->autorecover_interval();
+    MainWindow::instance().autorecover_interval();
 
     e_rendering = true;
-    e_panel_sequence_viewer->viewer_widget->context()->doneCurrent();
-    e_panel_sequence_viewer->viewer_widget->context()->moveToThread(et);
+    PanelManager::sequenceViewer().viewer_widget->context()->doneCurrent();
+    PanelManager::sequenceViewer().viewer_widget->context()->moveToThread(et);
 
     prep_ui_for_render(true);
 

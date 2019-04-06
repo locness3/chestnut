@@ -18,15 +18,14 @@
 #include "projectmodel.h"
 
 #include "panels/panels.h"
-#include "panels/viewer.h"
+#include "panels/panelmanager.h"
 #include "ui/viewerwidget.h"
 #include "project/media.h"
 #include "debug.h"
 
-namespace
-{
-  const auto DEFAULT_COLUMN = 0;
-}
+constexpr int DEFAULT_COLUMN = 0;
+
+using panels::PanelManager;
 
 ProjectModel::ProjectModel(QObject *parent)
   : QAbstractItemModel(parent)
@@ -36,18 +35,12 @@ ProjectModel::ProjectModel(QObject *parent)
 
 ProjectModel::~ProjectModel()
 {
-  destroy_root();
 }
-
 
 void ProjectModel::destroy_root()
 {
-  if ( (e_panel_sequence_viewer != nullptr) && (e_panel_sequence_viewer->viewer_widget != nullptr) ) {
-    e_panel_sequence_viewer->viewer_widget->delete_function();
-  }
-  if ( (e_panel_footage_viewer != nullptr) && (e_panel_footage_viewer->viewer_widget != nullptr) ) {
-    e_panel_footage_viewer->viewer_widget->delete_function();
-  }
+  PanelManager::sequenceViewer().viewer_widget->delete_function();
+  PanelManager::footageViewer().viewer_widget->delete_function();
 }
 
 void ProjectModel::clear()

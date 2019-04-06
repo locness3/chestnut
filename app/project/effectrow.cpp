@@ -130,7 +130,7 @@ void EffectRow::goto_previous_key()
     }
   }
   if (key != LONG_MIN) {
-    e_panel_sequence_viewer->seek(key);
+    PanelManager::sequenceViewer().seek(key);
   }
 }
 
@@ -175,7 +175,9 @@ void EffectRow::goto_next_key()
       }
     }
   }
-  if (key != LONG_MAX) e_panel_sequence_viewer->seek(key);
+  if (key != LONG_MAX) {
+    PanelManager::sequenceViewer().seek(key);
+  }
 }
 
 void EffectRow::focus_row()

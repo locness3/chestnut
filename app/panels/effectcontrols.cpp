@@ -62,7 +62,7 @@ EffectControls::EffectControls(QWidget *parent) :
   setup_ui();
 
   clear_effects(false);
-  headers->viewer = e_panel_sequence_viewer;
+  headers->viewer = &PanelManager::sequenceViewer();
   headers->snapping = false;
 
   effects_area->parent_widget = scrollArea;
@@ -128,7 +128,7 @@ void EffectControls::menu_select(QAction* q) {
     update_ui(true);
   } else {
     reload_clips();
-    e_panel_sequence_viewer->viewer_widget->frame_update();
+    PanelManager::sequenceViewer().viewer_widget->frame_update();
   }
 }
 
@@ -295,7 +295,7 @@ void EffectControls::deselect_all_effects(QWidget* sender) {
       qWarning() << "Null clip at index" << idx;
     }
   }//for
-  e_panel_sequence_viewer->viewer_widget->update();
+  PanelManager::sequenceViewer().viewer_widget->update();
 }
 
 void EffectControls::open_effect(QVBoxLayout* const layout, const EffectPtr& e)
@@ -535,7 +535,7 @@ void EffectControls::delete_effects() {
     }
     if (command->clips.size() > 0) {
       e_undo_stack.push(command);
-      e_panel_sequence_viewer->viewer_widget->update();
+      PanelManager::sequenceViewer().viewer_widget->update();
     } else {
       delete command;
     }

@@ -215,127 +215,126 @@ QVector<int> sort_keys_from_field(EffectField* field) {
   return sorted_keys;
 }
 
-void GraphView::paintEvent(QPaintEvent *) {
+void GraphView::paintEvent(QPaintEvent *)
+{
   QPainter p(this);
 
-  if (e_panel_sequence_viewer->getSequence() != nullptr) {
-    // draw grid lines
+  // draw grid lines
 
-    p.setPen(Qt::gray);
+  p.setPen(Qt::gray);
 
-    draw_lines(p, true);
-    draw_lines(p, false);
+  draw_lines(p, true);
+  draw_lines(p, false);
 
-    // draw keyframes
-    if (row != nullptr) {
-      QPen line_pen;
-      line_pen.setWidth(BEZIER_LINE_SIZE);
+  // draw keyframes
+  if (row != nullptr) {
+    QPen line_pen;
+    line_pen.setWidth(BEZIER_LINE_SIZE);
 
-      for (int i=row->fieldCount()-1;i>=0;i--) {
-        EffectField* field = row->field(i);
+    for (int i=row->fieldCount()-1;i>=0;i--) {
+      EffectField* field = row->field(i);
 
-        if (field->type == EffectFieldType::DOUBLE && field_visibility.at(i)) {
-          // sort keyframes by time
-          QVector<int> sorted_keys = sort_keys_from_field(field);
+      if (field->type == EffectFieldType::DOUBLE && field_visibility.at(i)) {
+        // sort keyframes by time
+        QVector<int> sorted_keys = sort_keys_from_field(field);
 
-          int last_key_x = 0;
-          int last_key_y = 0;
+        int last_key_x = 0;
+        int last_key_y = 0;
 
-          // draw lines
-          for (int j=0;j<sorted_keys.size();j++) {
-            const EffectKeyframe& key = field->keyframes.at(sorted_keys.at(j));
+        // draw lines
+        for (int j=0;j<sorted_keys.size();j++) {
+          const EffectKeyframe& key = field->keyframes.at(sorted_keys.at(j));
 
-            int key_x = get_screen_x(key.time);
-            int key_y = get_screen_y(key.data.toDouble());
+          int key_x = get_screen_x(key.time);
+          int key_y = get_screen_y(key.data.toDouble());
 
-            line_pen.setColor(get_curve_color(i, row->fieldCount()));
-            p.setPen(line_pen);
-            if (j == 0) {
-              p.drawLine(0, key_y, key_x, key_y);
-            } else {
-              const EffectKeyframe& last_key = field->keyframes.at(sorted_keys.at(j-1));
-              if (last_key.type == KeyframeType::HOLD) {
-                // hold
-                p.drawLine(last_key_x, last_key_y, key_x, last_key_y);
-                p.drawLine(key_x, last_key_y, key_x, key_y);
-              } else if (last_key.type == KeyframeType::BEZIER || key.type == KeyframeType::BEZIER) {
-                QPainterPath bezier_path;
-                bezier_path.moveTo(last_key_x, last_key_y);
-                if (last_key.type == KeyframeType::BEZIER && key.type == KeyframeType::BEZIER) {
-                  // cubic bezier
-                  bezier_path.cubicTo(
-                        QPointF(last_key_x+last_key.post_handle_x*zoom, last_key_y-last_key.post_handle_y*zoom),
-                        QPointF(key_x+key.pre_handle_x*zoom, key_y-key.pre_handle_y*zoom),
-                        QPointF(key_x, key_y)
-                        );
-                } else if (key.type == KeyframeType::LINEAR) { // quadratic bezier
-                  // last keyframe is the bezier one
-                  bezier_path.quadTo(
-                        QPointF(last_key_x+last_key.post_handle_x*zoom, last_key_y-last_key.post_handle_y*zoom),
-                        QPointF(key_x, key_y)
-                        );
-                } else {
-                  // this keyframe is the bezier one
-                  bezier_path.quadTo(
-                        QPointF(key_x+key.pre_handle_x*zoom, key_y-key.pre_handle_y*zoom),
-                        QPointF(key_x, key_y)
-                        );
-                }
-                p.drawPath(bezier_path);
+          line_pen.setColor(get_curve_color(i, row->fieldCount()));
+          p.setPen(line_pen);
+          if (j == 0) {
+            p.drawLine(0, key_y, key_x, key_y);
+          } else {
+            const EffectKeyframe& last_key = field->keyframes.at(sorted_keys.at(j-1));
+            if (last_key.type == KeyframeType::HOLD) {
+              // hold
+              p.drawLine(last_key_x, last_key_y, key_x, last_key_y);
+              p.drawLine(key_x, last_key_y, key_x, key_y);
+            } else if (last_key.type == KeyframeType::BEZIER || key.type == KeyframeType::BEZIER) {
+              QPainterPath bezier_path;
+              bezier_path.moveTo(last_key_x, last_key_y);
+              if (last_key.type == KeyframeType::BEZIER && key.type == KeyframeType::BEZIER) {
+                // cubic bezier
+                bezier_path.cubicTo(
+                      QPointF(last_key_x+last_key.post_handle_x*zoom, last_key_y-last_key.post_handle_y*zoom),
+                      QPointF(key_x+key.pre_handle_x*zoom, key_y-key.pre_handle_y*zoom),
+                      QPointF(key_x, key_y)
+                      );
+              } else if (key.type == KeyframeType::LINEAR) { // quadratic bezier
+                // last keyframe is the bezier one
+                bezier_path.quadTo(
+                      QPointF(last_key_x+last_key.post_handle_x*zoom, last_key_y-last_key.post_handle_y*zoom),
+                      QPointF(key_x, key_y)
+                      );
               } else {
-                // linear
-                p.drawLine(last_key_x, last_key_y, key_x, key_y);
+                // this keyframe is the bezier one
+                bezier_path.quadTo(
+                      QPointF(key_x+key.pre_handle_x*zoom, key_y-key.pre_handle_y*zoom),
+                      QPointF(key_x, key_y)
+                      );
               }
+              p.drawPath(bezier_path);
+            } else {
+              // linear
+              p.drawLine(last_key_x, last_key_y, key_x, key_y);
             }
-            last_key_x = key_x;
-            last_key_y = key_y;
           }
-          if (last_key_x < width()) p.drawLine(last_key_x, last_key_y, width(), last_key_y);
+          last_key_x = key_x;
+          last_key_y = key_y;
+        }
+        if (last_key_x < width()) p.drawLine(last_key_x, last_key_y, width(), last_key_y);
 
-          // draw keys
-          for (int j=0;j<sorted_keys.size();j++) {
-            const EffectKeyframe& key = field->keyframes.at(sorted_keys.at(j));
+        // draw keys
+        for (int j=0;j<sorted_keys.size();j++) {
+          const EffectKeyframe& key = field->keyframes.at(sorted_keys.at(j));
 
-            int key_x = get_screen_x(key.time);
-            int key_y = get_screen_y(key.data.toDouble());
+          int key_x = get_screen_x(key.time);
+          int key_y = get_screen_y(key.data.toDouble());
 
-            if (key.type == KeyframeType::BEZIER) {
-              p.setPen(Qt::gray);
+          if (key.type == KeyframeType::BEZIER) {
+            p.setPen(Qt::gray);
 
-              // pre handle line
-              QPointF pre_point(key_x + key.pre_handle_x*zoom, key_y - key.pre_handle_y*zoom);
-              p.drawLine(pre_point, QPointF(key_x, key_y));
-              p.drawEllipse(pre_point, BEZIER_HANDLE_SIZE, BEZIER_HANDLE_SIZE);
+            // pre handle line
+            QPointF pre_point(key_x + key.pre_handle_x*zoom, key_y - key.pre_handle_y*zoom);
+            p.drawLine(pre_point, QPointF(key_x, key_y));
+            p.drawEllipse(pre_point, BEZIER_HANDLE_SIZE, BEZIER_HANDLE_SIZE);
 
-              // post handle line
-              QPointF post_point(key_x + key.post_handle_x*zoom, key_y - key.post_handle_y*zoom);
-              p.drawLine(post_point, QPointF(key_x, key_y));
-              p.drawEllipse(post_point, BEZIER_HANDLE_SIZE, BEZIER_HANDLE_SIZE);
-            }
-
-            bool selected = false;
-            for (int k=0;k<selected_keys.size();k++) {
-              if (selected_keys.at(k) == sorted_keys.at(j) && selected_keys_fields.at(k) == i) {
-                selected = true;
-                break;
-              }
-            }
-
-            draw_keyframe(p, key.type, key_x, key_y, selected);
+            // post handle line
+            QPointF post_point(key_x + key.post_handle_x*zoom, key_y - key.post_handle_y*zoom);
+            p.drawLine(post_point, QPointF(key_x, key_y));
+            p.drawEllipse(post_point, BEZIER_HANDLE_SIZE, BEZIER_HANDLE_SIZE);
           }
+
+          bool selected = false;
+          for (int k=0;k<selected_keys.size();k++) {
+            if (selected_keys.at(k) == sorted_keys.at(j) && selected_keys_fields.at(k) == i) {
+              selected = true;
+              break;
+            }
+          }
+
+          draw_keyframe(p, key.type, key_x, key_y, selected);
         }
       }
     }
+  }
 
-    // draw playhead
-    p.setPen(Qt::red);
-    int playhead_x = get_screen_x(e_panel_sequence_viewer->getSequence()->playhead_ - visible_in);
-    p.drawLine(playhead_x, 0, playhead_x, height());
+  // draw playhead
+  p.setPen(Qt::red);
+  int playhead_x = get_screen_x(panels::PanelManager::sequenceViewer().getSequence()->playhead_ - visible_in);
+  p.drawLine(playhead_x, 0, playhead_x, height());
 
-    if (rect_select) {
-      draw_selection_rectangle(p, QRect(rect_select_x, rect_select_y, rect_select_w, rect_select_h));
-      p.setBrush(Qt::NoBrush);
-    }
+  if (rect_select) {
+    draw_selection_rectangle(p, QRect(rect_select_x, rect_select_y, rect_select_w, rect_select_h));
+    p.setBrush(Qt::NoBrush);
   }
 
   p.setPen(Qt::white);
@@ -500,58 +499,58 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
       update();
     } else {
       switch (current_handle) {
-        case BEZIER_HANDLE_NONE:
-          for (int i=0;i<selected_keys.size();i++) {
-            row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].time = qRound(selected_keys_old_vals.at(i) + (double(event->pos().x() - start_x)/zoom));
-            if (event->modifiers() & Qt::ShiftModifier) {
-              row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = selected_keys_old_doubles.at(i);
-            } else {
-              row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = qRound(selected_keys_old_doubles.at(i) + (double(start_y - event->pos().y())/zoom));
-            }
-          }
-          moved_keys = true;
-          update_ui(false);
-          break;
-        case BEZIER_HANDLE_PRE:
-        case BEZIER_HANDLE_POST:
-        {
-          double new_pre_handle_x = old_pre_handle_x;
-          double new_pre_handle_y = old_pre_handle_y;
-          double new_post_handle_x = old_post_handle_x;
-          double new_post_handle_y = old_post_handle_y;
-
-          double x_diff = double(event->pos().x() - start_x)/zoom;
-          double y_diff = double(start_y - event->pos().y())/zoom;
-
-          if (current_handle == BEZIER_HANDLE_PRE) {
-            new_pre_handle_x += x_diff;
-            if (!(event->modifiers() & Qt::ShiftModifier)) new_pre_handle_y += y_diff;
-            if (!(event->modifiers() & Qt::ControlModifier)) {
-              new_post_handle_x = -new_pre_handle_x;
-              new_post_handle_y = -new_pre_handle_y;
-            }
+      case BEZIER_HANDLE_NONE:
+        for (int i=0;i<selected_keys.size();i++) {
+          row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].time = qRound(selected_keys_old_vals.at(i) + (double(event->pos().x() - start_x)/zoom));
+          if (event->modifiers() & Qt::ShiftModifier) {
+            row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = selected_keys_old_doubles.at(i);
           } else {
-            new_post_handle_x += x_diff;
-            if (!(event->modifiers() & Qt::ShiftModifier)) new_post_handle_y += y_diff;
-            if (!(event->modifiers() & Qt::ControlModifier)) {
-              new_pre_handle_x = -new_post_handle_x;
-              new_pre_handle_y = -new_post_handle_y;
-            }
+            row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = qRound(selected_keys_old_doubles.at(i) + (double(start_y - event->pos().y())/zoom));
           }
-
-          EffectKeyframe& key = row->field(handle_field)->keyframes[handle_index];
-          key.pre_handle_x = new_pre_handle_x;
-          key.pre_handle_y = new_pre_handle_y;
-          key.post_handle_x = new_post_handle_x;
-          key.post_handle_y = new_post_handle_y;
-
-          moved_keys = true;
-          update_ui(false);
         }
-          break;
-        default:
-          qWarning() << "Unhandled bezier handle" << current_handle;
-          break;
+        moved_keys = true;
+        update_ui(false);
+        break;
+      case BEZIER_HANDLE_PRE:
+      case BEZIER_HANDLE_POST:
+      {
+        double new_pre_handle_x = old_pre_handle_x;
+        double new_pre_handle_y = old_pre_handle_y;
+        double new_post_handle_x = old_post_handle_x;
+        double new_post_handle_y = old_post_handle_y;
+
+        double x_diff = double(event->pos().x() - start_x)/zoom;
+        double y_diff = double(start_y - event->pos().y())/zoom;
+
+        if (current_handle == BEZIER_HANDLE_PRE) {
+          new_pre_handle_x += x_diff;
+          if (!(event->modifiers() & Qt::ShiftModifier)) new_pre_handle_y += y_diff;
+          if (!(event->modifiers() & Qt::ControlModifier)) {
+            new_post_handle_x = -new_pre_handle_x;
+            new_post_handle_y = -new_pre_handle_y;
+          }
+        } else {
+          new_post_handle_x += x_diff;
+          if (!(event->modifiers() & Qt::ShiftModifier)) new_post_handle_y += y_diff;
+          if (!(event->modifiers() & Qt::ControlModifier)) {
+            new_pre_handle_x = -new_post_handle_x;
+            new_pre_handle_y = -new_post_handle_y;
+          }
+        }
+
+        EffectKeyframe& key = row->field(handle_field)->keyframes[handle_index];
+        key.pre_handle_x = new_pre_handle_x;
+        key.pre_handle_y = new_pre_handle_y;
+        key.post_handle_x = new_post_handle_x;
+        key.post_handle_y = new_post_handle_y;
+
+        moved_keys = true;
+        update_ui(false);
+      }
+        break;
+      default:
+        qWarning() << "Unhandled bezier handle" << current_handle;
+        break;
       }//switch
     }
   } else if (row != nullptr) {
@@ -695,26 +694,26 @@ void GraphView::mouseReleaseEvent(QMouseEvent *) {
   } else if (moved_keys && selected_keys.size() > 0) {
     ComboAction* ca = new ComboAction();
     switch (current_handle) {
-      case BEZIER_HANDLE_NONE:
-        for (int i=0;i<selected_keys.size();i++) {
-          EffectKeyframe& key = row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)];
-          ca->append(new SetLong(&key.time, selected_keys_old_vals.at(i), key.time));
-          ca->append(new SetQVariant(&key.data, selected_keys_old_doubles.at(i), key.data));
-        }
-        break;
-      case BEZIER_HANDLE_PRE:
-      case BEZIER_HANDLE_POST:
-      {
-        EffectKeyframe& key = row->field(handle_field)->keyframes[handle_index];
-        ca->append(new SetDouble(&key.pre_handle_x, old_pre_handle_x, key.pre_handle_x));
-        ca->append(new SetDouble(&key.pre_handle_y, old_pre_handle_y, key.pre_handle_y));
-        ca->append(new SetDouble(&key.post_handle_x, old_post_handle_x, key.post_handle_x));
-        ca->append(new SetDouble(&key.post_handle_y, old_post_handle_y, key.post_handle_y));
+    case BEZIER_HANDLE_NONE:
+      for (int i=0;i<selected_keys.size();i++) {
+        EffectKeyframe& key = row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)];
+        ca->append(new SetLong(&key.time, selected_keys_old_vals.at(i), key.time));
+        ca->append(new SetQVariant(&key.data, selected_keys_old_doubles.at(i), key.data));
       }
-        break;
-      default:
-        qWarning() << "Unhandled bezier handle" << current_handle;
-        break;
+      break;
+    case BEZIER_HANDLE_PRE:
+    case BEZIER_HANDLE_POST:
+    {
+      EffectKeyframe& key = row->field(handle_field)->keyframes[handle_index];
+      ca->append(new SetDouble(&key.pre_handle_x, old_pre_handle_x, key.pre_handle_x));
+      ca->append(new SetDouble(&key.pre_handle_y, old_pre_handle_y, key.pre_handle_y));
+      ca->append(new SetDouble(&key.post_handle_x, old_post_handle_x, key.post_handle_x));
+      ca->append(new SetDouble(&key.post_handle_y, old_post_handle_y, key.post_handle_y));
+    }
+      break;
+    default:
+      qWarning() << "Unhandled bezier handle" << current_handle;
+      break;
     }
     e_undo_stack.push(ca);
   }

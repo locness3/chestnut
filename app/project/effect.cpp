@@ -101,7 +101,7 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
     }//switch
   } else {
     qCritical() << "Invalid effect data";
-    QMessageBox::critical(global::mainWindow,
+    QMessageBox::critical(&MainWindow::instance(),
                           QCoreApplication::translate("Effect", "Invalid effect"),
                           QCoreApplication::translate("Effect", "No candidate for effect '%1'. This effect may be corrupt. "
                                                                 "Try reinstalling it for Chestnut.").arg(em->name));
@@ -407,13 +407,14 @@ void Effect::refresh()
 
 void Effect::field_changed()
 {
-  e_panel_sequence_viewer->viewer_widget->frame_update();
+  PanelManager::sequenceViewer().viewer_widget->frame_update();
   panels::PanelManager::graphEditor().update_panel();
 }
 
-void Effect::show_context_menu(const QPoint& pos) {
+void Effect::show_context_menu(const QPoint& pos)
+{
   if (meta->type == EFFECT_TYPE_EFFECT) {
-    QMenu menu(global::mainWindow);
+    QMenu menu(&MainWindow::instance());
 
     int index = get_index_in_clip();
 

@@ -28,7 +28,7 @@ bool ProjectFilter::filterAcceptsRow(int source_row, const QModelIndex &source_p
   if (!show_sequences) {
     // hide sequences if show_sequences is false
     const auto index = sourceModel()->index(source_row, 0, source_parent);
-    auto mda = project_model.getItem(index);
+    auto mda = Project::model().getItem(index);
 
     if (mda != nullptr && mda->type() == MediaType::SEQUENCE) {
       return false;

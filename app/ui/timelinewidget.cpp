@@ -112,8 +112,8 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
 
     QAction* undoAction = menu.addAction("&Undo");
     QAction* redoAction = menu.addAction("&Redo");
-    connect(undoAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(undo()));
-    connect(redoAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(redo()));
+    connect(undoAction, SIGNAL(triggered(bool)), &MainWindow::instance(), SLOT(undo()));
+    connect(redoAction, SIGNAL(triggered(bool)), &MainWindow::instance(), SLOT(redo()));
     undoAction->setEnabled(e_undo_stack.canUndo());
     redoAction->setEnabled(e_undo_stack.canRedo());
     menu.addSeparator();
@@ -166,20 +166,20 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
     } else {
       // clips are selected
       QAction* cutAction = menu.addAction("C&ut");
-      connect(cutAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(cut()));
+      connect(cutAction, SIGNAL(triggered(bool)), &MainWindow::instance(), SLOT(cut()));
       QAction* copyAction = menu.addAction("Cop&y");
-      connect(copyAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(copy()));
+      connect(copyAction, SIGNAL(triggered(bool)), &MainWindow::instance(), SLOT(copy()));
       QAction* pasteAction = menu.addAction("&Paste");
-      connect(pasteAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(paste()));
+      connect(pasteAction, SIGNAL(triggered(bool)), &MainWindow::instance(), SLOT(paste()));
       menu.addSeparator();
       QAction* speedAction = menu.addAction("&Speed/Duration");
-      connect(speedAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(open_speed_dialog()));
+      connect(speedAction, SIGNAL(triggered(bool)), &MainWindow::instance(), SLOT(open_speed_dialog()));
       QAction* autoscaleAction = menu.addAction("Auto-s&cale");
       autoscaleAction->setCheckable(true);
       connect(autoscaleAction, SIGNAL(triggered(bool)), this, SLOT(toggle_autoscale()));
 
       QAction* nestAction = menu.addAction("&Nest");
-      connect(nestAction, SIGNAL(triggered(bool)), global::mainWindow, SLOT(nest()));
+      connect(nestAction, SIGNAL(triggered(bool)), &MainWindow::instance(), SLOT(nest()));
 
       // stabilizer option
       /*int video_clip_count = 0;
@@ -199,13 +199,13 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
             }*/
 
       // set autoscale arbitrarily to the first selected clip
-      autoscaleAction->setChecked(selected_clips.at(0)->timeline_info.autoscale);
+      autoscaleAction->setChecked(selected_clips.front()->timeline_info.autoscale);
 
       // check if all selected clips have the same media for a "Reveal In Project"
       bool same_media = true;
-      rc_reveal_media = selected_clips.at(0)->timeline_info.media;
-      for (int i=1;i<selected_clips.size();i++) {
-        if (selected_clips.at(i)->timeline_info.media != rc_reveal_media) {
+      rc_reveal_media = selected_clips.front()->timeline_info.media;
+      for (auto& sel_clip : selected_clips) {
+        if (sel_clip->timeline_info.media != rc_reveal_media) {
           same_media = false;
           break;
         }
@@ -290,11 +290,11 @@ void TimelineWidget::show_stabilizer_diag() {
 void TimelineWidget::open_sequence_properties() {
   QVector<MediaPtr> sequence_items;
   QVector<MediaPtr> all_top_level_items;
-  for (int i=0;i<project_model.childCount();i++) {
-    all_top_level_items.append(project_model.child(i));
+  for (int i=0; i < Project::model().childCount(); ++i) {
+    all_top_level_items.append(Project::model().child(i));
   }
-  e_panel_project->get_all_media_from_table(all_top_level_items, sequence_items, MediaType::SEQUENCE); // find all sequences in project
-  for (int i=0;i<sequence_items.size();i++) {
+  PanelManager::projectViewer().get_all_media_from_table(all_top_level_items, sequence_items, MediaType::SEQUENCE); // find all sequences in project
+  for (int i=0; i<sequence_items.size(); i++) {
     if (sequence_items.at(i)->object<Sequence>() == global::sequence) {
       NewSequenceDialog nsd(this, sequence_items.at(i));
       nsd.exec();
@@ -315,20 +315,20 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
   PanelManager::timeLine().importing_files = false;
 
   // Dragging footage from the project-view window
-  if ( (event->source() == e_panel_project->tree_view) || (event->source() == e_panel_project->icon_view) ) {
-    auto items = e_panel_project->get_current_selected();
+  if ( (event->source() == PanelManager::projectViewer().tree_view) || (event->source() == PanelManager::projectViewer().icon_view) ) {
+    auto items = PanelManager::projectViewer().get_current_selected();
     media_list.resize(items.size());
     for (auto item : items) {
-      media_list.append(e_panel_project->item_to_media(item));
+      media_list.append(PanelManager::projectViewer().item_to_media(item));
     }
     import_init = true;
   }
 
   // Dragging footage from the media-viewer window
-  if (event->source() == e_panel_footage_viewer->viewer_widget) {
-    auto proposed_seq = e_panel_footage_viewer->getSequence();
+  if (event->source() == PanelManager::footageViewer().viewer_widget) {
+    auto proposed_seq = PanelManager::footageViewer().getSequence();
     if (proposed_seq != global::sequence) { // don't allow nesting the same sequence
-      media_list.append(e_panel_footage_viewer->getMedia());
+      media_list.append(PanelManager::footageViewer().getMedia());
       import_init = true;
     }
   }
@@ -341,12 +341,12 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
         file_list.append(url.toLocalFile());
       }
 
-      e_panel_project->process_file_list(file_list);
+      PanelManager::projectViewer().process_file_list(file_list);
 
-      for (int i=0; i < e_panel_project->getMediaSize(); i++) {
+      for (int i=0; i < PanelManager::projectViewer().getMediaSize(); i++) {
         // waits for media to have a duration
         // TODO would be much nicer if this was multithreaded
-        if (auto mda = e_panel_project->getImportedMedia(i)) {
+        if (auto mda = PanelManager::projectViewer().getImportedMedia(i)) {
           if (auto ftg = mda->object<Footage>()) {
             ftg->ready_lock.lock();
             ftg->ready_lock.unlock();
@@ -381,7 +381,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
       // if no sequence, we're going to create a new one using the clips as a reference
       entry_point = 0;
 
-      self_created_sequence = std::make_shared<Sequence>(media_list, e_panel_project->get_next_sequence_name());
+      self_created_sequence = std::make_shared<Sequence>(media_list, PanelManager::projectViewer().get_next_sequence_name());
       seq = self_created_sequence;
     } else {
       entry_point = PanelManager::timeLine().getTimelineFrameFromScreenPoint(event->pos().x());
@@ -543,7 +543,7 @@ void TimelineWidget::dropEvent(QDropEvent* event) {
     // if we're dropping into nothing, create a new sequences based on the clip being dragged
     if (working_sequence == nullptr) {
       working_sequence = self_created_sequence;
-      e_panel_project->new_sequence(ca, self_created_sequence, true, nullptr);
+      PanelManager::projectViewer().new_sequence(ca, self_created_sequence, true, nullptr);
       self_created_sequence = nullptr;
     } else if (event->keyboardModifiers() & Qt::ControlModifier) {
       insert_clips(ca);
@@ -730,7 +730,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
                 global::sequence->selections_.append(s);
 
                 if (e_config.select_also_seeks) {
-                  e_panel_sequence_viewer->seek(clip->timeline_info.in);
+                  PanelManager::sequenceViewer().seek(clip->timeline_info.in);
                 }
 
                 // if alt is not down, select links
@@ -768,7 +768,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
         PanelManager::timeLine().drag_y_start = pos.y();
         break;
       case TIMELINE_TOOL_EDIT:
-        if (e_config.edit_tool_also_seeks) e_panel_sequence_viewer->seek(PanelManager::timeLine().drag_frame_start);
+        if (e_config.edit_tool_also_seeks) PanelManager::sequenceViewer().seek(PanelManager::timeLine().drag_frame_start);
         PanelManager::timeLine().selecting = true;
         break;
       case TIMELINE_TOOL_RAZOR:
@@ -835,8 +835,8 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
           const Ghost& g = PanelManager::timeLine().ghosts.at(0);
 
           if (PanelManager::timeLine().creating_object == ADD_OBJ_AUDIO) {
-            global::mainWindow->statusBar()->clearMessage();
-            e_panel_sequence_viewer->cue_recording(qMin(g.in, g.out), qMax(g.in, g.out), g.track);
+            MainWindow::instance().statusBar()->clearMessage();
+            PanelManager::sequenceViewer().cue_recording(qMin(g.in, g.out), qMax(g.in, g.out), g.track);
             PanelManager::timeLine().creating = false;
           } else if (g.in != g.out) {
             ClipPtr c(std::make_shared<Clip>(global::sequence));
@@ -1783,7 +1783,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
       }
 
       if (e_config.edit_tool_also_seeks) {
-        e_panel_sequence_viewer->seek(qMin(PanelManager::timeLine().drag_frame_start, PanelManager::timeLine().cursor_frame));
+        PanelManager::sequenceViewer().seek(qMin(PanelManager::timeLine().drag_frame_start, PanelManager::timeLine().cursor_frame));
       } else {
         PanelManager::timeLine().repaint_timeline();
       }
@@ -2638,16 +2638,16 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
     }
 
     // Draw recording clip if recording if valid
-    if (e_panel_sequence_viewer->is_recording_cued() && is_track_visible(e_panel_sequence_viewer->recording_track)) {
-      int rec_track_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(e_panel_sequence_viewer->recording_start);
-      int rec_track_y = getScreenPointFromTrack(e_panel_sequence_viewer->recording_track);
-      int rec_track_height = PanelManager::timeLine().calculate_track_height(e_panel_sequence_viewer->recording_track, -1);
-      if (e_panel_sequence_viewer->recording_start != e_panel_sequence_viewer->recording_end) {
+    if (PanelManager::sequenceViewer().is_recording_cued() && is_track_visible(PanelManager::sequenceViewer().recording_track)) {
+      int rec_track_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(PanelManager::sequenceViewer().recording_start);
+      int rec_track_y = getScreenPointFromTrack(PanelManager::sequenceViewer().recording_track);
+      int rec_track_height = PanelManager::timeLine().calculate_track_height(PanelManager::sequenceViewer().recording_track, -1);
+      if (PanelManager::sequenceViewer().recording_start != PanelManager::sequenceViewer().recording_end) {
         QRect rec_rect(
               rec_track_x,
               rec_track_y,
               getScreenPointFromFrame(PanelManager::timeLine().zoom,
-                                      e_panel_sequence_viewer->recording_end - e_panel_sequence_viewer->recording_start),
+                                      PanelManager::sequenceViewer().recording_end - PanelManager::sequenceViewer().recording_start),
               rec_track_height
               );
         p.setPen(QPen(QColor(96, 96, 96), 2));
@@ -2658,7 +2658,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
             rec_track_x,
             rec_track_y,
             getScreenPointFromFrame(PanelManager::timeLine().zoom,
-                                    e_panel_sequence_viewer->getSequence()->playhead_ - e_panel_sequence_viewer->recording_start),
+                                    PanelManager::sequenceViewer().getSequence()->playhead_ - PanelManager::sequenceViewer().recording_start),
             rec_track_height
             );
       p.setPen(QPen(QColor(192, 0, 0), 2));
@@ -2667,7 +2667,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
 
       p.setPen(Qt::NoPen);
 
-      if (!e_panel_sequence_viewer->playing) {
+      if (!PanelManager::sequenceViewer().playing) {
         int rec_marker_size = 6;
         int rec_track_midY = rec_track_y + (rec_track_height >> 1);
         p.setBrush(Qt::white);
@@ -2872,5 +2872,5 @@ void TimelineWidget::setScroll(int s) {
 }
 
 void TimelineWidget::reveal_media() {
-  e_panel_project->reveal_media(rc_reveal_media);
+  PanelManager::projectViewer().reveal_media(rc_reveal_media);
 }

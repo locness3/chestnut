@@ -71,7 +71,7 @@ void LoadDialog::cancel() {
 }
 
 void LoadDialog::die() {
-  global::mainWindow->new_project();
+  MainWindow::instance().new_project();
   reject();
 }
 

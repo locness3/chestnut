@@ -25,11 +25,6 @@ class QWidget;
 class QDockWidget;
 class QScrollBar;
 
-extern Project* e_panel_project;
-extern Viewer* e_panel_sequence_viewer;
-extern Viewer* e_panel_footage_viewer;
-
-
 void update_ui(const bool modified);
 QDockWidget* get_focused_panel();
 void alloc_panels(QWidget *parent);

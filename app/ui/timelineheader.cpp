@@ -456,7 +456,7 @@ void TimelineHeader::paintEvent(QPaintEvent*) {
 void TimelineHeader::show_context_menu(const QPoint &pos) {
     QMenu menu(this);
 
-    global::mainWindow->make_inout_menu(&menu);
+    MainWindow::instance().make_inout_menu(&menu);
 
     menu.exec(mapToGlobal(pos));
 }

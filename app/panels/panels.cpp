@@ -17,6 +17,9 @@
  */
 #include "panels.h"
 
+#include <QScrollBar>
+#include <QCoreApplication>
+
 #include "timeline.h"
 #include "effectcontrols.h"
 #include "viewer.h"
@@ -30,13 +33,6 @@
 #include "scopeviewer.h"
 #include "debug.h"
 #include "panels/panelmanager.h"
-
-#include <QScrollBar>
-#include <QCoreApplication>
-
-Project* e_panel_project = nullptr;
-Viewer* e_panel_sequence_viewer = nullptr;
-Viewer* e_panel_footage_viewer = nullptr;
 
 using panels::PanelManager;
 
@@ -128,7 +124,7 @@ void update_ui(const bool modified)
   }
   PanelManager::fxControls().update_keyframes();
   PanelManager::timeLine().repaint_timeline();
-  e_panel_sequence_viewer->update_viewer();
+  PanelManager::sequenceViewer().update_viewer();
   PanelManager::graphEditor().update_panel();
 }
 
@@ -136,14 +132,14 @@ QDockWidget* get_focused_panel()
 {
   QDockWidget* w = nullptr;
   if (e_config.hover_focus) {
-    if (e_panel_project->underMouse()) {
-      w = e_panel_project;
+    if (PanelManager::projectViewer().underMouse()) {
+      w = &PanelManager::projectViewer();
     } else if (PanelManager::fxControls().underMouse()) {
       w = &PanelManager::fxControls();
-    } else if (e_panel_sequence_viewer->underMouse()) {
-      w = e_panel_sequence_viewer;
-    } else if (e_panel_footage_viewer->underMouse()) {
-      w = e_panel_footage_viewer;
+    } else if (PanelManager::sequenceViewer().underMouse()) {
+      w = &PanelManager::sequenceViewer();
+    } else if (PanelManager::footageViewer().underMouse()) {
+      w = &PanelManager::footageViewer();
     } else if (PanelManager::timeLine().underMouse()) {
       w = &PanelManager::timeLine();
     } else if (PanelManager::graphEditor().view_is_under_mouse()) {
@@ -156,14 +152,14 @@ QDockWidget* get_focused_panel()
   }
 
   if (w == nullptr) {
-    if (e_panel_project->is_focused()) {
-      w = e_panel_project;
+    if (PanelManager::projectViewer().is_focused()) {
+      w = &PanelManager::projectViewer();
     } else if (PanelManager::fxControls().keyframe_focus() || PanelManager::fxControls().is_focused()) {
       w = &PanelManager::fxControls();
-    } else if (e_panel_sequence_viewer->is_focused()) {
-      w = e_panel_sequence_viewer;
-    } else if (e_panel_footage_viewer->is_focused()) {
-      w = e_panel_footage_viewer;
+    } else if (PanelManager::sequenceViewer().is_focused()) {
+      w = &PanelManager::sequenceViewer();
+    } else if (PanelManager::footageViewer().is_focused()) {
+      w = &PanelManager::footageViewer();
     } else if (PanelManager::timeLine().focused()) {
       w = &PanelManager::timeLine();
     } else if (PanelManager::graphEditor().view_is_focused()) {
@@ -171,31 +167,6 @@ QDockWidget* get_focused_panel()
     }
   }
   return w;
-}
-
-void alloc_panels(QWidget* parent)
-{
-  // TODO maybe replace these with non-pointers later on?
-  e_panel_sequence_viewer = new Viewer(parent);
-  e_panel_sequence_viewer->setObjectName("seq_viewer");
-  e_panel_sequence_viewer->set_panel_name(QCoreApplication::translate("Viewer", "Sequence Viewer"));
-  e_panel_footage_viewer = new Viewer(parent);
-  e_panel_footage_viewer->setObjectName("footage_viewer");
-  e_panel_footage_viewer->set_panel_name(QCoreApplication::translate("Viewer", "Media Viewer"));
-  e_panel_project = new Project(parent);
-  e_panel_project->setObjectName("proj_root");
-//  e_panel_effect_controls = new EffectControls(parent);
-//  init_effects();
-}
-
-void free_panels()
-{
-  delete e_panel_sequence_viewer;
-  e_panel_sequence_viewer = nullptr;
-  delete e_panel_footage_viewer;
-  e_panel_footage_viewer = nullptr;
-  delete e_panel_project;
-  e_panel_project = nullptr;
 }
 
 void scroll_to_frame_internal(QScrollBar* bar, long frame, double zoom, int area_width)

@@ -32,6 +32,7 @@
 #include "project/effectrow.h"
 #include "project/clip.h"
 #include "panels.h"
+#include "panelmanager.h"
 #include "debug.h"
 
 GraphEditor::GraphEditor(QWidget* parent) : QDockWidget(parent), row(nullptr) {
@@ -98,7 +99,7 @@ GraphEditor::GraphEditor(QWidget* parent) : QDockWidget(parent), row(nullptr) {
   central_layout->setSpacing(0);
   central_layout->setMargin(0);
   header = new TimelineHeader();
-  header->viewer = e_panel_sequence_viewer;
+  header->viewer = &panels::PanelManager::sequenceViewer();
   central_layout->addWidget(header);
   view = new GraphView();
   central_layout->addWidget(view);
@@ -128,7 +129,7 @@ GraphEditor::GraphEditor(QWidget* parent) : QDockWidget(parent), row(nullptr) {
 
   connect(view, SIGNAL(zoom_changed(double)), header, SLOT(update_zoom(double)));
   connect(view, SIGNAL(x_scroll_changed(int)), header, SLOT(set_scroll(int)));
-  connect(view, SIGNAL(selection_changed(bool, int)), this, SLOT(set_key_button_enabled(bool, int)));
+  connect(view, SIGNAL(selection_changed(bool, int)), this, SLOT(set_key_button_enabled(bool, int))); //FIXME:
 
   connect(linear_button, SIGNAL(clicked(bool)), this, SLOT(set_keyframe_type()));
   connect(bezier_button, SIGNAL(clicked(bool)), this, SLOT(set_keyframe_type()));

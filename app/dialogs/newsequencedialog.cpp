@@ -17,15 +17,6 @@
  */
 #include "newsequencedialog.h"
 
-#include "panels/panels.h"
-#include "panels/project.h"
-#include "project/sequence.h"
-#include "project/undo.h"
-#include "project/clip.h"
-#include "panels/timeline.h"
-#include "playback/playback.h"
-#include "project/media.h"
-
 #include <QVariant>
 #include <QVBoxLayout>
 #include <QComboBox>
@@ -35,6 +26,15 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QDialogButtonBox>
+
+#include "panels/panels.h"
+#include "panels/panelmanager.h"
+#include "project/sequence.h"
+#include "project/undo.h"
+#include "project/clip.h"
+#include "playback/playback.h"
+#include "project/media.h"
+
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -91,7 +91,7 @@ void NewSequenceDialog::create() {
     s->setAudioLayout(AV_CH_LAYOUT_STEREO);
 
     ComboAction* ca = new ComboAction();
-    e_panel_project->new_sequence(ca, s, true, nullptr);
+    panels::PanelManager::projectViewer().new_sequence(ca, s, true, nullptr);
     e_undo_stack.push(ca);
   } else {
     ComboAction* ca = new ComboAction();

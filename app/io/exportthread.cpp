@@ -25,7 +25,7 @@
 
 #include "project/sequence.h"
 #include "panels/panels.h"
-#include "panels/timeline.h"
+#include "panels/panelmanager.h"
 #include "ui/viewerwidget.h"
 #include "ui/renderfunctions.h"
 #include "playback/playback.h"
@@ -41,6 +41,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+using panels::PanelManager;
 
 ExportThread::ExportThread()
   : QThread(nullptr)
@@ -347,14 +348,14 @@ void ExportThread::setDownContext(RenderThread& rt, Viewer& vwr) const
 
 void ExportThread::run()
 {
-  RenderThread* renderer = e_panel_sequence_viewer->viewer_widget->get_renderer();
+  RenderThread* renderer = PanelManager::sequenceViewer().viewer_widget->get_renderer();
   if (renderer == nullptr) {
     qCritical() << "No render thread available";
     return;
   }
 
 
-  continue_encode_ = setUpContext(*renderer, *e_panel_sequence_viewer);
+  continue_encode_ = setUpContext(*renderer, PanelManager::sequenceViewer());
   continue_encode_ = continue_encode_ && setupContainer();
 
   if (video_params.enabled && continue_encode_) {
@@ -462,15 +463,19 @@ void ExportThread::run()
     }
   }
 
-  global::mainWindow->set_rendering_state(false);
+  MainWindow::instance().set_rendering_state(false);
 
   if (audio_params.enabled && continue_encode_) {
     // flush swresample
     do {
       swr_convert_frame(swr_ctx, swr_frame, nullptr);
-      if (swr_frame->nb_samples == 0) break;
+      if (swr_frame->nb_samples == 0) {
+        break;
+      }
       swr_frame->pts = file_audio_samples;
-      if (!encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true)) continue_encode_ = false;
+      if (!encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true)) {
+        continue_encode_ = false;
+      }
       file_audio_samples += swr_frame->nb_samples;
     } while (swr_frame->nb_samples > 0);
   }
@@ -500,15 +505,23 @@ void ExportThread::run()
 
   avio_closep(&fmt_ctx->pb);
 
-  if (vpkt_alloc) av_packet_unref(&video_pkt);
-  if (video_frame != nullptr) av_frame_free(&video_frame);
+  if (vpkt_alloc) {
+    av_packet_unref(&video_pkt);
+  }
+  if (video_frame != nullptr) {
+    av_frame_free(&video_frame);
+  }
   if (vcodec_ctx != nullptr) {
     avcodec_close(vcodec_ctx);
     avcodec_free_context(&vcodec_ctx);
   }
 
-  if (apkt_alloc) av_packet_unref(&audio_pkt);
-  if (audio_frame != nullptr) av_frame_free(&audio_frame);
+  if (apkt_alloc) {
+    av_packet_unref(&audio_pkt);
+  }
+  if (audio_frame != nullptr) {
+    av_frame_free(&audio_frame);
+  }
   if (acodec_ctx != nullptr) {
     avcodec_close(acodec_ctx);
     avcodec_free_context(&acodec_ctx);
@@ -525,7 +538,7 @@ void ExportThread::run()
     av_frame_free(&swr_frame);
   }
 
-  setDownContext(*renderer, *e_panel_sequence_viewer);
+  setDownContext(*renderer, PanelManager::sequenceViewer());
 }
 
 void ExportThread::wake()

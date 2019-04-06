@@ -62,7 +62,6 @@ public:
 private:
     friend class ProjectModelTest;
     QMap<int, MediaPtr> project_items;
-
     /**
      * @brief insert Add object into managed map of objects
      * @param item    Object to manage

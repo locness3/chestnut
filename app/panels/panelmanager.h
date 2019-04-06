@@ -7,6 +7,8 @@
 #include "panels/grapheditor.h"
 #include "panels/timeline.h"
 #include "panels/effectcontrols.h"
+#include "panels/project.h"
+#include "panels/viewer.h"
 
 namespace panels {
 
@@ -22,6 +24,9 @@ namespace panels {
       static GraphEditor& graphEditor();
       static Timeline& timeLine();
       static EffectControls& fxControls();
+      static Project& projectViewer();
+      static Viewer& sequenceViewer();
+      static Viewer& footageViewer();
       static void tearDown();
     private:
       // cannot use smart_ptrs with QObject::connect. at least not reliably (double-frees)
@@ -30,6 +35,9 @@ namespace panels {
       static GraphEditor* graph_editor_;
       static Timeline* timeline_;
       static EffectControls* fx_controls_;
+      static Project* project_;
+      static Viewer* sequence_viewer_;
+      static Viewer* footage_viewer_;
       static QWidget* parent_;
   };
 }

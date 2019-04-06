@@ -1,5 +1,7 @@
 #include "panelmanager.h"
 
+#include <QCoreApplication>
+
 #include "debug.h"
 
 using panels::PanelManager;
@@ -10,7 +12,10 @@ HistogramViewer* PanelManager::histogram_viewer_ = nullptr;
 panels::ScopeViewer* PanelManager::scope_viewer_ = nullptr;
 GraphEditor* PanelManager::graph_editor_ = nullptr;
 Timeline* PanelManager::timeline_ = nullptr;
+Project* PanelManager::project_ = nullptr;
 EffectControls* PanelManager::fx_controls_ = nullptr;
+Viewer* PanelManager::sequence_viewer_ = nullptr;
+Viewer* PanelManager::footage_viewer_ = nullptr;
 
 
 bool PanelManager::setParent(QWidget* parent)
@@ -73,6 +78,37 @@ EffectControls& PanelManager::fxControls()
   return *fx_controls_;
 }
 
+
+Project& PanelManager::projectViewer()
+{
+  if (project_ == nullptr) {
+    project_ = new Project(parent_);
+    project_->setObjectName("proj_root");
+  }
+  return *project_;
+}
+
+
+Viewer& PanelManager::sequenceViewer()
+{
+  if (sequence_viewer_ == nullptr) {
+    sequence_viewer_ = new Viewer(parent_);
+    sequence_viewer_->setObjectName("seq_viewer");
+    sequence_viewer_->set_panel_name(QCoreApplication::translate("Viewer", "Sequence Viewer"));
+  }
+  return *sequence_viewer_;
+}
+
+Viewer& PanelManager::footageViewer()
+{
+  if (footage_viewer_ == nullptr) {
+    footage_viewer_ = new Viewer(parent_);
+    footage_viewer_->setObjectName("media_viewer");
+    footage_viewer_->set_panel_name(QCoreApplication::translate("Viewer", "Media Viewer"));
+  }
+  return *footage_viewer_;
+}
+
 void PanelManager::tearDown()
 {
   parent_ = nullptr;
@@ -86,4 +122,10 @@ void PanelManager::tearDown()
   timeline_ = nullptr;
   delete fx_controls_;
   fx_controls_ = nullptr;
+  delete fx_controls_;
+  fx_controls_ = nullptr;
+  delete sequence_viewer_;
+  sequence_viewer_ = nullptr;
+  delete footage_viewer_;
+  footage_viewer_ = nullptr;
 }

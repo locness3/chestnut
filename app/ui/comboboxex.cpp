@@ -32,7 +32,7 @@ public:
         old_val(old_index),
         new_val(new_index),
         done(true),
-        old_project_changed(global::mainWindow->isWindowModified())
+        old_project_changed(MainWindow::instance().isWindowModified())
     {
 
     }
@@ -44,14 +44,14 @@ public:
     {
         combobox->setCurrentIndex(old_val);
         done = false;
-        global::mainWindow->setWindowModified(old_project_changed);
+        MainWindow::instance().setWindowModified(old_project_changed);
     }
     void redo() override
     {
         if (!done) {
             combobox->setCurrentIndex(new_val);
         }
-        global::mainWindow->setWindowModified(true);
+        MainWindow::instance().setWindowModified(true);
     }
 private:
     ComboBoxEx* combobox;

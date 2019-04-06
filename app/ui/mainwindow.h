@@ -21,23 +21,22 @@
 #include <QMainWindow>
 #include <QTimer>
 
-class Project;
-class EffectControls;
-class Viewer;
-class Timeline;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
   public:
     MainWindow(QWidget *parent, const QString& an);
-    void updateTitle(const QString &url);
-    virtual ~MainWindow();
+    virtual ~MainWindow() override;
+    void initialise();
+    static MainWindow& instance(QWidget *parent = nullptr, const QString& an=""); // singleton. eh. only will ever need 1 instance
+    static void tearDown();
     MainWindow() = delete;
     MainWindow(const MainWindow&) = delete;
     MainWindow(const MainWindow&&) = delete;
     MainWindow operator=(const MainWindow&) = delete;
     MainWindow operator=(const MainWindow&&) = delete;
 
+    void updateTitle(const QString &url);
     void launch_with_project(const QString& s);
 
     void make_new_menu(QMenu* parent);
@@ -63,8 +62,8 @@ class MainWindow : public QMainWindow {
     void toggle_full_screen();
 
   protected:
-    virtual void closeEvent(QCloseEvent *);
-    virtual void paintEvent(QPaintEvent *event);
+    virtual void closeEvent(QCloseEvent *) override;
+    virtual void paintEvent(QPaintEvent *event) override;
 
   private slots:
     void clear_undo_stack();
@@ -226,11 +225,9 @@ class MainWindow : public QMainWindow {
     bool enable_launch_with_project = false;
     QTimer autorecovery_timer;
     QString config_fn;
+
+    static MainWindow* instance_;
 };
 
-namespace global {
-  // TODO: sort out items in ::global
-  extern MainWindow* mainWindow;
-}
 
 #endif // MAINWINDOW_H

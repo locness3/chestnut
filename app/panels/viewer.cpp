@@ -332,11 +332,12 @@ void Viewer::go_to_out() {
   }
 }
 
-void Viewer::cue_recording(long start, long end, int track) {
+void Viewer::cue_recording(long start, long end, int track)
+{
   recording_start = start;
   recording_end = end;
   recording_track = track;
-  e_panel_sequence_viewer->seek(recording_start);
+  PanelManager::sequenceViewer().seek(recording_start); //FIXME:
   cue_recording_internal = true;
   recording_flasher.start();
 }
@@ -359,9 +360,14 @@ void Viewer::toggle_play() {
   }
 }
 
-void Viewer::play() {
-  if (e_panel_sequence_viewer->playing) e_panel_sequence_viewer->pause();
-  if (e_panel_footage_viewer->playing) e_panel_footage_viewer->pause();
+void Viewer::play()
+{
+  if (PanelManager::sequenceViewer().playing) {
+    PanelManager::sequenceViewer().pause();
+  }
+  if (PanelManager::footageViewer().playing) {
+    PanelManager::footageViewer().pause();
+  }
 
   if (seq != nullptr) {
     if (!is_recording_cued()
@@ -408,11 +414,11 @@ void Viewer::pause() {
       // import audio
       QStringList file_list;
       file_list.append(get_recorded_audio_filename());
-      e_panel_project->process_file_list(file_list);
+      PanelManager::projectViewer().process_file_list(file_list);
 
       // add it to the sequence
       auto clp = std::make_shared<Clip>(seq);
-      auto mda = e_panel_project->getImportedMedia(0);
+      auto mda = PanelManager::projectViewer().getImportedMedia(0);
       auto ftg = mda->object<Footage>();
 
       ftg->ready_lock.lock();

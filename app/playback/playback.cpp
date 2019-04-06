@@ -56,16 +56,18 @@ using panels::PanelManager;
 bool e_texture_failed = false;
 bool e_rendering = false;
 
-long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate) {
+long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate)
+{
     return qRound((double(framenumber)/source_frame_rate)*target_frame_rate);
 }
 
 
 
-void set_sequence(SequencePtr s) {
+void set_sequence(SequencePtr s)
+{
     PanelManager::fxControls().clear_effects(true);
     global::sequence = std::move(s);
-    e_panel_sequence_viewer->set_main_sequence();
+    PanelManager::sequenceViewer().set_main_sequence();
     PanelManager::timeLine().update_sequence();
     PanelManager::timeLine().setFocus();
 }

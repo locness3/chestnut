@@ -117,7 +117,7 @@ Timeline::Timeline(QWidget *parent) :
 
   default_track_height = qRound((QGuiApplication::primaryScreen()->logicalDotsPerInch() / 96) * TRACK_DEFAULT_HEIGHT);
 
-  headers->viewer = e_panel_sequence_viewer;
+  headers->viewer = &PanelManager::sequenceViewer();
 
   video_area->bottom_align = true;
   video_area->scrollBar = videoScrollbar;
@@ -156,11 +156,12 @@ void Timeline::previous_cut() {
         }
       }
     }
-    e_panel_sequence_viewer->seek(p_cut);
+    PanelManager::sequenceViewer().seek(p_cut);
   }
 }
 
-void Timeline::next_cut() {
+void Timeline::next_cut()
+{
   bool seek_enabled = false;
   long n_cut = LONG_MAX;
   for (int i=0;i<global::sequence->clips_.size();i++) {
@@ -175,7 +176,9 @@ void Timeline::next_cut() {
       }
     }
   }
-  if (seek_enabled) e_panel_sequence_viewer->seek(n_cut);
+  if (seek_enabled) {
+    PanelManager::sequenceViewer().seek(n_cut);
+  }
 }
 
 void ripple_clips(ComboAction* ca, SequencePtr s, long point, long length, const QVector<int>& ignore) {
@@ -373,7 +376,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
     }
   }
   if (e_config.enable_seek_to_import) {
-    e_panel_sequence_viewer->seek(earliest_point);
+    PanelManager::sequenceViewer().seek(earliest_point);
   }
   PanelManager::timeLine().ghosts.clear();
   PanelManager::timeLine().importing = false;
@@ -464,7 +467,7 @@ void Timeline::repaint_timeline() {
     if (global::sequence != nullptr
         && !horizontalScrollBar->isSliderDown()
         && !horizontalScrollBar->is_resizing()
-        && e_panel_sequence_viewer->playing
+        && PanelManager::sequenceViewer().playing
         && !zoom_just_changed) {
       // auto scroll
       if (e_config.autoscroll == AUTOSCROLL_PAGE_SCROLL) {
@@ -615,7 +618,7 @@ void Timeline::delete_selection(QVector<Selection>& selections, bool ripple_dele
 
       if (can_ripple) {
         ripple_clips(ca, global::sequence, ripple_point, -ripple_length);
-        e_panel_sequence_viewer->seek(ripple_point-1);
+        PanelManager::sequenceViewer().seek(ripple_point-1);
       }
     }
 
@@ -1023,7 +1026,7 @@ void Timeline::paste(bool insert) {
       update_ui(true);
 
       if (e_config.paste_seeks) {
-        e_panel_sequence_viewer->seek(paste_end);
+        PanelManager::sequenceViewer().seek(paste_end);
       }
     } else if (e_clipboard_type == CLIPBOARD_TYPE_EFFECT) {
       ComboAction* ca = new ComboAction();
@@ -1202,13 +1205,13 @@ void Timeline::ripple_to_in_point(bool in, bool ripple) {
         update_ui(true);
 
         if ( (seek != global::sequence->playhead_) && ripple) {
-          e_panel_sequence_viewer->seek(seek);
+          PanelManager::sequenceViewer().seek(seek);
         }
       } else {
         delete ca;
       }
     } else {
-      e_panel_sequence_viewer->seek(0);
+      PanelManager::sequenceViewer().seek(0);
     }
   }
 }
@@ -1391,7 +1394,7 @@ bool Timeline::snap_to_point(long point, long* l) {
 bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bool use_workarea) {
   snapped = false;
   if (snapping) {
-    if (use_playhead && !e_panel_sequence_viewer->playing) {
+    if (use_playhead && !PanelManager::sequenceViewer().playing) {
       // snap to playhead
       if (snap_to_point(global::sequence->playhead_, l)) return true;
     }
@@ -1580,7 +1583,7 @@ void Timeline::record_btn_click() {
   } else {
     creating = true;
     creating_object = ADD_OBJ_AUDIO;
-    global::mainWindow->statusBar()->showMessage(
+    MainWindow::instance().statusBar()->showMessage(
           tr("Click on the timeline where you want to start recording (drag to limit the recording to a certain timeframe)"),
           10000);
   }

@@ -39,6 +39,8 @@
 
 constexpr int RENAME_INTERVAL = 1000;
 
+using panels::PanelManager;
+
 SourcesCommon::SourcesCommon(Project* parent) :
   QObject(parent),
   editing_item(nullptr),
@@ -56,7 +58,7 @@ void SourcesCommon::create_seq_from_selected() {
     }
 
     auto* const ca = new ComboAction();
-    auto seq = std::make_shared<Sequence>(media_list, e_panel_project->get_next_sequence_name());
+    auto seq = std::make_shared<Sequence>(media_list, PanelManager::projectViewer().get_next_sequence_name());
 
     // add clips to it
     panels::PanelManager::timeLine().create_ghosts_from_media(seq, 0, media_list);
@@ -76,7 +78,7 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
   QObject::connect(import_action, SIGNAL(triggered(bool)), project_parent, SLOT(import_dialog()));
 
   QMenu* new_menu = menu.addMenu(tr("New"));
-  global::mainWindow->make_new_menu(new_menu);
+  MainWindow::instance().make_new_menu(new_menu);
 
   if (!items.empty()) {
     if (auto mda = project_parent->item_to_media(items.front())) {
@@ -153,8 +155,8 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
 
   QAction* show_sequences = menu.addAction(tr("Show Sequences"));
   show_sequences->setCheckable(true);
-  show_sequences->setChecked(e_panel_project->sorter->get_show_sequences());
-  connect(show_sequences, SIGNAL(triggered(bool)), e_panel_project->sorter, SLOT(set_show_sequences(bool)));
+  show_sequences->setChecked(PanelManager::projectViewer().sorter->get_show_sequences());
+  connect(show_sequences, SIGNAL(triggered(bool)), PanelManager::projectViewer().sorter, SLOT(set_show_sequences(bool)));
 
   menu.exec(QCursor::pos());
 }
@@ -191,8 +193,8 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& 
     if (item != nullptr) {
       switch (item->type()) {
         case MediaType::FOOTAGE:
-          e_panel_footage_viewer->set_media(item);
-          e_panel_footage_viewer->setFocus();
+          PanelManager::footageViewer().set_media(item);
+          PanelManager::footageViewer().setFocus();
           break;
         case MediaType::SEQUENCE:
           e_undo_stack.push(new ChangeSequenceAction(item->object<Sequence>()));
@@ -246,7 +248,7 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
             parentIndex = drop_item.parent();
           }
         }
-        project_parent->process_file_list(paths, false, nullptr, e_panel_project->item_to_media(parentIndex));
+        project_parent->process_file_list(paths, false, nullptr, PanelManager::projectViewer().item_to_media(parentIndex));
       }
     }
     event->acceptProposedAction();

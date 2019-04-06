@@ -66,31 +66,28 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-using panels::PanelManager;
+std::unique_ptr<ProjectModel> Project::model_{nullptr};
 
-ProjectModel project_model;
+using panels::PanelManager;
 
 QString autorecovery_filename;
 QString project_url = "";
 QStringList recent_projects;
 QString recent_proj_file;
 
-namespace
-{
-  const int       MAXIMUM_RECENT_PROJECTS             = 10;
 
-  const int       THROBBER_INTERVAL                   = 20; //ms
-  const int       THROBBER_LIMIT                      = 20;
-  const int       THROBBER_SIZE                       = 50;
-}
+constexpr int MAXIMUM_RECENT_PROJECTS = 10;
+constexpr int THROBBER_INTERVAL       = 20; //ms
+constexpr int THROBBER_LIMIT          = 20;
+constexpr int THROBBER_SIZE           = 50;
 
 Project::Project(QWidget *parent) :
   QDockWidget(parent)
 {
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-  QWidget* dockWidgetContents = new QWidget(this);
-  QVBoxLayout* verticalLayout = new QVBoxLayout(dockWidgetContents);
+  auto dockWidgetContents = new QWidget(this);
+  auto verticalLayout = new QVBoxLayout(dockWidgetContents);
   verticalLayout->setContentsMargins(0, 0, 0, 0);
   verticalLayout->setSpacing(0);
 
@@ -99,7 +96,7 @@ Project::Project(QWidget *parent) :
   sources_common = new SourcesCommon(this);
 
   sorter = new ProjectFilter(this);
-  sorter->setSourceModel(&project_model);
+  sorter->setSourceModel(&Project::model());
 
   // optional toolbar
   toolbar_widget = new QWidget();
@@ -109,41 +106,41 @@ Project::Project(QWidget *parent) :
   toolbar->setSpacing(0);
   toolbar_widget->setLayout(toolbar);
 
-  QPushButton* toolbar_new = new QPushButton("New");
+  auto toolbar_new = new QPushButton("New");
   toolbar_new->setIcon(QIcon(":/icons/tri-down.png"));
   toolbar_new->setIconSize(QSize(8, 8));
   toolbar_new->setToolTip("New");
   connect(toolbar_new, SIGNAL(clicked(bool)), this, SLOT(make_new_menu()));
   toolbar->addWidget(toolbar_new);
 
-  QPushButton* toolbar_open = new QPushButton("Open");
+  auto toolbar_open = new QPushButton("Open");
   toolbar_open->setToolTip("Open Project");
-  connect(toolbar_open, SIGNAL(clicked(bool)), global::mainWindow, SLOT(open_project()));
+  connect(toolbar_open, SIGNAL(clicked(bool)), &MainWindow::instance(), SLOT(open_project()));
   toolbar->addWidget(toolbar_open);
 
-  QPushButton* toolbar_save = new QPushButton("Save");
+  auto toolbar_save = new QPushButton("Save");
   toolbar_save->setToolTip("Save Project");
-  connect(toolbar_save, SIGNAL(clicked(bool)), global::mainWindow, SLOT(save_project()));
+  connect(toolbar_save, SIGNAL(clicked(bool)), &MainWindow::instance(), SLOT(save_project()));
   toolbar->addWidget(toolbar_save);
 
-  QPushButton* toolbar_undo = new QPushButton("Undo");
+  auto toolbar_undo = new QPushButton("Undo");
   toolbar_undo->setToolTip("Undo");
-  connect(toolbar_undo, SIGNAL(clicked(bool)), global::mainWindow, SLOT(undo()));
+  connect(toolbar_undo, SIGNAL(clicked(bool)), &MainWindow::instance(), SLOT(undo()));
   toolbar->addWidget(toolbar_undo);
 
-  QPushButton* toolbar_redo = new QPushButton("Redo");
+  auto toolbar_redo = new QPushButton("Redo");
   toolbar_redo->setToolTip("Redo");
-  connect(toolbar_redo, SIGNAL(clicked(bool)), global::mainWindow, SLOT(redo()));
+  connect(toolbar_redo, SIGNAL(clicked(bool)), &MainWindow::instance(), SLOT(redo()));
   toolbar->addWidget(toolbar_redo);
 
   toolbar->addStretch();
 
-  QPushButton* toolbar_tree_view = new QPushButton("Tree View");
+  auto toolbar_tree_view = new QPushButton("Tree View");
   toolbar_tree_view->setToolTip("Tree View");
   connect(toolbar_tree_view, SIGNAL(clicked(bool)), this, SLOT(set_tree_view()));
   toolbar->addWidget(toolbar_tree_view);
 
-  QPushButton* toolbar_icon_view = new QPushButton("Icon View");
+  auto toolbar_icon_view = new QPushButton("Icon View");
   toolbar_icon_view->setToolTip("Icon View");
   connect(toolbar_icon_view, SIGNAL(clicked(bool)), this, SLOT(set_icon_view()));
   toolbar->addWidget(toolbar_icon_view);
@@ -159,12 +156,12 @@ Project::Project(QWidget *parent) :
   // icon view
   icon_view_container = new QWidget();
 
-  QVBoxLayout* icon_view_container_layout = new QVBoxLayout();
+  auto icon_view_container_layout = new QVBoxLayout();
   icon_view_container_layout->setMargin(0);
   icon_view_container_layout->setSpacing(0);
   icon_view_container->setLayout(icon_view_container_layout);
 
-  QHBoxLayout* icon_view_controls = new QHBoxLayout();
+  auto icon_view_controls = new QHBoxLayout();
   icon_view_controls->setMargin(0);
   icon_view_controls->setSpacing(0);
 
@@ -179,7 +176,7 @@ Project::Project(QWidget *parent) :
 
   icon_view_controls->addStretch();
 
-  QSlider* icon_size_slider = new QSlider(Qt::Horizontal);
+  auto icon_size_slider = new QSlider(Qt::Horizontal);
   icon_size_slider->setMinimum(16);
   icon_size_slider->setMaximum(120);
   icon_view_controls->addWidget(icon_size_slider);
@@ -207,13 +204,26 @@ Project::Project(QWidget *parent) :
   update_view_type();
 }
 
-Project::~Project() {
+Project::~Project()
+{
   delete sorter;
   delete sources_common;
 }
 
-QString Project::get_next_sequence_name(QString start) {
-  if (start.isEmpty()) start = tr("Sequence");
+
+ProjectModel& Project::model()
+{
+  if (model_ == nullptr){
+    model_ = std::make_unique<ProjectModel>();
+  }
+  return *model_;
+}
+
+QString Project::get_next_sequence_name(QString start)
+{
+  if (start.isEmpty()) {
+    start = tr("Sequence");
+  }
 
   int n = 1;
   bool found = true;
@@ -225,8 +235,8 @@ QString Project::get_next_sequence_name(QString start) {
       name += "0";
     }
     name += QString::number(n);
-    for (int i=0;i<project_model.childCount();i++) {
-      if (QString::compare(project_model.child(i)->name(), name, Qt::CaseInsensitive) == 0) {
+    for (int i=0;i<Project::model().childCount();i++) {
+      if (QString::compare(Project::model().child(i)->name(), name, Qt::CaseInsensitive) == 0) {
         found = true;
         n++;
         break;
@@ -338,20 +348,20 @@ void Project::open_properties() {
 
 MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaPtr parentItem) {
   if (parentItem == nullptr) {
-    parentItem = project_model.root();
+    parentItem = Project::model().root();
   }
   auto item = std::make_shared<Media>(parentItem);
   item->setSequence(s);
 
   if (ca != nullptr) {
-    auto cmd = new NewSequenceCommand(item, parentItem, global::mainWindow->isWindowModified());
+    auto cmd = new NewSequenceCommand(item, parentItem, MainWindow::instance().isWindowModified());
     ca->append(cmd);
     if (open) {
       ca->append(new ChangeSequenceAction(s));
     }
   } else {
-    if (parentItem == project_model.root()) {
-      project_model.appendChild(parentItem, item);
+    if (parentItem == Project::model().root()) {
+      Project::model().appendChild(parentItem, item);
     } else {
       parentItem->appendChild(item);
     }
@@ -392,7 +402,7 @@ MediaPtr Project::new_folder(const QString &name)
 MediaPtr Project::item_to_media(const QModelIndex &index) {
   if (sorter != nullptr) {
     const auto src = sorter->mapToSource(index);
-    return project_model.get(src);
+    return Project::model().get(src);
   }
 
   return MediaPtr();
@@ -446,8 +456,8 @@ void Project::delete_selected_media() {
   QVector<MediaPtr> parents;
   QVector<MediaPtr> sequence_items;
   QVector<MediaPtr> all_top_level_items;
-  for (auto i=0;i<project_model.childCount();i++) {
-    all_top_level_items.append(project_model.child(i));
+  for (auto i=0;i<Project::model().childCount();i++) {
+    all_top_level_items.append(Project::model().child(i));
   }
   get_all_media_from_table(all_top_level_items, sequence_items, MediaType::SEQUENCE); // find all sequences in project
   if (sequence_items.size() > 0) {
@@ -557,18 +567,19 @@ void Project::delete_selected_media() {
           ca->append(new ChangeSequenceAction(nullptr));
         }
 
-        if (s == e_panel_footage_viewer->getSequence()) {
-          e_panel_footage_viewer->set_media(nullptr);
+        if (s == PanelManager::footageViewer().getSequence()) {
+          PanelManager::footageViewer().set_media(nullptr);
         }
       } else if (item->type() == MediaType::FOOTAGE) {
-        if (e_panel_footage_viewer->getSequence()) {
-          for (auto clp : e_panel_footage_viewer->getSequence()->clips_) {
-            if (clp) {
-              if (clp->timeline_info.media == item) {
-                // Media viewer is displaying the clip for deletion, so clear it
-                e_panel_footage_viewer->set_media(nullptr); //TODO: create a clear()
-                break;
-              }
+        if (PanelManager::footageViewer().getSequence()) {
+          for (auto clp : PanelManager::footageViewer().getSequence()->clips_) {
+            if (!clp) {
+              continue;
+            }
+            if (clp->timeline_info.media == item) {
+              // Media viewer is displaying the clip for deletion, so clear it
+              PanelManager::footageViewer().set_media(nullptr); //TODO: create a clear()
+              break;
             }
           }//for
         }
@@ -635,7 +646,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
       if (create_undo_action) {
         ca->append(new AddMediaCommand(folder, parent));
       } else {
-        project_model.appendChild(parent, folder);
+        Project::model().appendChild(parent, folder);
       }
 
       imported = true;
@@ -737,7 +748,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
             ca->append(new AddMediaCommand(item, parent));
           } else {
             parent->appendChild(item);
-            //                        project_model.appendChild(parent, item);
+            //                        Project::model().appendChild(parent, item);
           }
         }
 
@@ -776,9 +787,9 @@ MediaPtr Project::get_selected_folder() {
 }
 
 bool Project::reveal_media(MediaPtr media, QModelIndex parent) {
-  for (int i=0;i<project_model.rowCount(parent);i++) {
-    const QModelIndex& item = project_model.index(i, 0, parent);
-    MediaPtr m = project_model.getItem(item);
+  for (int i=0;i<Project::model().rowCount(parent);i++) {
+    const QModelIndex& item = Project::model().index(i, 0, parent);
+    MediaPtr m = Project::model().getItem(item);
 
     if (m->type() == MediaType::FOLDER) {
       if (reveal_media(media, item)) return true;
@@ -868,15 +879,15 @@ void Project::clear() {
   }
 
   // delete everything else
-  project_model.clear();
+  Project::model().clear();
 }
 
 void Project::new_project() {
   // clear existing project
   set_sequence(nullptr);
-  e_panel_footage_viewer->set_media(nullptr);
+  PanelManager::footageViewer().set_media(nullptr);
   clear();
-  global::mainWindow->setWindowModified(false);
+  MainWindow::instance().setWindowModified(false);
 }
 
 void Project::load_project(bool autorecovery) {
@@ -887,9 +898,9 @@ void Project::load_project(bool autorecovery) {
 }
 
 void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool set_ids_only, const QModelIndex& parent) {
-  for (int i=0;i<project_model.rowCount(parent); ++i) {
-    const auto& item = project_model.index(i, 0, parent);
-    auto mda = project_model.getItem(item);
+  for (int i=0;i<Project::model().rowCount(parent); ++i) {
+    const auto& item = Project::model().index(i, 0, parent);
+    auto mda = Project::model().getItem(item);
     if (mda == nullptr) {
       qCritical() << "Null Media Ptr" << static_cast<int>(type) << i;
       continue;
@@ -908,7 +919,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
           if (!item.parent().isValid()) {
             stream.writeAttribute("parent", "0");
           } else {
-            stream.writeAttribute("parent", QString::number(project_model.getItem(item.parent())->temp_id));
+            stream.writeAttribute("parent", QString::number(Project::model().getItem(item.parent())->temp_id));
           }
           stream.writeEndElement();
         }
@@ -1110,7 +1121,7 @@ void Project::save_project(bool autorecovery) {
 
   if (!autorecovery) {
     add_recent_project(project_url);
-    global::mainWindow->setWindowModified(false);
+    MainWindow::instance().setWindowModified(false);
   }
 }
 
@@ -1178,7 +1189,7 @@ void Project::go_up_dir() {
 
 void Project::make_new_menu() {
   QMenu new_menu(this);
-  global::mainWindow->make_new_menu(&new_menu);
+  MainWindow::instance().make_new_menu(&new_menu);
   new_menu.exec(QCursor::pos());
 }
 
@@ -1227,8 +1238,8 @@ int Project::getMediaSize() const {
 }
 
 void Project::list_all_sequences_worker(QVector<MediaPtr>& list, MediaPtr parent) {
-  for (int i=0; i<project_model.childCount(parent); ++i) {
-    if (auto item = project_model.child(i, parent)) {
+  for (int i=0; i<Project::model().childCount(parent); ++i) {
+    if (auto item = Project::model().child(i, parent)) {
       switch (item->type()) {
         case MediaType::SEQUENCE:
           list.append(item);
@@ -1256,11 +1267,12 @@ QVector<MediaPtr> Project::list_all_project_sequences() {
   return list;
 }
 
-QModelIndexList Project::get_current_selected() {
+QModelIndexList Project::get_current_selected()
+{
   if (e_config.project_view_type == ProjectView::TREE) {
-    return e_panel_project->tree_view->selectionModel()->selectedRows();
+    return PanelManager::projectViewer().tree_view->selectionModel()->selectedRows();
   }
-  return e_panel_project->icon_view->selectionModel()->selectedIndexes();
+  return PanelManager::projectViewer().icon_view->selectionModel()->selectedIndexes();
 }
 
 
@@ -1285,7 +1297,7 @@ void MediaThrobber::animation_update() {
   if (animation == THROBBER_LIMIT) {
     animation = 0;
   }
-  project_model.set_icon(item, QIcon(pixmap.copy(THROBBER_SIZE*animation, 0, THROBBER_SIZE, THROBBER_SIZE)));
+  Project::model().set_icon(item, QIcon(pixmap.copy(THROBBER_SIZE*animation, 0, THROBBER_SIZE, THROBBER_SIZE)));
   animation++;
 }
 
@@ -1312,10 +1324,10 @@ void MediaThrobber::stop(const int icon_type, const bool replace) {
       qWarning() << "Unknown icon type" << static_cast<int>(icon_type);
       break;
   }//switch
-  project_model.set_icon(item,icon);
+  Project::model().set_icon(item,icon);
 
   // refresh all clips
-  auto sequences = e_panel_project->list_all_project_sequences();
+  auto sequences = PanelManager::projectViewer().list_all_project_sequences();
   for (auto sqn : sequences) {
     if (auto s = sqn->object<Sequence>()) {
       for (auto clp: s->clips_) {
@@ -1329,7 +1341,7 @@ void MediaThrobber::stop(const int icon_type, const bool replace) {
   // redraw clips
   update_ui(replace);
 
-  e_panel_project->tree_view->viewport()->update();
+  PanelManager::projectViewer().tree_view->viewport()->update();
   item->throbber = nullptr;
   deleteLater();
 }

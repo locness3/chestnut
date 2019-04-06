@@ -78,7 +78,7 @@ ReplaceClipMediaDialog::ReplaceClipMediaDialog(QWidget *parent, MediaPtr old_med
 
   setLayout(layout);
 
-  tree->setModel(&project_model);
+  tree->setModel(&Project::model());
 }
 
 void ReplaceClipMediaDialog::replace() {
@@ -91,7 +91,7 @@ void ReplaceClipMediaDialog::replace() {
           QMessageBox::Ok
           );
   } else {
-    auto new_item = project_model.getItem(selected_items.front());
+    auto new_item = Project::model().getItem(selected_items.front());
     if (media_ == new_item) {
       QMessageBox::critical(
             this,

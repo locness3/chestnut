@@ -20,6 +20,7 @@
 
 #include "debug.h"
 #include "project/effect.h"
+#include "panels/panelmanager.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -79,7 +80,8 @@ int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
   a.setWindowIcon(QIcon(":/icons/olive64.png"));
 
-  MainWindow w(nullptr, appName);
+  MainWindow& w = MainWindow::instance(nullptr, appName);
+  w.initialise();
   w.updateTitle("");
 
   if (!load_proj.isEmpty()) {
@@ -91,5 +93,8 @@ int main(int argc, char *argv[]) {
     w.showMaximized();
   }
 
-  return a.exec();
+  int retCode = a.exec();
+
+  MainWindow::tearDown();
+  return retCode;
 }
