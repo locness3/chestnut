@@ -17,6 +17,22 @@
  */
 #include "ui/mainwindow.h"
 
+#include <QStyleFactory>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QTimer>
+#include <QCloseEvent>
+#include <QMovie>
+#include <QInputDialog>
+#include <QRegExp>
+#include <QStatusBar>
+#include <QMenu>
+#include <QMenuBar>
+#include <QLayout>
+#include <QApplication>
+#include <QPushButton>
+#include <QStandardPaths>
+
 #include "io/config.h"
 #include "io/path.h"
 
@@ -48,20 +64,7 @@
 
 #include "debug.h"
 
-#include <QStyleFactory>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QTimer>
-#include <QCloseEvent>
-#include <QMovie>
-#include <QInputDialog>
-#include <QRegExp>
-#include <QStatusBar>
-#include <QMenu>
-#include <QMenuBar>
-#include <QLayout>
-#include <QApplication>
-#include <QPushButton>
+
 
 using panels::PanelManager;
 
@@ -1101,10 +1104,13 @@ void MainWindow::clear_undo_stack() {
   e_undo_stack.clear();
 }
 
-void MainWindow::open_project() {
-  QString fn = QFileDialog::getOpenFileName(this, tr("Open Project..."), "", PROJECT_FILE_FILTER);
-  if (!fn.isEmpty() && can_close_project()) {
-    open_project_worker(fn, false);
+void MainWindow::open_project()
+{
+  const auto paths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+  const QString location = paths.empty() ? "" : paths.first();
+  const QString file_name = QFileDialog::getOpenFileName(this, tr("Open Project..."), location, PROJECT_FILE_FILTER);
+  if (!file_name.isEmpty() && can_close_project()) {
+    open_project_worker(file_name, false);
   }
 }
 
