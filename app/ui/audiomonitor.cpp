@@ -17,21 +17,20 @@
  */
 #include "audiomonitor.h"
 
-#include "project/sequence.h"
-#include "playback/audio.h"
-#include "panels/panels.h"
-#include "panels/timeline.h"
-
 #include <QPainter>
 #include <QLinearGradient>
 #include <QtMath>
 
-#define AUDIO_MONITOR_PEAK_HEIGHT 15
-#define AUDIO_MONITOR_GAP 3
+#include "project/sequence.h"
+#include "playback/audio.h"
+#include "panels/panelmanager.h"
 
 extern "C" {
 #include "libavformat/avformat.h"
 }
+
+constexpr int AUDIO_MONITOR_PEAK_HEIGHT = 15;
+constexpr int AUDIO_MONITOR_GAP = 3;
 
 AudioMonitor::AudioMonitor(QWidget *parent) : QWidget(parent) {
     reset();

@@ -23,8 +23,7 @@
 #include <QProgressBar>
 #include <QPushButton>
 
-#include "panels/panels.h"
-#include "panels/project.h"
+#include "panels/panelmanager.h"
 #include "io/loadthread.h"
 #include "playback/playback.h"
 #include "ui/sourcetable.h"
