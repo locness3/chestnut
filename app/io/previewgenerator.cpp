@@ -518,12 +518,11 @@ void PreviewGenerator::run()
                              + QString::number(file_info.lastModified().toMSecsSinceEpoch());
         QString hash = QCryptographicHash::hash(cache_file.toUtf8(), QCryptographicHash::Md5).toHex();
 
-        // FIXME: This does far more than the name suggests i.e. finds interlace method of Ftg
-        generate_waveform();
-
         if (!retrieve_preview(hash)) {
           sem.acquire();
 
+          // FIXME: This does far more than the name suggests i.e. finds interlace method of Ftg
+          generate_waveform();
 
           // save preview to file
           for (auto ms : ftg->video_tracks) {
