@@ -17,14 +17,6 @@
  */
 #include "previewgenerator.h"
 
-#include "project/media.h"
-#include "project/footage.h"
-#include "panels/viewer.h"
-#include "panels/project.h"
-#include "io/config.h"
-#include "io/path.h"
-#include "debug.h"
-
 #include <QPainter>
 #include <QPixmap>
 #include <QtMath>
@@ -37,6 +29,15 @@
 #include <QMimeType>
 #include <QMimeDatabase>
 
+#include "project/media.h"
+#include "project/footage.h"
+#include "panels/viewer.h"
+#include "panels/project.h"
+#include "io/config.h"
+#include "io/path.h"
+#include "gsl/span"
+#include "debug.h"
+
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -44,23 +45,24 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 }
-namespace {
-  const auto IMAGE_FRAMERATE = 0;
-  const auto PREVIEW_HEIGHT = 120;
-  const auto PREVIEW_CHANNELS = 4;
-  const auto WAVEFORM_RESOLUTION = 64;
-  QSemaphore sem(5); // only 5 preview generators can run at one time
 
-  const auto MIME_VIDEO_PREFIX = "video";
-  const auto MIME_AUDIO_PREFIX = "audio";
-  const auto MIME_IMAGE_PREFIX = "image";
+constexpr auto IMAGE_FRAMERATE = 0;
+constexpr auto PREVIEW_HEIGHT = 120;
+constexpr auto PREVIEW_CHANNELS = 4;
+constexpr auto WAVEFORM_RESOLUTION = 64.0;
+constexpr auto MIME_VIDEO_PREFIX = "video";
+constexpr auto MIME_AUDIO_PREFIX = "audio";
+constexpr auto MIME_IMAGE_PREFIX = "image";
+
+namespace {
+  QSemaphore sem(3); // only 5 preview generators can run at one time
 }
 
 
-PreviewGenerator::PreviewGenerator(MediaPtr item, FootagePtr ftg, const bool replacing, QObject *parent) :
+PreviewGenerator::PreviewGenerator(MediaPtr item, const FootagePtr& ftg, const bool replacing, QObject *parent) :
   QThread(parent),
   fmt_ctx(nullptr),
-  media(item),
+  media(std::move(item)),
   footage(ftg),
   retrieve_duration(false),
   contains_still_image(false),
@@ -78,15 +80,22 @@ PreviewGenerator::PreviewGenerator(MediaPtr item, FootagePtr ftg, const bool rep
 
 PreviewGenerator::~PreviewGenerator()
 {
-
+  //TODO: check
+  fmt_ctx = nullptr;
 }
 
-void PreviewGenerator::parse_media() {
+void PreviewGenerator::parse_media()
+{
   if (auto ftg = footage.lock()) {
     // detect video/audio streams in file
-    for (int i=0;i<(int)fmt_ctx->nb_streams;i++) {
+    gsl::span<AVStream*> streams(fmt_ctx->streams, fmt_ctx->nb_streams);
+    for (int i=0; i < streams.size(); ++i) {
+      AVStream* const stream = streams.at(i);
+      if (stream == nullptr) {
+        continue;
+      }
       // Find the decoder for the video stream
-      if (avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id) == nullptr) {
+      if (avcodec_find_decoder(stream->codecpar->codec_id) == nullptr) {
         qCritical() << "Unsupported codec in stream" << i << "of file" << ftg->name();
       } else {
         auto ms = std::make_shared<FootageStream>();
@@ -96,13 +105,13 @@ void PreviewGenerator::parse_media() {
 
         bool append = false;
 
-        if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO
-            && fmt_ctx->streams[i]->codecpar->width > 0
-            && fmt_ctx->streams[i]->codecpar->height > 0) {
+        if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO
+            && stream->codecpar->width > 0
+            && stream->codecpar->height > 0) {
 
           // heuristic to determine if video is a still image
-          if (fmt_ctx->streams[i]->avg_frame_rate.den == 0
-              && fmt_ctx->streams[i]->codecpar->codec_id != AV_CODEC_ID_DNXHD) { // silly hack but this is the only scenario i've seen this
+          if (stream->avg_frame_rate.den == 0
+              && stream->codecpar->codec_id != AV_CODEC_ID_DNXHD) { // silly hack but this is the only scenario i've seen this
             if (ftg->url.contains('%')) {
               // must be an image sequence
               ms->infinite_length = false;
@@ -116,27 +125,27 @@ void PreviewGenerator::parse_media() {
             ms->infinite_length = false;
 
             // using ffmpeg's built-in heuristic
-            ms->video_frame_rate = av_q2d(av_guess_frame_rate(fmt_ctx, fmt_ctx->streams[i], nullptr));
+            ms->video_frame_rate = av_q2d(av_guess_frame_rate(fmt_ctx, stream, nullptr));
           }
 
-          ms->video_width = fmt_ctx->streams[i]->codecpar->width;
-          ms->video_height = fmt_ctx->streams[i]->codecpar->height;
+          ms->video_width = stream->codecpar->width;
+          ms->video_height = stream->codecpar->height;
 
           // default value, we get the true value later in generate_waveform()
           ms->video_auto_interlacing = ScanMethod::UNKNOWN;
           ms->video_interlacing = ScanMethod::UNKNOWN;
 
           append = true;
-        } else if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-          ms->audio_channels = fmt_ctx->streams[i]->codecpar->channels;
-          ms->audio_layout = fmt_ctx->streams[i]->codecpar->channel_layout;
-          ms->audio_frequency = fmt_ctx->streams[i]->codecpar->sample_rate;
+        } else if (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+          ms->audio_channels = stream->codecpar->channels;
+          ms->audio_layout = stream->codecpar->channel_layout;
+          ms->audio_frequency = stream->codecpar->sample_rate;
 
           append = true;
         }
 
         if (append) {
-          QVector<FootageStreamPtr>& stream_list = (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+          QVector<FootageStreamPtr>& stream_list = (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
                                                    ? ftg->audio_tracks : ftg->video_tracks;
           for (int j=0;j<stream_list.size();j++) {
             if (stream_list.at(j)->file_index == i) {
@@ -162,7 +171,8 @@ void PreviewGenerator::parse_media() {
   }
 }
 
-bool PreviewGenerator::retrieve_preview(const QString& hash) {
+bool PreviewGenerator::retrieve_preview(const QString& hash)
+{
   // returns true if generate_waveform must be run, false if we got all previews from cached files
   if (retrieve_duration) {
     return true;
@@ -202,10 +212,10 @@ bool PreviewGenerator::retrieve_preview(const QString& hash) {
     } //for
 
     if (!found) {
-      for (auto stream: ftg->video_tracks) {
+      for (const auto& stream: ftg->video_tracks) {
         stream->preview_done = false;
       }
-      for (auto stream: ftg->audio_tracks) {
+      for (const auto& stream: ftg->audio_tracks) {
         stream->audio_preview.clear();
         stream->preview_done = false;
       }
@@ -214,7 +224,8 @@ bool PreviewGenerator::retrieve_preview(const QString& hash) {
   return found;
 }
 
-void PreviewGenerator::finalize_media() {
+void PreviewGenerator::finalize_media()
+{
   if (auto ftg = footage.lock()) {
     ftg->ready_lock.unlock();
     ftg->ready = true;
@@ -235,19 +246,22 @@ void thumb_data_cleanup(void *info) {
   delete [] static_cast<uint8_t*>(info);
 }
 
-void PreviewGenerator::generate_waveform() {
-  AVCodecContext** codec_ctx = new AVCodecContext* [fmt_ctx->nb_streams];
-  for (unsigned int i=0;i<fmt_ctx->nb_streams;i++) {
+void PreviewGenerator::generate_waveform()
+{
+  gsl::span<AVCodecContext*> codec_ctx(new AVCodecContext* [fmt_ctx->nb_streams], fmt_ctx->nb_streams);
+  gsl::span<AVStream*> streams(fmt_ctx->streams, fmt_ctx->nb_streams);
+  for (auto i=0; i<streams.size(); ++i) {
     codec_ctx[i] = nullptr;
-    if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO || fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-      AVCodec* codec = avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id);
-      if (codec != nullptr) {
-        codec_ctx[i] = avcodec_alloc_context3(codec);
-        avcodec_parameters_to_context(codec_ctx[i], fmt_ctx->streams[i]->codecpar);
-        avcodec_open2(codec_ctx[i], codec, nullptr);
-        if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && codec_ctx[i]->channel_layout == 0) {
-          codec_ctx[i]->channel_layout = av_get_default_channel_layout(fmt_ctx->streams[i]->codecpar->channels);
-        }
+    if (streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO || streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+      AVCodec* const codec = avcodec_find_decoder(streams[i]->codecpar->codec_id);
+      if (codec == nullptr) {
+        continue;
+      }
+      codec_ctx[i] = avcodec_alloc_context3(codec); //FIXME: memory leak
+      avcodec_parameters_to_context(codec_ctx[i], streams[i]->codecpar);
+      avcodec_open2(codec_ctx[i], codec, nullptr);
+      if (streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && codec_ctx[i]->channel_layout == 0) {
+        codec_ctx[i]->channel_layout = av_get_default_channel_layout(streams[i]->codecpar->channels);
       }
     }
   }
@@ -267,7 +281,7 @@ void PreviewGenerator::generate_waveform() {
     SwsContext* sws_ctx = nullptr;
     SwrContext* swr_ctx = nullptr;
     AVFrame* temp_frame = av_frame_alloc();
-    int64_t* media_lengths = new int64_t[fmt_ctx->nb_streams]{0};
+    gsl::span<int64_t> media_lengths(new int64_t[fmt_ctx->nb_streams], fmt_ctx->nb_streams);
     while (!end_of_file) {
       while (codec_ctx[packet->stream_index] == nullptr || avcodec_receive_frame(codec_ctx[packet->stream_index], temp_frame) == AVERROR(EAGAIN)) {
         av_packet_unref(packet);
@@ -289,7 +303,7 @@ void PreviewGenerator::generate_waveform() {
         }
       }
       if (!end_of_file) {
-        const auto isVideo = fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO;
+        const auto isVideo = streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO;
         FootageStreamPtr ms;
         if (isVideo) {
           ms = ftg->video_stream_from_file_index(packet->stream_index);
@@ -299,8 +313,8 @@ void PreviewGenerator::generate_waveform() {
 
         if (ms != nullptr && isVideo) {
           if (!ms->preview_done) {
-            const int dstW = PREVIEW_HEIGHT * (static_cast<double>(temp_frame->width)/static_cast<double>(temp_frame->height));
-            uint8_t* const imgData = new uint8_t[dstW * PREVIEW_HEIGHT * PREVIEW_CHANNELS];
+            const int dstW = lround(PREVIEW_HEIGHT * (static_cast<double>(temp_frame->width)/static_cast<double>(temp_frame->height)));
+            auto const imgData = new uint8_t[dstW * PREVIEW_HEIGHT * PREVIEW_CHANNELS]; //FIXME: still showing up as a memory leak
 
             sws_ctx = sws_getContext(
                         temp_frame->width,
@@ -337,8 +351,8 @@ void PreviewGenerator::generate_waveform() {
               codec_ctx[packet->stream_index] = nullptr;
             }
           }
-          media_lengths[packet->stream_index]++;
-        } else if (fmt_ctx->streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+          media_lengths.at(packet->stream_index)++;
+        } else if (streams[packet->stream_index]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
           const auto interval = qFloor((temp_frame->sample_rate/WAVEFORM_RESOLUTION)/4)*4;
           AVFrame* swr_frame = av_frame_alloc();
           swr_frame->channel_layout   = temp_frame->channel_layout;
@@ -371,7 +385,7 @@ void PreviewGenerator::generate_waveform() {
               qint16 max = 0;
               for (int k=0; k<byte_interval; k+=sample_size) {
                 if ( (i+k) < nb_bytes) {
-                  qint16 sample = ((swr_frame->data[j][i+k+1] << 8) | swr_frame->data[j][i+k]);
+                  qint16 sample = ((gsl::at(swr_frame->data, j)[i+k+1] << 8) | gsl::at(swr_frame->data, j)[i+k]);
                   if (sample > max) {
                     max = sample;
                   } else if (sample < min) {
@@ -400,9 +414,9 @@ void PreviewGenerator::generate_waveform() {
         // check if we've got all our previews
         if (retrieve_duration) {
           done = false; //FIXME: never used
-        } else if (ftg->audio_tracks.size() == 0) {
+        } else if (ftg->audio_tracks.empty()) {
           done = true;
-          for (auto stream : ftg->video_tracks) {
+          for (const auto& stream : ftg->video_tracks) {
             if (!stream->preview_done) {
               done = false;
               break;
@@ -417,16 +431,16 @@ void PreviewGenerator::generate_waveform() {
       }
     }//while
 
-    for (auto stream : ftg->audio_tracks) {
+    for (const auto& stream : ftg->audio_tracks) {
       if (!stream) continue;
       stream->preview_done = true;
     }
     av_frame_free(&temp_frame);
     av_packet_free(&packet);
-    for (unsigned int i=0;i<fmt_ctx->nb_streams;i++) {
-      if (codec_ctx[i] != nullptr) {
-        avcodec_close(codec_ctx[i]);
-        avcodec_free_context(&codec_ctx[i]);
+    for (auto codec : codec_ctx){
+      if (codec != nullptr) {
+        avcodec_close(codec);
+        avcodec_free_context(&codec);
       }
     }
     if (retrieve_duration) {
@@ -437,14 +451,15 @@ void PreviewGenerator::generate_waveform() {
           maximum_stream = i;
         }
       }
-      ftg->length = (double) media_lengths[maximum_stream] / av_q2d(fmt_ctx->streams[maximum_stream]->avg_frame_rate) * AV_TIME_BASE; // TODO redo with PTS
+      ftg->length = lround(static_cast<double>(media_lengths[maximum_stream])
+                           / av_q2d(streams[maximum_stream]->avg_frame_rate) * AV_TIME_BASE); // TODO redo with PTS
       finalize_media();
     }
 
-    delete [] media_lengths;
+    delete [] media_lengths.data();
   }
 
-  delete [] codec_ctx;
+  delete [] codec_ctx.data();
 }
 
 QString PreviewGenerator::get_thumbnail_path(const QString& hash, FootageStreamPtr& ms)
@@ -478,9 +493,9 @@ void PreviewGenerator::run()
             ftg->ready = true;
             emit set_icon(ICON_TYPE_IMAGE, replace);
             return;
-          } else {
-            qWarning() << "Failed to generate thumbnail for image. path=" << ftg->url;
           }
+
+          qWarning() << "Failed to generate thumbnail for image. path=" << ftg->url;
           sem.release();
           return;
         } else if (mimeType.name().startsWith(MIME_VIDEO_PREFIX)) {
@@ -556,7 +571,7 @@ void PreviewGenerator::run()
   }
 }
 
-bool PreviewGenerator::generate_image_thumbnail(FootagePtr ftg) const
+bool PreviewGenerator::generate_image_thumbnail(const FootagePtr& ftg) const
 {
   bool success = true;
 

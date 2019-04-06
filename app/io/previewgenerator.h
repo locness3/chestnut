@@ -25,21 +25,20 @@
 #include "project/footage.h"
 #include "project/media.h"
 
-#define ICON_TYPE_VIDEO 0
-#define ICON_TYPE_AUDIO 1
-#define ICON_TYPE_IMAGE 2
-#define ICON_TYPE_ERROR 3
+constexpr int ICON_TYPE_VIDEO = 0;
+constexpr int ICON_TYPE_AUDIO = 1;
+constexpr int ICON_TYPE_IMAGE = 2;
+constexpr int ICON_TYPE_ERROR = 3;
 
 
-struct FootageStream;
 struct AVFormatContext;
 
 class PreviewGenerator : public QThread
 {
     Q_OBJECT
 public:
-    PreviewGenerator(MediaPtr item, FootagePtr ftg, const bool replacing, QObject* parent=nullptr);
-    virtual ~PreviewGenerator();
+    PreviewGenerator(MediaPtr item, const FootagePtr& ftg, const bool replacing, QObject* parent=nullptr);
+    virtual ~PreviewGenerator() override;
 
     PreviewGenerator() = delete;
     PreviewGenerator(const PreviewGenerator&) = delete;
@@ -49,7 +48,7 @@ public:
 
     void cancel();
 protected:
-    virtual void run();
+    virtual void run() override;
 signals:
     void set_icon(int, bool);
 private:
@@ -73,7 +72,7 @@ private:
     QString get_thumbnail_path(const QString &hash, FootageStreamPtr& ms);
     QString get_waveform_path(const QString& hash, FootageStreamPtr& ms);
 
-    bool generate_image_thumbnail(FootagePtr ftg) const;
+    bool generate_image_thumbnail(const FootagePtr& ftg) const;
 };
 
 using PreviewGeneratorPtr = std::shared_ptr<PreviewGenerator>;
