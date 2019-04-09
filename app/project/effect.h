@@ -30,6 +30,7 @@
 #include <QXmlStreamWriter>
 #include <memory>
 #include <random>
+#include <set>
 
 #include "effectfield.h"
 #include "effectrow.h"
@@ -98,6 +99,13 @@ constexpr int EFFECT_INTERNAL_CORNERPIN = 12;
 constexpr int EFFECT_INTERNAL_TEMPORAL = 13;
 constexpr int EFFECT_INTERNAL_COUNT = 14;
 
+enum class Capability {
+  SHADER = 0,
+  COORDS,
+  SUPERIMPOSE,
+  IMAGE
+};
+
 
 template <typename T>
 struct CartesianCoordinate {
@@ -126,6 +134,10 @@ public:
     Effect(const Effect&&) = delete;
     Effect& operator=(const Effect&) = delete;
     Effect& operator=(const Effect&&) = delete;
+
+    bool hasCapability(const Capability flag) const;
+    void setCapability(const Capability flag);
+    void clearCapability(const Capability flag);
 
     EffectRowPtr add_row(const QString &name_, bool savable = true, bool keyframable = true);
     EffectRowPtr row(const int i);
@@ -161,10 +173,10 @@ public:
     virtual void startEffect();
     virtual void endEffect();
 
-    bool enable_shader;
-    bool enable_coords;
-    bool enable_superimpose;
-    bool enable_image;
+//    bool enable_shader;
+//    bool enable_coords;
+//    bool enable_superimpose;
+//    bool enable_image;
 
     int getIterations();
     void setIterations(int i);
@@ -238,6 +250,7 @@ private:
     QWidget* ui;
     bool bound;
     QVector<QVariant> cachedValues;
+    std::set<Capability> capabilities_;
 
     bool valueHasChanged(const double timecode);
     int get_index_in_clip();

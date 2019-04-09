@@ -30,9 +30,9 @@
 
 #include "debug.h"
 
-ShakeEffect::ShakeEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
-  enable_coords = true;
-
+ShakeEffect::ShakeEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em)
+{
+  setCapability(Capability::COORDS);
   EffectRowPtr intensity_row = add_row(tr("Intensity"));
   intensity_val = intensity_row->add_field(EffectFieldType::DOUBLE, "intensity");
   intensity_val->set_double_minimum_value(0);

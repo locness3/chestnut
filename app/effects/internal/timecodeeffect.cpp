@@ -43,8 +43,8 @@
 TimecodeEffect::TimecodeEffect(ClipPtr c, const EffectMeta* em) :
   Effect(c, em)
 {
+  setCapability(Capability::SUPERIMPOSE);
   enable_always_update = true;
-  enable_superimpose = true;
 
   EffectRowPtr tc_row = add_row(tr("Timecode"));
   tc_select = tc_row->add_field(EffectFieldType::COMBO, "tc_selector");

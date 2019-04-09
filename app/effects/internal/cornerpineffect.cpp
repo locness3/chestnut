@@ -21,9 +21,10 @@
 #include "project/clip.h"
 #include "debug.h"
 
-CornerPinEffect::CornerPinEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
-  enable_coords = true;
-  enable_shader = true;
+CornerPinEffect::CornerPinEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em)
+{
+  setCapability(Capability::COORDS);
+  setCapability(Capability::SHADER);
 
   EffectRowPtr top_left = add_row(tr("Top Left"));
   top_left_x = top_left->add_field(EffectFieldType::DOUBLE, "topleftx");

@@ -87,17 +87,18 @@ void process_effect(QOpenGLContext* ctx,
                     bool& texture_failed,
                     int data) {
   if (e->is_enabled()) {
-    if (e->enable_coords) {
+    if (e->hasCapability(Capability::COORDS)) {
       e->process_coords(timecode, coords, data);
     }
-    if ((e->enable_shader && shaders_are_enabled) || e->enable_superimpose) {
+    if (( e->hasCapability(Capability::SHADER) && shaders_are_enabled)
+        || e->hasCapability(Capability::SUPERIMPOSE)) {
       e->startEffect();
-      if ((e->enable_shader && shaders_are_enabled) && e->is_glsl_linked()) {
+      if ((e->hasCapability(Capability::SHADER) && shaders_are_enabled) && e->is_glsl_linked()) {
         e->process_shader(timecode, coords);
         composite_texture = draw_clip(ctx, c->fbo[fbo_switcher], composite_texture, true);
         fbo_switcher = !fbo_switcher;
       }
-      if (e->enable_superimpose) {
+      if (e->hasCapability(Capability::SUPERIMPOSE)) {
         GLuint superimpose_texture = e->process_superimpose(timecode);
         if (superimpose_texture == 0) {
           qWarning() << "Superimpose texture was nullptr, retrying...";

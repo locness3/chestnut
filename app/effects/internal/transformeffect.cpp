@@ -41,8 +41,10 @@ constexpr int BLEND_MODE_SCREEN = 1;
 constexpr int BLEND_MODE_MULTIPLY = 2;
 constexpr int BLEND_MODE_OVERLAY = 3;
 
-TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em) {
-  enable_coords = true;
+TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em)
+{
+
+  setCapability(Capability::COORDS);
   EffectRowPtr position_row = add_row(tr("Position"));
   position_x = position_row->add_field(EffectFieldType::DOUBLE, "posx"); // position X
   position_y = position_row->add_field(EffectFieldType::DOUBLE, "posy"); // position Y

@@ -31,8 +31,7 @@ class TextEffect : public Effect {
 
     TextEffect(const TextEffect& ) = delete;
     TextEffect& operator=(const TextEffect&) = delete;
-
-    void redraw(double timecode);
+    void redraw(double timecode) override;
 
     EffectField* text_val;
     EffectField* size_val;

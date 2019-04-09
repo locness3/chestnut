@@ -111,7 +111,8 @@ SOURCES += \
     ui/colorscopewidget.cpp \
     panels/scopeviewer.cpp \
     io/colorconversions.cpp \
-    panels/panelmanager.cpp
+    panels/panelmanager.cpp \
+    effects/internal/diptocolourtransition.cpp
 
 HEADERS += \
     ui/mainwindow.h \
@@ -217,7 +218,17 @@ HEADERS += \
     ui/colorscopewidget.h \
     panels/scopeviewer.h \
     io/colorconversions.h \
-    panels/panelmanager.h
+    panels/panelmanager.h \
+    effects/internal/diptocolourtransition.h \
+    gsl/gsl \
+    gsl/gsl_algorithm \
+    gsl/gsl_assert \
+    gsl/gsl_byte \
+    gsl/gsl_util \
+    gsl/multi_span \
+    gsl/pointers \
+    gsl/span \
+    gsl/string_span
 
 DISTFILES +=
 

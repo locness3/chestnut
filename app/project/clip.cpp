@@ -812,7 +812,7 @@ void Clip::frame(const long playhead, bool& texture_failed)
 
       for (int i=0;i<effects.size();i++) {
         EffectPtr e = effects.at(i);
-        if (e->enable_image) {
+        if (e->hasCapability(Capability::IMAGE)) {
           if (!copied) {
             frame_size = target_frame->linesize[0]*target_frame->height;
             data = new uint8_t[frame_size];

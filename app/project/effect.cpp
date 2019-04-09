@@ -292,10 +292,6 @@ void init_effects()
 
 Effect::Effect(ClipPtr c, const EffectMeta *em) :
   SequenceItem(project::SequenceItemType::CLIP),
-  enable_shader(false),
-  enable_coords(false),
-  enable_superimpose(false),
-  enable_image(false),
   parent_clip(std::move(c)),
   meta(em),
   container(new CollapsibleWidget()),
@@ -328,6 +324,23 @@ Effect::~Effect()
   }
 
   container = nullptr; // the layout handles memory
+}
+
+
+bool Effect::hasCapability(const Capability flag) const
+{
+  return capabilities_.count(flag) > 0;
+}
+
+void Effect::setCapability(const Capability flag)
+{
+  capabilities_.insert(flag);
+}
+
+
+void Effect::clearCapability(const Capability flag)
+{
+  capabilities_.erase(flag);
 }
 
 
@@ -710,7 +723,9 @@ void Effect::open()
     qWarning() << "Tried to open an effect that was already open";
     close();
   }
-  if (shaders_are_enabled && enable_shader && (QOpenGLContext::currentContext() != nullptr)) {
+  if (shaders_are_enabled &&
+      hasCapability(Capability::SHADER)
+      && (QOpenGLContext::currentContext() != nullptr)) {
     glslProgram = new QOpenGLShaderProgram();
     validate_meta_path();
     bool glsl_compiled = true;
@@ -744,7 +759,7 @@ void Effect::open()
     isOpen = true;
   }
 
-  if (enable_superimpose) {
+  if (hasCapability(Capability::SUPERIMPOSE)) {
     texture_ = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
   }
 }
@@ -770,31 +785,34 @@ void Effect::startEffect() {
     qWarning() << "Tried to start a closed effect - opening";
   }
   if (shaders_are_enabled
-      && enable_shader
+      && hasCapability(Capability::SHADER)
       && glslProgram->isLinked()) {
     bound = glslProgram->bind();
   }
 }
 
-void Effect::endEffect() {
-  if (bound) glslProgram->release();
+void Effect::endEffect()
+{
+  if (bound) {
+    glslProgram->release();
+  }
   bound = false;
 }
 
-void Effect::process_image(double, gsl::span<uint8_t>& /*data*/)
+void Effect::process_image(const double, gsl::span<uint8_t>& /*data*/)
 {
   // Does nothing
 }
 
 EffectPtr Effect::copy(ClipPtr c)
 {
-  EffectPtr copy =create_effect(std::move(c), meta);
-  copy->set_enabled(is_enabled());
-  copy_field_keyframes(copy);
-  return copy;
+  EffectPtr copy_effect = create_effect(std::move(c), meta);
+  copy_effect->set_enabled(is_enabled());
+  copy_field_keyframes(copy_effect);
+  return copy_effect;
 }
 
-void Effect::process_shader(double timecode, GLTextureCoords&)
+void Effect::process_shader(const double timecode, GLTextureCoords&)
 {
   glslProgram->setUniformValue("resolution", parent_clip->width(), parent_clip->height());
   glslProgram->setUniformValue("time", GLfloat(timecode));
@@ -837,7 +855,7 @@ void Effect::process_shader(double timecode, GLTextureCoords&)
   }//for
 }
 
-void Effect::process_coords(double, GLTextureCoords&, int /*data*/)
+void Effect::process_coords(const double, GLTextureCoords&, const int /*data*/)
 {
   qInfo() << "Method does nothing";
 }
@@ -868,7 +886,7 @@ GLuint Effect::process_superimpose(double timecode) {
   return 0;
 }
 
-void Effect::process_audio(double, double, quint8*, int, int)
+void Effect::process_audio(const double, const double, quint8*, const int, const int)
 {
   qInfo() << "Method does nothing";
 }
@@ -1100,7 +1118,7 @@ std::tuple<EffectFieldType, QString> Effect::getFieldType(const QXmlStreamAttrib
 
 void Effect::extractShaderDetails(const QXmlStreamAttributes& attributes)
 {
-  enable_shader = true;
+  setCapability(Capability::SHADER);
   for (const auto& attr : attributes) {
     if (attr.name() == "vert") {
       vertPath = attr.value().toString();

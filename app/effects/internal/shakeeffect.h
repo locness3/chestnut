@@ -20,7 +20,7 @@
 
 #include "project/effect.h"
 
-#define RANDOM_VAL_SIZE 30
+constexpr int RANDOM_VAL_SIZE = 30;
 
 class ShakeEffect : public Effect {
     Q_OBJECT

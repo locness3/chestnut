@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,8 +19,9 @@
 
 #include "debug.h"
 
-CubeTransition::CubeTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Transition(c, s, em) {
-    enable_coords = true;
+CubeTransition::CubeTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Transition(c, s, em)
+{
+  setCapability(Capability::COORDS);
 }
 
 void CubeTransition::process_coords(double, GLTextureCoords& coords, int)

@@ -5,8 +5,8 @@
 #include "gsl/span"
 
 TemporalSmoothEffect::TemporalSmoothEffect(ClipPtr c, const EffectMeta* em) : Effect(std::move(c), em)
-{
-  enable_image = true;
+{  
+  setCapability(Capability::IMAGE);
   frame_length_ = add_row(tr("Frame Length"))->add_field(EffectFieldType::DOUBLE, "length");
   frame_length_->set_double_minimum_value(1.0);
   frame_length_->set_double_maximum_value(10.0);

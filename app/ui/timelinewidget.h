@@ -65,8 +65,8 @@ class TimelineWidget : public QWidget {
     TimelineWidget(const TimelineWidget& ) = delete;
     TimelineWidget& operator=(const TimelineWidget&) = delete;
 
-    QScrollBar* scrollBar;
-    bool bottom_align;
+    QScrollBar* scrollBar{};
+    bool bottom_align{false};
   protected:
     void paintEvent(QPaintEvent*) override;
 
@@ -92,10 +92,10 @@ class TimelineWidget : public QWidget {
     int getScreenPointFromTrack(int track);
     int getClipIndexFromCoords(long frame, int track);
 
-    int track_resize_mouse_cache;
-    int track_resize_old_value;
-    bool track_resizing;
-    int track_target;
+    int track_resize_mouse_cache{};
+    int track_resize_old_value{};
+    bool track_resizing{false};
+    int track_target{};
 
     QVector<ClipPtr> pre_clips;
     QVector<ClipPtr> post_clips;
@@ -103,16 +103,16 @@ class TimelineWidget : public QWidget {
     SequencePtr self_created_sequence;
 
     // used for "right click ripple"
-    int64_t rc_ripple_min;
-    int64_t rc_ripple_max;
+    int64_t rc_ripple_min{};
+    int64_t rc_ripple_max{};
     MediaPtr rc_reveal_media;
 
     QTimer tooltip_timer;
-    int tooltip_clip;
+    int tooltip_clip{};
 
-    int scroll;
+    int scroll{};
 
-    SetSelectionsCommand* selection_command;
+    SetSelectionsCommand* selection_command{};
   signals:
 
   public slots:

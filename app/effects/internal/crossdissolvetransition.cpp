@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,17 +19,19 @@
 
 #include <QOpenGLFunctions>
 
-CrossDissolveTransition::CrossDissolveTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Transition(c, s, em) {
-	enable_coords = true;
-
-//    add_row("Smooth")->add_field(EffectFieldType::BOOL, "smooth");
+CrossDissolveTransition::CrossDissolveTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Transition(c, s, em)
+{
+  setCapability(Capability::COORDS);
 }
 
-void CrossDissolveTransition::process_coords(double progress, GLTextureCoords&, int data) {
-    if (!(data == TA_CLOSING_TRANSITION && !secondary_clip.expired())) {
-        float color[4];
-        glGetFloatv(GL_CURRENT_COLOR, color);
-        if (data == TA_CLOSING_TRANSITION) progress = 1.0 - progress;
-        glColor4f(1.0, 1.0, 1.0, color[3]*progress);
+void CrossDissolveTransition::process_coords(double progress, GLTextureCoords&, int data)
+{
+  if (!(data == TA_CLOSING_TRANSITION && !secondary_clip.expired())) {
+    float color[4];
+    glGetFloatv(GL_CURRENT_COLOR, color);
+    if (data == TA_CLOSING_TRANSITION) {
+      progress = 1.0 - progress;
     }
+    glColor4f(1.0, 1.0, 1.0, color[3]*progress);
+  }
 }

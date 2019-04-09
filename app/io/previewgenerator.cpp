@@ -446,7 +446,7 @@ void PreviewGenerator::generate_waveform()
     if (retrieve_duration) {
       ftg->length = 0;
       int maximum_stream = 0;
-      for (unsigned int i=0;i<fmt_ctx->nb_streams;i++) {
+      for (unsigned int i=0; i < media_lengths.size(); ++i) {
         if (media_lengths[i] > media_lengths[maximum_stream]) {
           maximum_stream = i;
         }
@@ -575,7 +575,7 @@ bool PreviewGenerator::generate_image_thumbnail(const FootagePtr& ftg) const
 {
   bool success = true;
 
-  // address image sequences. current implementation has false positives
+  // TODO: address image sequences. current implementation has false positives
   const QImage img(ftg->url);
   FootageStreamPtr ms = std::make_shared<FootageStream>();
   ms->enabled           = true;

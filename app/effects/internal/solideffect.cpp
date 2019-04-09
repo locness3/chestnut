@@ -40,9 +40,9 @@ namespace  {
   };
 }
 
-SolidEffect::SolidEffect(ClipPtr  c, const EffectMeta* em) : Effect(c, em) {
-  enable_superimpose = true;
-
+SolidEffect::SolidEffect(ClipPtr  c, const EffectMeta* em) : Effect(c, em)
+{  
+  setCapability(Capability::SUPERIMPOSE);
   solid_type = add_row(tr("Type"))->add_field(EffectFieldType::COMBO, "type");
   solid_type->add_combo_item(tr("Solid Color"), static_cast<int>(SolidType::COLOR));
   solid_type->add_combo_item(tr("SMPTE Bars"), static_cast<int>(SolidType::BARS));
