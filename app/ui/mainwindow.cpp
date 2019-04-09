@@ -90,6 +90,19 @@ constexpr qint64 MONTH_IN_SECONDS = 2592000000;
 constexpr qint64 WEEK_IN_SECONDS = 604800000;
 constexpr qint64 AUTORECOVERY_INTERVAL_MILLIS = 60000;
 
+constexpr int NUDGE_VAL = 1;
+
+
+void MainWindow::nudgeClip(const bool forward)
+{
+  if (global::sequence == nullptr) {
+    return;
+  }
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
+  if (&PanelManager::timeLine() == focused_panel) {
+    PanelManager::timeLine().nudgeClips(forward ? NUDGE_VAL : -NUDGE_VAL);
+  }
+}
 
 void MainWindow::setup_layout(bool reset)
 {
@@ -531,7 +544,8 @@ void MainWindow::open_speed_dialog() {
   }
 }
 
-void MainWindow::cut() {
+void MainWindow::cut()
+{
   if (global::sequence != nullptr) {
     QDockWidget* focused_panel = PanelManager::getFocusedPanel();
     if (&PanelManager::timeLine() == focused_panel) {
@@ -680,6 +694,8 @@ void MainWindow::setup_menus() {
   edit_menu->addAction(tr("Delete"), this, SLOT(delete_slot()), QKeySequence("Del"))->setProperty("id", "delete");
   edit_menu->addAction(tr("Ripple Delete"), this, SLOT(ripple_delete()), QKeySequence("Shift+Del"))->setProperty("id", "rippledelete");
   edit_menu->addAction(tr("Split"), &PanelManager::timeLine(), SLOT(split_at_playhead()), QKeySequence("Ctrl+K"))->setProperty("id", "split");
+  edit_menu->addAction(tr("Nudge Forward"), this, &MainWindow::nudgeForward, QKeySequence("Ctrl+Right"))->setProperty("id", "nudgefwd");
+  edit_menu->addAction(tr("Nudge Back"), this, &MainWindow::nudgeBackward, QKeySequence("Ctrl+Left"))->setProperty("id", "nudgebk");
 
   edit_menu->addSeparator();
 
@@ -1098,6 +1114,17 @@ void MainWindow::paintEvent(QPaintEvent *event) {
     QTimer::singleShot(10, this, SLOT(load_with_launch()));
     enable_launch_with_project = false;
   }
+}
+
+
+void MainWindow::nudgeForward()
+{
+  nudgeClip(true);
+}
+
+void MainWindow::nudgeBackward()
+{
+  nudgeClip(false);
 }
 
 void MainWindow::clear_undo_stack() {

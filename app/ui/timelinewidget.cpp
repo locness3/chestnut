@@ -54,8 +54,6 @@
 
 #include "project/effect.h"
 
-#include "effects/internal/solideffect.h"
-#include "effects/internal/texteffect.h"
 
 
 constexpr int MAX_TEXT_WIDTH = 20;
@@ -1755,7 +1753,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
           ClipPtr c = global::sequence->clips_.at(j);
           for (int k=0;k<global::sequence->selections_.size();k++) {
             const Selection& s = global::sequence->selections_.at(k);
-            if (!(c->timeline_info.in < s.in && c->timeline_info.out < s.in) &&
+            if (!(c->timeline_info.in < s.in && c->timeline_info.out < s.in) &&  // TODO: is selected?
                 !(c->timeline_info.in > s.out && c->timeline_info.out > s.out) &&
                 c->timeline_info.track_ == s.track) {
 

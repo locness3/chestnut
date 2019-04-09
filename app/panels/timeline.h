@@ -122,6 +122,11 @@ class Timeline : public QDockWidget
     void delete_in_out(bool ripple);
     void previous_cut();
     void next_cut();
+    /**
+     * @brief Nudge selected clips by a specified amount + direction.
+     * @param pos
+     */
+    void nudgeClips(const int pos);
 
     void create_ghosts_from_media(SequencePtr& seq, const long entry_point, QVector<MediaPtr> &media_list);
     void add_clips_from_ghosts(ComboAction *ca, SequencePtr s);
@@ -142,11 +147,11 @@ class Timeline : public QDockWidget
     int cursor_track;
     double zoom;
     bool zoom_just_changed;
-    long drag_frame_start;
-    int drag_track_start;
+    long drag_frame_start{};
+    int drag_track_start{};
     void update_effect_controls();
     bool showing_all;
-    double old_zoom;
+    double old_zoom{};
 
     QVector<int> video_track_heights;
     QVector<int> audio_track_heights;
@@ -160,28 +165,28 @@ class Timeline : public QDockWidget
 
     // selecting functions
     bool selecting;
-    int selection_offset;
+    int selection_offset{};
     void delete_selection(QVector<Selection> &selections, bool ripple);
     void select_all();
     bool rect_select_init;
     bool rect_select_proc;
-    int rect_select_x;
-    int rect_select_y;
-    int rect_select_w;
-    int rect_select_h;
+    int rect_select_x{};
+    int rect_select_y{};
+    int rect_select_w{};
+    int rect_select_h{};
 
     // moving
     bool moving_init;
     bool moving_proc;
     QVector<Ghost> ghosts;
-    bool video_ghosts;
-    bool audio_ghosts;
+    bool video_ghosts{};
+    bool audio_ghosts{};
     bool move_insert;
 
     // trimming
     int trim_target;
     bool trim_in_point;
-    int transition_select;
+    int transition_select{};
 
     // splitting
     bool splitting;
@@ -201,30 +206,30 @@ class Timeline : public QDockWidget
     bool transition_tool_proc;
     int transition_tool_pre_clip;
     int transition_tool_post_clip;
-    int transition_tool_type;
-    const EffectMeta* transition_tool_meta;
-    int transition_tool_side;
+    int transition_tool_type{};
+    const EffectMeta* transition_tool_meta{};
+    int transition_tool_side{};
 
     // hand tool variables
     bool hand_moving;
-    int drag_x_start;
-    int drag_y_start;
+    int drag_x_start{};
+    int drag_y_start{};
 
     bool block_repaints;
 
-    TimelineHeader* headers;
-    AudioMonitor* audio_monitor;
-    ResizableScrollBar* horizontalScrollBar;
+    TimelineHeader* headers{};
+    AudioMonitor* audio_monitor{};
+    ResizableScrollBar* horizontalScrollBar{};
 
-    QPushButton* toolArrowButton;
-    QPushButton* toolEditButton;
-    QPushButton* toolRippleButton;
-    QPushButton* toolRazorButton;
-    QPushButton* toolSlipButton;
-    QPushButton* toolSlideButton;
-    QPushButton* toolHandButton;
-    QPushButton* toolTransitionButton;
-    QPushButton* snappingButton;
+    QPushButton* toolArrowButton{};
+    QPushButton* toolEditButton{};
+    QPushButton* toolRippleButton{};
+    QPushButton* toolRazorButton{};
+    QPushButton* toolSlipButton{};
+    QPushButton* toolSlideButton{};
+    QPushButton* toolHandButton{};
+    QPushButton* toolTransitionButton{};
+    QPushButton* snappingButton{};
 
     void scroll_to_frame(long frame);
     void select_from_playhead();
@@ -261,18 +266,21 @@ class Timeline : public QDockWidget
 
     void setup_ui();
 
+    std::vector<ClipPtr> selectedClips();
+    std::vector<Selection> selections();
+
     int default_track_height;
 
-    QWidget* timeline_area;
-    TimelineWidget* video_area;
-    TimelineWidget* audio_area;
-    QWidget* editAreas;
-    QScrollBar* videoScrollbar;
-    QScrollBar* audioScrollbar;
-    QPushButton* zoomInButton;
-    QPushButton* zoomOutButton;
-    QPushButton* recordButton;
-    QPushButton* addButton;
+    QWidget* timeline_area{};
+    TimelineWidget* video_area{};
+    TimelineWidget* audio_area{};
+    QWidget* editAreas{};
+    QScrollBar* videoScrollbar{};
+    QScrollBar* audioScrollbar{};
+    QPushButton* zoomInButton{};
+    QPushButton* zoomOutButton{};
+    QPushButton* recordButton{};
+    QPushButton* addButton{};
 };
 
 #endif // TIMELINE_H

@@ -573,7 +573,18 @@ bool Clip::cache(const long playhead, const bool do_reset, const bool scrubbing,
   return true;
 }
 
-
+/**
+ * @brief Nudge the clip
+ * @param pos The amount + direction to nudge the clip
+ * @return true==clips position nudged
+ */
+bool Clip::nudge(const int pos)
+{
+  // TODO: check limits
+  timeline_info.in += pos;
+  timeline_info.out += pos;
+  return true;
+}
 
 void Clip::reset()
 {
@@ -654,10 +665,10 @@ void Clip::removeEarliestFromQueue() {
 TransitionPtr Clip::openingTransition()
 {
   if (opening_transition > -1) {
-    if (this->sequence == nullptr) {
+    if (sequence == nullptr) {
       return e_clipboard_transitions.at(opening_transition);
     }
-    return this->sequence->transitions_.at(opening_transition);
+    return sequence->transitions_.at(opening_transition);
   }
   return nullptr;
 }
@@ -665,10 +676,10 @@ TransitionPtr Clip::openingTransition()
 TransitionPtr Clip::closingTransition()
 {
   if (closing_transition > -1) {
-    if (this->sequence == nullptr) {
+    if (sequence == nullptr) {
       return e_clipboard_transitions.at(closing_transition);
     }
-    return this->sequence->transitions_.at(closing_transition);
+    return sequence->transitions_.at(closing_transition);
   }
   return nullptr;
 }
@@ -858,12 +869,18 @@ double Clip::timecode(const long playhead) {
  */
 bool Clip::isSelected(const bool containing)
 {
-  for (int i=0; i < sequence->selections_.size(); i++) {
-    const Selection& s = sequence->selections_.at(i);
-    //FIXME: christ almighty
-    if ( (timeline_info.track_ == s.track)
-         && ( (timeline_info.in >= s.in && timeline_info.out <= s.out && containing)
-              || (!containing && !(timeline_info.in < s.in && timeline_info.out < s.in) && !(timeline_info.in > s.in && timeline_info.out > s.in)) )) {
+  if (sequence == nullptr) {
+    qWarning() << "Clip linked to invalid sequence";
+    return false;
+  }
+
+  for (const auto& selection : sequence->selections_) {
+    //FIXME: christ almighty. copy-pasted in Timeline()
+    if ( (timeline_info.track_ == selection.track)
+         && ( ( (timeline_info.in >= selection.in) && (timeline_info.out <= selection.out) && containing)
+              || (!containing
+                  && !( (timeline_info.in < selection.in) && (timeline_info.out < selection.in) )
+                  && !( (timeline_info.in > selection.in) && (timeline_info.out > selection.in) )))) {
       return true;
     }
   }

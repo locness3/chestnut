@@ -113,6 +113,12 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
      * @return  true==cached
      */
     bool cache(const long playhead, const bool do_reset, const bool scrubbing, QVector<ClipPtr>& nests);
+    /**
+     * @brief Nudge the clip
+     * @param pos The amount + direction to nudge the clip
+     * @return true==clips position nudged
+     */
+    bool nudge(const int pos);
 
 
     void resetAudio();

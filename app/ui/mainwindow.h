@@ -66,6 +66,8 @@ class MainWindow : public QMainWindow {
     virtual void paintEvent(QPaintEvent *event) override;
 
   private slots:
+    void nudgeForward();
+    void nudgeBackward();
     void clear_undo_stack();
 
     void show_about();
@@ -156,6 +158,10 @@ class MainWindow : public QMainWindow {
     void show_action_search();
 
   private:
+    friend class MainWindowTest;
+
+
+    void nudgeClip(const bool forward);
     void setup_layout(bool reset);
     bool can_close_project();
     void setup_menus();
