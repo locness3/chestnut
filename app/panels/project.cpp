@@ -79,6 +79,7 @@ constexpr int MAXIMUM_RECENT_PROJECTS = 10;
 constexpr int THROBBER_INTERVAL       = 20; //ms
 constexpr int THROBBER_LIMIT          = 20;
 constexpr int THROBBER_SIZE           = 50;
+constexpr int MIN_WIDTH = 320;
 
 Project::Project(QWidget *parent) :
   QDockWidget(parent)
@@ -89,6 +90,7 @@ Project::Project(QWidget *parent) :
   auto verticalLayout = new QVBoxLayout(dockWidgetContents);
   verticalLayout->setContentsMargins(0, 0, 0, 0);
   verticalLayout->setSpacing(0);
+  setMinimumWidth(MIN_WIDTH);
 
   setWidget(dockWidgetContents);
 
