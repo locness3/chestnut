@@ -236,11 +236,11 @@ bool Clip::openWorker() {
     if ((media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_APNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_TIFF
-     #ifndef DISABLE_PSD
+#ifndef DISABLE_PSD
          && media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PSD)
-    #else
+#else
          )
-    #endif
+#endif
         || !e_config.disable_multithreading_for_images) {
       av_dict_set(&media_handling.opts, "threads", "auto", 0);
     }
@@ -1513,10 +1513,10 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
       audio_write_lock.lock();
 
       while (audio_playback.frame_sample_index < nb_bytes
-             && audio_playback.buffer_write < audio_ibuffer_read+(audio_ibuffer_size>>1)
+             && audio_playback.buffer_write < audio_ibuffer_read+(AUDIO_IBUFFER_SIZE>>1)
              && audio_playback.buffer_write < buffer_timeline_out) {
-        int upper_byte_index = (audio_playback.buffer_write + 1) % audio_ibuffer_size;
-        int lower_byte_index = (audio_playback.buffer_write) % audio_ibuffer_size;
+        int upper_byte_index = (audio_playback.buffer_write + 1) % AUDIO_IBUFFER_SIZE;
+        int lower_byte_index = (audio_playback.buffer_write) % AUDIO_IBUFFER_SIZE;
         const qint16 old_sample = static_cast<qint16>( ((audio_ibuffer[upper_byte_index] & 0xFF) << 8)
                                                  | (audio_ibuffer[lower_byte_index] & 0xFF));
         const qint16 new_sample = static_cast<qint16>(((av_frame->data[0][audio_playback.frame_sample_index + 1] & 0xFF) << 8)

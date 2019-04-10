@@ -173,11 +173,6 @@ public:
     virtual void startEffect();
     virtual void endEffect();
 
-//    bool enable_shader;
-//    bool enable_coords;
-//    bool enable_superimpose;
-//    bool enable_image;
-
     int getIterations();
     void setIterations(int i);
 
@@ -238,6 +233,7 @@ protected:
 
     // enable effect to update constantly
     bool enable_always_update;
+
 private:
     friend class EffectTest;
     // superimpose effect

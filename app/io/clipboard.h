@@ -23,8 +23,8 @@
 #include "project/transition.h"
 
 
-#define CLIPBOARD_TYPE_CLIP 0
-#define CLIPBOARD_TYPE_EFFECT 1
+constexpr int CLIPBOARD_TYPE_CLIP = 0;
+constexpr int CLIPBOARD_TYPE_EFFECT = 1;
 
 extern int e_clipboard_type;
 extern QVector<TransitionPtr> e_clipboard_transitions;

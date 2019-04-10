@@ -41,10 +41,13 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-#define COMPRESSION_TYPE_CBR 0
-#define COMPRESSION_TYPE_CFR 1
-#define COMPRESSION_TYPE_TARGETSIZE 2
-#define COMPRESSION_TYPE_TARGETBR 3
+enum class CompressionType {
+  CBR = 0,
+  CFR,
+  TARGETSIZE,
+  TARGETBITRATE,
+  UNKNOWN
+};
 
 class ExportThread : public QThread {
     Q_OBJECT
@@ -62,7 +65,7 @@ class ExportThread : public QThread {
         int width = -1;
         int height = -1;
         double frame_rate = 0.0;
-        int compression_type = -1;
+        CompressionType compression_type = CompressionType::UNKNOWN;
         double bitrate = 0.0;
     } video_params;
 

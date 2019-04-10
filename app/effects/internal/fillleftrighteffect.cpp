@@ -1,7 +1,7 @@
 #include "fillleftrighteffect.h"
 
-#define FILL_TYPE_LEFT 0
-#define FILL_TYPE_RIGHT 1
+constexpr int FILL_TYPE_LEFT = 0;
+constexpr int FILL_TYPE_RIGHT = 1;
 
 FillLeftRightEffect::FillLeftRightEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
     EffectRowPtr type_row = add_row(tr("Type"));

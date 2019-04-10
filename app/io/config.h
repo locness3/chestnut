@@ -20,24 +20,24 @@
 
 #include <QString>
 
-#define SAVE_VERSION 190104 // YYMMDD
-#define MIN_SAVE_VERSION 190104 // lowest compatible project version
+constexpr int SAVE_VERSION = 190104; // YYMMDD
+constexpr int MIN_SAVE_VERSION = 190104; // lowest compatible project version
 
-#define TIMECODE_DROP 0
-#define TIMECODE_NONDROP 1
-#define TIMECODE_FRAMES 2
-#define TIMECODE_MILLISECONDS 3
+constexpr int TIMECODE_DROP = 0;
+constexpr int TIMECODE_NONDROP = 1;
+constexpr int TIMECODE_FRAMES = 2;
+constexpr int TIMECODE_MILLISECONDS = 3;
 
-#define RECORD_MODE_MONO 1
-#define RECORD_MODE_STEREO 2
+constexpr int RECORD_MODE_MONO = 1;
+constexpr int RECORD_MODE_STEREO = 2;
 
-#define AUTOSCROLL_NO_SCROLL 0
-#define AUTOSCROLL_PAGE_SCROLL 1
-#define AUTOSCROLL_SMOOTH_SCROLL 2
+constexpr int AUTOSCROLL_NO_SCROLL = 0;
+constexpr int AUTOSCROLL_PAGE_SCROLL = 1;
+constexpr int AUTOSCROLL_SMOOTH_SCROLL = 2;
 
 
-#define FRAME_QUEUE_TYPE_FRAMES 0
-#define FRAME_QUEUE_TYPE_SECONDS 1
+constexpr int FRAME_QUEUE_TYPE_FRAMES = 0;
+constexpr int FRAME_QUEUE_TYPE_SECONDS = 1;
 
 enum class ProjectView {
   TREE = 0,

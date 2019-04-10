@@ -113,7 +113,7 @@ bool ExportThread::setupVideo() {
   vcodec_ctx->sample_aspect_ratio = {1, 1};
   vcodec_ctx->pix_fmt = vcodec->pix_fmts[0]; // maybe be breakable code
   vcodec_ctx->framerate = av_d2q(video_params.frame_rate, INT_MAX);
-  if (video_params.compression_type == COMPRESSION_TYPE_CBR) {
+  if (video_params.compression_type == CompressionType::CBR) {
     vcodec_ctx->bit_rate = static_cast<int64_t>((video_params.bitrate * 1000000.0) + 0.5);
   }
   vcodec_ctx->time_base = av_inv_q(vcodec_ctx->framerate);
@@ -125,11 +125,11 @@ bool ExportThread::setupVideo() {
 
   if (vcodec_ctx->codec_id == AV_CODEC_ID_H264) {
     switch (video_params.compression_type) {
-      case COMPRESSION_TYPE_CFR:
+      case CompressionType::CFR:
         av_opt_set(vcodec_ctx->priv_data, "crf", QString::number(static_cast<int>(video_params.bitrate)).toUtf8(), AV_OPT_SEARCH_CHILDREN);
         break;
       default:
-        qWarning() << "Unhandled compression type" << video_params.compression_type;
+        qWarning() << "Unhandled h264 compression type" << static_cast<int>(video_params.compression_type);
         break;
     }
   }
@@ -399,7 +399,7 @@ void ExportThread::run()
     }
 
     // encode last frame while rendering next frame
-    double timecode_secs = (double) (global::sequence->playhead_-start_frame) / global::sequence->frameRate();
+    double timecode_secs = (double) (global::sequence->playhead_ - start_frame) / global::sequence->frameRate();
     if (video_params.enabled) {
       // change pixel format
       sws_scale(sws_ctx, video_frame->data, video_frame->linesize, 0, video_frame->height, sws_frame->data, sws_frame->linesize);
@@ -410,18 +410,18 @@ void ExportThread::run()
     }
     if (audio_params.enabled) {
       // do we need to encode more audio samples?
-      while (continue_encode_ && file_audio_samples <= (timecode_secs* audio_params.sampling_rate)) {
+      while (continue_encode_ && file_audio_samples <= (timecode_secs * audio_params.sampling_rate)) {
         // copy samples from audio buffer to AVFrame
-        int adjusted_read = audio_ibuffer_read%audio_ibuffer_size;
-        int copylen = qMin(aframe_bytes, audio_ibuffer_size-adjusted_read);
-        memcpy(audio_frame->data[0], audio_ibuffer+adjusted_read, copylen);
-        memset(audio_ibuffer+adjusted_read, 0, copylen);
+        int adjusted_read = audio_ibuffer_read % AUDIO_IBUFFER_SIZE;
+        int copylen = qMin(aframe_bytes, AUDIO_IBUFFER_SIZE - adjusted_read);
+        memcpy(audio_frame->data[0], audio_ibuffer + adjusted_read, copylen);
+        memset(audio_ibuffer + adjusted_read, 0, copylen);
         audio_ibuffer_read += copylen;
 
         if (copylen < aframe_bytes) {
           // copy remainder
           int remainder_len = aframe_bytes-copylen;
-          memcpy(audio_frame->data[0]+copylen, audio_ibuffer, remainder_len);
+          memcpy(audio_frame->data[0] + copylen, audio_ibuffer, remainder_len);
           memset(audio_ibuffer, 0, remainder_len);
           audio_ibuffer_read += remainder_len;
         }
@@ -440,11 +440,12 @@ void ExportThread::run()
     // encoding stats
     frame_time = (QDateTime::currentMSecsSinceEpoch()-start_time);
     total_time += frame_time;
-    remaining_frames = (end_frame-global::sequence->playhead_);
-    avg_time = (total_time/frame_count);
-    eta = (remaining_frames*avg_time);
+    remaining_frames = (end_frame - global::sequence->playhead_);
+    avg_time = (total_time / frame_count);
+    eta = (remaining_frames * avg_time);
 
-    emit progress_changed(qRound((static_cast<double>(global::sequence->playhead_ - start_frame) / static_cast<double>(end_frame - start_frame)) * 100), eta);
+    emit progress_changed(qRound((static_cast<double>(global::sequence->playhead_ - start_frame)
+                                  / static_cast<double>(end_frame - start_frame)) * 100), eta);
     global::sequence->playhead_++;
     frame_count++;
   }

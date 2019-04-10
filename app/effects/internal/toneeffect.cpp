@@ -19,7 +19,7 @@
 
 #include <QtMath>
 
-#define TONE_TYPE_SINE 0
+constexpr int TONE_TYPE_SINE = 0;
 
 #include "project/clip.h"
 #include "project/sequence.h"
@@ -49,7 +49,9 @@ void ToneEffect::process_audio(double timecode_start, double timecode_end, quint
     double timecode = timecode_start+(interval*i);
 
     // TODO: make left_tone_sample calc readable
-    qint16 left_tone_sample = qint16(qRound(qSin((2*M_PI*sinX*freq_val->get_double_value(timecode, true))/parent_clip->sequence->audioFrequency())*log_volume(amount_val->get_double_value(timecode, true)*0.01)*INT16_MAX));
+    qint16 left_tone_sample = qint16(qRound(qSin((2*M_PI*sinX*freq_val->get_double_value(timecode, true))/parent_clip->sequence->audioFrequency())
+                                            *log_volume(amount_val->get_double_value(timecode, true)*0.01)
+                                            *INT16_MAX));
     qint16 right_tone_sample = left_tone_sample;
 
     // mix with source audio

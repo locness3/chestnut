@@ -48,7 +48,7 @@ QFile output_recording;
 bool audio_rendering = false;
 bool recording = false;
 
-qint8 audio_ibuffer[audio_ibuffer_size];
+qint8 audio_ibuffer[AUDIO_IBUFFER_SIZE];
 int audio_ibuffer_read = 0;
 long audio_ibuffer_frame = 0;
 double audio_ibuffer_timecode = 0;
@@ -120,7 +120,7 @@ void stop_audio() {
 void clear_audio_ibuffer() {
     if (audio_thread != nullptr) audio_thread->lock.lock();
     audio_write_lock.lock();
-    memset(audio_ibuffer, 0, audio_ibuffer_size);
+    memset(audio_ibuffer, 0, AUDIO_IBUFFER_SIZE);
     audio_ibuffer_read = 0;
     audio_write_lock.unlock();
     if (audio_thread != nullptr) audio_thread->lock.unlock();
@@ -155,7 +155,7 @@ void AudioSenderThread::notifyReceiver() {
 
 void AudioSenderThread::run() {
     // start data loop
-    send_audio_to_output(0, audio_ibuffer_size);
+    send_audio_to_output(0, AUDIO_IBUFFER_SIZE);
 
     lock.lock();
     while (true) {
@@ -165,13 +165,13 @@ void AudioSenderThread::run() {
         } else if (PanelManager::sequenceViewer().playing || PanelManager::footageViewer().playing || audio_scrub) {
             int written_bytes = 0;
 
-            int adjusted_read_index = audio_ibuffer_read%audio_ibuffer_size;
-            int max_write = audio_ibuffer_size - adjusted_read_index;
+            int adjusted_read_index = audio_ibuffer_read % AUDIO_IBUFFER_SIZE;
+            int max_write = AUDIO_IBUFFER_SIZE - adjusted_read_index;
             int actual_write = send_audio_to_output(adjusted_read_index, max_write);
             written_bytes += actual_write;
             if (actual_write == max_write) {
                 // got all the bytes, write again
-                written_bytes += send_audio_to_output(0, audio_ibuffer_size);
+                written_bytes += send_audio_to_output(0, AUDIO_IBUFFER_SIZE);
             }
 
             audio_scrub = false;
@@ -213,7 +213,7 @@ int AudioSenderThread::send_audio_to_output(int offset, int max) {
             next_buffer_offset = qMin(get_buffer_offset_from_frame(s->frameRate(), sample_cache_playhead), audio_ibuffer_limit);
             while (buffer_offset < next_buffer_offset) {
                 for (i=0;i<samples.size();i++) {
-                    buffer_offset_adjusted = buffer_offset%audio_ibuffer_size;
+                    buffer_offset_adjusted = buffer_offset%AUDIO_IBUFFER_SIZE;
                     samples[i] = qMax(qAbs((qint16) (((audio_ibuffer[buffer_offset_adjusted+1] & 0xFF) << 8) | (audio_ibuffer[buffer_offset_adjusted] & 0xFF))), samples[i]);
                     buffer_offset += 2;
                 }
