@@ -114,19 +114,19 @@ TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
   connect(shadow_bool, SIGNAL(toggled(bool)), this, SLOT(shadow_enable(bool)));
   connect(outline_bool, SIGNAL(toggled(bool)), this, SLOT(outline_enable(bool)));
 
-  vertPath = VERT_PATH;
-  fragPath = FRAG_PATH;
+  glsl_.vert_ = VERT_PATH;
+  glsl_.frag_ = FRAG_PATH;
 }
 
 void TextEffect::redraw(double timecode) {
   QColor bkg = set_color_button->get_color_value(timecode);
   bkg.setAlpha(0);
-  img.fill(bkg);
+  superimpose_.img_.fill(bkg);
 
-  QPainter p(&img);
+  QPainter p(&superimpose_.img_);
   p.setRenderHint(QPainter::Antialiasing);
-  int width = img.width();
-  int height = img.height();
+  int width = superimpose_.img_.width();
+  int height = superimpose_.img_.height();
 
   // set font
   font.setStyleHint(QFont::Helvetica, QFont::PreferAntialias);

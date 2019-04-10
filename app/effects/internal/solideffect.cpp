@@ -68,8 +68,8 @@ SolidEffect::SolidEffect(ClipPtr  c, const EffectMeta* em) : Effect(c, em)
 
 void SolidEffect::redraw(double timecode)
 {
-  const auto w = img.width();
-  const auto h = img.height();
+  const auto w = superimpose_.img_.width();
+  const auto h = superimpose_.img_.height();
   const auto alpha = qRound(opacity_field->get_double_value(timecode) * 2.55);
   const auto solidType = static_cast<SolidType>(solid_type->get_combo_data(timecode).toInt());
 
@@ -78,14 +78,14 @@ void SolidEffect::redraw(double timecode)
     {
       QColor solidColor = solid_color_field->get_color_value(timecode);
       solidColor.setAlpha(alpha);
-      img.fill(solidColor);
+      superimpose_.img_.fill(solidColor);
     }
       break;
     case SolidType::BARS:
     {
       // draw smpte bars
-      QPainter p(&img);
-      img.fill(Qt::transparent);
+      QPainter p(&superimpose_.img_);
+      superimpose_.img_.fill(Qt::transparent);
       int bar_width = qCeil(static_cast<double>(w) / 7.0);
       int first_bar_height = qCeil(static_cast<double>(h) / 3.0 * 2.0);
       int second_bar_height = qCeil(static_cast<double>(h) / 12.5);
@@ -183,8 +183,8 @@ void SolidEffect::redraw(double timecode)
     case SolidType::CHECKERBOARD:
     {
       // draw checkboard
-      QPainter p(&img);
-      img.fill(Qt::transparent);
+      QPainter p(&superimpose_.img_);
+      superimpose_.img_.fill(Qt::transparent);
 
       int checker_width = qCeil(checkerboard_size_field->get_double_value(timecode));
       int checker_x, checker_y;

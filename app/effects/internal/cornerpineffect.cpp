@@ -21,6 +21,9 @@
 #include "project/clip.h"
 #include "debug.h"
 
+constexpr const char* const VERT_PATH = "cornerpin.vert";
+constexpr const char* const FRAG_PATH = "cornerpin.frag";
+
 CornerPinEffect::CornerPinEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em)
 {
   setCapability(Capability::COORDS);
@@ -61,8 +64,8 @@ CornerPinEffect::CornerPinEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em
   bottom_right_gizmo->x_field1 = bottom_right_x;
   bottom_right_gizmo->y_field1 = bottom_right_y;
 
-  vertPath = "cornerpin.vert";
-  fragPath = "cornerpin.frag";
+  glsl_.vert_ = VERT_PATH;
+  glsl_.frag_ = FRAG_PATH;
 }
 
 void CornerPinEffect::process_coords(double timecode, GLTextureCoords &coords, int)
@@ -82,11 +85,11 @@ void CornerPinEffect::process_coords(double timecode, GLTextureCoords &coords, i
 
 void CornerPinEffect::process_shader(double timecode, GLTextureCoords &coords)
 {
-  glslProgram->setUniformValue("p0", (GLfloat) coords.vertices_[3].x_, (GLfloat) coords.vertices_[3].y_);
-  glslProgram->setUniformValue("p1", (GLfloat) coords.vertices_[2].x_, (GLfloat) coords.vertices_[2].y_);
-  glslProgram->setUniformValue("p2", (GLfloat) coords.vertices_[0].x_, (GLfloat) coords.vertices_[0].y_);
-  glslProgram->setUniformValue("p3", (GLfloat) coords.vertices_[1].x_, (GLfloat) coords.vertices_[1].y_);
-  glslProgram->setUniformValue("perspective", perspective->get_bool_value(timecode));
+  glsl_.program_->setUniformValue("p0", static_cast<GLfloat>(coords.vertices_[3].x_), static_cast<GLfloat>(coords.vertices_[3].y_));
+  glsl_.program_->setUniformValue("p1", static_cast<GLfloat>(coords.vertices_[2].x_), static_cast<GLfloat>(coords.vertices_[2].y_));
+  glsl_.program_->setUniformValue("p2", static_cast<GLfloat>(coords.vertices_[0].x_), static_cast<GLfloat>(coords.vertices_[0].y_));
+  glsl_.program_->setUniformValue("p3", static_cast<GLfloat>(coords.vertices_[1].x_), static_cast<GLfloat>(coords.vertices_[1].y_));
+  glsl_.program_->setUniformValue("perspective", perspective->get_bool_value(timecode));
 }
 
 void CornerPinEffect::gizmo_draw(double, GLTextureCoords &coords)

@@ -295,10 +295,8 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
   parent_clip(std::move(c)),
   meta(em),
   container(new CollapsibleWidget()),
-  glslProgram(nullptr),
-  enable_always_update(false),
-  isOpen(false),
-  bound(false)
+  is_open_(false),
+  bound_(false)
 {
   // set up base UI
   connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
@@ -316,16 +314,6 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
     setupControlWidget(*em);
   }
 }
-
-Effect::~Effect()
-{
-  if (isOpen) {
-    close();
-  }
-
-  container = nullptr; // the layout handles memory
-}
-
 
 bool Effect::hasCapability(const Capability flag) const
 {
@@ -696,14 +684,14 @@ void Effect::save(QXmlStreamWriter& stream)
 }
 
 bool Effect::is_open() {
-  return isOpen;
+  return is_open_;
 }
 
 void Effect::validate_meta_path()
 {
-  if (!meta->path.isEmpty() || (vertPath.isEmpty() && fragPath.isEmpty())) return;
+  if (!meta->path.isEmpty() || (glsl_.vert_.isEmpty() && glsl_.frag_.isEmpty())) return;
   QList<QString> effects_paths = get_effects_paths();
-  const QString& test_fn = vertPath.isEmpty() ? fragPath : vertPath;
+  const QString& test_fn = glsl_.vert_.isEmpty() ? glsl_.frag_ : glsl_.vert_;
   for (const auto& effects_path : effects_paths) {
     if (QFileInfo::exists(effects_path + "/" + test_fn)) {
       for (int j=0;j<effects.size();j++) {
@@ -719,26 +707,26 @@ void Effect::validate_meta_path()
 
 void Effect::open()
 {
-  if (isOpen) {
+  if (is_open_) {
     qWarning() << "Tried to open an effect that was already open";
     close();
   }
   if (shaders_are_enabled &&
       hasCapability(Capability::SHADER)
       && (QOpenGLContext::currentContext() != nullptr)) {
-    glslProgram = new QOpenGLShaderProgram();
+    glsl_.program_ = std::make_unique<QOpenGLShaderProgram>();
     validate_meta_path();
     bool glsl_compiled = true;
-    if (!vertPath.isEmpty()) {
-      if (glslProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, meta->path + "/" + vertPath)) {
+    if (!glsl_.vert_.isEmpty()) {
+      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Vertex, meta->path + "/" + glsl_.vert_)) {
         qInfo() << "Vertex shader added successfully";
       } else {
         glsl_compiled = false;
         qWarning() << "Vertex shader could not be added";
       }
     }
-    if (!fragPath.isEmpty()) {
-      if (glslProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, meta->path + "/" + fragPath)) {
+    if (!glsl_.frag_.isEmpty()) {
+      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Fragment, meta->path + "/" + glsl_.frag_)) {
         qInfo() << "Fragment shader added successfully";
       } else {
         glsl_compiled = false;
@@ -746,57 +734,54 @@ void Effect::open()
       }
     }
     if (glsl_compiled) {
-      if (glslProgram->link()) {
+      if (glsl_.program_->link()) {
         qInfo() << "Shader program linked successfully";
       } else {
         qWarning() << "Shader program failed to link";
       }
     }
-    isOpen = true;
+    is_open_ = true;
   } else if (QOpenGLContext::currentContext() == nullptr) {
     qWarning() << "No current context to create a shader program for - will retry next repaint";
   } else {
-    isOpen = true;
+    is_open_ = true;
   }
 
   if (hasCapability(Capability::SUPERIMPOSE)) {
-    texture_ = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
+    superimpose_.texture_ = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
   }
 }
 
 void Effect::close() {
-  if (!isOpen) {
+  if (!is_open_) {
     qWarning() << "Tried to close an effect that was already closed";
   }
-  if (glslProgram != nullptr) {
-    delete glslProgram;
-    glslProgram = nullptr;
-  }
-  isOpen = false;
+  glsl_.program_ = nullptr;
+  is_open_ = false;
 }
 
 bool Effect::is_glsl_linked() {
-  return (glslProgram != nullptr) && glslProgram->isLinked();
+  return (glsl_.program_ != nullptr) && glsl_.program_->isLinked();
 }
 
 void Effect::startEffect() {
-  if (!isOpen) {
+  if (!is_open_) {
     open();
     qWarning() << "Tried to start a closed effect - opening";
   }
   if (shaders_are_enabled
       && hasCapability(Capability::SHADER)
-      && glslProgram->isLinked()) {
-    bound = glslProgram->bind();
+      && glsl_.program_->isLinked()) {
+    bound_ = glsl_.program_->bind();
   }
 }
 
 void Effect::endEffect()
 {
-  if (bound) {
-    glslProgram->release();
+  if (bound_) {
+    glsl_.program_->release();
   }
-  bound = false;
+  bound_ = false;
 }
 
 void Effect::process_image(const double, gsl::span<uint8_t>& /*data*/)
@@ -814,8 +799,8 @@ EffectPtr Effect::copy(ClipPtr c)
 
 void Effect::process_shader(const double timecode, GLTextureCoords&)
 {
-  glslProgram->setUniformValue("resolution", parent_clip->width(), parent_clip->height());
-  glslProgram->setUniformValue("time", GLfloat(timecode));
+  glsl_.program_->setUniformValue("resolution", parent_clip->width(), parent_clip->height());
+  glsl_.program_->setUniformValue("time", GLfloat(timecode));
 
   for (const auto& row: rows) {
     for (int j=0;j<row->fieldCount();j++) {
@@ -823,10 +808,10 @@ void Effect::process_shader(const double timecode, GLTextureCoords&)
       if (!field->id.isEmpty()) {
         switch (field->type) {
           case EffectFieldType::DOUBLE:
-            glslProgram->setUniformValue(field->id.toUtf8().constData(), GLfloat(field->get_double_value(timecode)));
+            glsl_.program_->setUniformValue(field->id.toUtf8().constData(), GLfloat(field->get_double_value(timecode)));
             break;
           case EffectFieldType::COLOR:
-            glslProgram->setUniformValue(
+            glsl_.program_->setUniformValue(
                   field->id.toUtf8().constData(),
                   GLfloat(field->get_color_value(timecode).redF()),
                   GLfloat(field->get_color_value(timecode).greenF()),
@@ -834,10 +819,10 @@ void Effect::process_shader(const double timecode, GLTextureCoords&)
                   );
             break;
           case EffectFieldType::BOOL:
-            glslProgram->setUniformValue(field->id.toUtf8().constData(), field->get_bool_value(timecode));
+            glsl_.program_->setUniformValue(field->id.toUtf8().constData(), field->get_bool_value(timecode));
             break;
           case EffectFieldType::COMBO:
-            glslProgram->setUniformValue(field->id.toUtf8().constData(), field->get_combo_index(timecode));
+            glsl_.program_->setUniformValue(field->id.toUtf8().constData(), field->get_combo_index(timecode));
             break;
           case EffectFieldType::FONT:
             [[fallthrough]];
@@ -865,23 +850,25 @@ GLuint Effect::process_superimpose(double timecode) {
   int width = parent_clip->width();
   int height = parent_clip->height();
 
-  if (width != img.width() || height != img.height()) {
-    img = QImage(width, height, QImage::Format_RGBA8888);
+  if (width != superimpose_.img_.width() || height != superimpose_.img_.height()) {
+    superimpose_.img_ = QImage(width, height, QImage::Format_RGBA8888);
     recreate_texture = true;
   }
 
-  if (valueHasChanged(timecode) || recreate_texture || enable_always_update) {
+  if (valueHasChanged(timecode) || recreate_texture || hasCapability(Capability::ALWAYS_UPDATE)) {
     redraw(timecode);
   }
 
-  if (texture_ != nullptr) {
-    if (recreate_texture || texture_->width() != img.width() || texture_->height() != img.height()) {
-      texture_ = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
-      texture_->setData(img);
+  if (superimpose_.texture_ != nullptr) {
+    if (recreate_texture
+        || superimpose_.texture_->width() != superimpose_.img_.width()
+        || superimpose_.texture_->height() != superimpose_.img_.height()) {
+      superimpose_.texture_ = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
+      superimpose_.texture_->setData(superimpose_.img_);
     } else {
-      texture_->setData(0, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, img.constBits());
+      superimpose_.texture_->setData(0, QOpenGLTexture::RGBA, QOpenGLTexture::UInt8, superimpose_.img_.constBits());
     }
-    return texture_->textureId();
+    return superimpose_.texture_->textureId();
   }
   return 0;
 }
@@ -1121,9 +1108,9 @@ void Effect::extractShaderDetails(const QXmlStreamAttributes& attributes)
   setCapability(Capability::SHADER);
   for (const auto& attr : attributes) {
     if (attr.name() == "vert") {
-      vertPath = attr.value().toString();
+      glsl_.vert_ = attr.value().toString();
     } else if (attr.name() == "frag") {
-      fragPath = attr.value().toString();
+      glsl_.frag_ = attr.value().toString();
     }
   }
 }

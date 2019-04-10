@@ -40,11 +40,13 @@
 #include "io/config.h"
 #include "playback/playback.h"
 
+constexpr const char* const FONT_FAMILY = "Helvetica";
+
 TimecodeEffect::TimecodeEffect(ClipPtr c, const EffectMeta* em) :
   Effect(c, em)
 {
   setCapability(Capability::SUPERIMPOSE);
-  enable_always_update = true;
+  setCapability(Capability::ALWAYS_UPDATE);
 
   EffectRowPtr tc_row = add_row(tr("Timecode"));
   tc_select = tc_row->add_field(EffectFieldType::COMBO, "tc_selector");
@@ -89,17 +91,17 @@ void TimecodeEffect::redraw(double timecode) {
     display_timecode = prepend_text->get_string_value(timecode) + frame_to_timecode(timecode * media_rate,
                                                                                     e_config.timecode_view,
                                                                                     media_rate);}
-  img.fill(Qt::transparent);
+  superimpose_.img_.fill(Qt::transparent);
 
-  QPainter p(&img);
+  QPainter p(&superimpose_.img_);
   p.setRenderHint(QPainter::Antialiasing);
-  int width = img.width();
-  int height = img.height();
+  int width = superimpose_.img_.width();
+  int height = superimpose_.img_.height();
 
   // set font
   font.setStyleHint(QFont::Helvetica, QFont::PreferAntialias);
-  font.setFamily("Helvetica");
-  font.setPixelSize(qCeil(scale_val->get_double_value(timecode)*.01*(height/10)));
+  font.setFamily(FONT_FAMILY);
+  font.setPixelSize(qCeil(scale_val->get_double_value(timecode) * 0.001 * height));
   p.setFont(font);
   QFontMetrics fm(font);
 

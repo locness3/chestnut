@@ -103,7 +103,8 @@ enum class Capability {
   SHADER = 0,
   COORDS,
   SUPERIMPOSE,
-  IMAGE
+  IMAGE,
+  ALWAYS_UPDATE
 };
 
 
@@ -128,16 +129,9 @@ class Effect : public QObject, public project::SequenceItem {
     Q_OBJECT
 public:
     Effect(ClipPtr c, const EffectMeta* em);
-    virtual ~Effect() override;
     Effect() = delete;
-    Effect(const Effect&) = delete;
-    Effect(const Effect&&) = delete;
-    Effect& operator=(const Effect&) = delete;
-    Effect& operator=(const Effect&&) = delete;
 
     bool hasCapability(const Capability flag) const;
-    void setCapability(const Capability flag);
-    void clearCapability(const Capability flag);
 
     EffectRowPtr add_row(const QString &name_, bool savable = true, bool keyframable = true);
     EffectRowPtr row(const int i);
@@ -189,15 +183,6 @@ public:
     bool are_gizmos_enabled() const;
 
 
-    template <typename T>
-    T randomNumber()
-    {
-      static std::random_device device;
-      static std::mt19937 generator(device());
-      static std::uniform_int_distribution<> distribution(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-      return distribution(generator);
-    }
-
     ClipPtr parent_clip; //TODO: make weak
     const EffectMeta* meta;
     int id = -1;
@@ -222,31 +207,44 @@ protected:
      */
     virtual EffectGizmoPtr newEffectGizmo(const GizmoType _type);
 
+    void setCapability(const Capability flag);
+    void clearCapability(const Capability flag);
+
+    template <typename T>
+    T randomNumber()
+    {
+      static std::random_device device;
+      static std::mt19937 generator(device());
+      static std::uniform_int_distribution<> distribution(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+      return distribution(generator);
+    }
+
     // glsl effect
-    QOpenGLShaderProgram* glslProgram;
-    QString vertPath;
-    QString fragPath;
+    struct {
+        QString vert_{};
+        QString frag_{};
+        std::unique_ptr<QOpenGLShaderProgram> program_{};
+    } glsl_{};
 
     // superimpose effect
-    QImage img;
-    std::unique_ptr<QOpenGLTexture> texture_{};
+    struct {
+        QImage img_{};
+        std::unique_ptr<QOpenGLTexture> texture_{};
+    } superimpose_{};
 
-    // enable effect to update constantly
-    bool enable_always_update;
-
-private:
+  private:
     friend class EffectTest;
     // superimpose effect
     QString script;
 
-    bool isOpen;
     QVector<EffectRowPtr> rows;
     QVector<EffectGizmoPtr> gizmos;
     QGridLayout* ui_layout;
     QWidget* ui;
-    bool bound;
     QVector<QVariant> cachedValues;
     std::set<Capability> capabilities_;
+    bool is_open_;
+    bool bound_;
 
     bool valueHasChanged(const double timecode);
     int get_index_in_clip();
