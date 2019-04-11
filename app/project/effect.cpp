@@ -797,10 +797,11 @@ EffectPtr Effect::copy(ClipPtr c)
   return copy_effect;
 }
 
-void Effect::process_shader(const double timecode, GLTextureCoords&)
+void Effect::process_shader(const double timecode, GLTextureCoords& /*coords*/, const int iteration)
 {
   glsl_.program_->setUniformValue("resolution", parent_clip->width(), parent_clip->height());
-  glsl_.program_->setUniformValue("time", GLfloat(timecode));
+  glsl_.program_->setUniformValue("time", static_cast<GLfloat>(timecode));
+  glsl_.program_->setUniformValue("iteration", iteration);
 
   for (const auto& row: rows) {
     for (int j=0;j<row->fieldCount();j++) {
@@ -808,14 +809,15 @@ void Effect::process_shader(const double timecode, GLTextureCoords&)
       if (!field->id.isEmpty()) {
         switch (field->type) {
           case EffectFieldType::DOUBLE:
-            glsl_.program_->setUniformValue(field->id.toUtf8().constData(), GLfloat(field->get_double_value(timecode)));
+            glsl_.program_->setUniformValue(field->id.toUtf8().constData(),
+                                            static_cast<GLfloat>(field->get_double_value(timecode)));
             break;
           case EffectFieldType::COLOR:
             glsl_.program_->setUniformValue(
                   field->id.toUtf8().constData(),
-                  GLfloat(field->get_color_value(timecode).redF()),
-                  GLfloat(field->get_color_value(timecode).greenF()),
-                  GLfloat(field->get_color_value(timecode).blueF())
+                  static_cast<GLfloat>(field->get_color_value(timecode).redF()),
+                  static_cast<GLfloat>(field->get_color_value(timecode).greenF()),
+                  static_cast<GLfloat>(field->get_color_value(timecode).blueF())
                   );
             break;
           case EffectFieldType::BOOL:
@@ -1111,6 +1113,8 @@ void Effect::extractShaderDetails(const QXmlStreamAttributes& attributes)
       glsl_.vert_ = attr.value().toString();
     } else if (attr.name() == "frag") {
       glsl_.frag_ = attr.value().toString();
+    } else if (attr.name() == "iterations") {
+      glsl_.iterations_ = attr.value().toInt();
     }
   }
 }

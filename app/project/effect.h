@@ -167,11 +167,8 @@ public:
     virtual void startEffect();
     virtual void endEffect();
 
-    int getIterations();
-    void setIterations(int i);
-
     virtual void process_image(double timecode, gsl::span<uint8_t>& data);
-    virtual void process_shader(double timecode, GLTextureCoords&);
+    virtual void process_shader(double timecode, GLTextureCoords& coords, const int iteration);
     virtual void process_coords(double timecode, GLTextureCoords& coords, int data);
     virtual GLuint process_superimpose(double timecode);
     virtual void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count);
@@ -193,6 +190,7 @@ public:
         QString vert_{};
         QString frag_{};
         std::unique_ptr<QOpenGLShaderProgram> program_{};
+        int iterations_{};
     } glsl_{};
 
     // superimpose effect

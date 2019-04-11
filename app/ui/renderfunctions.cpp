@@ -90,13 +90,14 @@ void process_effect(QOpenGLContext* ctx,
     if (e->hasCapability(Capability::COORDS)) {
       e->process_coords(timecode, coords, data);
     }
-    if (( e->hasCapability(Capability::SHADER) && shaders_are_enabled)
-        || e->hasCapability(Capability::SUPERIMPOSE)) {
+    if (( e->hasCapability(Capability::SHADER) && shaders_are_enabled) || e->hasCapability(Capability::SUPERIMPOSE)) {
       e->startEffect();
       if ((e->hasCapability(Capability::SHADER) && shaders_are_enabled) && e->is_glsl_linked()) {
-        e->process_shader(timecode, coords);
-        composite_texture = draw_clip(ctx, c->fbo[fbo_switcher], composite_texture, true);
-        fbo_switcher = !fbo_switcher;
+        for (auto i = 0; i < e->glsl_.iterations_; ++i) {
+          e->process_shader(timecode, coords, i);
+          composite_texture = draw_clip(ctx, c->fbo[fbo_switcher], composite_texture, true);
+          fbo_switcher = !fbo_switcher;
+        }
       }
       if (e->hasCapability(Capability::SUPERIMPOSE)) {
         GLuint superimpose_texture = e->process_superimpose(timecode);
