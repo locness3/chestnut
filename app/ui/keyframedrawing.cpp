@@ -19,13 +19,14 @@
 
 #include "project/effect.h"
 
-#define KEYFRAME_POINT_COUNT 4
+constexpr int KEYFRAME_POINT_COUNT = 4;
+constexpr double DARKER_KEYFRAME_MODIFIER = 0.625;
 
 void draw_keyframe(QPainter &p, const KeyframeType type, int x, int y, bool darker, int r, int g, int b) {
   if (darker) {
-    r *= 0.625;
-    g *= 0.625;
-    b *= 0.625;
+    r *= DARKER_KEYFRAME_MODIFIER;
+    g *= DARKER_KEYFRAME_MODIFIER;
+    b *= DARKER_KEYFRAME_MODIFIER;
   }
   p.setPen(QColor(0, 0, 0));
   p.setBrush(QColor(r, g, b));

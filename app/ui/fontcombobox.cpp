@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,18 +20,18 @@
 #include <QFontDatabase>
 
 FontCombobox::FontCombobox(QWidget* parent) : ComboBoxEx(parent) {
-	addItems(QFontDatabase().families());
+  addItems(QFontDatabase().families());
 
-	value = currentText();
+  value = currentText();
 
-	connect(this, SIGNAL(currentTextChanged(QString)), this, SLOT(updateInternals()));
+  connect(this, SIGNAL(currentTextChanged(QString)), this, SLOT(updateInternals()));
 }
 
 const QString& FontCombobox::getPreviousValue() {
-	return previousValue;
+  return previousValue;
 }
 
 void FontCombobox::updateInternals() {
-	previousValue = value;
-	value = currentText();
+  previousValue = value;
+  value = currentText();
 }

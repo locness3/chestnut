@@ -593,6 +593,7 @@ bool PreviewGenerator::generate_image_thumbnail(const FootagePtr& ftg) const
   return success;
 }
 
-void PreviewGenerator::cancel() {
+void PreviewGenerator::cancel()
+{
   cancelled = true;
 }

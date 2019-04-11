@@ -56,13 +56,8 @@ using MediaWPtr = std::weak_ptr<Media>;
 class Media : public std::enable_shared_from_this<Media>
 {
 public:
-
     Media();
     explicit Media(const MediaPtr& iparent);
-    ~Media();
-
-    Media(const Media& cpy) = delete;
-    const Media& operator=(const Media& rhs) = delete;
 
     template<typename T>
     auto object() {
@@ -79,7 +74,7 @@ public:
     void setFolder();
     void setIcon(const QIcon &ico);
     void setParent(const MediaWPtr& p);
-    void updateTooltip(const QString& error = 0);
+    void updateTooltip(const QString& error = nullptr);
     MediaType type() const;
     const QString& name();
     void setName(const QString& n);

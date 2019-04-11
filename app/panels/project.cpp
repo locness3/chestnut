@@ -597,9 +597,10 @@ void Project::delete_selected_media() {
   }
 }
 
-void Project::start_preview_generator(MediaPtr item, const bool replacing) {
+void Project::start_preview_generator(MediaPtr item, const bool replacing)
+{
   // set up throbber animation
-  const auto throbber = new MediaThrobber(item);
+  const auto throbber = new MediaThrobber(item, this);
   throbber->moveToThread(QApplication::instance()->thread());
   item->throbber = throbber;
   QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);
@@ -1277,13 +1278,14 @@ QModelIndexList Project::get_current_selected()
 }
 
 
-MediaThrobber::MediaThrobber(MediaPtr i) :
+MediaThrobber::MediaThrobber(MediaPtr i, QObject* parent) :
   pixmap(":/icons/throbber.png"),
   animation(0),
   item(i),
   animator(nullptr)
 {
   animator = std::make_unique<QTimer>(this);
+  setParent(parent);
 }
 
 void MediaThrobber::start() {

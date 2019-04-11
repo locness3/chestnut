@@ -88,12 +88,6 @@ Media::Media(const MediaPtr& iparent) :
 
 }
 
-Media::~Media() 
-{
-  delete throbber;
-}
-
-
 /**
  * @brief Obtain this instance unique-id
  * @return id

@@ -26,7 +26,7 @@ class ProjectModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    ProjectModel(QObject* parent = nullptr);
+    explicit ProjectModel(QObject* parent = nullptr);
     virtual ~ProjectModel() override;
 
     ProjectModel(const ProjectModel&) = delete;

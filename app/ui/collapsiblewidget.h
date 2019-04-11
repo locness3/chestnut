@@ -30,7 +30,7 @@ class CheckboxEx;
 class CollapsibleWidgetHeader : public QWidget {
     Q_OBJECT
   public:
-    CollapsibleWidgetHeader(QWidget* parent = nullptr);
+    explicit CollapsibleWidgetHeader(QWidget* parent = nullptr);
     bool selected;
   protected:
     void mousePressEvent(QMouseEvent* event);
@@ -43,7 +43,7 @@ class CollapsibleWidget : public QWidget
 {
     Q_OBJECT
   public:
-    CollapsibleWidget(QWidget* parent = nullptr);
+    explicit CollapsibleWidget(QWidget* parent = nullptr);
     virtual ~CollapsibleWidget() override;
     CollapsibleWidget(const CollapsibleWidget& ) = delete;
     CollapsibleWidget(const CollapsibleWidget&& ) = delete;

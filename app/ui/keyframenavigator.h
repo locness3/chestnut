@@ -27,12 +27,12 @@ class KeyframeNavigator : public QWidget
 {
     Q_OBJECT
   public:
-    KeyframeNavigator(QWidget* parent = nullptr);
+    explicit KeyframeNavigator(QWidget* parent = nullptr);
 
+    virtual ~KeyframeNavigator() override;
     KeyframeNavigator(const KeyframeNavigator&) = delete;
     KeyframeNavigator operator=(const KeyframeNavigator&) = delete;
 
-    virtual ~KeyframeNavigator();
     void enable_keyframes(bool);
     void enable_keyframe_toggle(bool);
   signals:

@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,23 +24,23 @@
 
 class ColorButton : public QPushButton {
     Q_OBJECT
-public:
-    ColorButton(QWidget* parent = nullptr);
+  public:
+    explicit ColorButton(QWidget* parent = nullptr);
     QColor get_color();
     void set_color(QColor c);
-	const QColor& getPreviousValue();
-private:
+    const QColor& getPreviousValue();
+  private:
     QColor color;
-	QColor previousColor;
+    QColor previousColor;
     void set_button_color();
-signals:
+  signals:
     void color_changed();
-private slots:
+  private slots:
     void open_dialog();
 };
 
 class ColorCommand : public QUndoCommand {
-public:
+  public:
     ColorCommand(ColorButton* s, const QColor o, const QColor n);
 
     ColorCommand(const ColorCommand& ) = delete;
@@ -48,7 +48,7 @@ public:
 
     void undo() override;
     void redo() override;
-private:
+  private:
     ColorButton* sender;
     QColor old_color;
     QColor new_color;

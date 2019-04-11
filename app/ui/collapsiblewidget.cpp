@@ -75,7 +75,7 @@ CollapsibleWidget::CollapsibleWidget(QWidget* parent) : QWidget(parent) {
 
 CollapsibleWidget::~CollapsibleWidget()
 {
-
+  //TODO: check class member-ptrs are owned by parent, otherwise, delete
 }
 
 void CollapsibleWidget::header_click(bool s, bool deselect) {

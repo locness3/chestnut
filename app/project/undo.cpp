@@ -575,9 +575,15 @@ void LinkCommand::redo() {
   MainWindow::instance().setWindowModified(true);
 }
 
-CheckboxCommand::CheckboxCommand(QCheckBox* b) : box(b), checked(box->isChecked()), done(true), old_project_changed(MainWindow::instance().isWindowModified()) {}
+CheckboxCommand::CheckboxCommand(QCheckBox* b)
+  : box(b),
+    checked(box->isChecked()),
+    done(true),
+    old_project_changed(MainWindow::instance().isWindowModified())
+{
 
-CheckboxCommand::~CheckboxCommand() = default;
+}
+
 
 void CheckboxCommand::undo() {
   box->setChecked(!checked);

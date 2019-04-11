@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,17 +23,18 @@
 
 class ComboBoxEx : public QComboBox {
     Q_OBJECT
-public:
-    ComboBoxEx(QWidget* parent = nullptr);
-	void setCurrentIndexEx(int i);
-	void setCurrentTextEx(const QString &text);
-	int getPreviousIndex();
-private slots:
-	void index_changed(int);
-private:
-	int index;
-	int previousIndex;
-    void wheelEvent(QWheelEvent* e);
+  public:
+    explicit ComboBoxEx(QWidget* parent = nullptr);
+    void setCurrentIndexEx(int i);
+    void setCurrentTextEx(const QString &text);
+    int getPreviousIndex();
+  protected:
+    void wheelEvent(QWheelEvent* e) override;
+  private slots:
+    void index_changed(int);
+  private:
+    int index;
+    int previousIndex;
 };
 
 #endif // COMBOBOXEX_H

@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,11 +19,12 @@
 
 #include "project/undo.h"
 
-CheckboxEx::CheckboxEx(QWidget* parent) : QCheckBox(parent) {
-//	connect(this, SIGNAL(clicked(bool)), this, SLOT(checkbox_command()));
+CheckboxEx::CheckboxEx(QWidget* parent) : QCheckBox(parent)
+{
 }
 
-void CheckboxEx::checkbox_command() {
-	CheckboxCommand* c = new CheckboxCommand(this);
-	e_undo_stack.push(c);
+void CheckboxEx::checkbox_command()
+{
+  CheckboxCommand* c = new CheckboxCommand(this);
+  e_undo_stack.push(c);
 }

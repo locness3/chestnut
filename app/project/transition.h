@@ -23,16 +23,16 @@
 
 #include <memory>
 
-#define TA_NO_TRANSITION 0
-#define TA_OPENING_TRANSITION 1
-#define TA_CLOSING_TRANSITION 2
+constexpr int TA_NO_TRANSITION = 0;
+constexpr int TA_OPENING_TRANSITION = 1;
+constexpr int TA_CLOSING_TRANSITION = 2;
 
-#define TRANSITION_INTERNAL_CROSSDISSOLVE 0
-#define TRANSITION_INTERNAL_LINEARFADE 1
-#define TRANSITION_INTERNAL_EXPONENTIALFADE	2
-#define TRANSITION_INTERNAL_LOGARITHMICFADE 3
-#define TRANSITION_INTERNAL_CUBE 4
-#define TRANSITION_INTERNAL_COUNT 5
+constexpr int TRANSITION_INTERNAL_CROSSDISSOLVE = 0;
+constexpr int TRANSITION_INTERNAL_LINEARFADE = 1;
+constexpr int TRANSITION_INTERNAL_EXPONENTIALFADE	= 2;
+constexpr int TRANSITION_INTERNAL_LOGARITHMICFADE = 3;
+constexpr int TRANSITION_INTERNAL_CUBE = 4;
+constexpr int TRANSITION_INTERNAL_COUNT = 5;
 
 int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em, long length = -1);
 
@@ -43,14 +43,12 @@ class Transition : public Effect {
   public:
     Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em);
 
-    Transition(const Transition& ) = delete;
-    Transition& operator=(const Transition&) = delete;
-
     int copy(const ClipPtr& c, const ClipPtr& s);
-    ClipWPtr secondary_clip;
     void set_length(const long value);
     long get_true_length() const;
     long get_length() const;
+
+    ClipWPtr secondary_clip;
   private slots:
     void set_length_from_slider();
   private:

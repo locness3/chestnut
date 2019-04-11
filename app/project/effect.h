@@ -188,6 +188,18 @@ public:
     int id = -1;
     QString name_;
     CollapsibleWidget* container = nullptr;
+    // glsl effect
+    struct {
+        QString vert_{};
+        QString frag_{};
+        std::unique_ptr<QOpenGLShaderProgram> program_{};
+    } glsl_{};
+
+    // superimpose effect
+    struct {
+        QImage img_{};
+        std::unique_ptr<QOpenGLTexture> texture_{};
+    } superimpose_{};
 
 public slots:
     void field_changed();
@@ -219,18 +231,7 @@ protected:
       return distribution(generator);
     }
 
-    // glsl effect
-    struct {
-        QString vert_{};
-        QString frag_{};
-        std::unique_ptr<QOpenGLShaderProgram> program_{};
-    } glsl_{};
 
-    // superimpose effect
-    struct {
-        QImage img_{};
-        std::unique_ptr<QOpenGLTexture> texture_{};
-    } superimpose_{};
 
   private:
     friend class EffectTest;

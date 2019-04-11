@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,7 +26,7 @@
 
 
 class ComboBoxExCommand : public QUndoCommand {
-public:
+  public:
     ComboBoxExCommand(ComboBoxEx* obj, int old_index, int new_index)
       : combobox(obj),
         old_val(old_index),
@@ -42,51 +42,53 @@ public:
 
     void undo() override
     {
-        combobox->setCurrentIndex(old_val);
-        done = false;
-        MainWindow::instance().setWindowModified(old_project_changed);
+      combobox->setCurrentIndex(old_val);
+      done = false;
+      MainWindow::instance().setWindowModified(old_project_changed);
     }
     void redo() override
     {
-        if (!done) {
-            combobox->setCurrentIndex(new_val);
-        }
-        MainWindow::instance().setWindowModified(true);
+      if (!done) {
+        combobox->setCurrentIndex(new_val);
+      }
+      MainWindow::instance().setWindowModified(true);
     }
-private:
+  private:
     ComboBoxEx* combobox;
     int old_val;
     int new_val;
     bool done;
-	bool old_project_changed;
+    bool old_project_changed;
 };
 
-ComboBoxEx::ComboBoxEx(QWidget *parent) : QComboBox(parent), index(0) {
-    connect(this, SIGNAL(activated(int)), this, SLOT(index_changed(int)));
+ComboBoxEx::ComboBoxEx(QWidget *parent)
+  : QComboBox(parent),
+    index(0)
+{
+  connect(this, SIGNAL(activated(int)), this, SLOT(index_changed(int)));
 }
 
 void ComboBoxEx::setCurrentIndexEx(int i) {
-	index = i;
-	setCurrentIndex(i);
+  index = i;
+  setCurrentIndex(i);
 }
 
 void ComboBoxEx::setCurrentTextEx(const QString &text) {
-	setCurrentText(text);
-	index = currentIndex();
+  setCurrentText(text);
+  index = currentIndex();
 }
 
 int ComboBoxEx::getPreviousIndex() {
-	return previousIndex;
+  return previousIndex;
 }
 
 void ComboBoxEx::index_changed(int i) {
-	if (index != i) {
-		previousIndex = index;
-//		undo_stack.push(new ComboBoxExCommand(this, index, i));
-		index = i;
-	}
+  if (index != i) {
+    previousIndex = index;
+    index = i;
+  }
 }
 
 void ComboBoxEx::wheelEvent(QWheelEvent* e) {
-    e->ignore();
+  e->ignore();
 }

@@ -151,7 +151,7 @@ private slots:
 class MediaThrobber : public QObject {
     Q_OBJECT
 public:
-    explicit MediaThrobber(MediaPtr);
+    MediaThrobber(MediaPtr, QObject* parent=nullptr);
 public slots:
     void start();
     void stop(const int icon_type, const bool replace);
