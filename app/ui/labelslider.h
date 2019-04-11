@@ -31,7 +31,7 @@ class LabelSlider : public QLabel
 {
     Q_OBJECT
   public:
-    LabelSlider(QWidget* parent = nullptr);
+    explicit LabelSlider(QWidget* parent = nullptr);
     void set_frame_rate(double d);
     void set_display_type(SliderType type);
     void set_value(const double val, const bool userSet);

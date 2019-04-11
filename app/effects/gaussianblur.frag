@@ -4,7 +4,6 @@
 
 uniform sampler2D image;
 
-// uniform float radius;
 uniform float sigma;
 uniform vec2 resolution;
 uniform bool horiz_blur;

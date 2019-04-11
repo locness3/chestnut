@@ -44,12 +44,8 @@ ViewerContainer::ViewerContainer(QWidget *parent) :
     child->container = this;
 }
 
-ViewerContainer::~ViewerContainer() {
-    delete child;
-    delete area;
-}
-
-void ViewerContainer::dragScrollPress(const QPoint &p) {
+void ViewerContainer::dragScrollPress(const QPoint &p)
+{
     drag_start_x = p.x();
     drag_start_y = p.y();
     horiz_start = horizontalScrollBar()->value();

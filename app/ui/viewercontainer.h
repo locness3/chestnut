@@ -27,10 +27,6 @@ class ViewerContainer : public QScrollArea
     Q_OBJECT
   public:
     explicit ViewerContainer(QWidget *parent = nullptr);
-    virtual ~ViewerContainer();
-
-    ViewerContainer(const ViewerContainer& ) = delete;
-    ViewerContainer& operator=(const ViewerContainer&) = delete;
 
     void dragScrollPress(const QPoint&);
     void dragScrollMove(const QPoint&);
@@ -43,10 +39,6 @@ class ViewerContainer : public QScrollArea
 
   protected:
     void resizeEvent(QResizeEvent *event) override;
-
-  signals:
-
-  public slots:
 
   private:
     QWidget* area;
