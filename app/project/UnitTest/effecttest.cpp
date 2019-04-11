@@ -17,8 +17,8 @@ void EffectTest::testCaseSetupWidget()
   EffectMeta em;
   eff.setupControlWidget(em);
   QVERIFY(eff.hasCapability(Capability::SHADER) == false);
-  QVERIFY(eff.fragPath.size() == 0);
-  QVERIFY(eff.vertPath.size() == 0);
+  QVERIFY(eff.glsl_.frag_.size() == 0);
+  QVERIFY(eff.glsl_.vert_.size() == 0);
 
 }
 
