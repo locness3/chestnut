@@ -288,7 +288,11 @@ void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIn
   }
 }
 
-void SourcesCommon::reveal_in_browser() {
+void SourcesCommon::reveal_in_browser()
+{
+  if (selected_items.empty()) {
+    return;
+  }
   auto media = project_parent->item_to_media(selected_items.front());
   if (!media) {
     return;
@@ -298,24 +302,8 @@ void SourcesCommon::reveal_in_browser() {
     return;
   }
 
-#if defined(Q_OS_WIN)
-  QStringList args;
-  args << "/select," << QDir::toNativeSeparators(m->url);
-  QProcess::startDetached("explorer", args);
-#elif defined(Q_OS_MAC)
-  QStringList args;
-  args << "-e";
-  args << "tell application \"Finder\"";
-  args << "-e";
-  args << "activate";
-  args << "-e";
-  args << "select POSIX file \""+m->url+"\"";
-  args << "-e";
-  args << "end tell";
-  QProcess::startDetached("osascript", args);
-#else
-  QDesktopServices::openUrl(QUrl::fromLocalFile(ftg->url.left(ftg->url.lastIndexOf('/'))));
-#endif
+  auto dir = QFileInfo(ftg->url).absoluteDir().path();
+  QDesktopServices::openUrl(QUrl::fromLocalFile(dir));
 }
 
 void SourcesCommon::stop_rename_timer() {
