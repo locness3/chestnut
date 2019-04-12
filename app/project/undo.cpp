@@ -364,17 +364,27 @@ ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const int itype, con
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
 
-void ModifyTransitionCommand::undo() {
+void ModifyTransitionCommand::undo()
+{
   TransitionPtr t = (type == TA_OPENING_TRANSITION) ? clip->openingTransition() : clip->closingTransition();
-  t->set_length(old_length);
-  MainWindow::instance().setWindowModified(old_project_changed);
+  if (t != nullptr) {
+    t->set_length(old_length);
+    MainWindow::instance().setWindowModified(old_project_changed);
+  } else {
+    qWarning() << "Transition command has null ptr";
+  }
 }
 
-void ModifyTransitionCommand::redo() {
+void ModifyTransitionCommand::redo()
+{
   TransitionPtr t = (type == TA_OPENING_TRANSITION) ? clip->openingTransition() : clip->closingTransition();
-  old_length = t->get_true_length();
-  t->set_length(new_length);
-  MainWindow::instance().setWindowModified(true);
+  if (t != nullptr) {
+    old_length = t->get_true_length();
+    t->set_length(new_length);
+    MainWindow::instance().setWindowModified(true);
+  } else {
+    qWarning() << "Transition command has null ptr";
+  }
 }
 
 DeleteTransitionCommand::DeleteTransitionCommand(SequencePtr  s, const int transition_index) :

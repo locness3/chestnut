@@ -694,11 +694,12 @@ ClipPtr Timeline::split_clip(ComboAction* ca, int p, long frame) {
   return split_clip(ca, p, frame, frame);
 }
 
-ClipPtr Timeline::split_clip(ComboAction* ca, int p, long frame, long post_in) {
-  ClipPtr pre = global::sequence->clips_.at(p);
-  if (pre != nullptr && pre->timeline_info.in < frame && pre->timeline_info.out > frame) { // guard against attempts to split at in/out points
+ClipPtr Timeline::split_clip(ComboAction* ca, int p, long frame, long post_in)
+{
+  ClipPtr pre = global::sequence->clips_.at(p); // before the split
+  if ( (pre != nullptr) && (pre->timeline_info.in < frame) && (pre->timeline_info.out > frame) ) { // guard against attempts to split at in/out points
     // copy clip but not transitions
-    ClipPtr post = pre->copy(global::sequence);
+    ClipPtr post = pre->copy(global::sequence); // after the split
 
     long new_clip_length = frame - pre->timeline_info.in;
 
@@ -715,13 +716,25 @@ ClipPtr Timeline::split_clip(ComboAction* ca, int p, long frame, long post_in) {
       post->sequence->hardDeleteTransition(post, TA_OPENING_TRANSITION);
     }
     if (pre->closingTransition() != nullptr) {
-      ca->append(new DeleteTransitionCommand(pre->sequence, pre->closing_transition));
-      if (pre->closingTransition()->secondary_clip.expired()) {
-        post->closingTransition()->set_length(qMin((long) post->closingTransition()->get_true_length(),
-                                                   post->length()));
+      // move closing transition
+      post->closing_transition = pre->closing_transition;
+      // remove closing transition from pre-split clip
+      ca->append(new SetValCommand<int>(pre->closing_transition, pre->closing_transition, -1));
+
+      // update references
+      ca->append(new SetValCommand<ClipWPtr>(post->closingTransition()->secondary_clip,
+                                             post->closingTransition()->secondary_clip,
+                                             post));
+      ca->append(new SetValCommand<ClipPtr>(post->closingTransition()->parent_clip,
+                                            post->closingTransition()->parent_clip,
+                                            post));
+      // ensure transition length is sane
+      if (post->closingTransition()->get_length() > post->length()) {
+        ca->append(new ModifyTransitionCommand(post,
+                                               TA_CLOSING_TRANSITION,
+                                               qMin(post->closingTransition()->get_length(), post->length())));
       }
     }
-
     return post;
   }
   return nullptr;

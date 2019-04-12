@@ -915,7 +915,8 @@ long Clip::timelineOutWithTransition() {
 }
 
 // timeline functions
-long Clip::length() {
+long Clip::length()
+{
   return timeline_info.out - timeline_info.in;
 }
 

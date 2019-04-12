@@ -32,6 +32,7 @@
 #include "project/effect.h"
 #include "project/clip.h"
 #include "project/media.h"
+#include "ui/mainwindow.h"
 
 class LabelSlider;
 class SourceTable;
@@ -540,6 +541,40 @@ private:
     int old_audio_layout;
 };
 
+
+template <typename T>
+class SetValCommand: public QUndoCommand {
+  public:
+    SetValCommand(T& ref, const T old_val, const T new_val)
+      : ref_(ref),
+        vals_({old_val, new_val}),
+        old_project_changed(MainWindow::instance().isWindowModified())
+    {
+
+    }
+
+    virtual void undo() override
+    {
+      ref_ = vals_.old_;
+      MainWindow::instance().setWindowModified(old_project_changed);
+    }
+    virtual void redo() override
+    {
+      ref_= vals_.new_;
+      MainWindow::instance().setWindowModified(true);
+    }
+
+  private:
+    T& ref_;
+    struct {
+        T old_;
+        T new_;
+    } vals_;
+    bool old_project_changed;
+};
+
+
+//TODO: replace all Set<Type> with SetValCommand
 class SetInt : public QUndoCommand {
 public:
     SetInt(int* pointer, const int new_value);
@@ -552,6 +587,7 @@ private:
     int newval;
     bool old_project_changed;
 };
+
 
 class SetLong : public QUndoCommand {
 public:
