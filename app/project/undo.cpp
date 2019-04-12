@@ -863,6 +863,7 @@ void AddMarkerAction::redo() {
   if (index == -1) {
     Marker m;
     m.frame = time;
+    m.name = name;
     seq->markers_.append(m);
   } else {
     old_name = seq->markers_.at(index).name;
