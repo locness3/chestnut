@@ -20,6 +20,7 @@ Project* PanelManager::project_ = nullptr;
 EffectControls* PanelManager::fx_controls_ = nullptr;
 Viewer* PanelManager::sequence_viewer_ = nullptr;
 Viewer* PanelManager::footage_viewer_ = nullptr;
+MarkersViewer* PanelManager::markers_viewer_ = nullptr;
 
 //FIXME:?
 void scroll_to_frame_internal(QScrollBar* bar, const long frame, const double zoom, const int area_width)
@@ -263,6 +264,15 @@ Viewer& PanelManager::footageViewer()
     footage_viewer_->set_panel_name(QCoreApplication::translate("Viewer", "Media Viewer"));
   }
   return *footage_viewer_;
+}
+
+
+MarkersViewer& PanelManager::markersViewer()
+{
+  if (markers_viewer_ == nullptr) {
+    markers_viewer_ = new MarkersViewer(parent_);
+  }
+  return *markers_viewer_;
 }
 
 void PanelManager::tearDown()

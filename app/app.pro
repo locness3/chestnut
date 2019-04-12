@@ -112,7 +112,9 @@ SOURCES += \
     panels/scopeviewer.cpp \
     io/colorconversions.cpp \
     panels/panelmanager.cpp \
-    effects/internal/diptocolourtransition.cpp
+    effects/internal/diptocolourtransition.cpp \
+    ui/Forms/markersviewer.cpp \
+    ui/Forms/markerwidget.cpp
 
 HEADERS += \
     ui/mainwindow.h \
@@ -228,9 +230,15 @@ HEADERS += \
     gsl/multi_span \
     gsl/pointers \
     gsl/span \
-    gsl/string_span
+    gsl/string_span \
+    ui/Forms/markersviewer.h \
+    ui/Forms/markerwidget.h
 
 DISTFILES +=
+
+FORMS += \
+    ui/Forms/markersviewer.ui \
+    ui/Forms/markerwidget.ui
 
 
 

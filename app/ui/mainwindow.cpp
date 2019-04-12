@@ -107,6 +107,7 @@ void MainWindow::nudgeClip(const bool forward)
 void MainWindow::setup_layout(bool reset)
 {
   PanelManager::projectViewer().show();
+  PanelManager::markersViewer().show();
   PanelManager::fxControls().show();
   PanelManager::footageViewer().show();
   PanelManager::sequenceViewer().show();
@@ -116,6 +117,8 @@ void MainWindow::setup_layout(bool reset)
   PanelManager::colorScope().hide();
 
   addDockWidget(Qt::TopDockWidgetArea, &PanelManager::projectViewer());
+  tabifyDockWidget(&PanelManager::projectViewer(), &PanelManager::markersViewer());
+  PanelManager::projectViewer().raise();
   addDockWidget(Qt::TopDockWidgetArea, &PanelManager::footageViewer());
   tabifyDockWidget(&PanelManager::footageViewer(), &PanelManager::fxControls());
   PanelManager::footageViewer().raise();
@@ -168,6 +171,7 @@ void MainWindow::initialise()
   qApp->setStyle(QStyleFactory::create(APP_STYLE));
   setStyleSheet(DEFAULT_CSS);
 
+  //FIXME: remove hard-coded palette
   QPalette darkPalette;
   darkPalette.setColor(QPalette::Window, QColor(53,53,53));
   darkPalette.setColor(QPalette::WindowText, Qt::white);
@@ -216,7 +220,10 @@ void MainWindow::initialise()
           if (QFile(file_name).remove()) deleted_ars++;
         }
       }
-      if (deleted_ars > 0) qInfo() << "Deleted" << deleted_ars << "autorecovery" << ((deleted_ars == 1) ? "file that was" : "files that were") << "older than 7 days";
+      if (deleted_ars > 0) {
+        qInfo() << "Deleted" << deleted_ars << "autorecovery" << ((deleted_ars == 1) ? "file that was" : "files that were")
+                << "older than 7 days";
+      }
 
       // delete previews older than 30 days
       QDir preview_dir = QDir(data_dir + DIR_PREVIEWS);
@@ -230,7 +237,10 @@ void MainWindow::initialise()
             if (QFile(file_name).remove()) deleted_ars++;
           }
         }
-        if (deleted_ars > 0) qInfo() << "Deleted" << deleted_ars << "preview" << ((deleted_ars == 1) ? "file that was" : "files that were") << "last read over 30 days ago";
+        if (deleted_ars > 0) {
+          qInfo() << "Deleted" << deleted_ars << "preview" << ((deleted_ars == 1) ? "file that was" : "files that were")
+                  << "last read over 30 days ago";
+        }
       }
 
       // search for open recents list
@@ -873,6 +883,12 @@ void MainWindow::setup_menus() {
   window_scope_action->setProperty("id", "panelscopeviewer");
   window_scope_action->setCheckable(true);
   window_scope_action->setData(reinterpret_cast<quintptr>(&PanelManager::colorScope()));
+
+  QAction* window_marker_viewer = window_menu->addAction(tr("Markers"), this, SLOT(toggle_panel_visibility()));
+  window_marker_viewer->setProperty("id", "markerviewer");
+  window_marker_viewer->setCheckable(true);
+  window_marker_viewer->setData(reinterpret_cast<quintptr>(&PanelManager::markersViewer()));
+
 
   window_menu->addSeparator();
 

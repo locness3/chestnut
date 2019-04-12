@@ -9,6 +9,7 @@
 #include "panels/effectcontrols.h"
 #include "panels/project.h"
 #include "panels/viewer.h"
+#include "ui/Forms/markersviewer.h"
 
 void scroll_to_frame_internal(QScrollBar* bar, const long frame, const double zoom, const int area_width);
 
@@ -32,6 +33,7 @@ namespace panels {
       static Project& projectViewer();
       static Viewer& sequenceViewer();
       static Viewer& footageViewer();
+      static MarkersViewer& markersViewer();
       static void tearDown();
     private:
       // cannot use smart_ptrs with QObject::connect. at least not reliably (double-frees)
@@ -43,6 +45,7 @@ namespace panels {
       static Project* project_;
       static Viewer* sequence_viewer_;
       static Viewer* footage_viewer_;
+      static MarkersViewer* markers_viewer_;
       static QWidget* parent_;
   };
 }
