@@ -37,7 +37,7 @@ class GraphView : public QWidget {
 
     void set_row(EffectRow* r);
 
-    void set_selected_keyframe_type(int type);
+    void set_selected_keyframe_type(const KeyframeType type);
     void set_field_visibility(int field, bool b);
 
     void delete_selected_keys();

@@ -53,13 +53,13 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
   for (const auto stream : ftg->video_tracks) {
     if (!stream) continue;
     auto trackItem = new QListWidgetItem(
-                       tr("Video %1: %2x%3 %4FPS").arg(
-                         QString::number(stream->file_index),
-                         QString::number(stream->video_width),
-                         QString::number(stream->video_height),
-                         QString::number(stream->video_frame_rate)
-                         )
-                       );
+          tr("Video %1: %2x%3 %4FPS").arg(
+            QString::number(stream->file_index),
+            QString::number(stream->video_width),
+            QString::number(stream->video_height),
+            QString::number(stream->video_frame_rate)
+            )
+          );
     trackItem->setFlags(trackItem->flags() | Qt::ItemIsUserCheckable);
     trackItem->setCheckState(stream->enabled ? Qt::Checked : Qt::Unchecked);
     trackItem->setData(Qt::UserRole+1, stream->file_index);
@@ -69,12 +69,12 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
   for (const auto stream : ftg->audio_tracks) {
     if (!stream) continue;
     auto trackItem = new QListWidgetItem(
-                       tr("Audio %1: %2Hz %3 channels").arg(
-                         QString::number(stream->file_index),
-                         QString::number(stream->audio_frequency),
-                         QString::number(stream->audio_channels)
-                         )
-                       );
+          tr("Audio %1: %2Hz %3 channels").arg(
+            QString::number(stream->file_index),
+            QString::number(stream->audio_frequency),
+            QString::number(stream->audio_channels)
+            )
+          );
     trackItem->setFlags(trackItem->flags() | Qt::ItemIsUserCheckable);
     trackItem->setCheckState(stream->enabled ? Qt::Checked : Qt::Unchecked);
     trackItem->setData(Qt::UserRole+1, stream->file_index);
@@ -168,20 +168,19 @@ void MediaPropertiesDialog::accept()
   bool refresh_clips = false;
 
   // set interlacing
-  if ( (ftg->video_tracks.size() > 0) && (ftg->video_tracks.front() != nullptr) ) {
+  if ( (!ftg->video_tracks.empty()) && (ftg->video_tracks.front() != nullptr) ) {
     if (interlacing_box->currentIndex() > 0) {
-      ca->append(new SetInt(reinterpret_cast<int*>(&ftg->video_tracks.front()->video_interlacing),
-                            interlacing_box->currentIndex() - 1));
+      ca->append(new SetValCommand<ScanMethod>(ftg->video_tracks.front()->video_interlacing,
+                                               static_cast<ScanMethod>(interlacing_box->currentIndex() - 1)));
     } else {
-      ca->append(new SetInt(reinterpret_cast<int*>(&ftg->video_tracks.front()->video_interlacing),
-                            static_cast<int>(ftg->video_tracks.front()->video_auto_interlacing)));
+      ca->append(new SetValCommand<ScanMethod>(ftg->video_tracks.front()->video_interlacing,
+                                               ftg->video_tracks.front()->video_auto_interlacing));
     }
 
     // set frame rate conform
     if (!ftg->video_tracks.front()->infinite_length && !qFuzzyCompare(conform_fr->value(),
                                                                       ftg->video_tracks.front()->video_frame_rate)) {
-      ca->append(new SetDouble(&ftg->speed, ftg->speed,
-                               conform_fr->value() / ftg->video_tracks.front()->video_frame_rate));
+      ca->append(new SetValCommand<double>(ftg->speed, conform_fr->value() / ftg->video_tracks.front()->video_frame_rate));
       refresh_clips = true;
     }
   }

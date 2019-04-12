@@ -688,27 +688,29 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
   }
 }
 
-void GraphView::mouseReleaseEvent(QMouseEvent *) {
+void GraphView::mouseReleaseEvent(QMouseEvent *)
+{
   if (click_add_proc) {
     e_undo_stack.push(new KeyframeFieldSet(click_add_field, click_add_key));
-  } else if (moved_keys && selected_keys.size() > 0) {
-    ComboAction* ca = new ComboAction();
+  } else if (moved_keys && !selected_keys.empty()) {
+    auto ca = new ComboAction();
     switch (current_handle) {
     case BEZIER_HANDLE_NONE:
       for (int i=0;i<selected_keys.size();i++) {
         EffectKeyframe& key = row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)];
-        ca->append(new SetLong(&key.time, selected_keys_old_vals.at(i), key.time));
+        ca->append(new SetValCommand<long>(key.time, selected_keys_old_vals.at(i), key.time));
         ca->append(new SetQVariant(&key.data, selected_keys_old_doubles.at(i), key.data));
       }
       break;
     case BEZIER_HANDLE_PRE:
+      [[fallthrough]];
     case BEZIER_HANDLE_POST:
     {
       EffectKeyframe& key = row->field(handle_field)->keyframes[handle_index];
-      ca->append(new SetDouble(&key.pre_handle_x, old_pre_handle_x, key.pre_handle_x));
-      ca->append(new SetDouble(&key.pre_handle_y, old_pre_handle_y, key.pre_handle_y));
-      ca->append(new SetDouble(&key.post_handle_x, old_post_handle_x, key.post_handle_x));
-      ca->append(new SetDouble(&key.post_handle_y, old_post_handle_y, key.post_handle_y));
+      ca->append(new SetValCommand<double>(key.pre_handle_x, old_pre_handle_x, key.pre_handle_x));
+      ca->append(new SetValCommand<double>(key.pre_handle_y, old_pre_handle_y, key.pre_handle_y));
+      ca->append(new SetValCommand<double>(key.post_handle_x, old_post_handle_x, key.post_handle_x));
+      ca->append(new SetValCommand<double>(key.post_handle_y, old_post_handle_y, key.post_handle_y));
     }
       break;
     default:
@@ -779,12 +781,13 @@ void GraphView::set_row(EffectRow *r) {
   }
 }
 
-void GraphView::set_selected_keyframe_type(int type) {
-  if (selected_keys.size() > 0) {
-    ComboAction* ca = new ComboAction();
+void GraphView::set_selected_keyframe_type(const KeyframeType type)
+{
+  if (!selected_keys.empty()) {
+    auto ca = new ComboAction();
     for (int i=0;i<selected_keys.size();i++) {
       EffectKeyframe& key = row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)];
-      ca->append(new SetInt(reinterpret_cast<int*>(&key.type), type));
+      ca->append(new SetValCommand<KeyframeType>(key.type, type));
     }
     e_undo_stack.push(ca);
     PanelManager::refreshPanels(false);

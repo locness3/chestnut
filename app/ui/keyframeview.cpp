@@ -93,8 +93,8 @@ void KeyframeView::menu_set_key_type(QAction* a)
     ComboAction* ca = new ComboAction();
     for (int i=0;i<selected_fields.size();i++) {
       EffectField* f = selected_fields.at(i);
-      ca->append(new SetInt(reinterpret_cast<int*>(&f->keyframes[selected_keyframes.at(i)].type),
-                 a->data().toInt()));
+      ca->append(new SetValCommand<KeyframeType>(f->keyframes[selected_keyframes.at(i)].type,
+                 static_cast<KeyframeType>(a->data().toInt())));
     }
     e_undo_stack.push(ca);
     PanelManager::refreshPanels(false);
@@ -130,9 +130,9 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 
             QVector<long> key_times;
             int keyframe_y = label->y() + (label->height()>>1)
-                             + mapFrom(&PanelManager::fxControls(),
-                                       contents->mapTo(&PanelManager::fxControls(),
-                                                       contents->pos())).y() - e->container->title_bar->height()/* - y_scroll*/;
+                + mapFrom(&PanelManager::fxControls(),
+                          contents->mapTo(&PanelManager::fxControls(),
+                                          contents->pos())).y() - e->container->title_bar->height()/* - y_scroll*/;
             for (int l=0;l<row->fieldCount();l++) {
               EffectField* f = row->field(l);
               for (int k=0;k<f->keyframes.size();k++) {
@@ -265,7 +265,7 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
         EffectField* f = row->field(k);
         for (int j=0;j<f->keyframes.size();j++) {
           long eval_keyframe_time = f->keyframes.at(j).time-row->parent_effect->parent_clip->timeline_info.clip_in
-                                    + (row->parent_effect->parent_clip->timeline_info.in - visible_in);
+              + (row->parent_effect->parent_clip->timeline_info.in - visible_in);
           if (eval_keyframe_time >= frame_min && eval_keyframe_time <= frame_max) {
             long eval_frame_diff = qAbs(eval_keyframe_time - drag_frame_start);
             if (keyframe_index == -1 || eval_frame_diff < frame_diff) {
@@ -425,15 +425,14 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
   }
 }
 
-void KeyframeView::mouseReleaseEvent(QMouseEvent*) {
+void KeyframeView::mouseReleaseEvent(QMouseEvent*)
+{
   if (dragging) {
     ComboAction* ca = new ComboAction();
     for (int i=0;i<selected_fields.size();i++) {
-      ca->append(new SetLong(
-                   &selected_fields.at(i)->keyframes[selected_keyframes.at(i)].time,
+      ca->append(new SetValCommand<long>(selected_fields.at(i)->keyframes[selected_keyframes.at(i)].time,
                  old_key_vals.at(i),
-                 selected_fields.at(i)->keyframes.at(selected_keyframes.at(i)).time
-                 ));
+                 selected_fields.at(i)->keyframes.at(selected_keyframes.at(i)).time));
     }
     e_undo_stack.push(ca);
   }

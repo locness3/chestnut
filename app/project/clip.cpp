@@ -1089,7 +1089,7 @@ void Clip::refactorFrameRate(ComboAction* ca, double multiplier, bool change_tim
           continue;
         }
         for (auto key : f->keyframes) {
-          ca->append(new SetLong(&key.time, key.time, key.time * multiplier));
+          ca->append(new SetValCommand<long>(key.time, key.time, lround(key.time * multiplier)));
         }//for
       }//for
     }//for

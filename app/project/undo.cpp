@@ -1043,40 +1043,6 @@ void EditSequenceCommand::update() {
   }
 }
 
-SetInt::SetInt(int* pointer, const int new_value) :
-  p(pointer),
-  oldval(*pointer),
-  newval(new_value),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
-
-void SetInt::undo() {
-  *p = oldval;
-  MainWindow::instance().setWindowModified(old_project_changed);
-}
-
-void SetInt::redo() {
-  *p = newval;
-  MainWindow::instance().setWindowModified(true);
-}
-
-SetString::SetString(QString* pointer, QString new_value) :
-  p(pointer),
-  oldval(*pointer),
-  newval(std::move(std::move(new_value))),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
-
-void SetString::undo() {
-  *p = oldval;
-  MainWindow::instance().setWindowModified(old_project_changed);
-}
-
-void SetString::redo() {
-  *p = newval;
-  MainWindow::instance().setWindowModified(true);
-}
-
 void CloseAllClipsCommand::undo() {
   redo();
 }
@@ -1227,23 +1193,6 @@ void RippleAction::redo() {
   ca->redo();
 }
 
-SetDouble::SetDouble(double* pointer, double old_value, double new_value) :
-  p(pointer),
-  oldval(old_value),
-  newval(new_value),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
-
-void SetDouble::undo() {
-  *p = oldval;
-  MainWindow::instance().setWindowModified(old_project_changed);
-}
-
-void SetDouble::redo() {
-  *p = newval;
-  MainWindow::instance().setWindowModified(true);
-}
-
 SetQVariant::SetQVariant(QVariant *itarget, QVariant iold, QVariant inew) :
   target(itarget),
   old_val(std::move(iold)),
@@ -1256,23 +1205,6 @@ void SetQVariant::undo() {
 
 void SetQVariant::redo() {
   *target = new_val;
-}
-
-SetLong::SetLong(long *pointer, const long old_value, const long new_value) :
-  p(pointer),
-  oldval(old_value),
-  newval(new_value),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
-
-void SetLong::undo() {
-  *p = oldval;
-  MainWindow::instance().setWindowModified(old_project_changed);
-}
-
-void SetLong::redo() {
-  *p = newval;
-  MainWindow::instance().setWindowModified(true);
 }
 
 KeyframeFieldSet::KeyframeFieldSet(EffectField* ifield, const int ii) :

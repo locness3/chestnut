@@ -545,6 +545,14 @@ private:
 template <typename T>
 class SetValCommand: public QUndoCommand {
   public:
+    SetValCommand(T& ref, const T new_val)
+      : ref_(ref),
+        vals_({ref, new_val}),
+        old_project_changed(MainWindow::instance().isWindowModified())
+    {
+
+    }
+
     SetValCommand(T& ref, const T old_val, const T new_val)
       : ref_(ref),
         vals_({old_val, new_val}),
@@ -570,61 +578,6 @@ class SetValCommand: public QUndoCommand {
         T old_;
         T new_;
     } vals_;
-    bool old_project_changed;
-};
-
-
-//TODO: replace all Set<Type> with SetValCommand
-class SetInt : public QUndoCommand {
-public:
-    SetInt(int* pointer, const int new_value);
-
-    virtual void undo() override;
-    virtual void redo() override;
-private:
-    int* p;
-    int oldval;
-    int newval;
-    bool old_project_changed;
-};
-
-
-class SetLong : public QUndoCommand {
-public:
-    SetLong(long* pointer, const long old_value, const long new_value);
-
-    virtual void undo() override;
-    virtual void redo() override;
-private:
-    long* p;
-    long oldval;
-    long newval;
-    bool old_project_changed;
-};
-
-class SetDouble : public QUndoCommand {
-public:
-    SetDouble(double* pointer, double old_value, double new_value);
-
-    virtual void undo() override;
-    virtual void redo() override;
-private:
-    double* p;
-    double oldval;
-    double newval;
-    bool old_project_changed;
-};
-
-class SetString : public QUndoCommand {
-public:
-    SetString(QString* pointer, QString new_value);
-
-    virtual void undo() override;
-    virtual void redo() override;
-private:
-    QString* p;
-    QString oldval;
-    QString newval;
     bool old_project_changed;
 };
 

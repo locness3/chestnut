@@ -249,11 +249,12 @@ void GraphEditor::passthrough_slider_value() {
   }
 }
 
-void GraphEditor::set_keyframe_type() {
+void GraphEditor::set_keyframe_type()
+{
   linear_button->setChecked(linear_button == sender());
   bezier_button->setChecked(bezier_button == sender());
   hold_button->setChecked(hold_button == sender());
-  view->set_selected_keyframe_type(sender()->property("type").toInt());
+  view->set_selected_keyframe_type(static_cast<KeyframeType>(sender()->property("type").toInt()));
 }
 
 void GraphEditor::set_field_visibility(bool b) {
