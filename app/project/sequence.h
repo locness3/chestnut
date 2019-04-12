@@ -41,12 +41,7 @@ public:
 
     Sequence() = default;
     Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName);
-    virtual ~Sequence() override = default;
-    Sequence(const Sequence&& cpy) = delete;
-    Sequence& operator=(const Sequence&) = delete;
-    Sequence& operator=(const Sequence&&) = delete;
 
-    Sequence(const Sequence& cpy) = default;
     std::shared_ptr<Sequence> copy();
     std::pair<int64_t,int64_t> trackLimits() const;
     int64_t endFrame() const;
@@ -84,7 +79,6 @@ public:
     } workarea_;
 
     QVector<TransitionPtr> transitions_;
-    QVector<Marker> markers_;
     int64_t playhead_ = 0;
     bool wrapper_sequence_ = false;
 

@@ -50,7 +50,18 @@
            <height>148</height>
           </rect>
          </property>
-         <layout class="QGridLayout" name="gridLayout_2"/>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+           <layout class="QVBoxLayout" name="markerLayout">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+           </layout>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>

@@ -157,7 +157,8 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
   menu.exec(QCursor::pos());
 }
 
-void SourcesCommon::mousePressEvent(QMouseEvent *) {
+void SourcesCommon::mousePressEvent(QMouseEvent *)
+{
   stop_rename_timer();
 }
 
@@ -168,6 +169,9 @@ void SourcesCommon::item_click(const MediaPtr& m, const QModelIndex& index)
   } else {
     editing_item = m;
     editing_index = index;
+  }
+  if (PanelManager::markersViewer().setMedia(m)) {
+    PanelManager::markersViewer().refresh();
   }
 }
 

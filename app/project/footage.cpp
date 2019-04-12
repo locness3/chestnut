@@ -41,11 +41,6 @@ Footage::Footage()
   ready_lock.lock();
 }
 
-Footage::~Footage()
-{
-  reset();
-}
-
 void Footage::reset()
 {
   if (preview_gen != nullptr) {

@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+#include "project/marker.h"
+
 namespace Ui {
   class MarkerWidget;
 }
@@ -12,11 +14,12 @@ class MarkerWidget : public QWidget
     Q_OBJECT
 
   public:
-    explicit MarkerWidget(QWidget *parent = nullptr);
+    MarkerWidget(Marker mark, QWidget *parent = nullptr);
     ~MarkerWidget();
 
   private:
     Ui::MarkerWidget *ui;
+    Marker marker_;
 };
 
 #endif // MARKERWIDGET_H

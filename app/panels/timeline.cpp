@@ -1469,6 +1469,7 @@ void Timeline::set_marker() {
 
 
   if (add_marker) {
+    // TODO: create a thumbnail for this
     e_undo_stack.push(new AddMarkerAction(global::sequence, global::sequence->playhead_, marker_name));
   }
 }

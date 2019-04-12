@@ -21,6 +21,9 @@
 
 #include <QString>
 #include <memory>
+#include <QVector>
+
+#include "project/marker.h"
 
 class Sequence;
 class Footage;
@@ -38,10 +41,11 @@ public:
   void setName(const QString& val);
   const QString& name() const;
 
+  QVector<Marker> markers_{};
 private:
   friend class ::Sequence;
   friend class ::Footage;
-  QString name_;
+  QString name_{};
 };
 
 typedef std::shared_ptr<ProjectItem> ProjectItemPtr;

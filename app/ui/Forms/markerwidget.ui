@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>397</width>
-    <height>85</height>
+    <width>554</width>
+    <height>93</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -36,10 +42,16 @@
      </property>
      <item>
       <widget class="QWidget" name="iconWidget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>96</width>
-         <height>0</height>
+         <height>64</height>
         </size>
        </property>
       </widget>
@@ -50,6 +62,9 @@
         <layout class="QFormLayout" name="formLayout">
          <property name="horizontalSpacing">
           <number>2</number>
+         </property>
+         <property name="verticalSpacing">
+          <number>4</number>
          </property>
          <item row="0" column="0">
           <widget class="QLabel" name="label">
@@ -116,7 +131,26 @@
       </layout>
      </item>
      <item>
-      <widget class="QPlainTextEdit" name="commentsEdit"/>
+      <widget class="QPlainTextEdit" name="commentsEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>82</height>
+        </size>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

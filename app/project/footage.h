@@ -78,11 +78,6 @@ using FootageStreamWPtr = std::weak_ptr<FootageStream>;
 class Footage : public project::ProjectItem {
 public:
     Footage();
-    virtual ~Footage();
-    Footage(const Footage&) = delete;
-    Footage(const Footage&&) = delete;
-    Footage& operator=(const Footage&) = delete;
-    Footage& operator=(const Footage&&) = delete;
 
     QString url;
     int64_t length = 0;

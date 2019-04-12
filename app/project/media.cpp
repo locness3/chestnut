@@ -258,7 +258,8 @@ MediaType Media::type() const
 const QString &Media::name() 
 {
   switch (type_) {
-    case MediaType::FOOTAGE: // fall-through intentional
+    case MediaType::FOOTAGE:
+      [[fallthrough]];
     case MediaType::SEQUENCE: 
       return object_->name();
     default: return folder_name_;

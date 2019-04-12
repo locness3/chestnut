@@ -3,20 +3,28 @@
 
 #include <QDockWidget>
 
+#include "project/media.h"
+
 namespace Ui {
-  class MarkersViewer;
+class MarkersViewer;
 }
 
 class MarkersViewer : public QDockWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 
-  public:
-    explicit MarkersViewer(QWidget *parent = nullptr);
-    ~MarkersViewer();
+public:
+  explicit MarkersViewer(QWidget *parent = nullptr);
+  ~MarkersViewer();
 
-  private:
-    Ui::MarkersViewer *ui;
+  bool setMedia(const MediaPtr& mda);
+  void refresh();
+  void reset();
+
+
+private:
+  Ui::MarkersViewer *ui{};
+  MediaWPtr media_{};
 };
 
 #endif // MARKERSVIEWER_H
