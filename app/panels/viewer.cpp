@@ -487,6 +487,21 @@ SequencePtr Viewer::getSequence()
   return seq;
 }
 
+void Viewer::setMarker() const
+{
+  bool add_marker = !e_config.set_name_with_marker;
+  QString marker_name;
+
+  if (!add_marker) {
+    std::tie(marker_name, add_marker) = this->getName();
+  }
+
+  if (add_marker) {
+    // TODO: create a thumbnail for this
+    e_undo_stack.push(new AddMarkerAction(media->object<Footage>(), seq->playhead_, marker_name));
+  }
+}
+
 void Viewer::update_viewer() {
   update_header_zoom();
   viewer_widget->frame_update();

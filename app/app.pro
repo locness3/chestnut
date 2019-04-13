@@ -114,7 +114,8 @@ SOURCES += \
     panels/panelmanager.cpp \
     effects/internal/diptocolourtransition.cpp \
     ui/Forms/markersviewer.cpp \
-    ui/Forms/markerwidget.cpp
+    ui/Forms/markerwidget.cpp \
+    ui/markerdockwidget.cpp
 
 HEADERS += \
     ui/mainwindow.h \
@@ -233,7 +234,8 @@ HEADERS += \
     gsl/string_span \
     ui/Forms/markersviewer.h \
     ui/Forms/markerwidget.h \
-    project/ixmlstreamer.h
+    project/ixmlstreamer.h \
+    ui/markerdockwidget.h
 
 DISTFILES +=
 

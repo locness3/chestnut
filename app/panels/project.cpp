@@ -899,6 +899,8 @@ void Project::load_project(bool autorecovery) {
   ld.exec();
 }
 
+//FIXME: use IXMLStreamer
+//FIXME: use bools instead of bools as ints
 void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool set_ids_only, const QModelIndex& parent)
 {
   for (int i=0;i<Project::model().rowCount(parent); ++i) {
@@ -967,10 +969,14 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
             stream.writeAttribute("frequency", QString::number(ms->audio_frequency));
             stream.writeEndElement();
           }
+          for (auto mark : ftg->markers_) {
+            if (!mark) continue;
+            mark->save(stream);
+          }
           stream.writeEndElement();
           media_id++;
         } else if (type == MediaType::SEQUENCE) {
-          SequencePtr  s = mda->object<Sequence>();
+          auto s = mda->object<Sequence>();
           if (set_ids_only) {
             s->save_id_ = sequence_id;
             sequence_id++;

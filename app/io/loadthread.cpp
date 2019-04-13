@@ -211,6 +211,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                 break;
               case static_cast<int>(MediaType::FOOTAGE):
               {
+                //FIXME: this does not load in all the details that were saved i.e. <video/>, <audio/>, <marker/>
                 int folder = 0;
 
                 auto item = std::make_shared<Media>();

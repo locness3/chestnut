@@ -1457,21 +1457,14 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
 }
 
 
-//FIXME: this adds marker to sequence even if entered (perceivably) at footage viewer
-void Timeline::set_marker()
+void Timeline::setMarker() const
 {
   bool add_marker = !e_config.set_name_with_marker;
   QString marker_name;
 
   if (!add_marker) {
-    QInputDialog d(this);
-    d.setWindowTitle(tr("Set Marker"));
-    d.setLabelText(tr("Set marker name:"));
-    d.setInputMode(QInputDialog::TextInput);
-    add_marker = (d.exec() == QDialog::Accepted);
-    marker_name = d.textValue();
+    std::tie(marker_name, add_marker) = this->getName();
   }
-
 
   if (add_marker) {
     // TODO: create a thumbnail for this

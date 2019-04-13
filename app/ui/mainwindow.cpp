@@ -1582,8 +1582,12 @@ void MainWindow::set_tsa_custom() {
 
 void MainWindow::set_marker()
 {
-  if (global::sequence != nullptr) {
-    PanelManager::timeLine().set_marker();
+  QDockWidget* panel = PanelManager::getFocusedPanel();
+  if (panel == &PanelManager::timeLine()
+      || panel == &PanelManager::sequenceViewer()
+      || panel == &PanelManager::footageViewer()) {
+    ui::MarkerDockWidget* mark_panel = dynamic_cast<ui::MarkerDockWidget*>(panel);
+    mark_panel->setMarker();
   }
 }
 

@@ -27,6 +27,7 @@
 #include <QIcon>
 
 #include "project/projectitem.h"
+#include "project/ixmlstreamer.h"
 
 
 enum class ScanMethod {

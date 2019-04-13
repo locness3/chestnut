@@ -26,6 +26,7 @@
 
 
 #include "ui/timelinewidget.h"
+#include "ui/markerdockwidget.h"
 #include "project/selection.h"
 #include "project/sequence.h"
 #include "project/media.h"
@@ -89,7 +90,7 @@ struct Ghost {
     TransitionPtr transition = nullptr;
 };
 
-class Timeline : public QDockWidget
+class Timeline : public QDockWidget, public ui::MarkerDockWidget
 {
     Q_OBJECT
   public:
@@ -139,7 +140,7 @@ class Timeline : public QDockWidget
     int get_snap_range();
     bool snap_to_point(long point, long* l);
     bool snap_to_timeline(long* l, bool use_playhead, bool use_markers, bool use_workarea);
-    void set_marker();
+    virtual void setMarker() const override;
 
     // shared information
     TimelineToolType tool;

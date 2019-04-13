@@ -27,6 +27,7 @@
 
 #include "project/sequence.h"
 #include "project/media.h"
+#include "ui/markerdockwidget.h"
 
 class Timeline;
 class ViewerWidget;
@@ -40,7 +41,7 @@ bool frame_rate_is_droppable(float rate);
 long timecode_to_frame(const QString& s, int view, double frame_rate);
 QString frame_to_timecode(long f, int view, double frame_rate);
 
-class Viewer : public QDockWidget
+class Viewer : public QDockWidget, public ui::MarkerDockWidget
 {
     Q_OBJECT
 
@@ -100,6 +101,10 @@ class Viewer : public QDockWidget
 
     MediaPtr getMedia();
     SequencePtr getSequence();
+    /**
+     * Create a new marker of an object in the widget
+     */
+    virtual void setMarker() const override;
 
   public slots:
     void play_wake();
