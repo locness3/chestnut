@@ -834,8 +834,8 @@ void SetAutoscaleAction::redo()
   MainWindow::instance().setWindowModified(true);
 }
 
-AddMarkerAction::AddMarkerAction(SequencePtr  s, const long t, QString n) :
-  seq(std::move(s)),
+AddMarkerAction::AddMarkerAction(project::ProjectItemPtr item, const long t, QString n) :
+  item_(std::move(item)),
   time(t),
   name(std::move(std::move(n))),
   old_project_changed(MainWindow::instance().isWindowModified())
@@ -844,9 +844,9 @@ AddMarkerAction::AddMarkerAction(SequencePtr  s, const long t, QString n) :
 void AddMarkerAction::undo()
 {
   if (index == -1) {
-    seq->markers_.removeLast();
-  } else if (seq->markers_.at(index) != nullptr) {
-    seq->markers_.at(index)->name = old_name;
+    item_->markers_.removeLast();
+  } else if (item_->markers_.at(index) != nullptr) {
+    item_->markers_.at(index)->name = old_name;
   }
   PanelManager::markersViewer().refresh();
   MainWindow::instance().setWindowModified(old_project_changed);
@@ -855,11 +855,12 @@ void AddMarkerAction::undo()
 void AddMarkerAction::redo()
 {
   index = -1;
-  for (auto i = 0; i < seq->markers_.size(); ++i)
-  if (MarkerPtr mark = seq->markers_.at(i)) {
-    if (mark->frame == time) {
-      index = i;
-      break;
+  for (auto i = 0; i < item_->markers_.size(); ++i) {
+    if (MarkerPtr mark = item_->markers_.at(i)) {
+      if (mark->frame == time) {
+        index = i;
+        break;
+      }
     }
   }
 
@@ -867,10 +868,10 @@ void AddMarkerAction::redo()
     auto mark = std::make_shared<Marker>();
     mark->frame = time;
     mark->name = name;
-    seq->markers_.append(mark);
+    item_->markers_.append(mark);
   } else {
-    old_name = seq->markers_.at(index)->name;
-    seq->markers_.at(index)->name = name;
+    old_name = item_->markers_.at(index)->name;
+    item_->markers_.at(index)->name = name;
   }
 
   PanelManager::markersViewer().refresh();

@@ -426,11 +426,11 @@ private:
 
 class AddMarkerAction : public QUndoCommand {
 public:
-    AddMarkerAction(SequencePtr  s, const long t, QString n);
+    AddMarkerAction(project::ProjectItemPtr  item, const long t, QString n);
     virtual void undo() override;
     virtual void redo() override;
 private:
-    SequencePtr seq;
+    project::ProjectItemPtr item_;
     long time;
     QString name;
     QString old_name;
