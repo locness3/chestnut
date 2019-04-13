@@ -1060,8 +1060,10 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                 stream.writeEndElement(); // clip
               }
             }
-            for (auto marker : s->markers_) {
-              marker.save(stream);
+            for (const auto& marker : s->markers_) {
+              if (marker != nullptr) {
+                marker->save(stream);
+              }
             }
             stream.writeEndElement();
           }

@@ -14,12 +14,16 @@ class MarkerWidget : public QWidget
     Q_OBJECT
 
   public:
-    MarkerWidget(Marker mark, QWidget *parent = nullptr);
+    MarkerWidget(MarkerPtr mark, QWidget *parent = nullptr);
     ~MarkerWidget();
+
+  private slots:
+    void onValChange(const QString& val);
+    void onCommentChanged();
 
   private:
     Ui::MarkerWidget *ui;
-    Marker marker_;
+    MarkerPtr marker_;
 };
 
 #endif // MARKERWIDGET_H

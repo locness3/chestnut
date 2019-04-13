@@ -318,9 +318,9 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                 while (!cancelled && !(stream.name() == child_search && stream.isEndElement()) && !stream.atEnd()) {
                   read_next_start_element(stream);
                   if (stream.name() == "marker" && stream.isStartElement()) {
-                    Marker m;
-                    m.load(stream);
-                    s->markers_.append(m);
+                    auto mark = std::make_shared<Marker>();
+                    mark->load(stream);
+                    s->markers_.append(mark);
                   } else if (stream.name() == "transition" && stream.isStartElement()) {
                     TransitionData td;
                     td.otc = nullptr;

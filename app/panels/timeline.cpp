@@ -1422,8 +1422,10 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
 
     // snap to marker
     if (use_markers) {
-      for (int i=0;i<global::sequence->markers_.size();i++) {
-        if (snap_to_point(global::sequence->markers_.at(i).frame, l)) return true;
+      for (const auto& mark : global::sequence->markers_) {
+        if (mark != nullptr && snap_to_point(mark->frame, l)) {
+          return true;
+        }
       }
     }
 

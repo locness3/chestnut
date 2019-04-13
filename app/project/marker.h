@@ -21,8 +21,10 @@
 #include <QString>
 #include <QColor>
 #include <QXmlStreamReader>
+#include <memory>
 
 #include "project/ixmlstreamer.h"
+
 
 class Marker : public project::IXMLStreamer {
   public:
@@ -38,4 +40,5 @@ class Marker : public project::IXMLStreamer {
     QColor color_{Qt::white};
 };
 
+using MarkerPtr = std::shared_ptr<Marker>;
 #endif // MARKER_H

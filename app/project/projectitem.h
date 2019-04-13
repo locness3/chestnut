@@ -41,7 +41,7 @@ public:
   void setName(const QString& val);
   const QString& name() const;
 
-  QVector<Marker> markers_{};
+  QVector<MarkerPtr> markers_{};
 private:
   friend class ::Sequence;
   friend class ::Footage;

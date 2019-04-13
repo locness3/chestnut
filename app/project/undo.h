@@ -440,12 +440,12 @@ private:
 
 class MoveMarkerAction : public QUndoCommand {
 public:
-    MoveMarkerAction(Marker* m, const long o, const long n);
+    MoveMarkerAction(MarkerPtr m, const long o, const long n);
 
     virtual void undo() override;
     virtual void redo() override;
 private:
-    Marker* marker;
+    MarkerPtr marker;
     long old_time;
     long new_time;
     bool old_project_changed;
@@ -459,7 +459,7 @@ public:
     QVector<int> markers;
 private:
     SequencePtr seq;
-    QVector<Marker> copies;
+    QVector<MarkerPtr> copies;
     bool sorted;
     bool old_project_changed;
 };

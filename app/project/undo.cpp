@@ -841,39 +841,42 @@ AddMarkerAction::AddMarkerAction(SequencePtr  s, const long t, QString n) :
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
 
-void AddMarkerAction::undo() {
+void AddMarkerAction::undo()
+{
   if (index == -1) {
     seq->markers_.removeLast();
-  } else {
-    seq->markers_[index].name = old_name;
+  } else if (seq->markers_.at(index) != nullptr) {
+    seq->markers_.at(index)->name = old_name;
   }
 
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
-void AddMarkerAction::redo() {
+void AddMarkerAction::redo()
+{
   index = -1;
-  for (int i=0;i<seq->markers_.size();i++) {
-    if (seq->markers_.at(i).frame == time) {
+  for (auto i = 0; i < seq->markers_.size(); ++i)
+  if (MarkerPtr mark = seq->markers_.at(i)) {
+    if (mark->frame == time) {
       index = i;
       break;
     }
   }
 
   if (index == -1) {
-    Marker m;
-    m.frame = time;
-    m.name = name;
-    seq->markers_.append(m);
+    auto mark = std::make_shared<Marker>();
+    mark->frame = time;
+    mark->name = name;
+    seq->markers_.append(mark);
   } else {
-    old_name = seq->markers_.at(index).name;
-    seq->markers_[index].name = name;
+    old_name = seq->markers_.at(index)->name;
+    seq->markers_.at(index)->name = name;
   }
 
   MainWindow::instance().setWindowModified(true);
 }
 
-MoveMarkerAction::MoveMarkerAction(Marker* m, const long o, const long n) :
+MoveMarkerAction::MoveMarkerAction(MarkerPtr m, const long o, const long n) :
   marker(m),
   old_time(o),
   new_time(n),
@@ -896,14 +899,16 @@ DeleteMarkerAction::DeleteMarkerAction(SequencePtr s) :
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
 
-void DeleteMarkerAction::undo() {
-  for (int i=markers.size()-1;i>=0;i--) {
+void DeleteMarkerAction::undo()
+{
+  for (int i=markers.size()-1; i>=0; i--) {
     seq->markers_.insert(markers.at(i), copies.at(i));
   }
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
-void DeleteMarkerAction::redo() {
+void DeleteMarkerAction::redo()
+{
   for (int i=0;i<markers.size();i++) {
     // correct future removals
     if (!sorted) {
