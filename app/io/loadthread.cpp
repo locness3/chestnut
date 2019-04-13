@@ -319,14 +319,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                   read_next_start_element(stream);
                   if (stream.name() == "marker" && stream.isStartElement()) {
                     Marker m;
-                    for (int j=0;j<stream.attributes().size();j++) {
-                      const QXmlStreamAttribute& attr = stream.attributes().at(j);
-                      if (attr.name() == "frame") {
-                        m.frame = attr.value().toLong();
-                      } else if (attr.name() == "name") {
-                        m.name = attr.value().toString();
-                      }
-                    }
+                    m.load(stream);
                     s->markers_.append(m);
                   } else if (stream.name() == "transition" && stream.isStartElement()) {
                     TransitionData td;

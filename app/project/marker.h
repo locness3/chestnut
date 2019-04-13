@@ -20,13 +20,22 @@
 
 #include <QString>
 #include <QColor>
+#include <QXmlStreamReader>
 
-struct Marker {
-  long frame{}; // TODO: timecode?
-  QString name{};
-  long duration_{};
-  QString comment_{};
-  QColor color_{Qt::white};
+#include "project/ixmlstreamer.h"
+
+class Marker : public project::IXMLStreamer {
+  public:
+    Marker() = default;
+
+    virtual void load(const QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
+
+    long frame{}; // TODO: timecode?
+    QString name{};
+    long duration_{};
+    QString comment_{};
+    QColor color_{Qt::white};
 };
 
 #endif // MARKER_H

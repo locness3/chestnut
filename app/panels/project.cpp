@@ -899,7 +899,8 @@ void Project::load_project(bool autorecovery) {
   ld.exec();
 }
 
-void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool set_ids_only, const QModelIndex& parent) {
+void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool set_ids_only, const QModelIndex& parent)
+{
   for (int i=0;i<Project::model().rowCount(parent); ++i) {
     const auto& item = Project::model().index(i, 0, parent);
     auto mda = Project::model().getItem(item);
@@ -1060,10 +1061,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
               }
             }
             for (auto marker : s->markers_) {
-              stream.writeStartElement("marker");
-              stream.writeAttribute("frame", QString::number(marker.frame));
-              stream.writeAttribute("name", marker.name);
-              stream.writeEndElement();
+              marker.save(stream);
             }
             stream.writeEndElement();
           }

@@ -16,3 +16,39 @@
  *along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "marker.h"
+
+constexpr const char* const START_ELEM = "marker";
+constexpr const char* const ATTR_FRAME = "frame";
+constexpr const char* const ATTR_NAME = "name";
+constexpr const char* const ATTR_COMMENT = "comment";
+constexpr const char* const ATTR_DURATION = "duration";
+constexpr const char* const ATTR_COLOR = "color";
+
+void Marker::load(const QXmlStreamReader& stream)
+{
+  for (const auto& attr : stream.attributes()) {
+    if (attr.name() == ATTR_FRAME) {
+      frame = attr.value().toLong();
+    } else if (attr.name() == ATTR_NAME) {
+      name = attr.value().toString();
+    } else if (attr.name() == ATTR_COMMENT) {
+      comment_ = attr.value().toString();
+    } else if (attr.name() == ATTR_DURATION) {
+      duration_ = attr.value().toLong();
+    } else if (attr.name() == ATTR_COLOR) {
+      color_ = QColor(static_cast<QRgb>(attr.value().toUInt()));
+    }
+  }
+}
+
+bool Marker::save(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement(START_ELEM);
+  stream.writeAttribute(ATTR_FRAME, QString::number(frame));
+  stream.writeAttribute(ATTR_NAME, name);
+  stream.writeAttribute(ATTR_COMMENT, comment_);
+  stream.writeAttribute(ATTR_DURATION, QString::number(duration_));
+  stream.writeAttribute(ATTR_COLOR, QString::number(color_.rgb()));
+  stream.writeEndElement();
+  return true;
+}

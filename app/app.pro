@@ -232,7 +232,8 @@ HEADERS += \
     gsl/span \
     gsl/string_span \
     ui/Forms/markersviewer.h \
-    ui/Forms/markerwidget.h
+    ui/Forms/markerwidget.h \
+    project/ixmlstreamer.h
 
 DISTFILES +=
 
