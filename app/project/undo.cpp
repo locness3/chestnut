@@ -848,7 +848,7 @@ void AddMarkerAction::undo()
   } else if (seq->markers_.at(index) != nullptr) {
     seq->markers_.at(index)->name = old_name;
   }
-
+  PanelManager::markersViewer().refresh();
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
@@ -873,6 +873,7 @@ void AddMarkerAction::redo()
     seq->markers_.at(index)->name = name;
   }
 
+  PanelManager::markersViewer().refresh();
   MainWindow::instance().setWindowModified(true);
 }
 

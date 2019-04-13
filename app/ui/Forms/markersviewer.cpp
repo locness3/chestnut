@@ -9,6 +9,9 @@ MarkersViewer::MarkersViewer(QWidget *parent) :
   ui(new Ui::MarkersViewer)
 {
   ui->setupUi(this);
+
+  // basic search functionality
+  connect(ui->searchLine, &QLineEdit::textChanged, this, &MarkersViewer::refresh);
 }
 
 MarkersViewer::~MarkersViewer()
@@ -35,24 +38,32 @@ bool MarkersViewer::setMedia(const MediaPtr& mda)
 }
 
 
-void MarkersViewer::refresh()
+void MarkersViewer::refresh(const QString& filter)
 {
   auto mda = media_.lock();
   if (mda == nullptr) {
     return;
   }
+  // clean up current view
   QLayoutItem* item;
   while ( (item = ui->markerLayout->takeAt(0)) != nullptr) {
     delete item->widget();
     delete item;
   }
 
-  MarkerWidget* widg = nullptr;
   auto pj = mda->object<project::ProjectItem>();
+  if (pj == nullptr) {
+    // nothing to do
+    return;
+  }
 
+  // populate
+  MarkerWidget* widg = nullptr;
   for (auto mark : pj->markers_) {
-    widg = new MarkerWidget(mark, this);
-    ui->markerLayout->addWidget(widg);
+    if ( (mark != nullptr) && (mark->name.contains(filter) || mark->comment_.contains(filter))) {
+      widg = new MarkerWidget(mark, this);
+      ui->markerLayout->addWidget(widg);
+    }
   }
   auto spacer = new QSpacerItem(0,0, QSizePolicy::Fixed, QSizePolicy::Expanding);
   ui->markerLayout->addSpacerItem(spacer);

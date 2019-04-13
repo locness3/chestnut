@@ -9,6 +9,23 @@ namespace Ui {
   class MarkerWidget;
 }
 
+class MarkerIcon : public QWidget
+{
+    Q_OBJECT
+  public:
+    explicit MarkerIcon(QWidget *parent = nullptr);
+    QColor clr_{};
+  protected:
+    /*
+     * Draw the icon of the grabbed frame with colored hint
+     */
+    void paintEvent(QPaintEvent *event) override;
+    /*
+     * Open up a dialog
+     */
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+};
+
 class MarkerWidget : public QWidget
 {
     Q_OBJECT
@@ -24,6 +41,7 @@ class MarkerWidget : public QWidget
   private:
     Ui::MarkerWidget *ui;
     MarkerPtr marker_;
+    MarkerIcon* marker_icon_;
 };
 
 #endif // MARKERWIDGET_H

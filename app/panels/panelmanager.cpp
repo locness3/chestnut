@@ -132,6 +132,7 @@ void PanelManager::refreshPanels(const bool modified)
   timeLine().repaint_timeline();
   sequenceViewer().update_viewer();
   graphEditor().update_panel();
+  markersViewer().refresh();
 }
 
 QDockWidget* PanelManager::getFocusedPanel()
