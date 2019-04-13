@@ -30,6 +30,7 @@ class Marker : public project::IXMLStreamer {
   public:
     Marker() = default;
 
+    bool operator<(const Marker& rhs) const;
     virtual void load(const QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 

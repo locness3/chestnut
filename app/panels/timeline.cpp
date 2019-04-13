@@ -1456,7 +1456,10 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
   return false;
 }
 
-void Timeline::set_marker() {
+
+//FIXME: this adds marker to sequence even if entered (perceivably) at footage viewer
+void Timeline::set_marker()
+{
   bool add_marker = !e_config.set_name_with_marker;
   QString marker_name;
 

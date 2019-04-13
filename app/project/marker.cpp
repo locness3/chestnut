@@ -25,6 +25,12 @@ constexpr const char* const ATTR_COMMENT = "comment";
 constexpr const char* const ATTR_DURATION = "duration";
 constexpr const char* const ATTR_COLOR = "color";
 
+
+bool Marker::operator<(const Marker& rhs) const
+{
+  return rhs.frame > frame;
+}
+
 void Marker::load(const QXmlStreamReader& stream)
 {
   for (const auto& attr : stream.attributes()) {

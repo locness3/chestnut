@@ -37,6 +37,12 @@ bool MarkersViewer::setMedia(const MediaPtr& mda)
   return true;
 }
 
+// std::sort on vector of shared_ptr doesn't compare instances
+bool markerLessThan(const MarkerPtr& lhs, const MarkerPtr& rhs)
+{
+  Q_ASSERT(lhs != nullptr && rhs != nullptr);
+  return *lhs < *rhs;
+}
 
 void MarkersViewer::refresh(const QString& filter)
 {
@@ -59,7 +65,9 @@ void MarkersViewer::refresh(const QString& filter)
 
   // populate
   MarkerWidget* widg = nullptr;
-  for (auto mark : pj->markers_) {
+  auto markers = pj->markers_;
+  std::sort(markers.begin(), markers.end(), markerLessThan);
+  for (auto mark : markers) {
     if ( (mark != nullptr) && (mark->name.contains(filter) || mark->comment_.contains(filter))) {
       widg = new MarkerWidget(mark, this);
       ui->markerLayout->addWidget(widg);
