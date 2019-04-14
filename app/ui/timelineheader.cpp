@@ -37,6 +37,7 @@ constexpr int PLAYHEAD_SIZE = 6;
 constexpr int LINE_MIN_PADDING = 50;
 constexpr int SUBLINE_MIN_PADDING = 50; //TODO: play with this
 constexpr int MARKER_SIZE = 4;
+constexpr int MARKER_OUTLINE_WIDTH = 3;
 
 using panels::PanelManager;
 
@@ -425,32 +426,39 @@ void TimelineHeader::paintEvent(QPaintEvent*) {
       }
 
       // draw markers
-      for (int j=0;i<sqn->markers_.size(); ++j) {
-        MarkerPtr m = sqn->markers_.at(j);
+      for (int j=0; j < sqn->markers_.size(); ++j) {
+        const MarkerPtr& m = sqn->markers_.at(j);
         if (m == nullptr) {
           continue;
         }
         int marker_x = getHeaderScreenPointFromFrame(m->frame);
         const QPoint points[5] = {
-          QPoint(marker_x, height()-1),
+          QPoint(marker_x, height() - 1),
           QPoint(marker_x + MARKER_SIZE, height() - MARKER_SIZE - 1),
           QPoint(marker_x + MARKER_SIZE, yoff),
           QPoint(marker_x - MARKER_SIZE, yoff),
           QPoint(marker_x - MARKER_SIZE, height() - MARKER_SIZE - 1)
         };
-        p.setPen(Qt::black);
+
         bool selected = false;
-        for (int k=0;k<selected_markers.size(); ++k) {
+        for (int k=0; k<selected_markers.size(); ++k) {
           if (selected_markers.at(k) == j) {
             selected = true;
             break;
           }
         }
         if (selected) {
-          p.setBrush(QColor(208, 255, 208));
+          QColor invert;
+          invert.setRed(255 - m->color_.red());
+          invert.setGreen(255 - m->color_.green());
+          invert.setBlue(255 - m->color_.blue());
+          QPen pen(invert);
+          pen.setWidth(MARKER_OUTLINE_WIDTH);
+          p.setPen(pen);
         } else {
-          p.setBrush(QColor(128, 224, 128));
+          p.setPen(m->color_);
         }
+        p.setBrush(m->color_);
         p.drawPolygon(points, 5);
       }
 
