@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<xs:schema>
+
+	<!-- simple types -->
+	<xs:element name="version" type="xs:integer" />
+	<xs:element name="url" type="xs:string" /> 
+
+	<!-- attributes -->
+	<xs:attribute name="id" 		type="xs:integer" />
+	<xs:attribute name="url" 		type="xs:string" />
+	<xs:attribute name="width" 		type="xs:integer" />
+	<xs:attribute name="height" 	type="xs:integer" />
+	<xs:attribute name="framerate" 	type="xs:decimal" />
+	<xs:attribute name="name" 		type="xs:string" />
+	<xs:attribute name="enabled"	type="xs:boolean" />
+	<xs:attribute name="in" 		type="xs:integer" />
+	<xs:attribute name="out"	 	type="xs:integer" />
+
+
+
+
+	<!-- complex types -->
+
+	<xs:element name="folder">
+		<xs:complexType>
+			<xs:simpleContent>
+				<xs:extension base="xs:string">
+					<xs:attribute ref="id" use="required"/>
+					<xs:attribute name="parent" type="xs:integer"/>
+				</xs:extension>
+			</xs:simpleContent>
+		</xs:complexType>
+	</xs:element>	
+
+	<xs:element name="folders">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="folder"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>	
+
+	<xs:element name="project">
+		<xs:complexType>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="media">
+		<xs:complexType>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="footage">
+		<xs:complexType>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="clip">
+		<xs:complexType>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="effect">
+		<xs:complexType>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="row">
+		<xs:complexType>
+		</xs:complexType>
+	</xs:element>
+
+</xs:schema>
