@@ -345,136 +345,136 @@ void TimelineHeader::delete_markers() {
   }
 }
 
-void TimelineHeader::paintEvent(QPaintEvent*) {
-  if (auto sqn = viewer->getSequence()) {
-    if (zoom > 0) {
-      QPainter p(this);
-      int yoff = (text_enabled) ? height()/2 : 0;
-
-      double interval = sqn->frameRate();
-      int textWidth = 0;
-      int lastTextBoundary = INT_MIN;
-
-      int i = 0;
-      int lastLineX = INT_MIN;
-
-      int sublineCount = 1;
-      int sublineTest = qRound(interval*zoom);
-      int sublineInterval = 1;
-      while (sublineTest > SUBLINE_MIN_PADDING
-             && sublineInterval >= 1) {
-        sublineCount *= 2;
-        sublineInterval = (interval/sublineCount);
-        sublineTest = qRound(sublineInterval*zoom);
-      }
-      sublineCount = qMin(sublineCount, qRound(interval));
-
-      int text_x, fullTextWidth;
-      QString timecode;
-
-      while (true) {
-        long frame = qRound(interval*i);
-        int lineX = qRound(frame*zoom) - scroll;
-
-        if (lineX > width()) break;
-
-        // draw text
-        bool draw_text = false;
-        if (text_enabled && lineX-textWidth > lastTextBoundary) {
-          timecode = frame_to_timecode(frame + in_visible, e_config.timecode_view, sqn->frameRate());
-          fullTextWidth = fm.width(timecode);
-          textWidth = fullTextWidth>>1;
-          text_x = lineX-textWidth;
-          lastTextBoundary = lineX+textWidth;
-          if (lastTextBoundary >= 0) {
-            draw_text = true;
-          }
-        }
-
-        if (lineX > lastLineX+LINE_MIN_PADDING) {
-          if (draw_text) {
-            p.setPen(Qt::white);
-            p.drawText(QRect(text_x, 0, fullTextWidth, yoff), timecode);
-          }
-
-          // draw line markers
-          p.setPen(Qt::gray);
-          p.drawLine(lineX, yoff, lineX, height());
-
-          // draw sub-line markers
-          for (int j=1;j<sublineCount;j++) {
-            int sublineX = lineX+(qRound(j*interval/sublineCount)*zoom);
-            p.drawLine(sublineX, yoff, sublineX, yoff+(height()/4));
-          }
-
-          lastLineX = lineX;
-        }
-
-        // TODO wastes cycles here, could just bring it up to 0
-        i++;
-      }
-
-      // draw in/out selection
-      int in_x;
-      if (sqn->workarea_.using_) {
-        in_x = getHeaderScreenPointFromFrame((resizing_workarea ? temp_workarea_in : sqn->workarea_.in_));
-        int out_x = getHeaderScreenPointFromFrame((resizing_workarea ? temp_workarea_out : sqn->workarea_.out_));
-        p.fillRect(QRect(in_x, 0, out_x-in_x, height()), sqn->workarea_.enabled_ ? QColor(0, 192, 255, 128) : QColor(255, 255, 255, 64));
-        p.setPen(Qt::white);
-        p.drawLine(in_x, 0, in_x, height());
-        p.drawLine(out_x, 0, out_x, height());
-      }
-
-      // draw markers
-      for (int j=0; j < sqn->markers_.size(); ++j) {
-        const MarkerPtr& m = sqn->markers_.at(j);
-        if (m == nullptr) {
-          continue;
-        }
-        int marker_x = getHeaderScreenPointFromFrame(m->frame);
-        const QPoint points[5] = {
-          QPoint(marker_x, height() - 1),
-          QPoint(marker_x + MARKER_SIZE, height() - MARKER_SIZE - 1),
-          QPoint(marker_x + MARKER_SIZE, yoff),
-          QPoint(marker_x - MARKER_SIZE, yoff),
-          QPoint(marker_x - MARKER_SIZE, height() - MARKER_SIZE - 1)
-        };
-
-        bool selected = false;
-        for (int k=0; k<selected_markers.size(); ++k) {
-          if (selected_markers.at(k) == j) {
-            selected = true;
-            break;
-          }
-        }
-        if (selected) {
-          QColor invert;
-          invert.setRed(255 - m->color_.red());
-          invert.setGreen(255 - m->color_.green());
-          invert.setBlue(255 - m->color_.blue());
-          QPen pen(invert);
-          pen.setWidth(MARKER_OUTLINE_WIDTH);
-          p.setPen(pen);
-        } else {
-          p.setPen(m->color_);
-        }
-        p.setBrush(m->color_);
-        p.drawPolygon(points, 5);
-      }
-
-      // draw playhead triangle
-      p.setRenderHint(QPainter::Antialiasing);
-
-      in_x = getHeaderScreenPointFromFrame(sqn->playhead_);
-      QPoint start(in_x, height()+2);
-      QPainterPath path;
-      path.moveTo(start + QPoint(1,0));
-      path.lineTo(in_x-PLAYHEAD_SIZE, yoff);
-      path.lineTo(in_x+PLAYHEAD_SIZE+1, yoff);
-      path.lineTo(start);
-      p.fillPath(path, Qt::red);
-    }
+void TimelineHeader::paintEvent(QPaintEvent*)
+{
+  auto sqn = viewer->getSequence();
+  if (sqn == nullptr || zoom <= 0.0) {
+    return;
   }
+  QPainter p(this);
+  int yoff = (text_enabled) ? height()/2 : 0;
+
+  double interval = sqn->frameRate();
+  int textWidth = 0;
+  int lastTextBoundary = INT_MIN;
+
+  int i = 0;
+  int lastLineX = INT_MIN;
+
+  int sublineCount = 1;
+  int sublineTest = qRound(interval*zoom);
+  int sublineInterval = 1;
+  while ( (sublineTest > SUBLINE_MIN_PADDING) && (sublineInterval >= 1) ) {
+    sublineCount *= 2;
+    sublineInterval = qRound(interval/sublineCount);
+    sublineTest = qRound(sublineInterval*zoom);
+  }
+  sublineCount = qMin(sublineCount, qRound(interval));
+
+  int text_x, fullTextWidth;
+  QString timecode;
+
+  while (true) {
+    long frame = qRound(interval*i);
+    int lineX = qRound(frame*zoom) - scroll;
+
+    if (lineX > width()) break;
+
+    // draw text
+    bool draw_text = false;
+    if (text_enabled && lineX-textWidth > lastTextBoundary) {
+      timecode = frame_to_timecode(frame + in_visible, e_config.timecode_view, sqn->frameRate());
+      fullTextWidth = fm.width(timecode);
+      textWidth = fullTextWidth>>1;
+      text_x = lineX-textWidth;
+      lastTextBoundary = lineX+textWidth;
+      if (lastTextBoundary >= 0) {
+        draw_text = true;
+      }
+    }
+
+    if (lineX > (lastLineX + LINE_MIN_PADDING) ) {
+      if (draw_text) {
+        p.setPen(Qt::white);
+        p.drawText(QRect(text_x, 0, fullTextWidth, yoff), timecode);
+      }
+
+      // draw line markers
+      p.setPen(Qt::gray);
+      p.drawLine(lineX, yoff, lineX, height());
+
+      // draw sub-line markers
+      for (int j=1;j<sublineCount;j++) {
+        int sublineX = lineX+(qRound(j*interval/sublineCount)*zoom);
+        p.drawLine(sublineX, yoff, sublineX, yoff+(height()/4));
+      }
+
+      lastLineX = lineX;
+    }
+
+    // TODO wastes cycles here, could just bring it up to 0
+    i++;
+  }
+
+  // draw in/out selection
+  int in_x;
+  if (sqn->workarea_.using_) {
+    in_x = getHeaderScreenPointFromFrame((resizing_workarea ? temp_workarea_in : sqn->workarea_.in_));
+    int out_x = getHeaderScreenPointFromFrame((resizing_workarea ? temp_workarea_out : sqn->workarea_.out_));
+    p.fillRect(QRect(in_x, 0, out_x-in_x, height()), sqn->workarea_.enabled_ ? QColor(0, 192, 255, 128) : QColor(255, 255, 255, 64));
+    p.setPen(Qt::white);
+    p.drawLine(in_x, 0, in_x, height());
+    p.drawLine(out_x, 0, out_x, height());
+  }
+
+  // draw markers
+  for (int j=0; j < sqn->markers_.size(); ++j) {
+    const MarkerPtr& m = sqn->markers_.at(j);
+    if (m == nullptr) {
+      continue;
+    }
+    int marker_x = getHeaderScreenPointFromFrame(m->frame);
+    const QPoint points[5] = {
+      QPoint(marker_x, height() - 1),
+      QPoint(marker_x + MARKER_SIZE, height() - MARKER_SIZE - 1),
+      QPoint(marker_x + MARKER_SIZE, yoff),
+      QPoint(marker_x - MARKER_SIZE, yoff),
+      QPoint(marker_x - MARKER_SIZE, height() - MARKER_SIZE - 1)
+    };
+
+    bool selected = false;
+    for (int k=0; k<selected_markers.size(); ++k) {
+      if (selected_markers.at(k) == j) {
+        selected = true;
+        break;
+      }
+    }
+    if (selected) {
+      QColor invert;
+      invert.setRed(255 - m->color_.red());
+      invert.setGreen(255 - m->color_.green());
+      invert.setBlue(255 - m->color_.blue());
+      QPen pen(invert);
+      pen.setWidth(MARKER_OUTLINE_WIDTH);
+      p.setPen(pen);
+    } else {
+      p.setPen(m->color_);
+    }
+    p.setBrush(m->color_);
+    p.drawPolygon(points, 5);
+  }
+
+  // draw playhead triangle
+  p.setRenderHint(QPainter::Antialiasing);
+
+  in_x = getHeaderScreenPointFromFrame(sqn->playhead_);
+  QPoint start(in_x, height()+2);
+  QPainterPath path;
+  path.moveTo(start + QPoint(1,0));
+  path.lineTo(in_x-PLAYHEAD_SIZE, yoff);
+  path.lineTo(in_x+PLAYHEAD_SIZE+1, yoff);
+  path.lineTo(start);
+  p.fillPath(path, Qt::red);
 }
 
 void TimelineHeader::show_context_menu(const QPoint &pos) {

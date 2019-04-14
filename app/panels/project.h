@@ -100,21 +100,16 @@ public:
     void save_recent_projects();
 
     QVector<MediaPtr> list_all_project_sequences();
-
-    SourceTable* tree_view;
-    SourceIconView* icon_view;
-    SourcesCommon* sources_common;
-
-    ProjectFilter* sorter;
-
-
     QModelIndexList get_current_selected();
 
     void start_preview_generator(MediaPtr item, const bool replacing);
     void get_all_media_from_table(QVector<MediaPtr> &items, QVector<MediaPtr> &list, const MediaType type = MediaType::NONE);
 
+    SourceTable* tree_view;
+    SourceIconView* icon_view;
+    SourcesCommon* sources_common;
+    ProjectFilter* sorter;
     QWidget* toolbar_widget;
-
 
 public slots:
     void import_dialog();

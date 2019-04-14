@@ -162,6 +162,7 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     QTimer recording_flasher;
 
     long previous_playhead;
+    SequencePtr createFootageSequence(const MediaPtr& mda) const;
 };
 
 #endif // VIEWER_H

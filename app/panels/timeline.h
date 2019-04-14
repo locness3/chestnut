@@ -90,15 +90,18 @@ struct Ghost {
     TransitionPtr transition = nullptr;
 };
 
+//FIXME: far too many methods and members
 class Timeline : public QDockWidget, public ui::MarkerDockWidget
 {
     Q_OBJECT
   public:
     explicit Timeline(QWidget *parent = nullptr);
-    virtual ~Timeline() = default;
+    virtual ~Timeline() override = default;
 
     Timeline(const Timeline& ) = delete;
+    Timeline(const Timeline&& ) = delete;
     Timeline& operator=(const Timeline&) = delete;
+    Timeline& operator=(const Timeline&&) = delete;
 
     bool focused();
     void set_zoom(bool in);
@@ -235,7 +238,8 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void scroll_to_frame(long frame);
     void select_from_playhead();
 
-    void resizeEvent(QResizeEvent *event);
+  protected:
+    void resizeEvent(QResizeEvent *event) override;
   public slots:
     void repaint_timeline();
     void toggle_show_all();

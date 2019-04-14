@@ -447,8 +447,8 @@ int Timeline::calculate_track_height(int track, int value) {
 void Timeline::update_sequence() {
   bool null_sequence = (global::sequence == nullptr);
 
-  for (int i=0;i<tool_buttons.count();i++) {
-    tool_buttons[i]->setEnabled(!null_sequence);
+  for (auto btn : tool_buttons) {
+    btn->setEnabled(!null_sequence);
   }
   snappingButton->setEnabled(!null_sequence);
   zoomInButton->setEnabled(!null_sequence);
@@ -475,42 +475,43 @@ bool Timeline::focused() {
 }
 
 void Timeline::repaint_timeline() {
-  if (!block_repaints) {
-    bool draw = true;
+  if (block_repaints) {
+    return;
+  }
+  bool draw = true;
 
-    if (global::sequence != nullptr
-        && !horizontalScrollBar->isSliderDown()
-        && !horizontalScrollBar->is_resizing()
-        && PanelManager::sequenceViewer().playing
-        && !zoom_just_changed) {
-      // auto scroll
-      if (e_config.autoscroll == AUTOSCROLL_PAGE_SCROLL) {
-        const int playhead_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(global::sequence->playhead_);
-        if (playhead_x < 0 || playhead_x > (editAreas->width() - videoScrollbar->width())) {
-          horizontalScrollBar->setValue(getScreenPointFromFrame(zoom, global::sequence->playhead_));
-          draw = false;
-        }
-      } else if (e_config.autoscroll == AUTOSCROLL_SMOOTH_SCROLL) {
-        if (center_scroll_to_playhead(horizontalScrollBar, zoom, global::sequence->playhead_)) {
-          draw = false;
-        }
+  if (global::sequence != nullptr
+      && !horizontalScrollBar->isSliderDown()
+      && !horizontalScrollBar->is_resizing()
+      && PanelManager::sequenceViewer().playing
+      && !zoom_just_changed) {
+    // auto scroll
+    if (e_config.autoscroll == AUTOSCROLL_PAGE_SCROLL) {
+      const int playhead_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(global::sequence->playhead_);
+      if (playhead_x < 0 || playhead_x > (editAreas->width() - videoScrollbar->width())) {
+        horizontalScrollBar->setValue(getScreenPointFromFrame(zoom, global::sequence->playhead_));
+        draw = false;
+      }
+    } else if (e_config.autoscroll == AUTOSCROLL_SMOOTH_SCROLL) {
+      if (center_scroll_to_playhead(horizontalScrollBar, zoom, global::sequence->playhead_)) {
+        draw = false;
       }
     }
+  }
 
-    zoom_just_changed = false;
+  zoom_just_changed = false;
 
-    if (draw) {
-      headers->update();
-      video_area->update();
-      audio_area->update();
+  if (draw) {
+    headers->update();
+    video_area->update();
+    audio_area->update();
 
-      if (global::sequence != nullptr) {
-        set_sb_max();
+    if (global::sequence != nullptr) {
+      set_sb_max();
 
-        if (last_frame != global::sequence->playhead_) {
-          audio_monitor->update();
-          last_frame = global::sequence->playhead_;
-        }
+      if (last_frame != global::sequence->playhead_) {
+        audio_monitor->update();
+        last_frame = global::sequence->playhead_;
       }
     }
   }

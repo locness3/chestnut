@@ -42,7 +42,7 @@ class TimelineHeader : public QWidget
     void delete_markers();
     void set_scrollbar_max(QScrollBar* bar, long sequence_end_frame, int offset);
 
-    Viewer* viewer;
+    Viewer* viewer{nullptr};
     bool snapping;
 
   public slots:
@@ -53,11 +53,11 @@ class TimelineHeader : public QWidget
     void resized_scroll_listener(double d);
 
   protected:
-    void paintEvent(QPaintEvent*);
-    void mousePressEvent(QMouseEvent*);
-    void mouseMoveEvent(QMouseEvent*);
-    void mouseReleaseEvent(QMouseEvent*);
-    void focusOutEvent(QFocusEvent*);
+    void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
+    void focusOutEvent(QFocusEvent*) override;
 
   private:
     void update_parents();
