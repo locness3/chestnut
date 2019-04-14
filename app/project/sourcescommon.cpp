@@ -194,7 +194,9 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& 
       switch (item->type()) {
         case MediaType::FOOTAGE:
           PanelManager::footageViewer().set_media(item);
-          PanelManager::footageViewer().setFocus();
+          PanelManager::footageViewer().show();
+          PanelManager::footageViewer().raise();
+          PanelManager::footageViewer().setFocus(); // this action actually stops rename
           break;
         case MediaType::SEQUENCE:
           e_undo_stack.push(new ChangeSequenceAction(item->object<Sequence>()));

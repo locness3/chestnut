@@ -67,11 +67,10 @@ void SourceTable::mousePressEvent(QMouseEvent* event) {
   QTreeView::mousePressEvent(event);
 }
 
-void SourceTable::mouseDoubleClickEvent(QMouseEvent* event) {
-  if (project_parent != nullptr) {
-    if (project_parent->sources_common != nullptr) {
-      project_parent->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
-    }
+void SourceTable::mouseDoubleClickEvent(QMouseEvent* event)
+{
+  if ( (project_parent != nullptr) && (project_parent->sources_common != nullptr) ){
+    project_parent->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
   }
 }
 
