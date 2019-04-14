@@ -266,13 +266,16 @@ void Project::duplicate_selected() {
   }
 }
 
-void Project::replace_selected_file() {
+void Project::replace_selected_file()
+{
   QModelIndexList selected_items = get_current_selected();
   if (selected_items.size() == 1) {
     MediaPtr item = item_to_media(selected_items.front());
     if (item->type() == MediaType::FOOTAGE) {
       replace_media(item, nullptr);
     }
+  } else {
+    qWarning() << "Not able to replace multiple files at one time";
   }
 }
 
