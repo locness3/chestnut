@@ -69,8 +69,8 @@ private:
     bool replace;
     bool cancelled;
     QString data_path;
-    QString get_thumbnail_path(const QString &hash, FootageStreamPtr& ms);
-    QString get_waveform_path(const QString& hash, FootageStreamPtr& ms);
+    QString get_thumbnail_path(const QString &hash,  project::FootageStreamPtr& ms);
+    QString get_waveform_path(const QString& hash,  project::FootageStreamPtr& ms);
 
     bool generate_image_thumbnail(const FootagePtr& ftg) const;
 };

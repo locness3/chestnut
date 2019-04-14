@@ -10,11 +10,12 @@ class FootageTest : public QObject
   public:
     explicit FootageTest(QObject *parent = nullptr);
 
-  signals:
-
-  public slots:
   private slots:
     void testCaseIsImage();
+    /**
+     * Check an uninit footage does not save
+     */
+    void testCaseUninitSave();
 };
 
 #endif // FOOTAGETEST_H

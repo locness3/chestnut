@@ -25,17 +25,13 @@
 #include <QMutex>
 #include <QPixmap>
 #include <QIcon>
+#include <QDir>
 
 #include "project/projectitem.h"
 #include "project/ixmlstreamer.h"
+#include "project/footagestream.h"
 
 
-enum class ScanMethod {
-  PROGRESSIVE = 0,
-  TOP_FIRST = 1,
-  BOTTOM_FIRST = 2,
-  UNKNOWN
-};
 
 
 class Clip;
@@ -47,67 +43,46 @@ using FootagePtr = std::shared_ptr<Footage>;
 using FootageWPtr = std::weak_ptr<Footage>;
 
 
-class FootageStream {
-  public:
-    FootageStream() = default;
-    FootageStream(const FootageStream&) = default;
-    FootageStream& operator=(const FootageStream&) = default;
 
-    void make_square_thumb();
-
-    int file_index = -1;
-    int video_width = -1;
-    int video_height = -1;
-    bool infinite_length = false;
-    double video_frame_rate = 0.0;
-    ScanMethod video_interlacing = ScanMethod::UNKNOWN;
-    ScanMethod video_auto_interlacing = ScanMethod::UNKNOWN;
-    int audio_channels = -1;
-    int audio_layout = -1;
-    int audio_frequency = -1;
-    bool enabled = false;
-
-    // preview thumbnail/waveform
-    bool preview_done = false;
-    QImage video_preview;
-    QIcon video_preview_square;
-    QVector<char> audio_preview;
-};
-using FootageStreamPtr = std::shared_ptr<FootageStream>;
-using FootageStreamWPtr = std::weak_ptr<FootageStream>;
-
-class Footage : public project::ProjectItem {
+class Footage : public project::ProjectItem, public project::IXMLStreamer {
 public:
     Footage();
 
     QString url;
     int64_t length = 0;
-    QVector<FootageStreamPtr> video_tracks;
-    QVector<FootageStreamPtr> audio_tracks;
-    int save_id;
-    bool ready;
-    bool invalid;
-    double speed;
+    QVector<project::FootageStreamPtr> video_tracks;
+    QVector<project::FootageStreamPtr> audio_tracks;
 
-    PreviewGenerator* preview_gen;
+    QDir proj_dir_{};
+    int save_id{-1};
+    int folder_{-1};
+
+    double speed{1.0};
+
+    PreviewGenerator* preview_gen{nullptr};
     QMutex ready_lock;
 
+    long in{0};
+    long out{0};
     bool using_inout = false;
-    long in;
-    long out;
+
+    bool ready{false};
+    bool valid{false};
 
     long get_length_in_frames(const double frame_rate) const;
 
-    FootageStreamPtr video_stream_from_file_index(const int index);
-    FootageStreamPtr audio_stream_from_file_index(const int index);
+    project::FootageStreamPtr video_stream_from_file_index(const int index);
+    project::FootageStreamPtr audio_stream_from_file_index(const int index);
     bool has_stream_from_file_index(const int index);
     bool has_video_stream_from_file_index(const int index);
     bool has_audio_stream_from_file_index(const int index) const;
     void reset();
     bool isImage() const;
+    virtual void load(const QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
   private:
     friend class FootageTest;
-    FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
+    project::FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
 
 };
 

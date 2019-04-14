@@ -10,10 +10,11 @@ FootageTest::FootageTest(QObject *parent) : QObject(parent)
 void FootageTest::testCaseIsImage()
 {
   Footage ftg;
+  ftg.valid = true;
   // by default, not an image
   QVERIFY(ftg.isImage() == false);
   // the sole stream is a video-type and is infinitely long
-  auto stream = std::make_shared<FootageStream>();
+  auto stream = std::make_shared<project::FootageStream>();
   stream->infinite_length = true;
   ftg.video_tracks.append(stream);
   QVERIFY(ftg.isImage() == true);
@@ -24,5 +25,13 @@ void FootageTest::testCaseIsImage()
   stream->infinite_length = true;
   ftg.audio_tracks.append(stream);
   QVERIFY(ftg.isImage() == false);
+}
 
+
+void FootageTest::testCaseUninitSave()
+{
+  Footage ftg;
+  QString output;
+  QXmlStreamWriter stream(&output);
+  QVERIFY(ftg.save(stream) == false);
 }

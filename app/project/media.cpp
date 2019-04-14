@@ -35,6 +35,9 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+using project::ScanMethod;
+using project::FootageStreamPtr;
+
 namespace
 {
   const auto COLUMN_COUNT = 3;

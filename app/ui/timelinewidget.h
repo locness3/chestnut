@@ -54,8 +54,8 @@ class TimelineAction;
 class SetSelectionsCommand;
 
 bool same_sign(int a, int b);
-void draw_waveform(ClipPtr& clip, const FootageStreamPtr& ms, const long media_length, QPainter& p, const QRect& clip_rect,
-                   const int waveform_start, const int waveform_limit, const double zoom);
+void draw_waveform(ClipPtr& clip, const project::FootageStreamPtr& ms, const long media_length, QPainter& p,
+                   const QRect& clip_rect, const int waveform_start, const int waveform_limit, const double zoom);
 
 class TimelineWidget : public QWidget {
     Q_OBJECT
@@ -113,7 +113,6 @@ class TimelineWidget : public QWidget {
     int scroll{};
 
     SetSelectionsCommand* selection_command{};
-  signals:
 
   public slots:
     void setScroll(int);

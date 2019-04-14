@@ -53,7 +53,7 @@ extern QStringList recent_projects;
 extern QString recent_proj_file;
 
 QString get_channel_layout_name(int channels, uint64_t layout);
-QString get_interlacing_name(const ScanMethod interlacing);
+QString get_interlacing_name(const project::ScanMethod interlacing);
 
 class Project : public QDockWidget {
     Q_OBJECT

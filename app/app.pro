@@ -115,7 +115,8 @@ SOURCES += \
     effects/internal/diptocolourtransition.cpp \
     ui/Forms/markersviewer.cpp \
     ui/Forms/markerwidget.cpp \
-    ui/markerdockwidget.cpp
+    ui/markerdockwidget.cpp \
+    project/footagestream.cpp
 
 HEADERS += \
     ui/mainwindow.h \
@@ -235,7 +236,8 @@ HEADERS += \
     ui/Forms/markersviewer.h \
     ui/Forms/markerwidget.h \
     project/ixmlstreamer.h \
-    ui/markerdockwidget.h
+    ui/markerdockwidget.h \
+    project/footagestream.h
 
 DISTFILES +=
 

@@ -26,6 +26,8 @@
 
 #include "debug.h"
 
+using project::ScanMethod;
+
 namespace {
   const auto      RECURSION_LIMIT = 100;
   const int       MAXIMUM_WIDTH              = 4096;

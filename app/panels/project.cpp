@@ -939,41 +939,9 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
         if (type == MediaType::FOOTAGE) {
           auto ftg = mda->object<Footage>();
           ftg->save_id = media_id;
-          stream.writeStartElement("footage");
-          stream.writeAttribute("id", QString::number(media_id));
-          stream.writeAttribute("folder", QString::number(folder));
-          stream.writeAttribute("name", ftg->name());
-          stream.writeAttribute("url", proj_dir.relativeFilePath(ftg->url));
-          stream.writeAttribute("duration", QString::number(ftg->length));
-          stream.writeAttribute("using_inout", QString::number(ftg->using_inout));
-          stream.writeAttribute("in", QString::number(ftg->in));
-          stream.writeAttribute("out", QString::number(ftg->out));
-          stream.writeAttribute("speed", QString::number(ftg->speed));
-
-          for (const auto ms : ftg->video_tracks) {
-            if (!ms) continue;
-            stream.writeStartElement("video");
-            stream.writeAttribute("id", QString::number(ms->file_index));
-            stream.writeAttribute("width", QString::number(ms->video_width));
-            stream.writeAttribute("height", QString::number(ms->video_height));
-            stream.writeAttribute("framerate", QString::number(ms->video_frame_rate, 'f', 10));
-            stream.writeAttribute("infinite", QString::number(ms->infinite_length));
-            stream.writeEndElement();
-          }
-          for (const auto ms : ftg->audio_tracks) {
-            if (!ms) continue;
-            stream.writeStartElement("audio");
-            stream.writeAttribute("id", QString::number(ms->file_index));
-            stream.writeAttribute("channels", QString::number(ms->audio_channels));
-            stream.writeAttribute("layout", QString::number(ms->audio_layout));
-            stream.writeAttribute("frequency", QString::number(ms->audio_frequency));
-            stream.writeEndElement();
-          }
-          for (auto mark : ftg->markers_) {
-            if (!mark) continue;
-            mark->save(stream);
-          }
-          stream.writeEndElement();
+          ftg->proj_dir_ = proj_dir;
+          ftg->folder_ = folder;
+          ftg->save(stream);
           media_id++;
         } else if (type == MediaType::SEQUENCE) {
           auto s = mda->object<Sequence>();

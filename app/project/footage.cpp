@@ -28,15 +28,9 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
+using project::FootageStreamPtr;
 
 Footage::Footage()
-  : save_id(-1),
-    ready(false),
-    invalid(false),
-    speed(1.0),
-    preview_gen(nullptr),
-    in(0),
-    out(0)
 {
   ready_lock.lock();
 }
@@ -54,7 +48,47 @@ void Footage::reset()
 
 bool Footage::isImage() const
 {
-  return (!video_tracks.empty()) && video_tracks.front()->infinite_length && (audio_tracks.empty());
+  return (valid && !video_tracks.empty()) && video_tracks.front()->infinite_length && (audio_tracks.empty());
+}
+
+
+void Footage::load(const QXmlStreamReader& stream)
+{
+
+}
+bool Footage::save(QXmlStreamWriter& stream) const
+{
+  if (!valid) {
+    qWarning() << "Footage is not valid. Not saving";
+    return false;
+  }
+  stream.writeStartElement("footage");
+  stream.writeAttribute("id", QString::number(save_id));
+  stream.writeAttribute("folder", QString::number(folder_));
+  stream.writeAttribute("name", name());
+  stream.writeAttribute("url", proj_dir_.relativeFilePath(url));
+  stream.writeAttribute("duration", QString::number(length));
+  stream.writeAttribute("using_inout", QString::number(using_inout));
+  stream.writeAttribute("in", QString::number(in));
+  stream.writeAttribute("out", QString::number(out));
+  stream.writeAttribute("speed", QString::number(speed));
+
+  for (const auto& ms : video_tracks) {
+    if (!ms) continue;
+    ms->save(stream);
+  }
+
+  for (const auto& ms : audio_tracks) {
+    if (!ms) continue;
+    ms->save(stream);
+  }
+
+  for (auto mark : markers_) {
+    if (!mark) continue;
+    mark->save(stream);
+  }
+  stream.writeEndElement();
+  return true;
 }
 
 long Footage::get_length_in_frames(const double frame_rate) const {
@@ -87,7 +121,6 @@ bool Footage::has_video_stream_from_file_index(const int index)
   return video_stream_from_file_index(index)!= nullptr;
 }
 
-
 FootageStreamPtr Footage::get_stream_from_file_index(const bool video, const int index)
 {
   FootageStreamPtr stream;
@@ -106,18 +139,4 @@ FootageStreamPtr Footage::get_stream_from_file_index(const bool video, const int
   }
 
   return stream;
-}
-
-
-void FootageStream::make_square_thumb() {
-  // generate square version for QListView?
-  const auto max_dimension = qMax(video_preview.width(), video_preview.height());
-  QPixmap pixmap(max_dimension, max_dimension);
-  pixmap.fill(Qt::transparent);
-  QPainter p(&pixmap);
-  const auto diff = (video_preview.width() - video_preview.height()) / 2;
-  const auto sqx = (diff < 0) ? -diff : 0;
-  const auto sqy = (diff > 0) ? diff : 0;
-  p.drawImage(sqx, sqy, video_preview);
-  video_preview_square = QIcon(pixmap);
 }

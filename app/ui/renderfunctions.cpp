@@ -155,7 +155,7 @@ GLuint compose_sequence(Viewer* viewer,
 
         if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
           auto ftg = clp->timeline_info.media->object<Footage>();
-          if (!ftg->invalid && !( (clp->timeline_info.track_ >= 0) && !is_audio_device_set())) {
+          if (ftg->valid && !( (clp->timeline_info.track_ >= 0) && !is_audio_device_set())) {
             if (ftg->ready) {
               const auto found = ftg->has_stream_from_file_index(clp->timeline_info.media_stream);
 

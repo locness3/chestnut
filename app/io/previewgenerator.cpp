@@ -46,6 +46,11 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+using project::FootageStreamPtr;
+using project::FootageStream;
+using project::StreamType;
+using project::ScanMethod;
+
 constexpr auto IMAGE_FRAMERATE = 0;
 constexpr auto PREVIEW_HEIGHT = 120;
 constexpr auto PREVIEW_CHANNELS = 4;
@@ -53,6 +58,7 @@ constexpr auto WAVEFORM_RESOLUTION = 64.0;
 constexpr auto MIME_VIDEO_PREFIX = "video";
 constexpr auto MIME_AUDIO_PREFIX = "audio";
 constexpr auto MIME_IMAGE_PREFIX = "image";
+constexpr const char* const PREVIEW_DIR = "/previews";
 
 namespace {
   QSemaphore sem(3); // only 5 preview generators can run at one time
@@ -69,7 +75,7 @@ PreviewGenerator::PreviewGenerator(MediaPtr item, const FootagePtr& ftg, const b
   replace(replacing),
   cancelled(false)
 {
-  data_path = get_data_path() + "/previews";
+  data_path = get_data_path() + PREVIEW_DIR;
   QDir data_dir(data_path);
   if (!data_dir.exists()) {
     data_dir.mkpath(".");
@@ -108,7 +114,7 @@ void PreviewGenerator::parse_media()
         if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO
             && stream->codecpar->width > 0
             && stream->codecpar->height > 0) {
-
+          ms->type_ = StreamType::VIDEO;
           // heuristic to determine if video is a still image
           if (stream->avg_frame_rate.den == 0
               && stream->codecpar->codec_id != AV_CODEC_ID_DNXHD) { // silly hack but this is the only scenario i've seen this
@@ -136,7 +142,8 @@ void PreviewGenerator::parse_media()
           ms->video_interlacing = ScanMethod::UNKNOWN;
 
           append = true;
-        } else if (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+        } else if (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {          
+          ms->type_ = StreamType::AUDIO;
           ms->audio_channels = stream->codecpar->channels;
           ms->audio_layout = stream->codecpar->channel_layout;
           ms->audio_frequency = stream->codecpar->sample_rate;
@@ -563,9 +570,9 @@ void PreviewGenerator::run()
     if (error) {
       media->updateTooltip(errorStr);
       emit set_icon(ICON_TYPE_ERROR, replace);
-      ftg->invalid = true;
       ftg->ready_lock.unlock();
     } else {
+      ftg->valid = true;
       media->updateTooltip();
     }
   }
@@ -589,6 +596,7 @@ bool PreviewGenerator::generate_image_thumbnail(const FootagePtr& ftg) const
   ms->video_frame_rate  = IMAGE_FRAMERATE;
   ms->video_auto_interlacing  = ScanMethod::PROGRESSIVE; // TODO: is this needed
   ms->video_interlacing       = ScanMethod::PROGRESSIVE; // TODO: is this needed
+  ms->type_ = StreamType::VIDEO;
   ftg->video_tracks.append(ms);
   return success;
 }

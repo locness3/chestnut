@@ -724,7 +724,7 @@ void Viewer::set_media(MediaPtr m) {
 
         seq->setFrameRate(MEDIA_FRAME_RATE);
 
-        if (ftg->video_tracks.size() > 0) {
+        if (!ftg->video_tracks.empty()) {
           const auto video_stream = ftg->video_tracks.front();
           seq->setWidth(video_stream->video_width);
           seq->setHeight(video_stream->video_height);
@@ -763,7 +763,7 @@ void Viewer::set_media(MediaPtr m) {
           clp->recalculateMaxLength();
           seq->clips_.append(clp);
 
-          if (ftg->video_tracks.size() == 0) {
+          if (ftg->video_tracks.empty()) {
             viewer_widget->waveform         = true;
             viewer_widget->waveform_clip    = clp;
             viewer_widget->waveform_ms      = audio_stream;

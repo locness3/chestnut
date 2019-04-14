@@ -42,12 +42,15 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
+using project::FootageStreamPtr;
+using panels::PanelManager;
+using project::ScanMethod;
+
 constexpr bool WAIT_ON_CLOSE = true;
 constexpr AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;
 constexpr int AUDIO_SAMPLES = 2048;
 constexpr int AUDIO_BUFFER_PADDING = 2048;
 
-using panels::PanelManager;
 
 double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sample_rate) {
   return (static_cast<double>(nb_bytes >> 1) / nb_channels / sample_rate);

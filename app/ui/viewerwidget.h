@@ -62,7 +62,7 @@ public:
 
     bool waveform;
     ClipPtr waveform_clip;
-    FootageStreamWPtr waveform_ms;
+    project::FootageStreamWPtr waveform_ms;
     double waveform_zoom;
     int waveform_scroll;
 

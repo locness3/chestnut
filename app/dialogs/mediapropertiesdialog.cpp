@@ -32,6 +32,8 @@
 #include "panels/project.h"
 #include "project/undo.h"
 
+using project::ScanMethod;
+
 MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
   QDialog(parent),
   item(mda)

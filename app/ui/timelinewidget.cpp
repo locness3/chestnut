@@ -37,31 +37,30 @@
 #include "project/sequence.h"
 #include "project/transition.h"
 #include "project/clip.h"
-#include "panels/panelmanager.h"
+#include "project/effect.h"
 #include "project/footage.h"
+#include "project/media.h"
+#include "panels/panelmanager.h"
 #include "ui/sourcetable.h"
 #include "ui/sourceiconview.h"
 #include "project/undo.h"
 #include "ui/mainwindow.h"
 #include "ui/viewerwidget.h"
 #include "dialogs/stabilizerdialog.h"
-#include "project/media.h"
 #include "ui/resizablescrollbar.h"
 #include "dialogs/newsequencedialog.h"
 #include "ui/mainwindow.h"
 #include "ui/rectangleselect.h"
 #include "debug.h"
 
-#include "project/effect.h"
 
-
+using panels::PanelManager;
+using project::FootageStreamPtr;
 
 constexpr int MAX_TEXT_WIDTH = 20;
 constexpr int TRANSITION_BETWEEN_RANGE = 40;
-
 constexpr int TOOLTIP_INTERVAL = 500;
 
-using panels::PanelManager;
 
 namespace {
   const QColor MOUSE_RELEASE_COLOR(192, 192, 64);
