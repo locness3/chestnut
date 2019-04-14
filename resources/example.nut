@@ -11,7 +11,7 @@
     </folders>
 
 	<media>
-		<footage folder="0" id="1" using_inout="false" speed="1.0">
+		<footage folder="0" id="1" using_inout="false">
 			<name>clipcanvas_14348_Avid_DNxHD.mov</name>
 			<url>/home/jon/Videos/clipcanvas_14348_Avid_DNxHD.mov</url>
 			<duration>8000000</duration>		
@@ -23,6 +23,11 @@
 			<audio id="1">
 				<channels>2</channels>
 				<frequency>48000</frequency>
+				<layout>0</layout>
+			</audio>
+			<audio id="2">
+				<channels>5</channels>
+				<frequency>96000</frequency>
 				<layout>0</layout>
 			</audio>
 
@@ -44,32 +49,28 @@
 			<height>1080</height>
 			<framerate>25.0000000000</framerate>
 			<frequency>48000</frequency>
-			<clip id="0" enabled="true" link_id="0">
+			<clip id="0" enabled="true" link_id="0" in="0" out="400">
 				<name>clipcanvas_14348_Avid_DNxHD.mov</name>
 				<clipin>0</clipin> <!-- ? -->
-				<in>0</in>
-				<out>400</out>
 				<track>-1</track>
 				<opening>-1</opening> <!-- ? -->
 
 				<effect enabled="true">
 					<name>Transform</name>
-					<fields> <!-- better name? -->
-						<field>
-							<name>posx</name>
-							<value>720</value>
-						</field>
-						<field>
-							<name>posy</name>
-							<value>540</value>
-						</field>
-					</fields>
+					<field>
+						<name>posx</name>
+						<value>720</value>
+					</field>
+					<field>
+						<name>posy</name>
+						<value>540</value>
+					</field>
 				</effect>
 			</clip>
 			
             <marker>
-				<frame>255</frame>
 				<name>123</name>
+				<frame>255</frame>
 				<comment>eggs</comment>
 				<duration>0</duration>
 				<color>4294967295</color>

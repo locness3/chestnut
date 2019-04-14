@@ -1,21 +1,29 @@
 <?xml version="1.0"?>
-<xs:schema>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
 	<!-- simple types -->
-	<xs:element name="version" type="xs:integer" />
-	<xs:element name="url" type="xs:string" /> 
+	<xs:element name="version"      type="xs:integer" />
+	<xs:element name="url"          type="xs:string" /> 
+	<xs:element name="name" 		type="xs:string" />
+	<xs:element name="width" 		type="xs:integer" />
+	<xs:element name="height" 	    type="xs:integer" />
+	<xs:element name="framerate" 	type="xs:decimal" />
+	<xs:element name="duration"	    type="xs:integer" />
+	<xs:element name="channels"	    type="xs:integer" />
+	<xs:element name="frequency"    type="xs:integer" />
+	<xs:element name="layout"       type="xs:integer" />
+	<xs:element name="frame"        type="xs:integer" />
+	<xs:element name="comment"      type="xs:string" />
+	<xs:element name="color"        type="xs:integer" />
+	<xs:element name="value"        type="xs:integer" />
 
 	<!-- attributes -->
 	<xs:attribute name="id" 		type="xs:integer" />
-	<xs:attribute name="url" 		type="xs:string" />
-	<xs:attribute name="width" 		type="xs:integer" />
-	<xs:attribute name="height" 	type="xs:integer" />
-	<xs:attribute name="framerate" 	type="xs:decimal" />
-	<xs:attribute name="name" 		type="xs:string" />
 	<xs:attribute name="enabled"	type="xs:boolean" />
 	<xs:attribute name="in" 		type="xs:integer" />
 	<xs:attribute name="out"	 	type="xs:integer" />
-
+    <xs:attribute name="folder"     type="xs:integer" />
 
 
 
@@ -23,12 +31,11 @@
 
 	<xs:element name="folder">
 		<xs:complexType>
-			<xs:simpleContent>
-				<xs:extension base="xs:string">
-					<xs:attribute ref="id" use="required"/>
-					<xs:attribute name="parent" type="xs:integer"/>
-				</xs:extension>
-			</xs:simpleContent>
+            <xs:sequence>
+                <xs:element ref="name"/>
+            </xs:sequence>
+            <xs:attribute ref="id"/>
+            <xs:attribute name="parent" type="xs:integer"/>
 		</xs:complexType>
 	</xs:element>	
 
@@ -42,32 +49,159 @@
 
 	<xs:element name="project">
 		<xs:complexType>
+			<xs:sequence>
+                <xs:element ref="version"/>
+                <xs:element ref="url"/>
+                <xs:element ref="folders"/>
+                <xs:element ref="media"/>
+                <xs:element ref="sequences"/>
+			</xs:sequence>
 		</xs:complexType>
 	</xs:element>
 
 	<xs:element name="media">
 		<xs:complexType>
+            <xs:sequence>
+                <xs:element ref="footage"/>
+            </xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+    <xs:element name="video">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="width"/>
+                <xs:element ref="height"/>
+                <xs:element ref="framerate"/>
+            </xs:sequence>
+            <xs:attribute ref="id"/>
+            <xs:attribute name="infinite" type="xs:string"/>
+		</xs:complexType>
+	</xs:element>
+
+    <xs:element name="audio">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="channels"/>
+                <xs:element ref="frequency"/>
+                <xs:element ref="layout"/>
+            </xs:sequence>
+            <xs:attribute ref="id"/>
+		</xs:complexType>
+	</xs:element>
+
+    <xs:element name="marker">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="name"/>
+                <xs:element ref="frame"/>
+                <xs:element ref="comment"/>
+                <xs:element ref="duration"/>
+                <xs:element ref="color"/>
+            </xs:sequence>
+            <xs:attribute ref="id"/>
 		</xs:complexType>
 	</xs:element>
 
 	<xs:element name="footage">
 		<xs:complexType>
+            <xs:sequence>
+                <xs:element ref="name"/>
+                <xs:element ref="url"/>
+                <xs:element ref="duration"/>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="video"/>
+                </xs:sequence>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="audio"/>
+                </xs:sequence>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="marker"/>
+                </xs:sequence>
+            </xs:sequence>
+            <xs:attribute ref="id"/>
+            <xs:attribute ref="folder"/>
+            <xs:attribute name="using_inout" type="xs:boolean"/>
 		</xs:complexType>
 	</xs:element>
 
-	<xs:element name="clip">
+	<xs:element name="field">
 		<xs:complexType>
+            <xs:sequence>  
+                <xs:element ref="name"/>
+                <xs:element ref="value"/> <!-- may need to be a string -->
+            </xs:sequence>
 		</xs:complexType>
 	</xs:element>
 
 	<xs:element name="effect">
 		<xs:complexType>
+            <xs:sequence>                
+                <xs:element ref="name"/>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="field"/>
+                </xs:sequence>
+            </xs:sequence>
+            <xs:attribute ref="enabled"/>
 		</xs:complexType>
 	</xs:element>
 
-	<xs:element name="row">
+
+
+	<xs:element name="clip">
 		<xs:complexType>
+            <xs:sequence>                
+                <xs:element ref="name"/>
+                <xs:element name="clipin" type="xs:integer"/>
+                <xs:element name="track" type="xs:integer"/>
+                <xs:element name="opening" type="xs:integer"/>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="effect"/>
+                </xs:sequence>
+            </xs:sequence>
+            <xs:attribute ref="id"/>
+            <xs:attribute ref="enabled"/>
+            <xs:attribute name="link_id" type="xs:integer"/>
+            <xs:attribute ref="in"/>
+            <xs:attribute ref="out"/>
 		</xs:complexType>
 	</xs:element>
 
+
+    <xs:element name="sequence">
+		<xs:complexType>
+            <xs:sequence>
+                <xs:element name="workarea">
+                    <xs:complexType>
+                        <xs:attribute ref="id"/>
+                        <xs:attribute ref="enabled"/>
+                        <xs:attribute ref="in"/>
+                        <xs:attribute ref="out"/>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element ref="name"/>
+                <xs:element ref="width"/>
+                <xs:element ref="height"/>
+                <xs:element ref="framerate"/>
+                <xs:element ref="frequency"/>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="clip"/>
+                </xs:sequence>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="marker"/>
+                </xs:sequence>
+            </xs:sequence>
+            <xs:attribute ref="id"/>
+            <xs:attribute ref="folder"/>
+		</xs:complexType>
+	</xs:element>
+
+    <xs:element name="sequences">
+		<xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="sequence"/>
+            </xs:sequence>
+		</xs:complexType>
+	</xs:element>
+            
 </xs:schema>
