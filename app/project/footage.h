@@ -64,7 +64,7 @@ public:
 
     long in{0};
     long out{0};
-    bool using_inout = false;
+    bool using_inout{false};
 
     bool ready{false};
     bool valid{false};
@@ -78,7 +78,7 @@ public:
     bool has_audio_stream_from_file_index(const int index) const;
     void reset();
     bool isImage() const;
-    virtual void load(const QXmlStreamReader& stream) override;
+    virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
   private:
     friend class FootageTest;

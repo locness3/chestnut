@@ -31,7 +31,7 @@ class Marker : public project::IXMLStreamer {
     Marker() = default;
 
     bool operator<(const Marker& rhs) const;
-    virtual void load(const QXmlStreamReader& stream) override;
+    virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 
     long frame{}; // TODO: timecode?

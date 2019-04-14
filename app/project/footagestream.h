@@ -27,7 +27,7 @@ namespace project {
       FootageStream() = default;
 
       void make_square_thumb();
-      virtual void load(const QXmlStreamReader& stream) override;
+      virtual bool load(QXmlStreamReader& stream) override;
       virtual bool save(QXmlStreamWriter& stream) const override;
 
       int file_index = -1;

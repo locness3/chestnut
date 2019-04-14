@@ -20,9 +20,10 @@ void FootageStream::make_square_thumb()
   video_preview_square = QIcon(pixmap);
 }
 
-void FootageStream::load(const QXmlStreamReader& stream)
+bool FootageStream::load(QXmlStreamReader& stream)
 {
   // TODO:
+  return false;
 }
 
 bool FootageStream::save(QXmlStreamWriter& stream) const

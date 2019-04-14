@@ -31,7 +31,7 @@ bool Marker::operator<(const Marker& rhs) const
   return rhs.frame > frame;
 }
 
-void Marker::load(const QXmlStreamReader& stream)
+bool Marker::load(QXmlStreamReader& stream)
 {
   for (const auto& attr : stream.attributes()) {
     if (attr.name() == ATTR_FRAME) {
@@ -46,6 +46,7 @@ void Marker::load(const QXmlStreamReader& stream)
       color_ = QColor(static_cast<QRgb>(attr.value().toUInt()));
     }
   }
+  return true;
 }
 
 bool Marker::save(QXmlStreamWriter& stream) const

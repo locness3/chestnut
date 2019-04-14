@@ -217,52 +217,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                 auto item = std::make_shared<Media>();
                 auto ftg = std::make_shared<Footage>();
 
-                ftg->using_inout = false;
-
-                for (int j=0;j<stream.attributes().size();j++) {
-                  const QXmlStreamAttribute& attr = stream.attributes().at(j);
-                  if (attr.name() == "id") {
-                    ftg->save_id = attr.value().toInt();
-                  } else if (attr.name() == "folder") {
-                    folder = attr.value().toInt();
-                  } else if (attr.name() == "name") {
-                    ftg->setName(attr.value().toString());
-                  } else if (attr.name() == "url") {
-                    ftg->url = attr.value().toString();
-
-                    if (!QFileInfo::exists(ftg->url)) { // if path is not absolute
-                      QString proj_dir_test = proj_dir.absoluteFilePath(ftg->url);
-                      QString internal_proj_dir_test = internal_proj_dir.absoluteFilePath(ftg->url);
-
-                      if (QFileInfo::exists(proj_dir_test)) { // if path is relative to the project's current dir
-                        ftg->url = proj_dir_test;
-                        qInfo() << "Matched" << attr.value().toString() << "relative to project's current directory";
-                      } else if (QFileInfo::exists(internal_proj_dir_test)) { // if path is relative to the last directory the project was saved in
-                        ftg->url = internal_proj_dir_test;
-                        qInfo() << "Matched" << attr.value().toString() << "relative to project's internal directory";
-                      } else if (ftg->url.contains('%')) {
-                        // hack for image sequences (qt won't be able to find the URL with %, but ffmpeg may)
-                        ftg->url = internal_proj_dir_test;
-                        qInfo() << "Guess image sequence" << attr.value().toString() << "path to project's internal directory";
-                      } else {
-                        qInfo() << "Failed to match" << attr.value().toString() << "to file";
-                      }
-                    } else {
-                      qInfo() << "Matched" << attr.value().toString() << "with absolute path";
-                    }
-                  } else if (attr.name() == "duration") {
-                    ftg->length = attr.value().toLongLong();
-                  } else if (attr.name() == "using_inout") {
-                    ftg->using_inout = (attr.value() == "1");
-                  } else if (attr.name() == "in") {
-                    ftg->in = attr.value().toLong();
-                  } else if (attr.name() == "out") {
-                    ftg->out = attr.value().toLong();
-                  } else if (attr.name() == "speed") {
-                    ftg->speed = attr.value().toDouble();
-                  }
-                }
-
+                ftg->load(stream);
                 item->setFootage(ftg);
 
                 if (folder == 0) {
@@ -287,7 +242,9 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
                     s->setName(attr.value().toString());
                   } else if (attr.name() == "folder") {
                     int folder = attr.value().toInt();
-                    if (folder > 0) parent = find_loaded_folder_by_id(folder);
+                    if (folder > 0) {
+                      parent = find_loaded_folder_by_id(folder);
+                    }
                   } else if (attr.name() == "id") {
                     s->save_id_ = attr.value().toInt();
                   } else if (attr.name() == "width") {
@@ -707,6 +664,7 @@ void LoadThread::create_effect_ui(
     long effect_length,
     bool effect_enabled)
 {
+  // TODO: see below
   /* This is extremely hacky - prepare yourself.
      *
      * When moving project loading to a separate thread, it was soon discovered

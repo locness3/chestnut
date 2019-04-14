@@ -52,10 +52,73 @@ bool Footage::isImage() const
 }
 
 
-void Footage::load(const QXmlStreamReader& stream)
+bool Footage::load(QXmlStreamReader& stream)
 {
+  for (int j=0;j<stream.attributes().size();j++) {
+    const QXmlStreamAttribute& attr = stream.attributes().at(j);
+    if (attr.name() == "id") {
+      save_id = attr.value().toInt();
+    } else if (attr.name() == "folder") {
+      folder_ = attr.value().toInt();
+    } else if (attr.name() == "name") {
+      setName(attr.value().toString());
+    } else if (attr.name() == "url") {
+      url = attr.value().toString();
+      // FIXME: always use absolute paths when saving
 
+//      if (!QFileInfo::exists(url)) { // if path is not absolute
+//        QString proj_dir_test = proj_dir.absoluteFilePath(url);
+//        QString internal_proj_dir_test = internal_proj_dir.absoluteFilePath(url);
+
+//        if (QFileInfo::exists(proj_dir_test)) { // if path is relative to the project's current dir
+//          url = proj_dir_test;
+//          qInfo() << "Matched" << attr.value().toString() << "relative to project's current directory";
+//        } else if (QFileInfo::exists(internal_proj_dir_test)) { // if path is relative to the last directory the project was saved in
+//          url = internal_proj_dir_test;
+//          qInfo() << "Matched" << attr.value().toString() << "relative to project's internal directory";
+//        } else if (url.contains('%')) {
+//          // hack for image sequences (qt won't be able to find the URL with %, but ffmpeg may)
+//          url = internal_proj_dir_test;
+//          qInfo() << "Guess image sequence" << attr.value().toString() << "path to project's internal directory";
+//        } else {
+//          qInfo() << "Failed to match" << attr.value().toString() << "to file";
+//        }
+//      } else {
+//        qInfo() << "Matched" << attr.value().toString() << "with absolute path";
+//      }
+    } else if (attr.name() == "duration") {
+      length = attr.value().toLongLong();
+    } else if (attr.name() == "using_inout") {
+      using_inout = (attr.value() == "1");
+    } else if (attr.name() == "in") {
+      in = attr.value().toLong();
+    } else if (attr.name() == "out") {
+      out = attr.value().toLong();
+    } else if (attr.name() == "speed") {
+      speed = attr.value().toDouble();
+    } else {
+      qInfo() << "Unhandled attribute" << attr.name();
+    }
+  }
+
+
+  while (stream.readNextStartElement()) {
+    QStringRef str_name = stream.name();
+    if (str_name == "video" || str_name == "audio") {
+      // these are superflous elements as the streams get populated via libav, again
+      stream.skipCurrentElement();
+    } else if (str_name == "marker"){
+      auto mrkr = std::make_shared<Marker>();
+      mrkr->load(stream);
+      markers_.append(mrkr);
+    } else {
+      stream.skipCurrentElement();
+    }
+  }
+
+  return true;
 }
+
 bool Footage::save(QXmlStreamWriter& stream) const
 {
   if (!valid) {
@@ -66,7 +129,7 @@ bool Footage::save(QXmlStreamWriter& stream) const
   stream.writeAttribute("id", QString::number(save_id));
   stream.writeAttribute("folder", QString::number(folder_));
   stream.writeAttribute("name", name());
-  stream.writeAttribute("url", proj_dir_.relativeFilePath(url));
+  stream.writeAttribute("url", QDir(url).absolutePath());
   stream.writeAttribute("duration", QString::number(length));
   stream.writeAttribute("using_inout", QString::number(using_inout));
   stream.writeAttribute("in", QString::number(in));

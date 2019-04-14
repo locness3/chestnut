@@ -30,7 +30,7 @@ namespace project {
        * Load an xml entry as the instance
        * @param stream xml entry
        */
-      virtual void load(const QXmlStreamReader& stream) = 0;
+      virtual bool load(QXmlStreamReader& stream) = 0;
       /**
        * Save this instance as an xml entry
        * @param stream
