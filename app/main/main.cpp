@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 #endif
 
   QApplication a(argc, argv);
-  a.setWindowIcon(QIcon(":/icons/olive64.png"));
+  QApplication::setWindowIcon(QIcon(":/icons/olive64.png"));
 
   MainWindow& w = MainWindow::instance(nullptr, appName);
   w.initialise();
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     w.showMaximized();
   }
 
-  int retCode = a.exec();
+  int retCode = QApplication::exec();
 
   MainWindow::tearDown();
   return retCode;
