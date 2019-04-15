@@ -122,6 +122,8 @@
             <xs:attribute ref="id"/>
             <xs:attribute ref="folder"/>
             <xs:attribute name="using_inout" type="xs:boolean"/>
+            <xs:attribute ref="in" />
+            <xs:attribute ref="out" />
 		</xs:complexType>
 	</xs:element>
 
