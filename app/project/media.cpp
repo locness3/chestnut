@@ -469,6 +469,7 @@ void Media::removeChild(const int32_t index)
 
 bool Media::load(QXmlStreamReader& stream)
 {
+  //TODO: use correct parents e.g. its folder
   auto elem_name = stream.name();
   if (elem_name == "folder") {
     if (!loadAsFolder(stream)) {

@@ -942,6 +942,16 @@ bool Effect::are_gizmos_enabled() const {
   return (!gizmos.empty());
 }
 
+EffectPtr Effect::effectFromStream(QXmlStreamReader& stream)
+{
+  // get effect name
+  // location effect in some list
+  // set up that effect with this
+  // return that effect
+  stream.skipCurrentElement();
+  return nullptr;
+}
+
 void Effect::redraw(double)
 {
   qInfo() << "Method does nothing";

@@ -180,6 +180,7 @@ public:
     void gizmo_world_to_screen();
     bool are_gizmos_enabled() const;
 
+    static EffectPtr effectFromStream(QXmlStreamReader& stream);
 
     ClipPtr parent_clip; //TODO: make weak
     const EffectMeta* meta;

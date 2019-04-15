@@ -920,8 +920,10 @@ bool Clip::load(QXmlStreamReader& stream)
     } else if (name == "opening") {
       opening_transition = stream.readElementText().toInt();
     } else if (name == "effect") {
+      auto eff = Effect::effectFromStream(stream);
+      effects.append(eff);
       // TODO: effect loading is currently very tricky
-      stream.skipCurrentElement();
+//      stream.skipCurrentElement();
 //      EffectMeta* meta = nullptr;
 //      auto eff = std::make_shared<Effect>(shared_from_this(), meta);
 //      if (eff->load(stream)) {

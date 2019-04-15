@@ -247,11 +247,11 @@ bool ProjectModel::load(QXmlStreamReader& stream)
       }
     } else if ( (elem_name == "folders") || (elem_name == "media") || (elem_name == "sequences") ) {
       while (stream.readNextStartElement()) {
-        auto mda = std::make_shared<Media>();
+        auto mda = std::make_shared<Media>(root());
         if (!mda->load(stream)) {
           return false;
         }
-        project_items.insert(mda->id(), mda);
+        appendChild(nullptr, mda);
       }
     } else {
       stream.skipCurrentElement();
@@ -272,7 +272,7 @@ bool ProjectModel::appendChild(MediaPtr parent, const MediaPtr& child)
     return false;
   }
   if (parent == nullptr) {
-    parent = project_items.first();
+    parent = root();
   }
   auto item = parent == project_items.first() ? QModelIndex() : create_index(parent->row(), parent);
   beginInsertRows(item,

@@ -21,6 +21,7 @@
 
 #include <libavutil/channel_layout.h>
 
+#include "panels/panelmanager.h"
 #include "clip.h"
 #include "transition.h"
 
@@ -273,15 +274,20 @@ void Sequence::closeActiveClips(const int32_t depth)
 
 bool Sequence::load(QXmlStreamReader& stream)
 {
-  // TODO:
   for (const auto& attr : stream.attributes()) {
     const auto name = attr.name().toString().toLower();
     if (name == "id") {
       save_id_ = attr.value().toInt();
     } else if (name == "folder") {
-      const auto folder = attr.value().toInt();
-      if (folder > 0) {
-//        parent = find_loaded_folder_by_id(folder); //TODO: ProjectModel::find(id)
+      const auto folder_id = attr.value().toInt();
+      if (folder_id > 0) {
+        // the folder it's in? 0 being root?
+//        parent = panels::PanelManager::projectViewer().model().getFolder(folder_id); //TODO: do what with it?
+      }
+    } else if (name == "open") {
+      bool is_open = attr.value().toString().toLower() == "true";
+      if (is_open) {
+        global::sequence = shared_from_this();
       }
     } else {
       qWarning() << "Unhandled attribute" << name;
@@ -329,7 +335,6 @@ bool Sequence::load(QXmlStreamReader& stream)
       stream.skipCurrentElement();
     }
   }//while
-
   return true;
 }
 bool Sequence::save(QXmlStreamWriter& stream) const

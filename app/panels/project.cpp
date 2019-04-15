@@ -376,22 +376,20 @@ MediaPtr Project::new_sequence(ComboAction *ca, SequencePtr s, bool open, MediaP
   return item;
 }
 
-QString Project::get_file_name_from_path(const QString& path) {
+QString Project::get_file_name_from_path(const QString& path) const
+{
   return QFileInfo(path).fileName();
 }
 
 
-QString Project::get_file_ext_from_path(const QString &path) {
+QString Project::get_file_ext_from_path(const QString &path) const
+{
   return QFileInfo(path).suffix();
 }
 
-/*MediaPtr Project::new_item() {
-    MediaPtr item = new Media(0);
-    //item->setFlags(item->flags() | Qt::ItemIsEditable);
-    return item;
-}*/
 
-bool Project::is_focused() {
+bool Project::is_focused() const
+{
   return tree_view->hasFocus() || icon_view->hasFocus();
 }
 
@@ -870,7 +868,8 @@ void Project::delete_clips_using_selected_media() {
   }
 }
 
-void Project::clear() {
+void Project::clear()
+{
   // clear effects cache
   PanelManager::fxControls().clear_effects(true);
 
@@ -884,10 +883,11 @@ void Project::clear() {
   }
 
   // delete everything else
-  Project::model().clear();
+  model().clear();
 }
 
-void Project::new_project() {
+void Project::new_project()
+{
   // clear existing project
   set_sequence(nullptr);
   PanelManager::footageViewer().set_media(nullptr);
@@ -895,11 +895,14 @@ void Project::new_project() {
   MainWindow::instance().setWindowModified(false);
 }
 
-void Project::load_project(bool autorecovery) {
+void Project::load_project(bool autorecovery)
+{
   new_project();
 
   LoadDialog ld(this, autorecovery);
-  ld.exec();
+  if (ld.exec() == QDialog::Accepted) {
+    refresh();
+  }
 }
 
 //FIXME: use IXMLStreamer
@@ -1104,7 +1107,8 @@ void Project::save_project(bool autorecovery) {
   }
 }
 
-void Project::update_view_type() {
+void Project::update_view_type()
+{
   tree_view->setVisible(e_config.project_view_type == ProjectView::TREE);
   icon_view_container->setVisible(e_config.project_view_type == ProjectView::ICON);
 
