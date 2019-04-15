@@ -24,7 +24,7 @@
 	<xs:attribute name="in" 		type="xs:integer" />
 	<xs:attribute name="out"	 	type="xs:integer" />
     <xs:attribute name="folder"     type="xs:integer" />
-
+    <xs:attribute name="using"      type="xs:boolean" />
 
 
 	<!-- complex types -->
@@ -175,7 +175,7 @@
             <xs:sequence>
                 <xs:element name="workarea">
                     <xs:complexType>
-                        <xs:attribute ref="id"/>
+                        <xs:attribute ref="using"/>
                         <xs:attribute ref="enabled"/>
                         <xs:attribute ref="in"/>
                         <xs:attribute ref="out"/>
@@ -186,6 +186,7 @@
                 <xs:element ref="height"/>
                 <xs:element ref="framerate"/>
                 <xs:element ref="frequency"/>
+                <xs:element ref="layout"/>
                 <xs:sequence minOccurs="0" maxOccurs="unbounded">
                     <xs:element ref="clip"/>
                 </xs:sequence>

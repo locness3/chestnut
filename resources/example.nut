@@ -43,12 +43,13 @@
 
   <sequences>
     <sequence id="1" folder="0">
-      <workarea id="0" enabled="true" in="0" out="0"/>
+      <workarea using="true" enabled="true" in="0" out="0"/>
       <name>Test Sequence</name>
       <width>1920</width>
       <height>1080</height>
       <framerate>25.0000000000</framerate>
       <frequency>48000</frequency>
+      <layout>2</layout>
       <clip id="0" enabled="true" link_id="0" in="0" out="400">
         <name>clipcanvas_14348_Avid_DNxHD.mov</name>
         <clipin>0</clipin> <!-- ? -->
