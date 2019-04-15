@@ -42,7 +42,7 @@
   </media>
 
   <sequences>
-    <sequence id="1" folder="0">
+    <sequence id="1" folder="0" open="false">
       <workarea using="true" enabled="true" in="0" out="0"/>
       <name>Test Sequence</name>
       <width>1920</width>
