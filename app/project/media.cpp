@@ -528,8 +528,7 @@ bool Media::loadAsSequence(QXmlStreamReader& stream)
 {
   auto seq = std::make_shared<Sequence>();
   if (seq->load(stream)) {
-    object_ = seq;
-    type_ = MediaType::SEQUENCE;
+    setSequence(seq);
     return true;
   }
   return false;
@@ -539,8 +538,7 @@ bool Media::loadAsFootage(QXmlStreamReader& stream)
 {
   auto ftg = std::make_shared<Footage>();
   if (ftg->load(stream)) {
-    object_ = ftg;
-    type_ = MediaType::FOOTAGE;
+    setFootage(ftg);
     return true;
   }
   return false;
