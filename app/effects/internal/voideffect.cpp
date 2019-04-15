@@ -20,7 +20,8 @@ VoidEffect::VoidEffect(ClipPtr c, const QString& n) : Effect(c, nullptr) {
   container->setText(display_name);
 }
 
-void VoidEffect::load(QXmlStreamReader &stream) {
+bool VoidEffect::load(QXmlStreamReader &stream)
+{
   QString tag = stream.name().toString();
   qint64 start_index = stream.characterOffset();
   qint64 end_index = start_index;
@@ -42,9 +43,11 @@ void VoidEffect::load(QXmlStreamReader &stream) {
       passage_get.close();
     }
   }
+  return false;
 }
 
-void VoidEffect::save(QXmlStreamWriter &stream) {
+bool VoidEffect::save(QXmlStreamWriter &stream) const
+{
   if (!name_.isEmpty()) {
     stream.writeAttribute("name", name_);
     stream.writeAttribute("enabled", QString::number(is_enabled()));
@@ -59,4 +62,5 @@ void VoidEffect::save(QXmlStreamWriter &stream) {
       device->write(bytes);
     }
   }
+  return false;
 }

@@ -271,6 +271,92 @@ void Sequence::closeActiveClips(const int32_t depth)
   }//for
 }
 
+bool Sequence::load(QXmlStreamReader& stream)
+{
+  // TODO:
+  for (const auto& attr : stream.attributes()) {
+    const auto name = attr.name().toString().toLower();
+    if (name == "id") {
+      save_id_ = attr.value().toInt();
+    } else if (name == "folder") {
+      const auto folder = attr.value().toInt();
+      if (folder > 0) {
+//        parent = find_loaded_folder_by_id(folder); //TODO: ProjectModel::find(id)
+      }
+    } else {
+      qWarning() << "Unhandled attribute" << name;
+    }
+  }
+
+  while (stream.readNextStartElement()) {
+    const auto name = stream.name().toString().toLower();
+    if (name == "workarea") {
+      if (!loadWorkArea(stream)) {
+        qCritical() << "Failed to load workarea";
+        return false;
+      }
+      stream.skipCurrentElement();
+    } else if (name == "name") {
+      setName(stream.readElementText());
+    } else if (name == "width") {
+      setWidth(stream.readElementText().toInt());
+    } else if (name == "height") {
+      setHeight(stream.readElementText().toInt());
+    } else if (name == "framerate") {
+      setFrameRate(stream.readElementText().toDouble());
+    } else if (name == "frequency") {
+      setAudioFrequency(stream.readElementText().toInt());
+    } else if (name == "layout") {
+      setAudioLayout(stream.readElementText().toInt());
+    } else if (name == "clip") {
+      auto clp = std::make_shared<Clip>(shared_from_this());
+      if (clp->load(stream)) {
+        clips_.append(clp);
+      } else {
+        qCritical() << "Failed to load clip";
+        return false;
+      }
+    } else if (name == "marker") {
+      auto mark = std::make_shared<Marker>();
+      if (mark->load(stream)) {
+        markers_.append(mark);
+      } else {
+        qCritical() << "Failed to read marker element";
+        return false;
+      }
+    } else {
+      qWarning() << "Unhandled element" << name;
+      stream.skipCurrentElement();
+    }
+  }//while
+
+  return true;
+}
+bool Sequence::save(QXmlStreamWriter& stream) const
+{
+  // TODO:
+  return false;
+}
+
+
+bool Sequence::loadWorkArea(QXmlStreamReader& stream)
+{
+  for (const auto& attr : stream.attributes()) {
+    const auto name = attr.name().toString().toLower();
+    if (name == "using") {
+      workarea_.using_ = attr.value().toString() == "true";
+    } else if (name == "enabled") {
+      workarea_.enabled_ = attr.value().toString() == "true";
+    } else if (name == "in") {
+      workarea_.in_ = attr.value().toInt();
+    } else if (name == "out") {
+      workarea_.out_ = attr.value().toInt();
+    } else {
+      qWarning() << "Unhandled workarea attribute" << name;
+    }
+  }
+  return true;
+}
 
 std::pair<int64_t, int64_t> Sequence::trackLimits() const
 {

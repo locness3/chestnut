@@ -21,8 +21,9 @@
 #include <QAbstractItemModel>
 
 #include "project/media.h"
+#include "project/ixmlstreamer.h"
 
-class ProjectModel : public QAbstractItemModel
+class ProjectModel : public QAbstractItemModel, public project::IXMLStreamer
 {
     Q_OBJECT
 public:
@@ -58,10 +59,14 @@ public:
     QModelIndex add(const MediaPtr& mda);
     MediaPtr get(const QModelIndex& idx);
     const MediaPtr get(const QModelIndex& idx) const;
+    MediaPtr getFolder(const int id);
 
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 private:
     friend class ProjectModelTest;
     QMap<int, MediaPtr> project_items;
+
     /**
      * @brief insert Add object into managed map of objects
      * @param item    Object to manage

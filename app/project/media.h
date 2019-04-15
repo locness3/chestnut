@@ -26,6 +26,7 @@
 #include "project/projectitem.h"
 #include "project/sequence.h"
 #include "project/footage.h"
+#include "project/ixmlstreamer.h"
 
 
 enum class MediaType {
@@ -53,11 +54,12 @@ using MediaPtr = std::shared_ptr<Media>;
 using MediaWPtr = std::weak_ptr<Media>;
 
 
-class Media : public std::enable_shared_from_this<Media>
+class Media : public std::enable_shared_from_this<Media>, public project::IXMLStreamer
 {
 public:
     Media();
     explicit Media(const MediaPtr& iparent);
+    ~Media() override;
 
     template<typename T>
     auto object() {
@@ -93,9 +95,12 @@ public:
     MediaPtr parentItem();
     void removeChild(const int32_t index);
 
-    MediaThrobber* throbber;
-    int32_t temp_id = 0;
-    int32_t temp_id2 = 0;
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
+
+    MediaThrobber* throbber{};
+    int32_t temp_id = 0;  // folder id
+    int32_t temp_id2 = 0; // folder parent id
 
 protected:
     static int32_t nextID;
@@ -112,6 +117,10 @@ private:
     QString tool_tip_;
     QIcon icon_;
     int32_t id_;
+
+    bool loadAsFolder(QXmlStreamReader& stream);
+    bool loadAsSequence(QXmlStreamReader& stream);
+    bool loadAsFootage(QXmlStreamReader& stream);
 
 };
 

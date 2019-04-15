@@ -23,6 +23,7 @@
 #include "debug.h"
 
 constexpr int DEFAULT_COLUMN = 0;
+constexpr int FILE_VERSION = 1;
 
 using panels::PanelManager;
 
@@ -219,6 +220,50 @@ MediaPtr ProjectModel::get(const QModelIndex& idx)
 const MediaPtr ProjectModel::get(const QModelIndex& idx) const
 {
   return project_items.value(idx.internalId());
+}
+
+
+MediaPtr ProjectModel::getFolder(const int id)
+{
+  for (auto item : project_items) {
+    if ( (item->type() == MediaType::FOLDER) && (item->temp_id == id) ) {
+      return item;
+    }
+  }
+  return nullptr;
+}
+
+bool ProjectModel::load(QXmlStreamReader& stream)
+{
+  QStringRef elem_name;
+  while (stream.readNextStartElement()) {
+    elem_name = stream.name();
+    if (elem_name == "version") {
+      auto text = stream.readElementText();
+      auto version = text.toInt();
+      if (version > FILE_VERSION) {
+        qCritical() << "Unsupported project file format" << version;
+        return false;
+      }
+    } else if ( (elem_name == "folders") || (elem_name == "media") || (elem_name == "sequences") ) {
+      while (stream.readNextStartElement()) {
+        auto mda = std::make_shared<Media>();
+        if (!mda->load(stream)) {
+          return false;
+        }
+        project_items.insert(mda->id(), mda);
+      }
+    } else {
+      stream.skipCurrentElement();
+      qWarning() << "Unhandled element" << elem_name;
+    }
+  }
+  return true;
+}
+
+bool ProjectModel::save(QXmlStreamWriter& stream) const
+{
+
 }
 
 bool ProjectModel::appendChild(MediaPtr parent, const MediaPtr& child)

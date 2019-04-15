@@ -55,7 +55,10 @@ using ClipPtr = std::shared_ptr<Clip>;
 using ClipUPtr = std::unique_ptr<Clip>;
 using ClipWPtr = std::weak_ptr<Clip>;
 
-class Clip : public project::SequenceItem,  public std::enable_shared_from_this<Clip>, protected QThread
+class Clip : public project::SequenceItem,
+    public std::enable_shared_from_this<Clip>,
+    public project::IXMLStreamer,
+    protected QThread
 {
   public:
 
@@ -160,6 +163,9 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
      * @return true==is selected
      */
     bool isSelected(const bool containing);
+
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 
     //FIXME: all the class members
     SequencePtr sequence;

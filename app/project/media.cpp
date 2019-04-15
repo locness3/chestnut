@@ -91,6 +91,11 @@ Media::Media(const MediaPtr& iparent) :
 
 }
 
+Media::~Media()
+{
+  throbber = nullptr;
+}
+
 /**
  * @brief Obtain this instance unique-id
  * @return id
@@ -459,5 +464,84 @@ MediaPtr Media::parentItem()
 void Media::removeChild(const int32_t index) 
 {
   children_.removeAt(index);
+}
+
+
+bool Media::load(QXmlStreamReader& stream)
+{
+  auto elem_name = stream.name();
+  if (elem_name == "folder") {
+    if (!loadAsFolder(stream)) {
+      return false;
+    }
+  } else if (elem_name == "sequence") {
+    if (!loadAsSequence(stream)) {
+      return false;
+    }
+  } else if (elem_name == "footage") {
+    if (!loadAsFootage(stream)) {
+      return false;
+    }
+  } else {
+    stream.skipCurrentElement();
+    qWarning() << "Unhandled element" << elem_name;
+  }
+
+  return true;
+}
+
+bool Media::save(QXmlStreamWriter& stream) const
+{
+  return true;
+}
+
+
+bool Media::loadAsFolder(QXmlStreamReader& stream)
+{
+  temp_id2 = 0;
+  for (const auto& attr : stream.attributes()) {
+    const auto attr_name = attr.name().toString().toLower();
+    if (attr_name == "id") {
+      temp_id = attr.value().toInt();
+    } else if (attr_name == "parent") {
+      temp_id2 = attr.value().toInt();
+    } else {
+      qWarning() << "Unknown attribute" << attr_name;
+    }
+  }
+
+  while (stream.readNextStartElement()) {
+    auto elem_name = stream.name().toString().toLower();
+    if (elem_name == "name") {
+      folder_name_ = stream.readElementText();
+    } else {
+      qWarning() << "Unknown element" << elem_name;
+    }
+  }
+  setFolder();
+  return true;
+}
+
+
+bool Media::loadAsSequence(QXmlStreamReader& stream)
+{
+  auto seq = std::make_shared<Sequence>();
+  if (seq->load(stream)) {
+    object_ = seq;
+    type_ = MediaType::SEQUENCE;
+    return true;
+  }
+  return false;
+}
+
+bool Media::loadAsFootage(QXmlStreamReader& stream)
+{
+  auto ftg = std::make_shared<Footage>();
+  if (ftg->load(stream)) {
+    object_ = ftg;
+    type_ = MediaType::FOOTAGE;
+    return true;
+  }
+  return false;
 }
 

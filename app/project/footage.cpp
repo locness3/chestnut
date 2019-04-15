@@ -54,18 +54,45 @@ bool Footage::isImage() const
 
 bool Footage::load(QXmlStreamReader& stream)
 {
-  for (int j=0;j<stream.attributes().size();j++) {
-    const QXmlStreamAttribute& attr = stream.attributes().at(j);
-    if (attr.name() == "id") {
-      save_id = attr.value().toInt();
-    } else if (attr.name() == "folder") {
+  for (const auto& attr : stream.attributes()) {
+    auto name = attr.name().toString().toLower();
+    if (name == "folder") {
       folder_ = attr.value().toInt();
-    } else if (attr.name() == "name") {
-      setName(attr.value().toString());
-    } else if (attr.name() == "url") {
-      url = attr.value().toString();
-      // FIXME: always use absolute paths when saving
+    } else if (name == "id") {
+      save_id = attr.value().toInt();
+    } else if (name == "using_inout") {
+      using_inout = attr.value().toString() == "true";
+    } else if (name == "in") {
+      in = attr.value().toLong();
+    } else if (name == "out") {
+      out = attr.value().toLong();
+    } else {
+      qWarning() << "Unknown attribute" << name;
+    }
+  }
 
+  while (stream.readNextStartElement()) {
+    auto elem_name = stream.name().toString().toLower();
+    if ( (elem_name == "video") || (elem_name == "audio") ) {
+      // these are superflous elements as the streams get populated via libav, again
+      stream.skipCurrentElement();
+    } else if (elem_name == "name") {
+      setName(stream.readElementText());
+    } else if (elem_name == "url") {
+      url = stream.readElementText();
+    } else if (elem_name == "duration") {
+      length = stream.readElementText().toLong();
+    } else if (elem_name == "marker"){
+      auto mrkr = std::make_shared<Marker>();
+      mrkr->load(stream);
+      markers_.append(mrkr);
+    } else {
+      qWarning() << "Unhandled element" << elem_name;
+      stream.skipCurrentElement();
+    }
+  }
+
+  //TODO: check what this does
 //      if (!QFileInfo::exists(url)) { // if path is not absolute
 //        QString proj_dir_test = proj_dir.absoluteFilePath(url);
 //        QString internal_proj_dir_test = internal_proj_dir.absoluteFilePath(url);
@@ -86,36 +113,6 @@ bool Footage::load(QXmlStreamReader& stream)
 //      } else {
 //        qInfo() << "Matched" << attr.value().toString() << "with absolute path";
 //      }
-    } else if (attr.name() == "duration") {
-      length = attr.value().toLongLong();
-    } else if (attr.name() == "using_inout") {
-      using_inout = (attr.value() == "1");
-    } else if (attr.name() == "in") {
-      in = attr.value().toLong();
-    } else if (attr.name() == "out") {
-      out = attr.value().toLong();
-    } else if (attr.name() == "speed") {
-      speed = attr.value().toDouble();
-    } else {
-      qInfo() << "Unhandled attribute" << attr.name();
-    }
-  }
-
-
-  while (stream.readNextStartElement()) {
-    QStringRef str_name = stream.name();
-    if (str_name == "video" || str_name == "audio") {
-      // these are superflous elements as the streams get populated via libav, again
-      stream.skipCurrentElement();
-    } else if (str_name == "marker"){
-      auto mrkr = std::make_shared<Marker>();
-      mrkr->load(stream);
-      markers_.append(mrkr);
-    } else {
-      stream.skipCurrentElement();
-    }
-  }
-
   return true;
 }
 

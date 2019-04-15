@@ -74,17 +74,18 @@ constexpr auto DEFAULT_CSS = "QPushButton::checked { background: rgb(25, 25, 25)
 constexpr double FULLSCREEN_RATIO = 4.0/3.0;
 constexpr double SIXTEENBYNINE_RATIO = 16.0/9.0;
 
-constexpr auto PROJECT_FILE_FILTER("Project File (*.ove)");
+constexpr const char* const PROJ_FILE_EXT = ".nut";
+constexpr auto PROJECT_FILE_FILTER("Project File (*.nut)");
+constexpr auto AUTORECOVERY_FILE_PATTERN("autorecovery.nut.*");
+constexpr auto FILE_AUTORECOVERY("autorecovery.nut");
 
 constexpr auto APP_STYLE("Fusion");
 
-constexpr auto AUTORECOVERY_FILE_PATTERN("autorecovery.ove.*");
 
 constexpr auto DIR_LAYOUT("/layout");
 constexpr auto DIR_PREVIEWS("/previews");
 constexpr auto DIR_RECENTS("/recents");
 constexpr auto FILE_CONFIG("config.xml");
-constexpr auto FILE_AUTORECOVERY("autorecovery.ove");
 
 constexpr qint64 MONTH_IN_SECONDS = 2592000000;
 constexpr qint64 WEEK_IN_SECONDS = 604800000;
@@ -608,8 +609,8 @@ void MainWindow::autorecover_interval() {
 bool MainWindow::save_project_as() {
   QString fn = QFileDialog::getSaveFileName(this, tr("Save Project As..."), "", PROJECT_FILE_FILTER);
   if (!fn.isEmpty()) {
-    if (!fn.endsWith(".ove", Qt::CaseInsensitive)) {
-      fn += ".ove";
+    if (!fn.endsWith(PROJ_FILE_EXT, Qt::CaseInsensitive)) {
+      fn += PROJ_FILE_EXT;
     }
     updateTitle(fn);
     PanelManager::projectViewer().save_project(false);
@@ -1375,7 +1376,7 @@ void MainWindow::add_default_transition()
 
 void MainWindow::new_folder()
 {
-  MediaPtr m = PanelManager::projectViewer().new_folder(tr("New Folder"));
+  MediaPtr m = PanelManager::projectViewer().newFolder(tr("New Folder"));
   e_undo_stack.push(new AddMediaCommand(m, PanelManager::projectViewer().get_selected_folder()));
 
   QModelIndex index = Project::model().add(m);

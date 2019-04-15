@@ -41,6 +41,7 @@ public:
   void setName(const QString& val);
   const QString& name() const;
 
+  //TODO: move methods of IXMLStreamer to here
   QVector<MarkerPtr> markers_{};
 private:
   friend class ::Sequence;

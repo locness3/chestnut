@@ -36,7 +36,7 @@ using SequencePtr = std::shared_ptr<Sequence>;
 using SequenceUPtr = std::unique_ptr<Sequence>;
 using SequenceWPtr = std::weak_ptr<Sequence>;
 
-class Sequence : public project::ProjectItem {
+class Sequence : public std::enable_shared_from_this<Sequence>, public project::ProjectItem, public project::IXMLStreamer {
 public:
 
     Sequence() = default;
@@ -68,6 +68,9 @@ public:
 
     void closeActiveClips(const int32_t depth=0);
 
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
+
     QVector<Selection> selections_;
     QVector<ClipPtr> clips_;
     int32_t save_id_ = 0;
@@ -89,6 +92,8 @@ private:
     double frame_rate_ = -0.0;
     int32_t audio_frequency_ = -1;
     int32_t audio_layout_ = -1;
+
+    bool loadWorkArea(QXmlStreamReader& stream);
 };
 
 namespace global {

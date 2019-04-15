@@ -82,7 +82,12 @@ void Transition::set_length_from_slider()
   panels::PanelManager::refreshPanels(false);
 }
 
-TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* em) {
+TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta* em)
+{
+  if (em == nullptr) {
+    return nullptr;
+  }
+
   if (!em->filename.isEmpty()) {
     // load effect from file
     return std::make_shared<Transition>(c, s, em);

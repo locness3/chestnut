@@ -37,6 +37,7 @@
 #include "effectgizmo.h"
 #include "project/sequenceitem.h"
 #include "gsl/span"
+#include "project/ixmlstreamer.h"
 
 class CollapsibleWidget;
 class QLabel;
@@ -125,7 +126,7 @@ struct GLTextureCoords {
 qint16 mix_audio_sample(const qint16 a, const qint16 b);
 
 
-class Effect : public QObject, public project::SequenceItem {
+class Effect : public QObject, public project::SequenceItem, public project::IXMLStreamer {
     Q_OBJECT
 public:
     Effect(ClipPtr c, const EffectMeta* em);
@@ -147,7 +148,7 @@ public:
     const EffectGizmoPtr& gizmo(const int index);
     int gizmo_count() const;
 
-    bool is_enabled();
+    bool is_enabled() const;
     void set_enabled(const bool b);
 
     virtual void refresh();
@@ -155,9 +156,9 @@ public:
     std::shared_ptr<Effect> copy(ClipPtr c);
     void copy_field_keyframes(const std::shared_ptr<Effect>& e);
 
-    virtual void load(QXmlStreamReader& stream);
     virtual void custom_load(QXmlStreamReader& stream);
-    virtual void save(QXmlStreamWriter& stream);
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 
     // glsl handling
     bool is_open();

@@ -56,8 +56,7 @@
         <track>-1</track>
         <opening>-1</opening> <!-- ? -->
 
-        <effect enabled="true">
-          <name>Transform</name>
+        <effect enabled="true" name="transform">
           <field>
             <name>posx</name>
             <value>720</value>

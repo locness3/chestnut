@@ -501,7 +501,7 @@ int Effect::get_index_in_clip()
   return -1;
 }
 
-bool Effect::is_enabled()
+bool Effect::is_enabled() const
 {
   if ( (container != nullptr) && (container->enabled_check != nullptr) ) {
     return container->enabled_check->isChecked();
@@ -551,7 +551,7 @@ QString save_data_to_string(const EffectFieldType type, const QVariant& data)
   return QString();
 }
 
-void Effect::load(QXmlStreamReader& stream)
+bool Effect::load(QXmlStreamReader& stream)
 {
   int row_count = 0;
 
@@ -651,7 +651,7 @@ void Effect::custom_load(QXmlStreamReader& /*stream*/)
   // Does nothing
 }
 
-void Effect::save(QXmlStreamWriter& stream)
+bool Effect::save(QXmlStreamWriter& stream) const
 {
   stream.writeAttribute("name", meta->name);
   stream.writeAttribute("enabled", QString::number(is_enabled()));
@@ -681,6 +681,7 @@ void Effect::save(QXmlStreamWriter& stream)
     }
     stream.writeEndElement(); // row
   }
+  return false;
 }
 
 bool Effect::is_open() {

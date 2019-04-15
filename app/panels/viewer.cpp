@@ -202,9 +202,13 @@ long timecode_to_frame(const QString& s, int view, double frame_rate) {
   return f;
 }
 
-QString frame_to_timecode(long f, int view, double frame_rate) {
+QString frame_to_timecode(long frame, const int view, const double frame_rate)
+{
+  if (qFuzzyCompare(frame_rate, 0)) {
+    return "NaN";
+  }
   if (view == TIMECODE_FRAMES) {
-    return QString::number(f);
+    return QString::number(frame);
   }
 
   // return timecode
@@ -230,33 +234,33 @@ QString frame_to_timecode(long f, int view, double frame_rate) {
     int framesPerMinute = (round(frame_rate)*60)-  dropFrames; //Number of frames per minute is the round of the framerate * 60 minus the number of dropped frames
 
     //If framenumber is greater than 24 hrs, next operation will rollover clock
-    f = f % framesPer24Hours; //% is the modulus operator, which returns a remainder. a % b = the remainder of a/b
+    frame = frame % framesPer24Hours; //% is the modulus operator, which returns a remainder. a % b = the remainder of a/b
 
-    d = f / framesPer10Minutes; // \ means integer division, which is a/b without a remainder. Some languages you could use floor(a/b)
-    m = f % framesPer10Minutes;
+    d = frame / framesPer10Minutes; // \ means integer division, which is a/b without a remainder. Some languages you could use floor(a/b)
+    m = frame % framesPer10Minutes;
 
     //In the original post, the next line read m>1, which only worked for 29.97. Jean-Baptiste Mardelle correctly pointed out that m should be compared to dropFrames.
     if (m > dropFrames) {
-      f = f + (dropFrames*9*d) + dropFrames * ((m - dropFrames) / framesPerMinute);
+      frame = frame + (dropFrames*9*d) + dropFrames * ((m - dropFrames) / framesPerMinute);
     } else {
-      f = f + dropFrames*9*d;
+      frame = frame + dropFrames*9*d;
     }
 
     int frRound = qRound(frame_rate);
-    frames = f % frRound;
-    secs = (f / frRound) % 60;
-    mins = ((f / frRound) / 60) % 60;
-    hours = (((f / frRound) / 60) / 60);
+    frames = frame % frRound;
+    secs = (frame / frRound) % 60;
+    mins = ((frame / frRound) / 60) % 60;
+    hours = (((frame / frRound) / 60) / 60);
 
     token = ";";
   } else {
     // non-drop timecode
 
     int int_fps = qRound(frame_rate);
-    hours = f / (3600 * int_fps);
-    mins = f / (60*int_fps) % 60;
-    secs = f/int_fps % 60;
-    frames = f%int_fps;
+    hours = frame / (3600 * int_fps);
+    mins = frame / (60*int_fps) % 60;
+    secs = frame/int_fps % 60;
+    frames = frame%int_fps;
   }
   if (view == TIMECODE_MILLISECONDS) {
     return QString::number((hours*3600000)+(mins*60000)+(secs*1000)+qCeil(frames*1000/frame_rate));

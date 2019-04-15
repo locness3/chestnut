@@ -395,7 +395,7 @@ bool Project::is_focused() {
   return tree_view->hasFocus() || icon_view->hasFocus();
 }
 
-MediaPtr Project::new_folder(const QString &name)
+MediaPtr Project::newFolder(const QString &name)
 {
   MediaPtr item = std::make_shared<Media>();
   item->setFolder();
@@ -634,7 +634,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
   for (QString fileName: files) {
     if (QFileInfo(fileName).isDir()) {
       QString folder_name = get_file_name_from_path(fileName);
-      MediaPtr folder = new_folder(folder_name);
+      MediaPtr folder = newFolder(folder_name);
 
       QDir directory(fileName);
       directory.setFilter(QDir::NoDotAndDotDot | QDir::AllEntries);

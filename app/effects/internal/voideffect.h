@@ -12,8 +12,8 @@
 class VoidEffect : public Effect {
 public:
     VoidEffect(ClipPtr c, const QString& n);
-    void load(QXmlStreamReader &stream) override;
-    void save(QXmlStreamWriter &stream) override;
+    bool load(QXmlStreamReader &stream) override;
+    bool save(QXmlStreamWriter &stream) const override;
 private:
     QByteArray bytes;
 };

@@ -39,7 +39,7 @@ class LabelSlider;
 
 bool frame_rate_is_droppable(float rate);
 long timecode_to_frame(const QString& s, int view, double frame_rate);
-QString frame_to_timecode(long f, int view, double frame_rate);
+QString frame_to_timecode(long frame, const int view, const double frame_rate);
 
 class Viewer : public QDockWidget, public ui::MarkerDockWidget
 {

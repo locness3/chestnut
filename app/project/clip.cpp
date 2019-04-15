@@ -890,6 +890,60 @@ bool Clip::isSelected(const bool containing)
   return false;
 }
 
+bool Clip::load(QXmlStreamReader& stream)
+{
+  for (const auto& attr : stream.attributes()) {
+    const auto name = attr.name().toString().toLower();
+    if (name == "id") {
+      load_id = attr.value().toInt();
+    } else if (name == "enabled") {
+      timeline_info.enabled = attr.value().toString() == "true";
+    } else if (name == "link_id") {
+      //TODO:
+    } else if (name == "in") {
+      timeline_info.in = attr.value().toInt();
+    } else if (name == "out") {
+      timeline_info.out = attr.value().toInt();
+    } else {
+      qWarning() << "Unhandled clip attribute" << name;
+    }
+  }
+
+  while (stream.readNextStartElement()) {
+    const auto name = stream.name().toString().toLower();
+    if (name == "name") {
+      timeline_info.name = stream.readElementText();
+    } else if (name == "clipin") {
+      timeline_info.clip_in = stream.readElementText().toInt();
+    } else if (name == "track") {
+      timeline_info.track_ = stream.readElementText().toInt();
+    } else if (name == "opening") {
+      opening_transition = stream.readElementText().toInt();
+    } else if (name == "effect") {
+      // TODO: effect loading is currently very tricky
+      stream.skipCurrentElement();
+//      EffectMeta* meta = nullptr;
+//      auto eff = std::make_shared<Effect>(shared_from_this(), meta);
+//      if (eff->load(stream)) {
+//        effects.append(eff);
+//      } else {
+//        qCritical() << "Failed to load clip effect";
+//        return false;
+//      }
+    } else {
+      stream.skipCurrentElement();
+      qWarning() << "Unhandled element" << name;
+    }
+  }
+
+  return true;
+}
+
+bool Clip::save(QXmlStreamWriter& stream) const
+{
+  return false;
+}
+
 long Clip::clipInWithTransition()
 {
   if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {

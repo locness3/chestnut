@@ -36,6 +36,8 @@
 #include "effects/internal/voideffect.h"
 #include "debug.h"
 
+constexpr const char* const PROJ_FILE_EXT = ".nut";
+
 using panels::PanelManager;
 
 LoadThread::LoadThread(LoadDialog* l, const bool a)
@@ -194,7 +196,7 @@ bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
             switch (type) {
               case static_cast<int>(MediaType::FOLDER):
               {
-                MediaPtr folder = PanelManager::projectViewer().new_folder(nullptr);
+                MediaPtr folder = PanelManager::projectViewer().newFolder(nullptr);
                 folder->temp_id2 = 0;
                 for (int j=0;j<stream.attributes().size();j++) {
                   const QXmlStreamAttribute& attr = stream.attributes().at(j);
@@ -496,7 +498,8 @@ MediaPtr LoadThread::find_loaded_folder_by_id(int id) {
   return nullptr;
 }
 
-void LoadThread::run() {
+void LoadThread::run()
+{
   mutex.lock();
 
   QFile file(project_url);
@@ -505,105 +508,121 @@ void LoadThread::run() {
     return;
   }
 
-  /* set up directories to search for media
-     * most of the time, these will be the same but in
-     * case the project file has moved without the footage,
-     * we check both
-     */
-  proj_dir = QFileInfo(project_url).absoluteDir();
-  internal_proj_dir = QFileInfo(project_url).absoluteDir();
-  internal_proj_url = project_url;
-
   QXmlStreamReader stream(&file);
-
-  bool cont = false;
-  error_str.clear();
-  show_err = true;
-
-  // temp variables for loading (unnecessary?)
-  open_seq = nullptr;
-  loaded_folders.clear();
-  loaded_media_items.clear();
-  loaded_clips.clear();
-  loaded_sequences.clear();
-
-  // get "element" count
-  current_element_count = 0;
-  total_element_count = 0;
-  while (!cancelled && !stream.atEnd()) {
-    stream.readNextStartElement();
-    if (is_element(stream)) {
-      total_element_count++;
-    }
-  }
-  cont = !cancelled; //FIXME: assignment is never used
-
-  // find project file version
-  cont = load_worker(file, stream, LOAD_TYPE_VERSION); //FIXME: assignment is never used
-
-  // find project's internal URL
-  cont = load_worker(file, stream, LOAD_TYPE_URL);
-
-  // load folders first
-  if (cont) {
-    cont = load_worker(file, stream, static_cast<int>(MediaType::FOLDER));
-  }
-
-  // load media
-  if (cont) {
-    // since folders loaded correctly, organize them appropriately
-    for (int i=0;i<loaded_folders.size();i++) {
-      MediaPtr folder = loaded_folders.at(i);
-      int parent = folder->temp_id2;
-      if (folder->temp_id2 == 0) {
-        Project::model().appendChild(nullptr, folder);
-      } else {
-        find_loaded_folder_by_id(parent)->appendChild(folder);
-      }
-    }
-
-    cont = load_worker(file, stream, static_cast<int>(MediaType::FOOTAGE));
-  }
-
-  // load sequences
-  if (cont) {
-    cont = load_worker(file, stream, static_cast<int>(MediaType::SEQUENCE));
-  }
-
-  if (!cancelled) {
-    if (!cont) {
-      xml_error = false;
-      if (show_err) emit error();
-    } else if (stream.hasError()) {
-      error_str = tr("%1 - Line: %2 Col: %3").arg(stream.errorString(),
-                                                  QString::number(stream.lineNumber()),
-                                                  QString::number(stream.columnNumber()));
-      xml_error = true;
-      emit error();
-      cont = false;
-
+  if (stream.readNextStartElement() && stream.name() == "project") {
+    if (PanelManager::projectViewer().model().load(stream)) {
+      qInfo() << "Successful load of project file" <<  file.fileName();
+      emit success();
     } else {
-      // attach nested sequence clips to their sequences
-      for (int i=0;i<loaded_clips.size();i++) {
-        for (int j=0;j<loaded_sequences.size();j++) {
-          if ( (loaded_clips.at(i)->timeline_info.media == nullptr)
-               && (loaded_clips.at(i)->timeline_info.media_stream == loaded_sequences.at(j)->object<Sequence>()->save_id_) ) {
-            loaded_clips.at(i)->timeline_info.media = loaded_sequences.at(j);
-            loaded_clips.at(i)->refresh();
-            break;
-          }
-        }
-      }
+      qCritical() << "Failed to read project file" << file.fileName();
+      emit error();
     }
+  } else {
+    emit error();
+    qWarning() << "Read failure" << file.fileName();
   }
 
-  if (cont) {
-    emit success(); // run in main thread
 
-    for (int i=0;i<loaded_media_items.size();i++) {
-      PanelManager::projectViewer().start_preview_generator(loaded_media_items.at(i), true);
-    }
-  }
+//  /* set up directories to search for media
+//     * most of the time, these will be the same but in
+//     * case the project file has moved without the footage,
+//     * we check both
+//     */
+//  proj_dir = QFileInfo(project_url).absoluteDir();
+//  internal_proj_dir = QFileInfo(project_url).absoluteDir();
+//  internal_proj_url = project_url;
+
+//  QXmlStreamReader stream(&file);
+
+//  bool cont = false;
+//  error_str.clear();
+//  show_err = true;
+
+//  // temp variables for loading (unnecessary?)
+//  open_seq = nullptr;
+//  loaded_folders.clear();
+//  loaded_media_items.clear();
+//  loaded_clips.clear();
+//  loaded_sequences.clear();
+
+//  // get "element" count
+//  current_element_count = 0;
+//  total_element_count = 0;
+//  while (!cancelled && !stream.atEnd()) {
+//    stream.readNextStartElement();
+//    if (is_element(stream)) {
+//      total_element_count++;
+//    }
+//  }
+//  cont = !cancelled; //FIXME: assignment is never used
+
+//  // find project file version
+//  cont = load_worker(file, stream, LOAD_TYPE_VERSION); //FIXME: assignment is never used
+
+//  // find project's internal URL
+//  cont = load_worker(file, stream, LOAD_TYPE_URL);
+
+//  // load folders first
+//  if (cont) {
+//    cont = load_worker(file, stream, static_cast<int>(MediaType::FOLDER));
+//  }
+
+//  // load media
+//  if (cont) {
+//    // since folders loaded correctly, organize them appropriately
+//    for (int i=0;i<loaded_folders.size();i++) {
+//      MediaPtr folder = loaded_folders.at(i);
+//      int parent = folder->temp_id2;
+//      if (folder->temp_id2 == 0) {
+//        Project::model().appendChild(nullptr, folder);
+//      } else {
+//        find_loaded_folder_by_id(parent)->appendChild(folder);
+//      }
+//    }
+
+//    cont = load_worker(file, stream, static_cast<int>(MediaType::FOOTAGE));
+//  }
+
+//  // load sequences
+//  if (cont) {
+//    cont = load_worker(file, stream, static_cast<int>(MediaType::SEQUENCE));
+//  }
+
+//  if (!cancelled) {
+//    if (!cont) {
+//      xml_error = false;
+//      if (show_err) emit error();
+//    } else if (stream.hasError()) {
+//      error_str = tr("%1 - Line: %2 Col: %3").arg(stream.errorString(),
+//                                                  QString::number(stream.lineNumber()),
+//                                                  QString::number(stream.columnNumber()));
+//      xml_error = true;
+//      emit error();
+//      cont = false;
+
+//    } else {
+//      // attach nested sequence clips to their sequences
+//      for (int i=0;i<loaded_clips.size();i++) {
+//        for (int j=0;j<loaded_sequences.size();j++) {
+//          if ( (loaded_clips.at(i)->timeline_info.media == nullptr)
+//               && (loaded_clips.at(i)->timeline_info.media_stream == loaded_sequences.at(j)->object<Sequence>()->save_id_) ) {
+//            loaded_clips.at(i)->timeline_info.media = loaded_sequences.at(j);
+//            loaded_clips.at(i)->refresh();
+//            break;
+//          }
+//        }
+//      }
+//    }
+//  }
+
+//  if (cont) {
+//    emit success(); // run in main thread
+
+//    for (int i=0;i<loaded_media_items.size();i++) {
+//      PanelManager::projectViewer().start_preview_generator(loaded_media_items.at(i), true);
+//    }
+//  }
+
 
   file.close();
 
@@ -633,7 +652,7 @@ void LoadThread::error_func() {
 void LoadThread::success_func() {
   if (autorecovery) {
     QString orig_filename = internal_proj_url;
-    int insert_index = internal_proj_url.lastIndexOf(".ove", -1, Qt::CaseInsensitive);
+    int insert_index = internal_proj_url.lastIndexOf(PROJ_FILE_EXT, -1, Qt::CaseInsensitive);
     if (insert_index == -1) insert_index = internal_proj_url.length();
     int counter = 1;
     while (QFileInfo::exists(orig_filename)) {
@@ -701,7 +720,7 @@ void LoadThread::create_effect_ui(
 
       c->effects.append(e);
     }
-  } else {
+  } else if (meta != nullptr) {
     int transition_index = create_transition(c, nullptr, meta);
     auto t = c->sequence->transitions_.at(transition_index);
     if (effect_length > -1) t->set_length(effect_length);

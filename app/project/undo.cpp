@@ -616,7 +616,10 @@ ReplaceMediaCommand::ReplaceMediaCommand(MediaPtr i, QString s) :
   old_filename = item->object<Footage>()->url;
 }
 
-void ReplaceMediaCommand::replace(QString& filename) {
+
+//FIXME: on replace video and audio stream info are not retrieved and not saved to xml
+void ReplaceMediaCommand::replace(QString& filename)
+{
   // close any clips currently using this media
   QVector<MediaPtr> all_sequences = PanelManager::projectViewer().list_all_project_sequences();
   for (const auto & all_sequence : all_sequences) {
