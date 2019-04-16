@@ -947,7 +947,28 @@ bool Clip::load(QXmlStreamReader& stream)
 
 bool Clip::save(QXmlStreamWriter& stream) const
 {
-  return false;
+  stream.writeStartElement("clip");
+  stream.writeAttribute("id", QString::number(0)); //FIXME:
+  stream.writeAttribute("enabled", timeline_info.enabled ? "true" : "false");
+  stream.writeAttribute("link_id", QString::number(0)); //FIXME:
+  stream.writeAttribute("in", QString::number(timeline_info.in));
+  stream.writeAttribute("out", QString::number(timeline_info.out));
+
+  // TODO: missing data
+  stream.writeTextElement("name", timeline_info.name);
+  stream.writeTextElement("clipin", QString::number(timeline_info.clip_in));
+  stream.writeTextElement("track", QString::number(timeline_info.track_));
+  stream.writeTextElement("opening", QString::number(opening_transition));
+
+  for (const auto& eff : effects) {
+    if (!eff->save(stream)) {
+      qCritical() << "Failed to save effect";
+      return false;
+    }
+  }
+
+  stream.writeEndElement();
+  return true;
 }
 
 long Clip::clipInWithTransition()

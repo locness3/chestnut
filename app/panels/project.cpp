@@ -1075,7 +1075,7 @@ void Project::save_project(bool autorecovery) {
   sequence_id = 1;
 
   QFile file(autorecovery ? autorecovery_filename : project_url);
-  if (!file.open(QIODevice::WriteOnly/* | QIODevice::Text*/)) {
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
     qCritical() << "Could not open file";
     return;
   }
@@ -1084,30 +1084,34 @@ void Project::save_project(bool autorecovery) {
   stream.setAutoFormatting(true);
   stream.writeStartDocument(); // doc
 
-  stream.writeStartElement("project"); // project
+  if (!PanelManager::projectViewer().model().save(stream)) {
+    qWarning() << "Failed to save project file:" << file.fileName();
+  }
 
-  stream.writeTextElement("version", QString::number(SAVE_VERSION));
+//  stream.writeStartElement("project"); // project
 
-  stream.writeTextElement("url", project_url);
-  proj_dir = QFileInfo(project_url).absoluteDir();
+//  stream.writeTextElement("version", QString::number(SAVE_VERSION));
 
-  save_folder(stream, MediaType::FOLDER, true);
+//  stream.writeTextElement("url", project_url);
+//  proj_dir = QFileInfo(project_url).absoluteDir();
 
-  stream.writeStartElement("folders"); // folders
-  save_folder(stream, MediaType::FOLDER, false);
-  stream.writeEndElement(); // folders
+//  save_folder(stream, MediaType::FOLDER, true);
 
-  stream.writeStartElement("media"); // media
-  save_folder(stream, MediaType::FOOTAGE, false);
-  stream.writeEndElement(); // media
+//  stream.writeStartElement("folders"); // folders
+//  save_folder(stream, MediaType::FOLDER, false);
+//  stream.writeEndElement(); // folders
 
-  save_folder(stream, MediaType::SEQUENCE, true);
+//  stream.writeStartElement("media"); // media
+//  save_folder(stream, MediaType::FOOTAGE, false);
+//  stream.writeEndElement(); // media
 
-  stream.writeStartElement("sequences"); // sequences
-  save_folder(stream, MediaType::SEQUENCE, false);
-  stream.writeEndElement();// sequences
+//  save_folder(stream, MediaType::SEQUENCE, true);
 
-  stream.writeEndElement(); // project
+//  stream.writeStartElement("sequences"); // sequences
+//  save_folder(stream, MediaType::SEQUENCE, false);
+//  stream.writeEndElement();// sequences
+
+//  stream.writeEndElement(); // project
 
   stream.writeEndDocument(); // doc
 

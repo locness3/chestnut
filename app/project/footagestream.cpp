@@ -72,18 +72,20 @@ bool FootageStream::save(QXmlStreamWriter& stream) const
     case StreamType::VIDEO:
       stream.writeStartElement("video");
       stream.writeAttribute("id", QString::number(file_index));
-      stream.writeAttribute("width", QString::number(video_width));
-      stream.writeAttribute("height", QString::number(video_height));
-      stream.writeAttribute("framerate", QString::number(video_frame_rate, 'f', 10));
       stream.writeAttribute("infinite", QString::number(infinite_length));
+
+      stream.writeTextElement("width", QString::number(video_width));
+      stream.writeTextElement("height", QString::number(video_height));
+      stream.writeTextElement("framerate", QString::number(video_frame_rate, 'g', 10));
       stream.writeEndElement();
       return true;
     case StreamType::AUDIO:
       stream.writeStartElement("audio");
       stream.writeAttribute("id", QString::number(file_index));
-      stream.writeAttribute("channels", QString::number(audio_channels));
-      stream.writeAttribute("layout", QString::number(audio_layout));
-      stream.writeAttribute("frequency", QString::number(audio_frequency));
+
+      stream.writeTextElement("channels", QString::number(audio_channels));
+      stream.writeTextElement("layout", QString::number(audio_layout));
+      stream.writeTextElement("frequency", QString::number(audio_frequency));
       stream.writeEndElement();
       return true;
     default:

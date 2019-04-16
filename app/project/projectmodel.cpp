@@ -112,6 +112,56 @@ QModelIndex ProjectModel::create_index(const int row, const MediaPtr& mda) const
   return create_index(row, DEFAULT_COLUMN, mda);
 }
 
+
+bool ProjectModel::saveFolders(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("folders");
+  if (!saveTypes(stream, MediaType::FOLDER)) {
+    return false;
+  }
+  stream.writeEndElement(); //folders
+  return true;
+}
+
+
+bool ProjectModel::saveMedia(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("media");
+  if (!saveTypes(stream, MediaType::FOOTAGE)) {
+    return false;
+  }
+  stream.writeEndElement(); //media
+  return true;
+}
+
+bool ProjectModel::saveSequences(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("sequences");
+  if (!saveTypes(stream, MediaType::SEQUENCE)) {
+    return false;
+  }
+  stream.writeEndElement(); //sequences
+  return true;
+}
+
+
+bool ProjectModel::saveTypes(QXmlStreamWriter& stream, const MediaType mda_type) const
+{
+  for (const auto& item : project_items) {
+    if (item == nullptr) {
+      qCritical() << "Null Media ptr";
+      continue;
+    }
+    if (item->type() == mda_type) {
+      if (!item->save(stream)) {
+        qCritical() << "Failed to save media type" << static_cast<int>(mda_type);
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 QModelIndex ProjectModel::parent(const QModelIndex &index) const
 {
   if (!index.isValid())
@@ -239,6 +289,13 @@ const QMap<int, MediaPtr>& ProjectModel::items() const
   return project_items;
 }
 
+void ProjectModel::relink()
+{
+  // TODO:
+  // go through project_items
+  // if an item has a link id (i.e. folder id) find item and link them
+}
+
 bool ProjectModel::load(QXmlStreamReader& stream)
 {
   QStringRef elem_name;
@@ -269,7 +326,22 @@ bool ProjectModel::load(QXmlStreamReader& stream)
 
 bool ProjectModel::save(QXmlStreamWriter& stream) const
 {
-  return false;
+  stream.writeStartElement("project");
+  stream.writeTextElement("version", QString::number(FILE_VERSION));
+
+  //TODO: if saving is slow, pass a copy of project_items to each function which whittles it down
+  if (!saveFolders(stream)) {
+    return false;
+  }
+  if (!saveMedia(stream)) {
+    return false;
+  }
+  if (!saveSequences(stream)) {
+    return false;
+  }
+
+  stream.writeEndElement(); //project
+  return true;
 }
 
 bool ProjectModel::appendChild(MediaPtr parent, const MediaPtr& child)

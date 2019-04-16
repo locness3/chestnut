@@ -36,7 +36,7 @@ using SequencePtr = std::shared_ptr<Sequence>;
 using SequenceUPtr = std::unique_ptr<Sequence>;
 using SequenceWPtr = std::weak_ptr<Sequence>;
 
-class Sequence : public std::enable_shared_from_this<Sequence>, public project::ProjectItem, public project::IXMLStreamer {
+class Sequence : public std::enable_shared_from_this<Sequence>, public project::ProjectItem {
 public:
 
     Sequence() = default;
@@ -73,7 +73,7 @@ public:
 
     QVector<Selection> selections_;
     QVector<ClipPtr> clips_;
-    int32_t save_id_ = 0;
+    int32_t save_id_ = 0; //FIXME: fudge
     struct {
         bool using_ = false;
         bool enabled_ = true;

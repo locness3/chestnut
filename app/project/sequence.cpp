@@ -339,8 +339,49 @@ bool Sequence::load(QXmlStreamReader& stream)
 }
 bool Sequence::save(QXmlStreamWriter& stream) const
 {
-  // TODO:
-  return false;
+  stream.writeStartElement("sequence");
+  stream.writeAttribute("id", QString::number(save_id_));
+  stream.writeAttribute("folder", 0); //TODO:
+  stream.writeAttribute("open", this == global::sequence.get() ? "true" : "false");
+
+  stream.writeStartElement("workarea");
+  stream.writeAttribute("using", workarea_.using_ ? "true" : "false");
+  stream.writeAttribute("enabled", workarea_.enabled_ ? "true" : "false");
+  stream.writeAttribute("in", QString::number(workarea_.in_));
+  stream.writeAttribute("out", QString::number(workarea_.out_));
+  stream.writeEndElement();
+
+  stream.writeTextElement("name", name_);
+  stream.writeTextElement("width", QString::number(width_));
+  stream.writeTextElement("height", QString::number(height_));
+  stream.writeTextElement("framerate", QString::number(frame_rate_, 'g', 10));
+  stream.writeTextElement("frequency", QString::number(audio_frequency_));
+  stream.writeTextElement("layout", QString::number(audio_layout_));
+
+  for (const auto& clp : clips_) {
+    if (clp == nullptr) {
+      qDebug() << "Null clip ptr";
+      continue;
+    }
+    if (!clp->save(stream)) {
+      qCritical() << "Failed to save clip";
+      return false;
+    }
+  }
+
+  for (const auto& mark : markers_) {
+    if (mark == nullptr) {
+      qDebug() << "Null marker ptr";
+      continue;
+    }
+    if (!mark->save(stream)) {
+      qCritical() << "Failed to save marker";
+      return false;
+    }
+  }
+
+  stream.writeEndElement();
+  return true;
 }
 
 

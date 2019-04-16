@@ -59,12 +59,11 @@ bool Marker::load(QXmlStreamReader& stream)
 bool Marker::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement(START_ELEM);
-  //FIXME:
-  stream.writeAttribute(ELEM_FRAME, QString::number(frame));
-  stream.writeAttribute(ELEM_NAME, name);
-  stream.writeAttribute(ELEM_COMMENT, comment_);
-  stream.writeAttribute(ELEM_DURATION, QString::number(duration_));
-  stream.writeAttribute(ELEM_COLOR, QString::number(color_.rgb()));
+  stream.writeTextElement(ELEM_FRAME, QString::number(frame));
+  stream.writeTextElement(ELEM_NAME, name);
+  stream.writeTextElement(ELEM_COMMENT, comment_);
+  stream.writeTextElement(ELEM_DURATION, QString::number(duration_));
+  stream.writeTextElement(ELEM_COLOR, QString::number(color_.rgb()));
   stream.writeEndElement();
   return true;
 }

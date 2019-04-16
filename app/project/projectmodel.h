@@ -66,6 +66,10 @@ public:
      * @return map of Media items
      */
     const QMap<int, MediaPtr>& items() const;
+    /**
+     * Rebuild the links between project items
+     */
+    void relink();
 
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
@@ -82,6 +86,11 @@ private:
 
     QModelIndex create_index(const int row, const int col, const MediaPtr& mda) const;
     QModelIndex create_index(const int row, const MediaPtr& mda) const;
+
+    bool saveFolders(QXmlStreamWriter& stream) const;
+    bool saveMedia(QXmlStreamWriter& stream) const;
+    bool saveSequences(QXmlStreamWriter& stream) const;
+    bool saveTypes(QXmlStreamWriter& stream, const MediaType mda_type) const;
 };
 
 #endif // PROJECTMODEL_H

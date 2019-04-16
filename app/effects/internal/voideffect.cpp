@@ -48,19 +48,20 @@ bool VoidEffect::load(QXmlStreamReader &stream)
 
 bool VoidEffect::save(QXmlStreamWriter &stream) const
 {
-  if (!name_.isEmpty()) {
-    stream.writeAttribute("name", name_);
-    stream.writeAttribute("enabled", QString::number(is_enabled()));
+  // TODO:
+//  if (!name_.isEmpty()) {
+//    stream.writeAttribute("name", name_);
+//    stream.writeAttribute("enabled", QString::number(is_enabled()));
 
-    // force xml writer to expand <effect> tag, ignored when loading
-    stream.writeStartElement("void");
-    stream.writeEndElement();
+//    // force xml writer to expand <effect> tag, ignored when loading
+//    stream.writeStartElement("void");
+//    stream.writeEndElement();
 
-    if (!bytes.isEmpty()) {
-      // write stored data
-      QIODevice* device = stream.device();
-      device->write(bytes);
-    }
-  }
+//    if (!bytes.isEmpty()) {
+//      // write stored data
+//      QIODevice* device = stream.device();
+//      device->write(bytes);
+//    }
+//  }
   return false;
 }

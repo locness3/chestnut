@@ -44,7 +44,7 @@ using FootageWPtr = std::weak_ptr<Footage>;
 
 
 
-class Footage : public project::ProjectItem, public project::IXMLStreamer {
+class Footage : public project::ProjectItem {
 public:
     Footage();
 

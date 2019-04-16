@@ -77,7 +77,7 @@ public:
     void setParent(const MediaWPtr& p);
     void updateTooltip(const QString& error = nullptr);
     MediaType type() const;
-    const QString& name();
+    const QString& name() const;
     void setName(const QString& n);
 
     double frameRate(const int32_t stream = -1);
@@ -97,6 +97,7 @@ public:
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 
+    //FIXME: varnames
     int32_t temp_id = 0;  // folder id
     int32_t temp_id2 = 0; // folder parent id
 
@@ -120,6 +121,7 @@ private:
     bool loadAsSequence(QXmlStreamReader& stream);
     bool loadAsFootage(QXmlStreamReader& stream);
 
+    bool saveAsFolder(QXmlStreamWriter& stream) const;
 };
 
 #endif // MEDIA_H

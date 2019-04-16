@@ -257,7 +257,7 @@ MediaType Media::type() const
   return type_;
 }
 
-const QString &Media::name() 
+const QString &Media::name()  const
 {
   switch (type_) {
     case MediaType::FOOTAGE:
@@ -487,7 +487,21 @@ bool Media::load(QXmlStreamReader& stream)
 
 bool Media::save(QXmlStreamWriter& stream) const
 {
-  return true;
+  switch (type_) {
+    case MediaType::FOLDER:
+      return saveAsFolder(stream);
+    case MediaType::FOOTAGE:
+      [[fallthrough]];
+    case MediaType::SEQUENCE:
+      if (object_ != nullptr) {
+        return object_->save(stream);
+      }
+      break;
+    default:
+      qCritical() << "Unhandled media type";
+  }
+
+  return false;
 }
 
 
@@ -536,5 +550,18 @@ bool Media::loadAsFootage(QXmlStreamReader& stream)
     return true;
   }
   return false;
+}
+
+
+bool Media::saveAsFolder(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("folder");
+  stream.writeAttribute("id", QString::number(id_));
+  if (auto par = parent_.lock()) {
+    stream.writeAttribute("parent", QString::number(par->id()));
+  }
+  stream.writeTextElement("name", name());
+  stream.writeEndElement();
+  return true;
 }
 

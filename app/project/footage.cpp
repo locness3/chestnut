@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  *
@@ -131,13 +131,13 @@ bool Footage::save(QXmlStreamWriter& stream) const
   stream.writeStartElement("footage");
   stream.writeAttribute("id", QString::number(save_id));
   stream.writeAttribute("folder", QString::number(folder_));
-  stream.writeAttribute("name", name());
-  stream.writeAttribute("url", QDir(url).absolutePath());
-  stream.writeAttribute("duration", QString::number(length));
-  stream.writeAttribute("using_inout", QString::number(using_inout));
+  stream.writeAttribute("using_inout", using_inout ? "true" : "false");
   stream.writeAttribute("in", QString::number(in));
   stream.writeAttribute("out", QString::number(out));
-  stream.writeAttribute("speed", QString::number(speed));
+
+  stream.writeTextElement("name", name_);
+  stream.writeTextElement("url", QDir(url).absolutePath());
+  stream.writeTextElement("duration", QString::number(length));
 
   for (const auto& ms : video_tracks) {
     if (!ms) continue;
