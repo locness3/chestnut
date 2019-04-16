@@ -295,6 +295,10 @@ void EffectControls::deselect_all_effects(QWidget* sender) {
 
 void EffectControls::open_effect(QVBoxLayout* const layout, const EffectPtr& e)
 {
+  if (e == nullptr) {
+    qCritical() << "Null effect ptr";
+    return;
+  }
   CollapsibleWidget* container = e->container;
   layout->addWidget(container);
   connect(container, SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));

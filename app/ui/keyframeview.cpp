@@ -119,8 +119,11 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 
     for (int j=0;j<PanelManager::fxControls().selected_clips.size();j++) {
       ClipPtr c = global::sequence->clips_.at(PanelManager::fxControls().selected_clips.at(j));
-      for (int i=0; i < c->effects.size(); i++) {
-        EffectPtr e = c->effects.at(i);
+      for (const auto& e : c->effects) {
+        if (e == nullptr) {
+          qCritical() << "Null effect ptr";
+          continue;
+        }
         if (e->container->is_expanded()) {
           for (int rowIdx=0; rowIdx<e->row_count(); ++rowIdx) {
             EffectRowPtr row = e->row(rowIdx);
