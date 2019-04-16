@@ -90,10 +90,6 @@ Media::Media(const MediaPtr& iparent) :
 
 }
 
-Media::~Media()
-{
-}
-
 /**
  * @brief Obtain this instance unique-id
  * @return id
