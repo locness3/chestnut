@@ -59,7 +59,6 @@ class Media : public std::enable_shared_from_this<Media>, public project::IXMLSt
 public:
     Media();
     explicit Media(const MediaPtr& iparent);
-    ~Media() override;
 
     template<typename T>
     auto object() {
@@ -98,7 +97,6 @@ public:
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 
-    MediaThrobber* throbber{};
     int32_t temp_id = 0;  // folder id
     int32_t temp_id2 = 0; // folder parent id
 

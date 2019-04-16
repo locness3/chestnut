@@ -81,7 +81,6 @@ Media::Media() : Media(nullptr)
 }
 
 Media::Media(const MediaPtr& iparent) :
-  throbber(nullptr),
   root_(false),
   parent_(iparent),
   folder_name_(),
@@ -93,7 +92,6 @@ Media::Media(const MediaPtr& iparent) :
 
 Media::~Media()
 {
-  throbber = nullptr;
 }
 
 /**
