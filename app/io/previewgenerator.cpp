@@ -481,7 +481,6 @@ QString PreviewGenerator::get_waveform_path(const QString& hash, FootageStreamPt
 
 void PreviewGenerator::run()
 {
-  Q_ASSERT(!footage.expired());
   Q_ASSERT(media != nullptr);
 
   if (auto ftg = footage.lock()) {

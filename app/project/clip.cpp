@@ -640,6 +640,10 @@ void Clip::refresh()
 
   // reinitializes all effects... just in case
   for (const auto& eff : effects) {
+    if (eff == nullptr) {
+      qCritical() << "Null effect ptr";
+      continue;
+    }
     eff->refresh();
   }
 

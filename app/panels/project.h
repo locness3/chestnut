@@ -105,6 +105,11 @@ public:
     void start_preview_generator(MediaPtr item, const bool replacing);
     void get_all_media_from_table(QVector<MediaPtr> &items, QVector<MediaPtr> &list, const MediaType type = MediaType::NONE);
 
+    /**
+     * Redraw/setup viewer using the models items
+     */
+    void refresh();
+
     SourceTable* tree_view;
     SourceIconView* icon_view;
     SourcesCommon* sources_common;

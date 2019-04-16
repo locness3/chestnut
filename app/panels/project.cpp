@@ -425,11 +425,20 @@ void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPt
   }
 }
 
+
+void Project::refresh()
+{
+  //TODO: using model, update tables
+  for (const auto& item : model_->items()) {
+    start_preview_generator(item, true);
+  }
+}
+
 bool delete_clips_in_clipboard_with_media(ComboAction* ca, MediaPtr m) {
   int delete_count = 0;
   if (e_clipboard_type == CLIPBOARD_TYPE_CLIP) {
     for (int i=0;i<e_clipboard.size();i++) {
-      ClipPtr c = std::dynamic_pointer_cast<Clip>(e_clipboard.at(i));
+      auto c = std::dynamic_pointer_cast<Clip>(e_clipboard.at(i));
       if (c->timeline_info.media == m) {
         ca->append(new RemoveClipsFromClipboard(i-delete_count));
         delete_count++;
@@ -600,6 +609,10 @@ void Project::delete_selected_media() {
 
 void Project::start_preview_generator(MediaPtr item, const bool replacing)
 {
+  if (item->object<Footage>() == nullptr) {
+    // No preview to generate
+    return;
+  }
   // set up throbber animation
   const auto throbber = new MediaThrobber(item, this);
   throbber->moveToThread(QApplication::instance()->thread());

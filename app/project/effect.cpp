@@ -553,6 +553,8 @@ QString save_data_to_string(const EffectFieldType type, const QVariant& data)
 
 bool Effect::load(QXmlStreamReader& stream)
 {
+  //TODO:
+  return false;
   int row_count = 0;
 
   const auto tag = stream.name().toString();

@@ -61,6 +61,12 @@ public:
     const MediaPtr get(const QModelIndex& idx) const;
     MediaPtr getFolder(const int id);
 
+    /**
+     * Get all items held in model
+     * @return map of Media items
+     */
+    const QMap<int, MediaPtr>& items() const;
+
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 private:

@@ -233,6 +233,12 @@ MediaPtr ProjectModel::getFolder(const int id)
   return nullptr;
 }
 
+
+const QMap<int, MediaPtr>& ProjectModel::items() const
+{
+  return project_items;
+}
+
 bool ProjectModel::load(QXmlStreamReader& stream)
 {
   QStringRef elem_name;
@@ -242,7 +248,7 @@ bool ProjectModel::load(QXmlStreamReader& stream)
       auto text = stream.readElementText();
       auto version = text.toInt();
       if (version > FILE_VERSION) {
-        qCritical() << "Unsupported project file format" << version;
+        qCritical() << "Unsupported project file version" << version;
         return false;
       }
     } else if ( (elem_name == "folders") || (elem_name == "media") || (elem_name == "sequences") ) {
@@ -263,7 +269,7 @@ bool ProjectModel::load(QXmlStreamReader& stream)
 
 bool ProjectModel::save(QXmlStreamWriter& stream) const
 {
-
+  return false;
 }
 
 bool ProjectModel::appendChild(MediaPtr parent, const MediaPtr& child)
