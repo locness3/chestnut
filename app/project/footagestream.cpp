@@ -22,8 +22,48 @@ void FootageStream::make_square_thumb()
 
 bool FootageStream::load(QXmlStreamReader& stream)
 {
-  // TODO:
-  return false;
+  auto name = stream.name().toString().toLower();
+  if (name == "video") {
+    type_ = StreamType::VIDEO;
+  } else if (name == "audio") {
+    type_ = StreamType::AUDIO;
+  } else {
+    qCritical() << "Unknown stream type" << name;
+    return false;
+  }
+
+  for (const auto& attr : stream.attributes()) {
+    const auto name = attr.name().toString().toLower();
+    if (name == "id") {
+      file_index = attr.value().toInt();
+    } else if (name == "infinite") {
+      infinite_length = attr.value().toString().toLower() == "true";
+    } else {
+      qWarning() << "Unknown attribute" << name;
+    }
+  }
+
+  while (stream.readNextStartElement()) {
+    const auto name = stream.name().toString().toLower();
+    if (name == "width") {
+      video_width = stream.readElementText().toInt();
+    } else if (name == "height") {
+      video_height = stream.readElementText().toInt();
+    } else if (name == "framerate") {
+      video_frame_rate = stream.readElementText().toDouble();
+    } else if (name == "channels") {
+      audio_channels = stream.readElementText().toInt();
+    } else if (name == "frequency") {
+      audio_frequency = stream.readElementText().toInt();
+    } else if (name == "layout") {
+      audio_layout = stream.readElementText().toInt();
+    } else {
+      qWarning() << "Unhandled element" << name;
+      stream.skipCurrentElement();
+    }
+  }
+
+  return true;
 }
 
 bool FootageStream::save(QXmlStreamWriter& stream) const

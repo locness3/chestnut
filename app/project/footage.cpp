@@ -74,8 +74,14 @@ bool Footage::load(QXmlStreamReader& stream)
   while (stream.readNextStartElement()) {
     auto elem_name = stream.name().toString().toLower();
     if ( (elem_name == "video") || (elem_name == "audio") ) {
-      // these are superflous elements as the streams get populated via libav, again
-      stream.skipCurrentElement();
+      auto ms = std::make_shared<project::FootageStream>();
+      ms->load(stream);
+      if (elem_name == "video") {
+        video_tracks.append(ms);
+      } else {
+        audio_tracks.append(ms);
+      }
+
     } else if (elem_name == "name") {
       setName(stream.readElementText());
     } else if (elem_name == "url") {
