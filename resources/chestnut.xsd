@@ -41,7 +41,7 @@
 
 	<xs:element name="folders">
 		<xs:complexType>
-			<xs:sequence>
+			<xs:sequence minOccurs="0" maxOccurs="unbounded">
 				<xs:element ref="folder"/>
 			</xs:sequence>
 		</xs:complexType>
