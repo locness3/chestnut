@@ -93,7 +93,6 @@ public:
     MediaPtr parentItem();
     void removeChild(const int32_t index);
 
-    MediaThrobber* throbber;
     int32_t temp_id = 0;
     int32_t temp_id2 = 0;
 

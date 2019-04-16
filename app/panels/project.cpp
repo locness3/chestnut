@@ -605,7 +605,6 @@ void Project::start_preview_generator(MediaPtr item, const bool replacing)
   // set up throbber animation
   const auto throbber = new MediaThrobber(item, this);
   throbber->moveToThread(QApplication::instance()->thread());
-  item->throbber = throbber;
   QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);
 
   const auto pg = new PreviewGenerator(item, item->object<Footage>(), replacing, this);
@@ -1322,6 +1321,5 @@ void MediaThrobber::stop(const int icon_type, const bool replace) {
   PanelManager::refreshPanels(replace);
 
   PanelManager::projectViewer().tree_view->viewport()->update();
-  item->throbber = nullptr;
   deleteLater();
 }
