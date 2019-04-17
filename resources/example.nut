@@ -57,14 +57,17 @@
         <opening>-1</opening> <!-- ? -->
 
         <effect enabled="true" name="transform">
-          <field>
-            <name>posx</name>
-            <value>720</value>
-          </field>
-          <field>
-            <name>posy</name>
-            <value>540</value>
-          </field>
+            <row>
+                <name>Position</name>
+                <field>
+                    <name>posx</name>
+                    <value>720</value>
+                </field>
+                <field>
+                    <name>posy</name>
+                    <value>540</value>
+                </field>
+            </row>
         </effect>
       </clip>
 
