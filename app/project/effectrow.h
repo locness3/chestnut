@@ -24,13 +24,15 @@
 #include <memory>
 
 #include "project/effectfield.h"
+#include "project/ixmlstreamer.h"
 
 class Effect;
 class ComboAction;
 class KeyframeNavigator;
 class ClickableLabel;
 
-class EffectRow : public QObject {
+
+class EffectRow : public QObject, public project::IXMLStreamer {
     Q_OBJECT
 public:
     EffectRow(Effect* parent, const bool save, QGridLayout& uilayout, const QString& n, const int row,
@@ -49,11 +51,14 @@ public:
     void delete_keyframe_at_time(ComboAction *ca, long time);
     ClickableLabel* label = nullptr;
     Effect* parent_effect;
-    bool savable;
+    bool saveable;
     const QString& get_name();
 
     bool isKeyframing();
     void setKeyframing(bool);
+
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 public slots:
     void goto_previous_key();
     void toggle_key();

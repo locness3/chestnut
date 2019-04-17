@@ -26,6 +26,7 @@
 
 #include "ui/labelslider.h"
 #include "project/keyframe.h"
+#include "project/ixmlstreamer.h"
 
 class EffectRow;
 class ComboAction;
@@ -41,7 +42,10 @@ enum class EffectFieldType {
     UNKNOWN
 };
 
-class EffectField : public QObject {
+
+QString fieldTypeValueToString(const EffectFieldType type, const QVariant& value);
+
+class EffectField : public QObject, public project::IXMLStreamer  {
     Q_OBJECT
 public:
     EffectField(EffectRow* parent, const EffectFieldType t, const QString& i);
@@ -62,7 +66,7 @@ public:
     }
 
     QVariant get_previous_data();
-    QVariant get_current_data();
+    QVariant get_current_data() const;
     double frameToTimecode(const long frame);
     long timecodeToFrame(double timecode);
     void set_current_data(const QVariant&);
@@ -105,6 +109,9 @@ public:
 
     void make_key_from_change(ComboAction* ca);
     const QVariant& getDefaultData() const;
+
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 public slots:
     void ui_element_change();
 private:

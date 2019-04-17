@@ -55,3 +55,32 @@ void delete_keyframes(QVector<EffectField*>& selected_key_fields, QVector<int> &
     panels::PanelManager::refreshPanels(false);
   }
 }
+
+EffectKeyframe::EffectKeyframe(const EffectField* parent) : parent_(parent)
+{
+  Q_ASSERT(parent != nullptr);
+}
+
+
+bool EffectKeyframe::load(QXmlStreamReader& stream)
+{
+  //TODO:
+  return false;
+}
+
+bool EffectKeyframe::save(QXmlStreamWriter& stream) const
+{
+  Q_ASSERT(parent_ != nullptr);
+  stream.writeStartElement("keyframe");
+
+  stream.writeAttribute("type", QString::number(static_cast<int>(type)));
+
+  stream.writeTextElement("value", fieldTypeValueToString(parent_->type, data));
+  stream.writeTextElement("frame", QString::number(time));
+  stream.writeTextElement("prex", QString::number(pre_handle_x));
+  stream.writeTextElement("prey", QString::number(pre_handle_y));
+  stream.writeTextElement("postx", QString::number(post_handle_x));
+  stream.writeTextElement("posty", QString::number(post_handle_y));
+  stream.writeEndElement();
+  return true;
+}

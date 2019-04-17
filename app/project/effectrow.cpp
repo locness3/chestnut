@@ -32,10 +32,11 @@
 
 using panels::PanelManager;
 
+
 EffectRow::EffectRow(Effect* parent, const bool save, QGridLayout& uilayout,
                      const QString& n, const int row, const bool keyframable) :
   parent_effect(parent),
-  savable(save),
+  saveable(save),
   keyframing(false),
   ui(uilayout),
   name(n),
@@ -81,6 +82,25 @@ void EffectRow::setKeyframing(bool b) {
       keyframe_nav->enable_keyframes(b);
     }
   }
+}
+
+bool EffectRow::load(QXmlStreamReader& stream)
+{
+
+  return false;
+}
+bool EffectRow::save(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("row");
+
+  for (const auto& field : fields) {
+    if (!field->save(stream)) {
+      qCritical() << "Failed to save EffectField";
+      return false;
+    }
+  }
+  stream.writeEndElement();
+  return true;
 }
 
 void EffectRow::set_keyframe_enabled(bool enabled) {
@@ -207,8 +227,6 @@ void EffectRow::set_keyframe_now(ComboAction* ca)
       + parent_effect->parent_clip->timeline_info.clip_in;
 
   if (!just_made_unsafe_keyframe) {
-    EffectKeyframe key;
-    key.time = time;
 
     unsafe_keys.resize(fieldCount());
     unsafe_old_data.resize(fieldCount());
@@ -216,6 +234,8 @@ void EffectRow::set_keyframe_now(ComboAction* ca)
 
     for (int i=0;i<fieldCount();i++) {
       EffectField* f = field(i);
+      EffectKeyframe key(f);
+      key.time = time;
 
       int exist_key = -1;
       int closest_key = 0;

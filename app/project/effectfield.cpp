@@ -39,6 +39,26 @@
 
 #include "debug.h"
 
+QString fieldTypeValueToString(const EffectFieldType type, const QVariant& value)
+{
+  switch (type) {
+    case EffectFieldType::DOUBLE: return QString::number(value.toDouble());
+    case EffectFieldType::COLOR: return value.value<QColor>().name();
+    case EffectFieldType::BOOL: return QString::number(value.toBool());
+    case EffectFieldType::COMBO: return QString::number(value.toInt());
+    case EffectFieldType::STRING:
+      [[fallthrough]];
+    case EffectFieldType::FONT:
+      [[fallthrough]];
+    case EffectFieldType::FILE_T:
+      return value.toString();
+    default:
+      break;
+  }
+  return QString();
+}
+
+
 EffectField::EffectField(EffectRow *parent, const EffectFieldType t, const QString &i) :
   QObject(parent),
   parent_row(parent),
@@ -121,7 +141,8 @@ QVariant EffectField::get_previous_data() {
   return QVariant();
 }
 
-QVariant EffectField::get_current_data() {
+QVariant EffectField::get_current_data()  const
+{
   switch (type) {
     case EffectFieldType::DOUBLE: return dynamic_cast<LabelSlider*>(ui_element)->value();
     case EffectFieldType::COLOR: return dynamic_cast<ColorButton*>(ui_element)->get_color();
@@ -198,7 +219,8 @@ void EffectField::get_keyframe_data(double timecode, int &before, int &after, do
   }
 }
 
-bool EffectField::hasKeyframes() {
+bool EffectField::hasKeyframes()
+{
   return (parent_row->isKeyframing() && (!keyframes.empty()));
 }
 
@@ -336,6 +358,28 @@ void EffectField::make_key_from_change(ComboAction* ca) {
 const QVariant& EffectField::getDefaultData() const
 {
   return default_data_;
+}
+
+bool  EffectField::load(QXmlStreamReader& stream)
+{
+
+  return false;
+}
+bool EffectField::save(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("field");
+  stream.writeTextElement("name", id);
+  stream.writeTextElement("value", fieldTypeValueToString(type, get_current_data()));
+
+  for (const auto& key : keyframes) {
+    if (!key.save(stream)) {
+      qCritical() << "Failed to save EffectKeyFrame";
+      return false;
+    }
+  }
+
+  stream.writeEndElement();
+  return true;
 }
 
 QWidget* EffectField::get_ui_element() {

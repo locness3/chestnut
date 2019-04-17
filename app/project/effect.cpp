@@ -610,7 +610,7 @@ bool Effect::load(QXmlStreamReader& stream)
               // read keyframes
               row->setKeyframing(true);
 
-              EffectKeyframe key;
+              EffectKeyframe key(field);
               for (const auto& attr: stream.attributes()) {
                 if (attr.name() == "value") {
                   key.data = load_data_from_string(field->type, attr.value().toString());
@@ -658,41 +658,13 @@ bool Effect::save(QXmlStreamWriter& stream) const
   stream.writeStartElement("effect");
 
   stream.writeAttribute("name", meta->name);
-  stream.writeAttribute("enabled", QString::number(is_enabled()));
+  stream.writeAttribute("enabled", is_enabled() ? "true" : "false");
 
-  // TODO:
-
-  stream.writeEndElement();
+  for (const auto& row : rows) {
+    row->save(stream);
+  }
+  stream.writeEndElement(); //effect
   return true;
-//  stream.writeAttribute("name", meta->name);
-//  stream.writeAttribute("enabled", QString::number(is_enabled()));
-
-//  for (const auto& row : rows) {
-//    if (!row->savable) {
-//      continue;
-//    }
-//    stream.writeStartElement("row"); // row
-//    for (int j=0;j<row->fieldCount();j++) {
-//      EffectField* field = row->field(j);
-//      stream.writeStartElement("field"); // field
-//      stream.writeAttribute("id", field->id);
-//      stream.writeAttribute("value", save_data_to_string(field->type, field->get_current_data()));
-//      for (const auto& key : field->keyframes) {
-//        stream.writeStartElement("key");
-//        stream.writeAttribute("value", save_data_to_string(field->type, key.data));
-//        stream.writeAttribute("frame", QString::number(key.time));
-//        stream.writeAttribute("type", QString::number(static_cast<int>(key.type)));
-//        stream.writeAttribute("prehx", QString::number(key.pre_handle_x));
-//        stream.writeAttribute("prehy", QString::number(key.pre_handle_y));
-//        stream.writeAttribute("posthx", QString::number(key.post_handle_x));
-//        stream.writeAttribute("posthy", QString::number(key.post_handle_y));
-//        stream.writeEndElement(); // key
-//      }
-//      stream.writeEndElement(); // field
-//    }
-//    stream.writeEndElement(); // row
-//  }
-//  return false;
 }
 
 bool Effect::is_open() {
