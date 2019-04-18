@@ -51,7 +51,6 @@
 		<xs:complexType>
 			<xs:sequence>
                 <xs:element ref="version"/>
-                <xs:element ref="url"/>
                 <xs:element ref="folders"/>
                 <xs:element ref="media"/>
                 <xs:element ref="sequences"/>
@@ -61,7 +60,7 @@
 
 	<xs:element name="media">
 		<xs:complexType>
-            <xs:sequence>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element ref="footage"/>
             </xs:sequence>
 		</xs:complexType>
@@ -83,8 +82,8 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="channels"/>
-                <xs:element ref="frequency"/>
                 <xs:element ref="layout"/>
+                <xs:element ref="frequency"/>
             </xs:sequence>
             <xs:attribute ref="id"/>
 		</xs:complexType>
@@ -162,9 +161,9 @@
 		<xs:complexType>
             <xs:sequence>  
                 <xs:element ref="name"/>
-            </xs:sequence>
-            <xs:sequence minOccurs="1" maxOccurs="unbounded">
-                <xs:element ref="field"/>
+                <xs:sequence minOccurs="1" maxOccurs="unbounded">
+                    <xs:element ref="field"/>
+                </xs:sequence>
             </xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -173,7 +172,7 @@
 		<xs:complexType>
             <xs:sequence>                
                 <xs:sequence minOccurs="0" maxOccurs="unbounded">
-                    <xs:element ref="field"/>
+                    <xs:element ref="row"/>
                 </xs:sequence>
             </xs:sequence>
             <xs:attribute ref="enabled"/>
@@ -181,24 +180,35 @@
 		</xs:complexType>
 	</xs:element>
 
-
+	<xs:element name="timelineinfo">
+		<xs:complexType>
+            <xs:sequence> 
+                <xs:element ref="name"/>
+                <xs:element name="clipin"   type="xs:integer"/>
+                <xs:element name="enabled"  type="xs:boolean"/>
+                <xs:element name="in"       type="xs:integer"/>
+                <xs:element name="out"      type="xs:integer"/>
+                <xs:element name="track"    type="xs:integer"/>
+                <xs:element ref="color"/>
+                <xs:element name="autoscale"    type="xs:boolean"/>
+                <xs:element name="speed"        type="xs:decimal"/>
+                <xs:element name="maintainpitch"    type="xs:boolean"/>
+                <xs:element name="reverse"    type="xs:boolean"/>
+                <xs:element name="stream"    type="xs:integer"/>		
+            </xs:sequence>
+		</xs:complexType>
+	</xs:element>
 
 	<xs:element name="clip">
 		<xs:complexType>
             <xs:sequence>                
-                <xs:element ref="name"/>
-                <xs:element name="clipin" type="xs:integer"/>
-                <xs:element name="track" type="xs:integer"/>
                 <xs:element name="opening" type="xs:integer"/>
+                <xs:element name="closing" type="xs:integer"/>
+                <xs:element ref="timelineinfo"/>
                 <xs:sequence minOccurs="0" maxOccurs="unbounded">
                     <xs:element ref="effect"/>
                 </xs:sequence>
             </xs:sequence>
-            <xs:attribute ref="id"/>
-            <xs:attribute ref="enabled"/>
-            <xs:attribute name="link_id" type="xs:integer"/>
-            <xs:attribute ref="in"/>
-            <xs:attribute ref="out"/>
 		</xs:complexType>
 	</xs:element>
 

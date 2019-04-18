@@ -2,7 +2,6 @@
 
 <project>
     <version>1</version>
-    <url>/home/jon/Videos/sssamples.ove</url>
 
     <folders>
         <folder id="1" parent="0">
@@ -22,13 +21,13 @@
       </video>
       <audio id="1">
         <channels>2</channels>
-        <frequency>48000</frequency>
         <layout>0</layout>
+        <frequency>48000</frequency>
       </audio>
       <audio id="2">
         <channels>5</channels>
-        <frequency>96000</frequency>
         <layout>0</layout>
+        <frequency>96000</frequency>
       </audio>
 
       <marker>
@@ -50,11 +49,24 @@
       <framerate>25.0000000000</framerate>
       <frequency>48000</frequency>
       <layout>2</layout>
-      <clip id="0" enabled="true" link_id="0" in="0" out="400">
-        <name>clipcanvas_14348_Avid_DNxHD.mov</name>
-        <clipin>0</clipin> <!-- ? -->
-        <track>-1</track>
-        <opening>-1</opening> <!-- ? -->
+      <clip>
+        <opening>-1</opening>
+        <closing>-1</closing>
+        
+        <timelineinfo>
+            <name>clipcanvas_14348_Avid_DNxHD</name>
+            <clipin>0</clipin>
+            <enabled>true</enabled>
+            <in>0</in>
+            <out>542</out>
+            <track>0</track>
+            <color>4286611648</color>
+            <autoscale>false</autoscale>
+            <speed>1</speed>
+            <maintainpitch>1</maintainpitch>
+            <reverse>0</reverse>
+            <stream>1</stream>
+        </timelineinfo>
 
         <effect enabled="true" name="transform">
             <row>
