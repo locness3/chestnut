@@ -140,11 +140,11 @@ bool Footage::save(QXmlStreamWriter& stream) const
   stream.writeStartElement("footage");
   if (auto par = parent_mda.lock()) {
     stream.writeAttribute("id", QString::number(par->id()));
+    stream.writeAttribute("folder", QString::number(par->parentItem()->id()));
   } else {
     qCritical() << "Null Media parent";
     return false;
   }
-  stream.writeAttribute("folder", QString::number(folder_));
   stream.writeAttribute("using_inout", using_inout ? "true" : "false");
   stream.writeAttribute("in", QString::number(in));
   stream.writeAttribute("out", QString::number(out));

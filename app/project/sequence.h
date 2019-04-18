@@ -85,6 +85,7 @@ public:
     QVector<TransitionPtr> transitions_;
     int64_t playhead_ = 0;
     bool wrapper_sequence_ = false;
+    std::weak_ptr<Media> parent_mda{};
 
 private:
     friend class SequenceTest;
@@ -93,7 +94,6 @@ private:
     double frame_rate_ = -0.0;
     int32_t audio_frequency_ = -1;
     int32_t audio_layout_ = -1;
-    std::weak_ptr<Media> parent_mda{};
 
     bool loadWorkArea(QXmlStreamReader& stream);
 };

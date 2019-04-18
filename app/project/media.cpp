@@ -131,6 +131,7 @@ bool Media::setFootage(const FootagePtr& ftg)
 bool Media::setSequence(const SequencePtr& sqn)
 {
   if ( (sqn != nullptr) && (sqn != object_) ) {
+    sqn->parent_mda = shared_from_this();
     setIcon(QIcon(SEQUENCE_ICON));
     type_ = MediaType::SEQUENCE;
     object_ = sqn;

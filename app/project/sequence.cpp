@@ -348,8 +348,13 @@ bool Sequence::load(QXmlStreamReader& stream)
 bool Sequence::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement("sequence");
-  stream.writeAttribute("id", QString::number(save_id_));
-  stream.writeAttribute("folder", QString::number(0)); //TODO:
+  if (auto par = parent_mda.lock()) {
+    stream.writeAttribute("id", QString::number(par->id()));
+    stream.writeAttribute("folder", QString::number(par->parentItem()->id()));
+  } else {
+    qCritical() << "Null parent Media";
+    return false;
+  }
   stream.writeAttribute("open", this == global::sequence.get() ? "true" : "false");
 
   stream.writeStartElement("workarea");
