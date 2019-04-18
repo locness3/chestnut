@@ -109,8 +109,7 @@ void RenderThread::paint()
   glEnable(GL_DEPTH);
 
   QVector<ClipPtr> nests;
-  if (!seq.expired()) {
-    SequencePtr sequenceNow = seq.lock();
+  if (const SequencePtr& sequenceNow = seq.lock()) {
     compose_sequence(nullptr, ctx, sequenceNow, nests, true, false, gizmos, texture_failed, false);
 
     if (frame_grabbing_) {
