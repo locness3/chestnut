@@ -139,7 +139,8 @@ private:
 
 class AddEffectCommand : public QUndoCommand {
 public:
-    AddEffectCommand(ClipPtr c, EffectPtr e, const EffectMeta* m, const int insert_pos = -1);
+    AddEffectCommand(ClipPtr c, EffectPtr e, const EffectMeta& m, const int insert_pos = -1);
+    AddEffectCommand(ClipPtr c, EffectPtr e, const int insert_pos = -1);
 
     AddEffectCommand(const AddEffectCommand& ) = delete;
     AddEffectCommand& operator=(const AddEffectCommand&) = delete;
@@ -148,18 +149,19 @@ public:
     virtual void undo() override;
     virtual void redo() override;
 private:
-    ClipPtr clip;
-    const EffectMeta* meta;
-    EffectPtr ref;
-    int pos;
-    bool done;
-    bool old_project_changed;
+    ClipPtr clip{};
+    EffectMeta meta{};
+    EffectPtr ref{};
+    int pos{};
+    bool done{false};
+    bool old_project_changed{};
 };
 
 class AddTransitionCommand : public QUndoCommand {
 public:
-    AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const EffectMeta* itransition,
+    AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const EffectMeta& itransition,
                          const int itype, const int ilength);
+    AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const int itype, const int ilength);
 
     AddTransitionCommand(const AddTransitionCommand& ) = delete;
     AddTransitionCommand& operator=(const AddTransitionCommand&) = delete;
@@ -167,13 +169,13 @@ public:
     virtual void undo() override;
     virtual void redo() override;
 private:
-    ClipPtr clip;
-    ClipPtr secondary;
-    TransitionPtr transition_to_copy;
-    const EffectMeta* transition;
-    int type;
-    int length;
-    bool old_project_changed;
+    ClipPtr clip{};
+    ClipPtr secondary{};
+    TransitionPtr transition_to_copy{};
+    EffectMeta transition{};
+    int type{};
+    int length{};
+    bool old_project_changed{};
     int old_ptransition{};
     int old_stransition{};
 };

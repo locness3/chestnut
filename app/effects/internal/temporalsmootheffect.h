@@ -9,7 +9,7 @@ using VectorSpanBytes = QVector<gsl::span<uint8_t>>;
 class TemporalSmoothEffect : public Effect
 {
   public:
-    TemporalSmoothEffect(ClipPtr c, const EffectMeta* em);
+    TemporalSmoothEffect(ClipPtr c, const EffectMeta& em);
     ~TemporalSmoothEffect() override;
 
     TemporalSmoothEffect(const TemporalSmoothEffect&) = delete;

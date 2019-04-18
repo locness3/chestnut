@@ -40,7 +40,7 @@ namespace  {
   };
 }
 
-SolidEffect::SolidEffect(ClipPtr  c, const EffectMeta* em) : Effect(c, em)
+SolidEffect::SolidEffect(ClipPtr  c, const EffectMeta& em) : Effect(c, em)
 {  
   setCapability(Capability::SUPERIMPOSE);
   solid_type = add_row(tr("Type"))->add_field(EffectFieldType::COMBO, "type");

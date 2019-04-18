@@ -23,7 +23,7 @@
 
 class AudioNoiseEffect : public Effect {
 public:
-    AudioNoiseEffect(ClipPtr c, const EffectMeta* em);
+    AudioNoiseEffect(ClipPtr c, const EffectMeta& em);
 
     AudioNoiseEffect(const AudioNoiseEffect& ) = delete;
     AudioNoiseEffect& operator=(const AudioNoiseEffect&) = delete;

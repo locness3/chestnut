@@ -30,6 +30,7 @@
 #include "project/selection.h"
 #include "project/sequence.h"
 #include "project/media.h"
+#include "project/effect.h"
 
 constexpr int TRACK_DEFAULT_HEIGHT = 40;
 
@@ -52,7 +53,6 @@ class Transition;
 class TimelineHeader;
 class ResizableScrollBar;
 class AudioMonitor;
-struct EffectMeta;
 
 class Clip;
 class Footage;
@@ -211,7 +211,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     int transition_tool_pre_clip;
     int transition_tool_post_clip;
     int transition_tool_type{};
-    const EffectMeta* transition_tool_meta{};
+    EffectMeta transition_tool_meta{};
     int transition_tool_side{};
 
     // hand tool variables

@@ -23,7 +23,7 @@
 class CornerPinEffect : public Effect {
     Q_OBJECT
   public:
-    CornerPinEffect(ClipPtr c, const EffectMeta* em);
+    CornerPinEffect(ClipPtr c, const EffectMeta& em);
 
     CornerPinEffect(const CornerPinEffect& ) = delete;
     CornerPinEffect& operator=(const CornerPinEffect&) = delete;

@@ -25,7 +25,7 @@
 #include "ui/labelslider.h"
 #include "ui/collapsiblewidget.h"
 
-PanEffect::PanEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
+PanEffect::PanEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em) {
     EffectRowPtr pan_row = add_row(tr("Pan"));
 	pan_val = pan_row->add_field(EffectFieldType::DOUBLE, "pan");
 	pan_val->set_double_minimum_value(-100);

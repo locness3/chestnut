@@ -27,7 +27,7 @@ class QOpenGLTexture;
 class TextEffect : public Effect {
     Q_OBJECT
   public:
-    TextEffect(ClipPtr c, const EffectMeta *em);
+    TextEffect(ClipPtr c, const EffectMeta& em);
 
     TextEffect(const TextEffect& ) = delete;
     TextEffect& operator=(const TextEffect&) = delete;

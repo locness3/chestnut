@@ -1064,7 +1064,7 @@ void Timeline::paste(bool insert) {
         if (c != nullptr && c->isSelected(true)) {
           for (int j=0;j<e_clipboard.size();j++) {
             EffectPtr e = std::dynamic_pointer_cast<Effect>(e_clipboard.at(j));
-            if ((c->timeline_info.isVideo()) == (e->meta->subtype == EFFECT_TYPE_VIDEO)) {
+            if ((c->timeline_info.isVideo()) == (e->meta.subtype == EFFECT_TYPE_VIDEO)) {
               int found = -1;
               if (ask_conflict) {
                 replace = false;
@@ -1079,7 +1079,8 @@ void Timeline::paste(bool insert) {
               if (found >= 0 && ask_conflict) {
                 QMessageBox box(this);
                 box.setWindowTitle(tr("Effect already exists"));
-                box.setText(tr("Clip '%1' already contains a '%2' effect. Would you like to replace it with the pasted one or add it as a separate effect?").arg(c->name(), e->meta->name));
+                box.setText(tr("Clip '%1' already contains a '%2' effect. Would you like to replace it with the pasted one "
+                               "or add it as a separate effect?").arg(c->name(), e->meta.name));
                 box.setIcon(QMessageBox::Icon::Question);
 
                 box.addButton(tr("Add"), QMessageBox::YesRole);
@@ -1102,15 +1103,15 @@ void Timeline::paste(bool insert) {
               if (found >= 0 && skip) {
                 // do nothing
               } else if (found >= 0 && replace) {
-                EffectDeleteCommand* delcom = new EffectDeleteCommand();
+                auto delcom = new EffectDeleteCommand();
                 delcom->clips.append(c);
                 delcom->fx.append(found);
                 ca->append(delcom);
 
-                ca->append(new AddEffectCommand(c, e->copy(c), nullptr, found));
+                ca->append(new AddEffectCommand(c, e->copy(c), found));
                 push = true;
               } else {
-                ca->append(new AddEffectCommand(c, e->copy(c), nullptr));
+                ca->append(new AddEffectCommand(c, e->copy(c)));
                 push = true;
               }
             }
@@ -1644,8 +1645,9 @@ void Timeline::transition_tool_click() {
   transition_menu.exec(QCursor::pos());
 }
 
-void Timeline::transition_menu_select(QAction* a) {
-  transition_tool_meta = reinterpret_cast<const EffectMeta*>(a->data().value<quintptr>());
+void Timeline::transition_menu_select(QAction* a)
+{
+  transition_tool_meta = Effect::getRegisteredMeta(a->data().toString().toLower());
 
   if (a->objectName() == "v") {
     transition_tool_side = -1;
@@ -1920,14 +1922,14 @@ void move_clip(ComboAction* ca, ClipPtr c, long iin, long iout, long iclip_in, i
       // separate transition
       //            ca->append(new SetPointer(reinterpret_cast<void**>(&c->openingTransition()->secondary_clip), nullptr)); //FIXME: casting
       ca->append(new AddTransitionCommand(c->openingTransition()->secondary_clip.lock(), nullptr,
-                                          c->openingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
+                                          c->openingTransition(), TA_CLOSING_TRANSITION, 0));
     }
 
     if (c->closingTransition() != nullptr && !c->closingTransition()->secondary_clip.expired()
         && c->closingTransition()->parent_clip->timeline_info.in != iout) {
       // separate transition
       //            ca->append(new SetPointer(reinterpret_cast<void**>(&c->closingTransition()->secondary_clip), nullptr)); //FIXME: casting
-      ca->append(new AddTransitionCommand(c, nullptr, c->closingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
+      ca->append(new AddTransitionCommand(c, nullptr, c->closingTransition(), TA_CLOSING_TRANSITION, 0));
     }
   }
 }

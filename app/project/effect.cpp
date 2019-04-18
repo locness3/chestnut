@@ -66,17 +66,21 @@ constexpr auto LOCAL_EFFECT_PATH = "effects";
 bool shaders_are_enabled = true;
 QVector<EffectMeta> effects;
 
+
+QMap<QString, EffectMeta> Effect::registered;
+int EffectMeta::nextId = 0;
+
 using panels::PanelManager;
 
-EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
+EffectPtr create_effect(ClipPtr c, const EffectMeta& em)
 {
-  if (!em->filename.isEmpty()) {
+  if (!em.filename.isEmpty()) {
     // load effect from file
     return std::make_shared<Effect>(c, em);
   }
-  if (em->internal >= 0 && em->internal < EFFECT_INTERNAL_COUNT) {
+  if (em.internal >= 0 && em.internal < EFFECT_INTERNAL_COUNT) {
     // must be an internal effect
-    switch (em->internal) {
+    switch (em.internal) {
       case EFFECT_INTERNAL_TRANSFORM: return std::make_shared<TransformEffect>(c, em);
       case EFFECT_INTERNAL_TEXT: return std::make_shared<TextEffect>(c, em);
       case EFFECT_INTERNAL_TIMECODE: return std::make_shared<TimecodeEffect>(c, em);
@@ -90,7 +94,7 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
       case EFFECT_INTERNAL_FILLLEFTRIGHT: return std::make_shared<FillLeftRightEffect>(c, em);
       case EFFECT_INTERNAL_TEMPORAL: return std::make_shared<TemporalSmoothEffect>(c, em);
       default:
-        qWarning() << "Unknown Effect Type" << em->internal;
+        qWarning() << "Unknown Effect Type" << em.internal;
         break;
     }//switch
   } else {
@@ -98,24 +102,28 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
     QMessageBox::critical(&MainWindow::instance(),
                           QCoreApplication::translate("Effect", "Invalid effect"),
                           QCoreApplication::translate("Effect", "No candidate for effect '%1'. This effect may be corrupt. "
-                                                                "Try reinstalling it for Chestnut.").arg(em->name));
+                                                                "Try reinstalling it for Chestnut.").arg(em.name));
   }
   return nullptr;
 }
 
-const EffectMeta* get_internal_meta(const int internal_id, const int type)
+EffectMeta get_internal_meta(const int internal_id, const int type)
 {
-  for (const auto& eff : effects) {
+  EffectMeta meta;
+  for (const auto& eff : Effect::getRegisteredMetas()) {
     if ( (eff.internal == internal_id) && (eff.type == type) ) {
-      return &eff;
+      meta = eff;
     }
   }
-  return nullptr;
+  return meta;
 }
 
+//FIXME: do something cleaner
 void load_internal_effects()
 {
-  if (!shaders_are_enabled) qWarning() << "Shaders are disabled, some effects may be nonfunctional";
+  if (!shaders_are_enabled) {
+    qWarning() << "Shaders are disabled, some effects may be nonfunctional";
+  }
 
   EffectMeta em;
 
@@ -125,55 +133,55 @@ void load_internal_effects()
 
   em.name = "Volume";
   em.internal = EFFECT_INTERNAL_VOLUME;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Pan";
   em.internal = EFFECT_INTERNAL_PAN;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Tone";
   em.internal = EFFECT_INTERNAL_TONE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Noise";
   em.internal = EFFECT_INTERNAL_NOISE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Fill Left/Right";
   em.internal = EFFECT_INTERNAL_FILLLEFTRIGHT;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.subtype = EFFECT_TYPE_VIDEO;
 
   em.name = "Transform";
   em.category = "Distort";
   em.internal = EFFECT_INTERNAL_TRANSFORM;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Corner Pin";
   em.internal = EFFECT_INTERNAL_CORNERPIN;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Shake";
   em.internal = EFFECT_INTERNAL_SHAKE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Temporal Smooth";
   em.internal = EFFECT_INTERNAL_TEMPORAL;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Text";
   em.category = "Render";
   em.internal = EFFECT_INTERNAL_TEXT;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Timecode";
   em.internal = EFFECT_INTERNAL_TIMECODE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Solid";
   em.internal = EFFECT_INTERNAL_SOLID;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   // internal transitions
   em.type = EFFECT_TYPE_TRANSITION;
@@ -181,21 +189,21 @@ void load_internal_effects()
 
   em.name = "Cross Dissolve";
   em.internal = TRANSITION_INTERNAL_CROSSDISSOLVE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.subtype = EFFECT_TYPE_AUDIO;
 
   em.name = "Linear Fade";
   em.internal = TRANSITION_INTERNAL_LINEARFADE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Exponential Fade";
   em.internal = TRANSITION_INTERNAL_EXPONENTIALFADE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Logarithmic Fade";
   em.internal = TRANSITION_INTERNAL_LOGARITHMICFADE;
-  effects.append(em);
+  Effect::registerMeta(em);
 }
 
 QList<QString> get_effects_paths()
@@ -234,6 +242,7 @@ bool addEffect(QXmlStreamReader& reader,
     em.filename = file_name;
     em.path = effects_path;
     effect_list.push_back(em);
+    Effect::registerMeta(em);
     return true;
   }
 
@@ -241,6 +250,7 @@ bool addEffect(QXmlStreamReader& reader,
 
 }
 
+//TODO:
 void load_shader_effects(QVector<EffectMeta>& effect_list)
 {
   for (auto& effects_path : get_effects_paths()){
@@ -289,14 +299,41 @@ void init_effects()
   PanelManager::fxControls().effects_loaded.unlock();
 }
 
+EffectMeta::EffectMeta() : id (nextId++)
+{
 
-Effect::Effect(ClipPtr c, const EffectMeta *em) :
-  SequenceItem(project::SequenceItemType::CLIP),
-  parent_clip(std::move(c)),
-  meta(em),
-  container(new CollapsibleWidget()),
-  is_open_(false),
-  bound_(false)
+}
+
+
+bool EffectMeta::operator==(const EffectMeta& rhs) const
+{
+  return rhs.id == id;
+}
+
+void Effect::registerMeta(const EffectMeta& meta)
+{
+  Effect::registered.insert(meta.name.toLower(), meta);
+}
+
+
+EffectMeta Effect::getRegisteredMeta(const QString& name)
+{
+  EffectMeta meta;
+  if (Effect::registered.count(name.toLower()) > 0)  {
+    return Effect::registered.value(name.toLower());
+  }
+  return meta;
+}
+
+const QMap<QString, EffectMeta>& Effect::getRegisteredMetas()
+{
+  return Effect::registered;
+}
+
+Effect::Effect(ClipPtr c)
+  : SequenceItem(project::SequenceItemType::CLIP),
+    parent_clip(std::move(c)),
+    container(new CollapsibleWidget())
 {
   // set up base UI
   connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
@@ -309,9 +346,16 @@ Effect::Effect(ClipPtr c, const EffectMeta *em) :
 
   connect(container->title_bar, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu(const QPoint&)));
 
-  if (em != nullptr) {
+
+}
+
+Effect::Effect(ClipPtr c, const EffectMeta& em) :
+  Effect(c)
+{
+  meta = em;
+  if (em.type >= 0) {
     // set up UI from effect file
-    setupControlWidget(*em);
+    setupControlWidget(em);
   }
 }
 
@@ -408,7 +452,7 @@ void Effect::field_changed()
 
 void Effect::show_context_menu(const QPoint& pos)
 {
-  if (meta->type == EFFECT_TYPE_EFFECT) {
+  if (meta.type == EFFECT_TYPE_EFFECT) {
     QMenu menu(&MainWindow::instance());
 
     int index = get_index_in_clip();
@@ -657,7 +701,7 @@ bool Effect::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement("effect");
 
-  stream.writeAttribute("name", meta->name);
+  stream.writeAttribute("name", meta.name);
   stream.writeAttribute("enabled", is_enabled() ? "true" : "false");
 
   for (const auto& row : rows) {
@@ -673,17 +717,18 @@ bool Effect::is_open() {
 
 void Effect::validate_meta_path()
 {
-  if (!meta->path.isEmpty() || (glsl_.vert_.isEmpty() && glsl_.frag_.isEmpty())) return;
+  if (!meta.path.isEmpty() || (glsl_.vert_.isEmpty() && glsl_.frag_.isEmpty())) return;
   QList<QString> effects_paths = get_effects_paths();
   const QString& test_fn = glsl_.vert_.isEmpty() ? glsl_.frag_ : glsl_.vert_;
   for (const auto& effects_path : effects_paths) {
     if (QFileInfo::exists(effects_path + "/" + test_fn)) {
-      for (int j=0;j<effects.size();j++) {
-        if (&effects.at(j) == meta) {
-          effects[j].path = effects_path;
-          return;
-        }
-      }
+      //FIXME:
+//      for (int j=0;j<effects.size();j++) {
+//        if (effects.at(j) == meta) {
+//          effects[j].path = effects_path;
+//          return;
+//        }
+//      }
       return;
     }
   }
@@ -702,7 +747,7 @@ void Effect::open()
     validate_meta_path();
     bool glsl_compiled = true;
     if (!glsl_.vert_.isEmpty()) {
-      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Vertex, meta->path + "/" + glsl_.vert_)) {
+      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Vertex, meta.path + "/" + glsl_.vert_)) {
         qInfo() << "Vertex shader added successfully";
       } else {
         glsl_compiled = false;
@@ -710,7 +755,7 @@ void Effect::open()
       }
     }
     if (!glsl_.frag_.isEmpty()) {
-      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Fragment, meta->path + "/" + glsl_.frag_)) {
+      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Fragment, meta.path + "/" + glsl_.frag_)) {
         qInfo() << "Fragment shader added successfully";
       } else {
         glsl_compiled = false;
@@ -931,7 +976,6 @@ EffectPtr Effect::effectFromStream(QXmlStreamReader& stream)
   // location effect in some list
   // set up that effect with this
   // return that effect
-  stream.skipCurrentElement();
   return nullptr;
 }
 

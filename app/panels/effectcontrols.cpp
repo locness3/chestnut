@@ -105,7 +105,7 @@ void EffectControls::menu_select(QAction* q) {
   for (int i=0;i<selected_clips.size();i++) {
     ClipPtr c = global::sequence->clips_.at(selected_clips.at(i));
     if ((c->timeline_info.isVideo()) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
-      const EffectMeta* meta = reinterpret_cast<const EffectMeta*>(q->data().value<quintptr>());
+      EffectMeta meta = Effect::getRegisteredMeta(q->data().toString());
       if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
         if (c->openingTransition() == nullptr) {
           ca->append(new AddTransitionCommand(c, nullptr, nullptr, meta, TA_OPENING_TRANSITION, 30));
@@ -184,13 +184,11 @@ void EffectControls::show_effect_menu(int type, int subtype) {
   effects_loaded.lock();
 
   QMenu effects_menu(this);
-  for (int i=0;i<effects.size();i++) {
-    const EffectMeta& em = effects.at(i);
-
+  for (const auto& em : Effect::getRegisteredMetas()) {
     if (em.type == type && em.subtype == subtype) {
       QAction* action = new QAction(&effects_menu);
       action->setText(em.name);
-      action->setData(reinterpret_cast<quintptr>(&em));
+      action->setData(em.name.toLower());
 
       QMenu* parent = &effects_menu;
       if (!em.category.isEmpty()) {

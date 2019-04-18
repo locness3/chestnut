@@ -41,7 +41,7 @@ constexpr int BLEND_MODE_SCREEN = 1;
 constexpr int BLEND_MODE_MULTIPLY = 2;
 constexpr int BLEND_MODE_OVERLAY = 3;
 
-TransformEffect::TransformEffect(ClipPtr c, const EffectMeta* em) : Effect(c, em)
+TransformEffect::TransformEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em)
 {
 
   setCapability(Capability::COORDS);

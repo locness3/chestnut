@@ -43,7 +43,7 @@
 constexpr auto VERT_PATH = "common.vert";
 constexpr auto FRAG_PATH = "dropshadow.frag";
 
-TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
+TextEffect::TextEffect(ClipPtr c, const EffectMeta& em) :
   Effect(c, em)
 {
   setCapability(Capability::SUPERIMPOSE);

@@ -34,14 +34,14 @@ constexpr int TRANSITION_INTERNAL_LOGARITHMICFADE = 3;
 constexpr int TRANSITION_INTERNAL_CUBE = 4;
 constexpr int TRANSITION_INTERNAL_COUNT = 5;
 
-int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em, long length = -1);
+int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em, long length = -1);
 
 
 
 class Transition : public Effect {
     Q_OBJECT
   public:
-    Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em);
+    Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em);
 
     int copy(const ClipPtr& c, const ClipPtr& s);
     void set_length(const long value);

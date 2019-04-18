@@ -19,7 +19,7 @@
 
 #include <QOpenGLFunctions>
 
-CrossDissolveTransition::CrossDissolveTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Transition(c, s, em)
+CrossDissolveTransition::CrossDissolveTransition(ClipPtr c, ClipPtr s, const EffectMeta& em) : Transition(c, s, em)
 {
   setCapability(Capability::COORDS);
 }

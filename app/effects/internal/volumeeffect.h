@@ -22,7 +22,7 @@
 
 class VolumeEffect : public Effect {
   public:
-    VolumeEffect(ClipPtr c, const EffectMeta* em);
+    VolumeEffect(ClipPtr c, const EffectMeta& em);
 
     VolumeEffect(const VolumeEffect& ) = delete;
     VolumeEffect& operator=(const VolumeEffect&) = delete;

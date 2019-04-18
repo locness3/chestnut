@@ -22,7 +22,7 @@
 
 class ToneEffect : public Effect {
   public:
-    ToneEffect(ClipPtr c, const EffectMeta* em);
+    ToneEffect(ClipPtr c, const EffectMeta& em);
 
     ToneEffect(const ToneEffect& ) = delete;
     ToneEffect& operator=(const ToneEffect&) = delete;

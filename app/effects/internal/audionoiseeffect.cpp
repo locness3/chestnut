@@ -21,7 +21,7 @@
 #include <QtMath>
 #include <random>
 
-AudioNoiseEffect::AudioNoiseEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em) {
+AudioNoiseEffect::AudioNoiseEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em) {
   amount_val = add_row(tr("Amount"))->add_field(EffectFieldType::DOUBLE, "amount");
   amount_val->set_double_minimum_value(0);
   amount_val->set_double_maximum_value(100);

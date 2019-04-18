@@ -2360,7 +2360,7 @@ void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRec
 
       if (draw_text) {
         p.setPen(Qt::white);
-        p.drawText(transition_text_rect, 0, t->meta->name, &transition_text_rect);
+        p.drawText(transition_text_rect, 0, t->meta.name, &transition_text_rect);
       }
     }
     p.setPen(Qt::black);

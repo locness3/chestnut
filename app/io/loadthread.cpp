@@ -55,14 +55,14 @@ LoadThread::LoadThread(LoadDialog* l, const bool a)
           this, SLOT(create_effect_ui(QXmlStreamReader*, ClipPtr , int, const QString*, const EffectMeta*, long, bool)));
 }
 
-const EffectMeta* get_meta_from_name(const QString& name) {
-  for (int j=0;j<effects.size();j++) {
-    if (effects.at(j).name == name) {
-      return &effects.at(j);
-    }
-  }
-  return nullptr;
-}
+//const EffectMeta* get_meta_from_name(const QString& name) {
+//  for (int j=0;j<effects.size();j++) {
+//    if (effects.at(j).name == name) {
+//      return &effects.at(j);
+//    }
+//  }
+//  return nullptr;
+//}
 
 void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
   //    int effect_id = -1; // FIXME: Unused
@@ -85,11 +85,11 @@ void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
   // wait for effects to be loaded
   PanelManager::fxControls().effects_loaded.lock();
 
-  const EffectMeta* meta = nullptr;
+  EffectMeta meta;
 
   // find effect with this name
   if (!effect_name.isEmpty()) {
-    meta = get_meta_from_name(effect_name);
+    meta = Effect::getRegisteredMeta(effect_name);
   }
 
   PanelManager::fxControls().effects_loaded.unlock();
@@ -105,7 +105,7 @@ void LoadThread::load_effect(QXmlStreamReader& stream, ClipPtr c) {
     type = TA_NO_TRANSITION;
   }
 
-  emit start_create_effect_ui(&stream, c, type, &effect_name, meta, effect_length, effect_enabled);
+  emit start_create_effect_ui(stream, c, type, effect_name, meta, effect_length, effect_enabled);
   waitCond.wait(&mutex);
 }
 
@@ -682,11 +682,11 @@ void LoadThread::success_func()
 }
 
 void LoadThread::create_effect_ui(
-    QXmlStreamReader* stream,
+    QXmlStreamReader& stream,
     ClipPtr  c,
     int type,
-    const QString* effect_name,
-    const EffectMeta* meta,
+    const QString& effect_name,
+    const EffectMeta& meta,
     long effect_length,
     bool effect_enabled)
 {
@@ -714,25 +714,25 @@ void LoadThread::create_effect_ui(
 
   if (cancelled) return;
   if (type == TA_NO_TRANSITION) {
-    if (meta == nullptr) {
+    if (meta.type == -1) {
       // create void effect
-      EffectPtr ve = std::make_shared<VoidEffect>(c, *effect_name);
+      EffectPtr ve = std::make_shared<VoidEffect>(c, effect_name);
       ve->set_enabled(effect_enabled);
-      ve->load(*stream);
+      ve->load(stream);
       c->effects.append(ve);
     } else {
       EffectPtr e(create_effect(c, meta));
       e->set_enabled(effect_enabled);
-      e->load(*stream);
+      e->load(stream);
 
       c->effects.append(e);
     }
-  } else if (meta != nullptr) {
+  } else if (meta.type >= 0) {
     int transition_index = create_transition(c, nullptr, meta);
     auto t = c->sequence->transitions_.at(transition_index);
     if (effect_length > -1) t->set_length(effect_length);
     t->set_enabled(effect_enabled);
-    t->load(*stream);
+    t->load(stream);
 
     if (type == TA_OPENING_TRANSITION) {
       c->opening_transition = transition_index;
@@ -744,10 +744,15 @@ void LoadThread::create_effect_ui(
   waitCond.wakeAll();
 }
 
-void LoadThread::create_dual_transition(const TransitionData* td, ClipPtr  primary, ClipPtr  secondary, const EffectMeta* meta) {
+void LoadThread::create_dual_transition(const TransitionData& td, ClipPtr  primary, ClipPtr  secondary, const EffectMeta& meta)
+{
   int transition_index = create_transition(primary, secondary, meta);
-  primary->sequence->transitions_.at(transition_index)->set_length(td->length);
-  if (td->otc != nullptr) td->otc->opening_transition = transition_index;
-  if (td->ctc != nullptr) td->ctc->closing_transition = transition_index;
+  primary->sequence->transitions_.at(transition_index)->set_length(td.length);
+  if (td.otc != nullptr) {
+    td.otc->opening_transition = transition_index;
+  }
+  if (td.ctc != nullptr) {
+    td.ctc->closing_transition = transition_index;
+  }
   waitCond.wakeAll();
 }

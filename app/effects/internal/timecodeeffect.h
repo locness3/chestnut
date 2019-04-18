@@ -27,7 +27,7 @@ class QOpenGLTexture;
 class TimecodeEffect : public Effect {
 	Q_OBJECT
 public:
-    TimecodeEffect(ClipPtr c, const EffectMeta *em);
+    TimecodeEffect(ClipPtr c, const EffectMeta& em);
 
     TimecodeEffect(const TimecodeEffect& ) = delete;
     TimecodeEffect& operator=(const TimecodeEffect&) = delete;

@@ -201,7 +201,7 @@ void GraphEditor::set_row(EffectRow *r) {
   if (found_vals) {
     row = r;
     current_row_desc->setText(row->parent_effect->parent_clip->timeline_info.name_
-                              + " :: " + row->parent_effect->meta->name + " :: " + row->get_name());
+                              + " :: " + row->parent_effect->meta.name + " :: " + row->get_name());
     header->set_visible_in(r->parent_effect->parent_clip->timeline_info.in);
 
     connect(keyframe_nav, SIGNAL(goto_previous_key()), row, SLOT(goto_previous_key()));

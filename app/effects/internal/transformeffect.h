@@ -23,7 +23,7 @@
 class TransformEffect : public Effect {
     Q_OBJECT
   public:
-    TransformEffect(ClipPtr c, const EffectMeta* em);
+    TransformEffect(ClipPtr c, const EffectMeta& em);
 
     TransformEffect(const TransformEffect& ) = delete;
     TransformEffect& operator=(const TransformEffect&) = delete;

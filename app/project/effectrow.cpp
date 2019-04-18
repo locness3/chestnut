@@ -50,8 +50,8 @@ EffectRow::EffectRow(Effect* parent, const bool save, QGridLayout& uilayout,
   column_count = 1;
 
   keyframe_nav = nullptr;
-  if (parent_effect->meta != nullptr
-      && parent_effect->meta->type != EFFECT_TYPE_TRANSITION
+  if (parent_effect->meta.type >= 0
+      && parent_effect->meta.type != EFFECT_TYPE_TRANSITION
       && keyframable) {
     connect(label, SIGNAL(clicked()), this, SLOT(focus_row()));
 
@@ -76,7 +76,7 @@ bool EffectRow::isKeyframing() {
 }
 
 void EffectRow::setKeyframing(bool b) {
-  if (parent_effect->meta->type != EFFECT_TYPE_TRANSITION) {
+  if (parent_effect->meta.type  != EFFECT_TYPE_TRANSITION) {
     keyframing = b;
     if (keyframe_nav != nullptr) {
       keyframe_nav->enable_keyframes(b);
@@ -204,7 +204,7 @@ void EffectRow::focus_row()
 
 EffectField* EffectRow::add_field(const EffectFieldType type, const QString& id, int colspan) {
   auto field = new EffectField(this, type, id);
-  if (parent_effect->meta->type != EFFECT_TYPE_TRANSITION) {
+  if (parent_effect->meta.type  != EFFECT_TYPE_TRANSITION) {
     connect(field, SIGNAL(clicked()), this, SLOT(focus_row()));
   }
   fields.append(field);

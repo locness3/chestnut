@@ -269,18 +269,26 @@ void SetTimelineInOutCommand::redo() {
   MainWindow::instance().setWindowModified(true);
 }
 
-AddEffectCommand::AddEffectCommand(ClipPtr   c, EffectPtr e, const EffectMeta *m, const int insert_pos) :
-  clip(std::move(std::move(c))),
+AddEffectCommand::AddEffectCommand(ClipPtr   c, EffectPtr e, const EffectMeta& m, const int insert_pos) :
+  clip(std::move(c)),
   meta(m),
-  ref(std::move(std::move(e))),
+  ref(std::move(e)),
   pos(insert_pos),
   done(false),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
 
+
+AddEffectCommand::AddEffectCommand(ClipPtr c, EffectPtr e, const int insert_pos)
+  : clip(std::move(c)),
+    ref(std::move(e)),
+    pos(insert_pos)
+{
+
+}
+
 AddEffectCommand::~AddEffectCommand()
 {
-  meta = nullptr;
 }
 
 void AddEffectCommand::undo() {
@@ -307,7 +315,8 @@ void AddEffectCommand::redo() {
   MainWindow::instance().setWindowModified(true);
 }
 
-AddTransitionCommand::AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const EffectMeta *itransition, const int itype, const int ilength) :
+AddTransitionCommand::AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy,
+                                           const EffectMeta& itransition, const int itype, const int ilength) :
   clip(std::move(c)),
   secondary(std::move(s)),
   transition_to_copy(std::move(copy)),
@@ -316,6 +325,18 @@ AddTransitionCommand::AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr c
   length(ilength),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
+
+
+AddTransitionCommand::AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const int itype, const int ilength)
+  : clip(std::move(c)),
+    secondary(std::move(s)),
+    transition_to_copy(std::move(copy)),
+    type(itype),
+    length(ilength),
+    old_project_changed(MainWindow::instance().isWindowModified())
+{
+
+}
 
 void AddTransitionCommand::undo() {
   clip->sequence->hardDeleteTransition(clip, type);
@@ -358,7 +379,7 @@ void AddTransitionCommand::redo() {
 }
 
 ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const int itype, const long ilength) :
-  clip(std::move(std::move(c))),
+  clip(std::move(c)),
   type(itype),
   new_length(ilength),
   old_project_changed(MainWindow::instance().isWindowModified())
@@ -433,8 +454,8 @@ void DeleteTransitionCommand::redo() {
 }
 
 NewSequenceCommand::NewSequenceCommand(MediaPtr s, MediaPtr iparent, const bool modified) :
-  seq_(std::move(std::move(s))),
-  parent_(std::move(std::move(iparent))),
+  seq_(std::move(s)),
+  parent_(std::move(iparent)),
   done_(false),
   old_project_changed_(modified)
 {
@@ -463,8 +484,8 @@ void NewSequenceCommand::redo()
 }
 
 AddMediaCommand::AddMediaCommand(MediaPtr iitem, MediaPtr iparent) :
-  item(std::move(std::move(iitem))),
-  parent(std::move(std::move(iparent))),
+  item(std::move(iitem)),
+  parent(std::move(iparent)),
   done(false),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
@@ -609,8 +630,8 @@ void CheckboxCommand::redo() {
 }
 
 ReplaceMediaCommand::ReplaceMediaCommand(MediaPtr i, QString s) :
-  item(std::move(std::move(i))),
-  new_filename(std::move(std::move(s))),
+  item(std::move(i)),
+  new_filename(std::move(s)),
   old_project_changed(MainWindow::instance().isWindowModified())
 {
   old_filename = item->object<Footage>()->url;
@@ -652,8 +673,8 @@ void ReplaceMediaCommand::redo() {
 }
 
 ReplaceClipMediaCommand::ReplaceClipMediaCommand(MediaPtr a, MediaPtr b, const bool e) :
-  old_media(std::move(std::move(a))),
-  new_media(std::move(std::move(b))),
+  old_media(std::move(a)),
+  new_media(std::move(b)),
   preserve_clip_ins(e),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
@@ -840,7 +861,7 @@ void SetAutoscaleAction::redo()
 AddMarkerAction::AddMarkerAction(project::ProjectItemPtr item, const long t, QString n) :
   item_(std::move(item)),
   time(t),
-  name(std::move(std::move(n))),
+  name(std::move(n)),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
 
@@ -899,7 +920,7 @@ void MoveMarkerAction::redo() {
 }
 
 DeleteMarkerAction::DeleteMarkerAction(SequencePtr s) :
-  seq(std::move(std::move(s))),
+  seq(std::move(s)),
   sorted(false),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
@@ -967,7 +988,7 @@ void SetBool::redo() {
 }
 
 SetSelectionsCommand::SetSelectionsCommand(SequencePtr s) :
-  seq(std::move(std::move(s))),
+  seq(std::move(s)),
   done(true),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
@@ -1004,7 +1025,7 @@ void SetEnableCommand::redo() {
 }
 
 EditSequenceCommand::EditSequenceCommand(MediaPtr i, const SequencePtr& s) :
-  item(std::move(std::move(i))),
+  item(std::move(i)),
   seq(s),
   old_project_changed(MainWindow::instance().isWindowModified()),
   old_name(s->name()),
@@ -1065,7 +1086,7 @@ void CloseAllClipsCommand::redo() {
 }
 
 UpdateFootageTooltip::UpdateFootageTooltip(MediaPtr i) :
-  item(std::move(std::move(i)))
+  item(std::move(i))
 {}
 
 void UpdateFootageTooltip::undo() {
@@ -1105,8 +1126,8 @@ void ResetEffectCommand::doCmd(const bool undo_cmd)
 {
   for (const auto& field_entry: fields_) {
     const auto&[field, before, after] = field_entry;
-    const auto val = undo_cmd ? before : after;
-    if (field != nullptr) {
+        const auto val = undo_cmd ? before : after;
+        if (field != nullptr) {
       field->set_current_data(val);
     }
   }
@@ -1178,7 +1199,7 @@ void ReloadEffectsCommand::redo() {
 }
 
 RippleAction::RippleAction(SequencePtr is, const long ipoint, const long ilength, QVector<int> iignore) :
-  s(std::move(std::move(is))),
+  s(std::move(is)),
   point(ipoint),
   length(ilength),
   ignore(std::move(iignore))
@@ -1254,7 +1275,7 @@ void SetKeyframing::redo() {
 }
 
 RefreshClips::RefreshClips(MediaPtr m) :
-  media(std::move(std::move(m)))
+  media(std::move(m))
 {}
 
 void RefreshClips::undo() {

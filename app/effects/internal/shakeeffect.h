@@ -25,7 +25,7 @@ constexpr int RANDOM_VAL_SIZE = 30;
 class ShakeEffect : public Effect {
     Q_OBJECT
   public:
-    ShakeEffect(ClipPtr  c, const EffectMeta* em);
+    ShakeEffect(ClipPtr c, const EffectMeta& em);
 
     ShakeEffect(const ShakeEffect& ) = delete;
     ShakeEffect& operator=(const ShakeEffect&) = delete;

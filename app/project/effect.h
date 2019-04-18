@@ -57,23 +57,29 @@ using EffectPtr = std::shared_ptr<Effect>;
 using EffectWPtr = std::weak_ptr<Effect>;
 using EffectUPtr = std::unique_ptr<Effect>;
 
-struct EffectMeta {
-    QString name;
-    QString category;
-    QString filename;
-    QString path;
-    int internal;
-    int type;
-    int subtype;
+class EffectMeta { //TODO: address types
+  public:
+    EffectMeta();
+    bool operator==(const EffectMeta& rhs) const;
+    QString name{};
+    QString category{};
+    QString filename{};
+    QString path{};
+    int internal{-1};
+    int type{-1};
+    int subtype{-1};
+    int id;
+
+  private:
+    static int nextId;
 };
 
 extern bool shaders_are_enabled;
-extern QVector<EffectMeta> effects;
 
 double log_volume(const double linear);
 void init_effects();
-std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta *em);
-const EffectMeta* get_internal_meta(const int internal_id, const int type);
+std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta& em);
+EffectMeta get_internal_meta(const int internal_id, const int type);
 
 constexpr int EFFECT_TYPE_INVALID = 0;
 constexpr int EFFECT_TYPE_VIDEO = 1;
@@ -100,6 +106,9 @@ constexpr int EFFECT_INTERNAL_CORNERPIN = 12;
 constexpr int EFFECT_INTERNAL_TEMPORAL = 13;
 constexpr int EFFECT_INTERNAL_COUNT = 14;
 
+
+extern QVector<EffectMeta> effects; //TODO: remove
+
 enum class Capability {
   SHADER = 0,
   COORDS,
@@ -111,9 +120,9 @@ enum class Capability {
 
 template <typename T>
 struct CartesianCoordinate {
-  T x_;
-  T y_;
-  T z_;
+    T x_;
+    T y_;
+    T z_;
 };
 
 
@@ -128,8 +137,13 @@ qint16 mix_audio_sample(const qint16 a, const qint16 b);
 
 class Effect : public QObject, public project::SequenceItem, public project::IXMLStreamer {
     Q_OBJECT
-public:
-    Effect(ClipPtr c, const EffectMeta* em);
+  public:
+    static void registerMeta(const EffectMeta& meta);
+    static EffectMeta getRegisteredMeta(const QString& name);
+    static const QMap<QString, EffectMeta>& getRegisteredMetas();
+
+    explicit Effect(ClipPtr c);
+    Effect(ClipPtr c, const EffectMeta& em);
     Effect() = delete;
 
     bool hasCapability(const Capability flag) const;
@@ -183,7 +197,7 @@ public:
     static EffectPtr effectFromStream(QXmlStreamReader& stream);
 
     ClipPtr parent_clip; //TODO: make weak
-    const EffectMeta* meta;
+    EffectMeta meta;
     int id = -1;
     QString name_;
     CollapsibleWidget* container = nullptr;
@@ -201,15 +215,16 @@ public:
         std::unique_ptr<QOpenGLTexture> texture_{};
     } superimpose_{};
 
-public slots:
+
+  public slots:
     void field_changed();
-private slots:
+  private slots:
     void show_context_menu(const QPoint&);
     void delete_self();
     void move_up();
     void move_down();
     void reset();
-protected:
+  protected:
     // superimpose functions
     virtual void redraw(double timecode);
     /**
@@ -244,8 +259,9 @@ protected:
     QWidget* ui;
     QVector<QVariant> cachedValues;
     std::set<Capability> capabilities_;
-    bool is_open_;
-    bool bound_;
+    bool is_open_{false};
+    bool bound_{false};
+    static QMap<QString, EffectMeta> registered;
 
     bool valueHasChanged(const double timecode);
     int get_index_in_clip();

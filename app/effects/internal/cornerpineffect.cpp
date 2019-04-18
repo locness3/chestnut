@@ -24,7 +24,7 @@
 constexpr const char* const VERT_PATH = "cornerpin.vert";
 constexpr const char* const FRAG_PATH = "cornerpin.frag";
 
-CornerPinEffect::CornerPinEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em)
+CornerPinEffect::CornerPinEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em)
 {
   setCapability(Capability::COORDS);
   setCapability(Capability::SHADER);

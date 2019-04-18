@@ -921,11 +921,22 @@ bool Clip::load(QXmlStreamReader& stream)
         return false;
       }
     } else if (name == "effect") {
+      QString eff_name;
+      bool eff_enabled = false;
+      for (const auto& attr : stream.attributes()) {
+        const auto name = attr.name().toString().toLower();
+        if (name == "name") {
+          eff_name = attr.value().toString().toLower();
+        } else if (name == "enabled") {
+          eff_enabled = attr.value() == "true";
+        } else {
+          qWarning() << "Unhandled attribute";
+        }
+      }
+      EffectMeta meta = Effect::getRegisteredMeta(eff_name);
+      qDebug() << "Skipping effect: " << eff_name << eff_enabled;
       stream.skipCurrentElement();
-//      auto eff = Effect::effectFromStream(stream);
-//      effects.append(eff);
       // TODO: effect loading is currently very tricky
-//      stream.skipCurrentElement();
 //      EffectMeta* meta = nullptr;
 //      auto eff = std::make_shared<Effect>(shared_from_this(), meta);
 //      if (eff->load(stream)) {
@@ -1885,7 +1896,7 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
       // separate transition
       //            ca.append(new SetPointer((void**) &openingTransition()->secondary_clip, nullptr)); //FIXME:
       ca.append(new AddTransitionCommand(openingTransition()->secondary_clip.lock(), nullptr,
-                                         openingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
+                                         openingTransition(), TA_CLOSING_TRANSITION, 0));
     }
 
     if ( (closingTransition() != nullptr) &&
@@ -1893,7 +1904,7 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
          (closingTransition()->parent_clip->timeline_info.in != iout) ) {
       // separate transition
       //      ca.append(new SetPointer((void**) &closingTransition()->secondary_clip, nullptr)); //FIXME:
-      ca.append(new AddTransitionCommand(ClipPtr(shared_from_this()), nullptr, closingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
+      ca.append(new AddTransitionCommand(shared_from_this(), nullptr, closingTransition(), TA_CLOSING_TRANSITION, 0));
     }
   }
 }

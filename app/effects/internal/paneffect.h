@@ -22,7 +22,7 @@
 
 class PanEffect : public Effect {
   public:
-    PanEffect(ClipPtr c, const EffectMeta* em);
+    PanEffect(ClipPtr c, const EffectMeta& em);
 
     PanEffect(const PanEffect& ) = delete;
     PanEffect& operator=(const PanEffect&) = delete;

@@ -5,7 +5,7 @@
 
 class FillLeftRightEffect : public Effect {
 public:
-    FillLeftRightEffect(ClipPtr c, const EffectMeta* em);
+    FillLeftRightEffect(ClipPtr c, const EffectMeta& em);
 
     FillLeftRightEffect(const FillLeftRightEffect&) = delete;
     FillLeftRightEffect operator=(const FillLeftRightEffect&) = delete;

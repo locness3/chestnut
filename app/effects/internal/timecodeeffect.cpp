@@ -42,7 +42,7 @@
 
 constexpr const char* const FONT_FAMILY = "Helvetica";
 
-TimecodeEffect::TimecodeEffect(ClipPtr c, const EffectMeta* em) :
+TimecodeEffect::TimecodeEffect(ClipPtr c, const EffectMeta& em) :
   Effect(c, em)
 {
   setCapability(Capability::SUPERIMPOSE);

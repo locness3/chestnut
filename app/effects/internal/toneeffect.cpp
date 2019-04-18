@@ -25,7 +25,7 @@ constexpr int TONE_TYPE_SINE = 0;
 #include "project/sequence.h"
 #include "debug.h"
 
-ToneEffect::ToneEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em), sinX(INT_MIN) {
+ToneEffect::ToneEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em), sinX(INT_MIN) {
   type_val = add_row(tr("Type"))->add_field(EffectFieldType::COMBO, "type");
   type_val->add_combo_item("Sine", TONE_TYPE_SINE);
 
