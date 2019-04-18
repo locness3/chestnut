@@ -341,7 +341,7 @@ bool Sequence::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement("sequence");
   stream.writeAttribute("id", QString::number(save_id_));
-  stream.writeAttribute("folder", 0); //TODO:
+  stream.writeAttribute("folder", QString::number(0)); //TODO:
   stream.writeAttribute("open", this == global::sequence.get() ? "true" : "false");
 
   stream.writeStartElement("workarea");

@@ -948,18 +948,18 @@ bool Clip::load(QXmlStreamReader& stream)
 bool Clip::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement("clip");
-  stream.writeAttribute("id", QString::number(0)); //FIXME:
-  stream.writeAttribute("enabled", timeline_info.enabled ? "true" : "false");
-  stream.writeAttribute("link_id", QString::number(0)); //FIXME:
-  stream.writeAttribute("in", QString::number(timeline_info.in));
-  stream.writeAttribute("out", QString::number(timeline_info.out));
+//  stream.writeAttribute("id", QString::number(0)); //FIXME:
+//  stream.writeAttribute("link_id", QString::number(0)); //FIXME:
 
-  // TODO: missing data
-  stream.writeTextElement("name", timeline_info.name);
-  stream.writeTextElement("clipin", QString::number(timeline_info.clip_in));
-  stream.writeTextElement("track", QString::number(timeline_info.track_));
   stream.writeTextElement("opening", QString::number(opening_transition));
+  stream.writeTextElement("closing", QString::number(closing_transition));
 
+  if (!timeline_info.save(stream)) {
+    qCritical() << "Failed to save timeline info";
+    return false;
+  }
+
+  //TODO: linked?
   for (const auto& eff : effects) {
     if (!eff->save(stream)) {
       qCritical() << "Failed to save effect";

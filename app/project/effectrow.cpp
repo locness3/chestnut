@@ -92,6 +92,7 @@ bool EffectRow::load(QXmlStreamReader& stream)
 bool EffectRow::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement("row");
+  stream.writeTextElement("name", name);
 
   for (const auto& field : fields) {
     if (!field->save(stream)) {
