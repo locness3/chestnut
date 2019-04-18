@@ -748,7 +748,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
           ftg->reset();
         } else {
           item = std::make_shared<Media>(parent);
-          ftg = std::make_shared<Footage>();
+          ftg = std::make_shared<Footage>(item);
         }
 
         ftg->using_inout = false;
@@ -903,6 +903,7 @@ void Project::new_project()
 {
   // clear existing project
   set_sequence(nullptr);
+  Media::resetNextId();
   PanelManager::footageViewer().set_media(nullptr);
   clear();
   MainWindow::instance().setWindowModified(false);
@@ -1002,7 +1003,7 @@ void Project::save_folder(QXmlStreamWriter& stream, const MediaType type, bool s
                 stream.writeStartElement("clip"); // clip
                 stream.writeAttribute("id", QString::number(j));
                 stream.writeAttribute("enabled", QString::number(c->timeline_info.enabled));
-                stream.writeAttribute("name", c->timeline_info.name);
+                stream.writeAttribute("name", c->timeline_info.name_);
                 stream.writeAttribute("clipin", QString::number(c->timeline_info.clip_in));
                 stream.writeAttribute("in", QString::number(c->timeline_info.in));
                 stream.writeAttribute("out", QString::number(c->timeline_info.out));

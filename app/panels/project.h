@@ -110,6 +110,7 @@ public:
      */
     void refresh();
 
+
     SourceTable* tree_view;
     SourceIconView* icon_view;
     SourcesCommon* sources_common;

@@ -69,6 +69,7 @@ public:
      * @return id
      */
     int32_t id() const;
+    void setId(const int32_t id);
     void clearObject();
     bool setFootage(const FootagePtr& ftg);
     bool setSequence(const SequencePtr& sqn);
@@ -93,6 +94,10 @@ public:
     int32_t row();
     MediaPtr parentItem();
     void removeChild(const int32_t index);
+    /**
+     * @brief Reset the ID parameter used for auto-generation of Media ids
+     */
+    static void resetNextId();
 
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;

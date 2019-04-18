@@ -30,7 +30,12 @@ extern "C" {
 
 using project::FootageStreamPtr;
 
-Footage::Footage()
+Footage::Footage() : Footage(nullptr)
+{
+
+}
+
+Footage::Footage(const std::shared_ptr<Media>& parent) : parent_mda(parent)
 {
   ready_lock.lock();
 }
@@ -54,12 +59,16 @@ bool Footage::isImage() const
 
 bool Footage::load(QXmlStreamReader& stream)
 {
+  // attributes
   for (const auto& attr : stream.attributes()) {
     auto name = attr.name().toString().toLower();
     if (name == "folder") {
-      folder_ = attr.value().toInt();
+      folder_ = attr.value().toInt(); // Media::parent.id
     } else if (name == "id") {
       save_id = attr.value().toInt();
+      if (auto par = parent_mda.lock()) {
+        par->setId(save_id);
+      }
     } else if (name == "using_inout") {
       using_inout = attr.value().toString() == "true";
     } else if (name == "in") {
@@ -71,6 +80,7 @@ bool Footage::load(QXmlStreamReader& stream)
     }
   }
 
+  //elements
   while (stream.readNextStartElement()) {
     auto elem_name = stream.name().toString().toLower();
     if ( (elem_name == "video") || (elem_name == "audio") ) {
@@ -81,7 +91,6 @@ bool Footage::load(QXmlStreamReader& stream)
       } else {
         audio_tracks.append(ms);
       }
-
     } else if (elem_name == "name") {
       setName(stream.readElementText());
     } else if (elem_name == "url") {
@@ -129,7 +138,12 @@ bool Footage::save(QXmlStreamWriter& stream) const
     return false;
   }
   stream.writeStartElement("footage");
-  stream.writeAttribute("id", QString::number(save_id));
+  if (auto par = parent_mda.lock()) {
+    stream.writeAttribute("id", QString::number(par->id()));
+  } else {
+    qCritical() << "Null Media parent";
+    return false;
+  }
   stream.writeAttribute("folder", QString::number(folder_));
   stream.writeAttribute("using_inout", using_inout ? "true" : "false");
   stream.writeAttribute("in", QString::number(in));

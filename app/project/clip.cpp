@@ -94,8 +94,9 @@ Clip::~Clip() {
 ClipPtr Clip::copy(SequencePtr s) {
   ClipPtr copyClip = std::make_shared<Clip>(s);
 
+  // TODO: use copy of TimelineInfo
   copyClip->timeline_info.enabled = timeline_info.enabled;
-  copyClip->timeline_info.name = timeline_info.name;
+  copyClip->timeline_info.name_ = timeline_info.name_;
   copyClip->timeline_info.clip_in = timeline_info.clip_in.load();
   copyClip->timeline_info.in = timeline_info.in.load();
   copyClip->timeline_info.out = timeline_info.out.load();
@@ -898,16 +899,11 @@ bool Clip::load(QXmlStreamReader& stream)
 {
   for (const auto& attr : stream.attributes()) {
     const auto name = attr.name().toString().toLower();
-    if (name == "id") {
+    if (name == "source") {
       load_id = attr.value().toInt();
-    } else if (name == "enabled") {
-      timeline_info.enabled = attr.value().toString() == "true";
+      timeline_info.media = Project::model().findItemById(load_id);
     } else if (name == "link_id") {
       //TODO:
-    } else if (name == "in") {
-      timeline_info.in = attr.value().toInt();
-    } else if (name == "out") {
-      timeline_info.out = attr.value().toInt();
     } else {
       qWarning() << "Unhandled clip attribute" << name;
     }
@@ -915,17 +911,19 @@ bool Clip::load(QXmlStreamReader& stream)
 
   while (stream.readNextStartElement()) {
     const auto name = stream.name().toString().toLower();
-    if (name == "name") {
-      timeline_info.name = stream.readElementText();
-    } else if (name == "clipin") {
-      timeline_info.clip_in = stream.readElementText().toInt();
-    } else if (name == "track") {
-      timeline_info.track_ = stream.readElementText().toInt();
-    } else if (name == "opening") {
+    if (name == "opening") {
       opening_transition = stream.readElementText().toInt();
+    } else if (name == "closing") {
+      closing_transition = stream.readElementText().toInt();
+    } else if (name == "timelineinfo") {
+      if (!timeline_info.load(stream)) {
+        qCritical() << "Failed to load TimelineInfo";
+        return false;
+      }
     } else if (name == "effect") {
-      auto eff = Effect::effectFromStream(stream);
-      effects.append(eff);
+      stream.skipCurrentElement();
+//      auto eff = Effect::effectFromStream(stream);
+//      effects.append(eff);
       // TODO: effect loading is currently very tricky
 //      stream.skipCurrentElement();
 //      EffectMeta* meta = nullptr;
@@ -948,7 +946,7 @@ bool Clip::load(QXmlStreamReader& stream)
 bool Clip::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement("clip");
-//  stream.writeAttribute("id", QString::number(0)); //FIXME:
+  stream.writeAttribute("source", QString::number(timeline_info.media->id()));
 //  stream.writeAttribute("link_id", QString::number(0)); //FIXME:
 
   stream.writeTextElement("opening", QString::number(opening_transition));

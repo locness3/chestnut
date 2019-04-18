@@ -137,354 +137,354 @@ bool LoadThread::is_element(QXmlStreamReader &stream) {
 
 //FIXME: sweet jesus. A function just shy of 500lines long...
 bool LoadThread::load_worker(QFile& f, QXmlStreamReader& stream, int type) {
-  f.seek(0);
-  stream.setDevice(stream.device());
+//  f.seek(0);
+//  stream.setDevice(stream.device());
 
-  QString root_search;
-  QString child_search;
+//  QString root_search;
+//  QString child_search;
 
-  switch (type) {
-    case LOAD_TYPE_VERSION:
-      root_search = "version";
-      break;
-    case LOAD_TYPE_URL:
-      root_search = "url";
-      break;
-    case static_cast<int>(MediaType::FOLDER):
-      root_search = "folders";
-      child_search = "folder";
-      break;
-    case static_cast<int>(MediaType::FOOTAGE):
-      root_search = "media";
-      child_search = "footage";
-      break;
-    case static_cast<int>(MediaType::SEQUENCE):
-      root_search = "sequences";
-      child_search = "sequence";
-      break;
-    default:
-      qWarning() << "Unhandled worker type" << type;
-      break;
-  }
+//  switch (type) {
+//    case LOAD_TYPE_VERSION:
+//      root_search = "version";
+//      break;
+//    case LOAD_TYPE_URL:
+//      root_search = "url";
+//      break;
+//    case static_cast<int>(MediaType::FOLDER):
+//      root_search = "folders";
+//      child_search = "folder";
+//      break;
+//    case static_cast<int>(MediaType::FOOTAGE):
+//      root_search = "media";
+//      child_search = "footage";
+//      break;
+//    case static_cast<int>(MediaType::SEQUENCE):
+//      root_search = "sequences";
+//      child_search = "sequence";
+//      break;
+//    default:
+//      qWarning() << "Unhandled worker type" << type;
+//      break;
+//  }
 
-  show_err = true;
+//  show_err = true;
 
-  while (!stream.atEnd() && !cancelled) {
-    read_next_start_element(stream);
-    if (stream.name() == root_search) {
-      if (type == LOAD_TYPE_VERSION) {
-        int proj_version = stream.readElementText().toInt();
-        if (proj_version < MIN_SAVE_VERSION && proj_version > SAVE_VERSION) {
-          if (QMessageBox::warning(
-                &MainWindow::instance(),
-                tr("Version Mismatch"),
-                tr("This project was saved in a different version of Chestnut and may not be fully "
-                   "compatible with this version. Would you like to attempt loading it anyway?"),
-                QMessageBox::Yes,
-                QMessageBox::No) == QMessageBox::No) {
-            show_err = false;
-            return false;
-          }
-        }
-      } else if (type == LOAD_TYPE_URL) {
-        internal_proj_url = stream.readElementText();
-        internal_proj_dir = QFileInfo(internal_proj_url).absoluteDir();
-      } else {
-        while (!cancelled && !stream.atEnd() && !(stream.name() == root_search && stream.isEndElement())) {
-          read_next(stream);
-          if (stream.name() == child_search && stream.isStartElement()) {
-            switch (type) {
-              case static_cast<int>(MediaType::FOLDER):
-              {
-                MediaPtr folder = PanelManager::projectViewer().newFolder(nullptr);
-                folder->temp_id2 = 0;
-                for (int j=0;j<stream.attributes().size();j++) {
-                  const QXmlStreamAttribute& attr = stream.attributes().at(j);
-                  if (attr.name() == "id") {
-                    folder->temp_id = attr.value().toInt();
-                  } else if (attr.name() == "name") {
-                    folder->setName(attr.value().toString());
-                  } else if (attr.name() == "parent") {
-                    folder->temp_id2 = attr.value().toInt();
-                  }
-                }
-                loaded_folders.append(folder);
-              }
-                break;
-              case static_cast<int>(MediaType::FOOTAGE):
-              {
-                //FIXME: this does not load in all the details that were saved i.e. <video/>, <audio/>, <marker/>
-                int folder = 0;
+//  while (!stream.atEnd() && !cancelled) {
+//    read_next_start_element(stream);
+//    if (stream.name() == root_search) {
+//      if (type == LOAD_TYPE_VERSION) {
+//        int proj_version = stream.readElementText().toInt();
+//        if (proj_version < MIN_SAVE_VERSION && proj_version > SAVE_VERSION) {
+//          if (QMessageBox::warning(
+//                &MainWindow::instance(),
+//                tr("Version Mismatch"),
+//                tr("This project was saved in a different version of Chestnut and may not be fully "
+//                   "compatible with this version. Would you like to attempt loading it anyway?"),
+//                QMessageBox::Yes,
+//                QMessageBox::No) == QMessageBox::No) {
+//            show_err = false;
+//            return false;
+//          }
+//        }
+//      } else if (type == LOAD_TYPE_URL) {
+//        internal_proj_url = stream.readElementText();
+//        internal_proj_dir = QFileInfo(internal_proj_url).absoluteDir();
+//      } else {
+//        while (!cancelled && !stream.atEnd() && !(stream.name() == root_search && stream.isEndElement())) {
+//          read_next(stream);
+//          if (stream.name() == child_search && stream.isStartElement()) {
+//            switch (type) {
+//              case static_cast<int>(MediaType::FOLDER):
+//              {
+//                MediaPtr folder = PanelManager::projectViewer().newFolder(nullptr);
+//                folder->temp_id2 = 0;
+//                for (int j=0;j<stream.attributes().size();j++) {
+//                  const QXmlStreamAttribute& attr = stream.attributes().at(j);
+//                  if (attr.name() == "id") {
+//                    folder->temp_id = attr.value().toInt();
+//                  } else if (attr.name() == "name") {
+//                    folder->setName(attr.value().toString());
+//                  } else if (attr.name() == "parent") {
+//                    folder->temp_id2 = attr.value().toInt();
+//                  }
+//                }
+//                loaded_folders.append(folder);
+//              }
+//                break;
+//              case static_cast<int>(MediaType::FOOTAGE):
+//              {
+//                //FIXME: this does not load in all the details that were saved i.e. <video/>, <audio/>, <marker/>
+//                int folder = 0;
 
-                auto item = std::make_shared<Media>();
-                auto ftg = std::make_shared<Footage>();
+//                auto item = std::make_shared<Media>();
+//                auto ftg = std::make_shared<Footage>();
 
-                ftg->load(stream);
-                item->setFootage(ftg);
+//                ftg->load(stream);
+//                item->setFootage(ftg);
 
-                if (folder == 0) {
-                  Project::model().appendChild(nullptr, item);
-                } else {
-                  find_loaded_folder_by_id(folder)->appendChild(item);
-                }
+//                if (folder == 0) {
+//                  Project::model().appendChild(nullptr, item);
+//                } else {
+//                  find_loaded_folder_by_id(folder)->appendChild(item);
+//                }
 
-                // analyze media to see if it's the same
-                loaded_media_items.append(item);
-              }
-                break;
-              case static_cast<int>(MediaType::SEQUENCE):
-              {
-                MediaPtr parent = nullptr;
-                SequencePtr  s = std::make_shared<Sequence>();
+//                // analyze media to see if it's the same
+//                loaded_media_items.append(item);
+//              }
+//                break;
+//              case static_cast<int>(MediaType::SEQUENCE):
+//              {
+//                MediaPtr parent = nullptr;
+//                SequencePtr  s = std::make_shared<Sequence>();
 
-                // load attributes about sequence
-                for (int j=0;j<stream.attributes().size();j++) {
-                  const QXmlStreamAttribute& attr = stream.attributes().at(j);
-                  if (attr.name() == "name") {
-                    s->setName(attr.value().toString());
-                  } else if (attr.name() == "folder") {
-                    int folder = attr.value().toInt();
-                    if (folder > 0) {
-                      parent = find_loaded_folder_by_id(folder);
-                    }
-                  } else if (attr.name() == "id") {
-                    s->save_id_ = attr.value().toInt();
-                  } else if (attr.name() == "width") {
-                    s->setWidth(attr.value().toUInt());
-                  } else if (attr.name() == "height") {
-                    s->setHeight(attr.value().toUInt());
-                  } else if (attr.name() == "framerate") {
-                    s->setFrameRate(attr.value().toDouble());
-                  } else if (attr.name() == "afreq") {
-                    s->setAudioFrequency(attr.value().toInt());
-                  } else if (attr.name() == "alayout") {
-                    s->setAudioLayout(attr.value().toInt());
-                  } else if (attr.name() == "open") {
-                    open_seq = s;
-                  } else if (attr.name() == "workarea") {
-                    s->workarea_.using_ = (attr.value() == "1");
-                  } else if (attr.name() == "workareaEnabled") {
-                    s->workarea_.enabled_ = (attr.value() == "1");
-                  } else if (attr.name() == "workareaIn") {
-                    s->workarea_.in_ = attr.value().toLong();
-                  } else if (attr.name() == "workareaOut") {
-                    s->workarea_.out_ = attr.value().toLong();
-                  }
-                }
+//                // load attributes about sequence
+//                for (int j=0;j<stream.attributes().size();j++) {
+//                  const QXmlStreamAttribute& attr = stream.attributes().at(j);
+//                  if (attr.name() == "name") {
+//                    s->setName(attr.value().toString());
+//                  } else if (attr.name() == "folder") {
+//                    int folder = attr.value().toInt();
+//                    if (folder > 0) {
+//                      parent = find_loaded_folder_by_id(folder);
+//                    }
+//                  } else if (attr.name() == "id") {
+//                    s->save_id_ = attr.value().toInt();
+//                  } else if (attr.name() == "width") {
+//                    s->setWidth(attr.value().toUInt());
+//                  } else if (attr.name() == "height") {
+//                    s->setHeight(attr.value().toUInt());
+//                  } else if (attr.name() == "framerate") {
+//                    s->setFrameRate(attr.value().toDouble());
+//                  } else if (attr.name() == "afreq") {
+//                    s->setAudioFrequency(attr.value().toInt());
+//                  } else if (attr.name() == "alayout") {
+//                    s->setAudioLayout(attr.value().toInt());
+//                  } else if (attr.name() == "open") {
+//                    open_seq = s;
+//                  } else if (attr.name() == "workarea") {
+//                    s->workarea_.using_ = (attr.value() == "1");
+//                  } else if (attr.name() == "workareaEnabled") {
+//                    s->workarea_.enabled_ = (attr.value() == "1");
+//                  } else if (attr.name() == "workareaIn") {
+//                    s->workarea_.in_ = attr.value().toLong();
+//                  } else if (attr.name() == "workareaOut") {
+//                    s->workarea_.out_ = attr.value().toLong();
+//                  }
+//                }
 
-                QVector<TransitionData> transition_data;
+//                QVector<TransitionData> transition_data;
 
-                // load all clips and clip information
-                while (!cancelled && !(stream.name() == child_search && stream.isEndElement()) && !stream.atEnd()) {
-                  read_next_start_element(stream);
-                  if (stream.name() == "marker" && stream.isStartElement()) {
-                    auto mark = std::make_shared<Marker>();
-                    mark->load(stream);
-                    s->markers_.append(mark);
-                  } else if (stream.name() == "transition" && stream.isStartElement()) {
-                    TransitionData td;
-                    td.otc = nullptr;
-                    td.ctc = nullptr;
-                    for (int j=0;j<stream.attributes().size();j++) {
-                      const QXmlStreamAttribute& attr = stream.attributes().at(j);
-                      if (attr.name() == "id") {
-                        td.id = attr.value().toInt();
-                      } else if (attr.name() == "name") {
-                        td.name = attr.value().toString();
-                      } else if (attr.name() == "length") {
-                        td.length = attr.value().toLong();
-                      }
-                    }
-                    transition_data.append(td);
-                  } else if (stream.name() == "clip" && stream.isStartElement()) {
-                    auto media_type = -1;
-                    int media_id;
-                    int stream_id;
-                    const auto clp = std::make_shared<Clip>(s);
+//                // load all clips and clip information
+//                while (!cancelled && !(stream.name() == child_search && stream.isEndElement()) && !stream.atEnd()) {
+//                  read_next_start_element(stream);
+//                  if (stream.name() == "marker" && stream.isStartElement()) {
+//                    auto mark = std::make_shared<Marker>();
+//                    mark->load(stream);
+//                    s->markers_.append(mark);
+//                  } else if (stream.name() == "transition" && stream.isStartElement()) {
+//                    TransitionData td;
+//                    td.otc = nullptr;
+//                    td.ctc = nullptr;
+//                    for (int j=0;j<stream.attributes().size();j++) {
+//                      const QXmlStreamAttribute& attr = stream.attributes().at(j);
+//                      if (attr.name() == "id") {
+//                        td.id = attr.value().toInt();
+//                      } else if (attr.name() == "name") {
+//                        td.name = attr.value().toString();
+//                      } else if (attr.name() == "length") {
+//                        td.length = attr.value().toLong();
+//                      }
+//                    }
+//                    transition_data.append(td);
+//                  } else if (stream.name() == "clip" && stream.isStartElement()) {
+//                    auto media_type = -1;
+//                    int media_id;
+//                    int stream_id;
+//                    const auto clp = std::make_shared<Clip>(s);
 
-                    // backwards compatibility code
-                    clp->timeline_info.autoscale = false;
+//                    // backwards compatibility code
+//                    clp->timeline_info.autoscale = false;
 
-                    clp->timeline_info.media = nullptr;
+//                    clp->timeline_info.media = nullptr;
 
-                    for (int j=0;j<stream.attributes().size();j++) {
-                      const QXmlStreamAttribute& attr = stream.attributes().at(j);
-                      if (attr.name() == "name") {
-                        clp->timeline_info.name = attr.value().toString();
-                      } else if (attr.name() == "enabled") {
-                        clp->timeline_info.enabled = (attr.value() == "1");
-                      } else if (attr.name() == "id") {
-                        clp->load_id = attr.value().toInt();
-                      } else if (attr.name() == "clipin") {
-                        clp->timeline_info.clip_in = attr.value().toLong();
-                      } else if (attr.name() == "in") {
-                        clp->timeline_info.in = attr.value().toLong();
-                      } else if (attr.name() == "out") {
-                        clp->timeline_info.out = attr.value().toLong();
-                      } else if (attr.name() == "track") {
-                        clp->timeline_info.track_ = attr.value().toInt();
-                      } else if (attr.name() == "r") {
-                        clp->timeline_info.color.setRed(attr.value().toInt());
-                      } else if (attr.name() == "g") {
-                        clp->timeline_info.color.setGreen(attr.value().toInt());
-                      } else if (attr.name() == "b") {
-                        clp->timeline_info.color.setBlue(attr.value().toInt());
-                      } else if (attr.name() == "autoscale") {
-                        clp->timeline_info.autoscale = (attr.value() == "1");
-                      } else if (attr.name() == "media") {
-                        media_type = static_cast<int>(MediaType::FOOTAGE);
-                        media_id = attr.value().toInt();
-                      } else if (attr.name() == "stream") {
-                        stream_id = attr.value().toInt();
-                      } else if (attr.name() == "speed") {
-                        clp->timeline_info.speed = attr.value().toDouble();
-                      } else if (attr.name() == "maintainpitch") {
-                        clp->timeline_info.maintain_audio_pitch = (attr.value() == "1");
-                      } else if (attr.name() == "reverse") {
-                        clp->timeline_info.reverse = (attr.value() == "1");
-                      } else if (attr.name() == "opening") {
-                        clp->opening_transition = attr.value().toInt();
-                      } else if (attr.name() == "closing") {
-                        clp->closing_transition = attr.value().toInt();
-                      } else if (attr.name() == "sequence") {
-                        media_type = static_cast<int>(MediaType::SEQUENCE);
+//                    for (int j=0;j<stream.attributes().size();j++) {
+//                      const QXmlStreamAttribute& attr = stream.attributes().at(j);
+//                      if (attr.name() == "name") {
+//                        clp->timeline_info.name = attr.value().toString();
+//                      } else if (attr.name() == "enabled") {
+//                        clp->timeline_info.enabled = (attr.value() == "1");
+//                      } else if (attr.name() == "id") {
+//                        clp->load_id = attr.value().toInt();
+//                      } else if (attr.name() == "clipin") {
+//                        clp->timeline_info.clip_in = attr.value().toLong();
+//                      } else if (attr.name() == "in") {
+//                        clp->timeline_info.in = attr.value().toLong();
+//                      } else if (attr.name() == "out") {
+//                        clp->timeline_info.out = attr.value().toLong();
+//                      } else if (attr.name() == "track") {
+//                        clp->timeline_info.track_ = attr.value().toInt();
+//                      } else if (attr.name() == "r") {
+//                        clp->timeline_info.color.setRed(attr.value().toInt());
+//                      } else if (attr.name() == "g") {
+//                        clp->timeline_info.color.setGreen(attr.value().toInt());
+//                      } else if (attr.name() == "b") {
+//                        clp->timeline_info.color.setBlue(attr.value().toInt());
+//                      } else if (attr.name() == "autoscale") {
+//                        clp->timeline_info.autoscale = (attr.value() == "1");
+//                      } else if (attr.name() == "media") {
+//                        media_type = static_cast<int>(MediaType::FOOTAGE);
+//                        media_id = attr.value().toInt();
+//                      } else if (attr.name() == "stream") {
+//                        stream_id = attr.value().toInt();
+//                      } else if (attr.name() == "speed") {
+//                        clp->timeline_info.speed = attr.value().toDouble();
+//                      } else if (attr.name() == "maintainpitch") {
+//                        clp->timeline_info.maintain_audio_pitch = (attr.value() == "1");
+//                      } else if (attr.name() == "reverse") {
+//                        clp->timeline_info.reverse = (attr.value() == "1");
+//                      } else if (attr.name() == "opening") {
+//                        clp->opening_transition = attr.value().toInt();
+//                      } else if (attr.name() == "closing") {
+//                        clp->closing_transition = attr.value().toInt();
+//                      } else if (attr.name() == "sequence") {
+//                        media_type = static_cast<int>(MediaType::SEQUENCE);
 
-                        // since we haven't finished loading sequences, we defer linking this until later
-                        clp->timeline_info.media = nullptr;
-                        clp->timeline_info.media_stream = attr.value().toInt();
-                        loaded_clips.append(clp);
-                      }
-                    }
+//                        // since we haven't finished loading sequences, we defer linking this until later
+//                        clp->timeline_info.media = nullptr;
+//                        clp->timeline_info.media_stream = attr.value().toInt();
+//                        loaded_clips.append(clp);
+//                      }
+//                    }
 
-                    // set media and media stream
-                    if (media_type == static_cast<int>(MediaType::FOOTAGE)) {
-                      if (media_id >= 0) {
-                        for (int j=0;j<loaded_media_items.size();j++) {
-                          auto  ftg = loaded_media_items.at(j)->object<Footage>();
-                          if (ftg->save_id == media_id) {
-                            clp->timeline_info.media = loaded_media_items.at(j);
-                            clp->timeline_info.media_stream = stream_id;
-                            break;
-                          }
-                        }
-                      }
-                    }
+//                    // set media and media stream
+//                    if (media_type == static_cast<int>(MediaType::FOOTAGE)) {
+//                      if (media_id >= 0) {
+//                        for (int j=0;j<loaded_media_items.size();j++) {
+//                          auto  ftg = loaded_media_items.at(j)->object<Footage>();
+//                          if (ftg->save_id == media_id) {
+//                            clp->timeline_info.media = loaded_media_items.at(j);
+//                            clp->timeline_info.media_stream = stream_id;
+//                            break;
+//                          }
+//                        }
+//                      }
+//                    }
 
-                    // load links and effects
-                    while (!cancelled && !(stream.name() == "clip" && stream.isEndElement()) && !stream.atEnd()) {
-                      read_next(stream);
-                      if (stream.isStartElement()) {
-                        if (stream.name() == "linked") {
-                          while (!cancelled && !(stream.name() == "linked" && stream.isEndElement()) && !stream.atEnd()) {
-                            read_next(stream);
-                            if (stream.name() == "link" && stream.isStartElement()) {
-                              for (int k=0;k<stream.attributes().size();k++) {
-                                const QXmlStreamAttribute& link_attr = stream.attributes().at(k);
-                                if (link_attr.name() == "id") {
-                                  clp->linked.append(link_attr.value().toInt());
-                                  break;
-                                }
-                              }
-                            }
-                          }
-                          if (cancelled) return false;
-                        } else if (stream.isStartElement() && (stream.name() == "effect" || stream.name() == "opening" || stream.name() == "closing")) {
-                          // "opening" and "closing" are backwards compatibility code
-                          load_effect(stream, clp);
-                        }
-                      }
-                    }
-                    if (cancelled) return false;
+//                    // load links and effects
+//                    while (!cancelled && !(stream.name() == "clip" && stream.isEndElement()) && !stream.atEnd()) {
+//                      read_next(stream);
+//                      if (stream.isStartElement()) {
+//                        if (stream.name() == "linked") {
+//                          while (!cancelled && !(stream.name() == "linked" && stream.isEndElement()) && !stream.atEnd()) {
+//                            read_next(stream);
+//                            if (stream.name() == "link" && stream.isStartElement()) {
+//                              for (int k=0;k<stream.attributes().size();k++) {
+//                                const QXmlStreamAttribute& link_attr = stream.attributes().at(k);
+//                                if (link_attr.name() == "id") {
+//                                  clp->linked.append(link_attr.value().toInt());
+//                                  break;
+//                                }
+//                              }
+//                            }
+//                          }
+//                          if (cancelled) return false;
+//                        } else if (stream.isStartElement() && (stream.name() == "effect" || stream.name() == "opening" || stream.name() == "closing")) {
+//                          // "opening" and "closing" are backwards compatibility code
+//                          load_effect(stream, clp);
+//                        }
+//                      }
+//                    }
+//                    if (cancelled) return false;
 
-                    s->clips_.append(clp);
-                  }
-                }
-                if (cancelled) return false;
+//                    s->clips_.append(clp);
+//                  }
+//                }
+//                if (cancelled) return false;
 
-                // correct links, clip IDs, transitions
-                for (int i=0;i<s->clips_.size();i++) {
-                  // correct links
-                  ClipPtr  correct_clip = s->clips_.at(i);
-                  for (int j=0;j<correct_clip->linked.size();j++) {
-                    bool found = false;
-                    for (int k=0;k<s->clips_.size();k++) {
-                      if (s->clips_.at(k)->load_id == correct_clip->linked.at(j)) {
-                        correct_clip->linked[j] = k;
-                        found = true;
-                        break;
-                      }
-                    }
-                    if (!found) {
-                      correct_clip->linked.removeAt(j);
-                      j--;
-                      if (QMessageBox::warning(&MainWindow::instance(),
-                                               tr("Invalid Clip Link"),
-                                               tr("This project contains an invalid clip link. It may be corrupt. Would you like to continue loading it?"),
-                                               QMessageBox::Yes,
-                                               QMessageBox::No) == QMessageBox::No) {
-                        return false;
-                      }
-                    }
-                  }
+//                // correct links, clip IDs, transitions
+//                for (int i=0;i<s->clips_.size();i++) {
+//                  // correct links
+//                  ClipPtr  correct_clip = s->clips_.at(i);
+//                  for (int j=0;j<correct_clip->linked.size();j++) {
+//                    bool found = false;
+//                    for (int k=0;k<s->clips_.size();k++) {
+//                      if (s->clips_.at(k)->load_id == correct_clip->linked.at(j)) {
+//                        correct_clip->linked[j] = k;
+//                        found = true;
+//                        break;
+//                      }
+//                    }
+//                    if (!found) {
+//                      correct_clip->linked.removeAt(j);
+//                      j--;
+//                      if (QMessageBox::warning(&MainWindow::instance(),
+//                                               tr("Invalid Clip Link"),
+//                                               tr("This project contains an invalid clip link. It may be corrupt. Would you like to continue loading it?"),
+//                                               QMessageBox::Yes,
+//                                               QMessageBox::No) == QMessageBox::No) {
+//                        return false;
+//                      }
+//                    }
+//                  }
 
-                  // re-link clips to transitions
-                  if (correct_clip->opening_transition > -1) {
-                    for (int j=0;j<transition_data.size();j++) {
-                      if (transition_data.at(j).id == correct_clip->opening_transition) {
-                        transition_data[j].otc = correct_clip;
-                      }
-                    }
-                  }
-                  if (correct_clip->closing_transition > -1) {
-                    for (int j=0;j<transition_data.size();j++) {
-                      if (transition_data.at(j).id == correct_clip->closing_transition) {
-                        transition_data[j].ctc = correct_clip;
-                      }
-                    }
-                  }
-                }
+//                  // re-link clips to transitions
+//                  if (correct_clip->opening_transition > -1) {
+//                    for (int j=0;j<transition_data.size();j++) {
+//                      if (transition_data.at(j).id == correct_clip->opening_transition) {
+//                        transition_data[j].otc = correct_clip;
+//                      }
+//                    }
+//                  }
+//                  if (correct_clip->closing_transition > -1) {
+//                    for (int j=0;j<transition_data.size();j++) {
+//                      if (transition_data.at(j).id == correct_clip->closing_transition) {
+//                        transition_data[j].ctc = correct_clip;
+//                      }
+//                    }
+//                  }
+//                }
 
-                // create transitions
-                for (int i=0;i<transition_data.size();i++) {
-                  const TransitionData& td = transition_data.at(i);
-                  ClipPtr  primary = td.otc;
-                  ClipPtr  secondary = td.ctc;
-                  if (primary != nullptr || secondary != nullptr) {
-                    if (primary == nullptr) {
-                      primary = secondary;
-                      secondary = nullptr;
-                    }
-                    const EffectMeta* meta = get_meta_from_name(td.name);
-                    if (meta == nullptr) {
-                      qWarning() << "Failed to link transition with name:" << td.name;
-                      if (td.otc != nullptr) td.otc->opening_transition = -1;
-                      if (td.ctc != nullptr) td.ctc->closing_transition = -1;
-                    } else {
-                      emit start_create_dual_transition(&td, primary, secondary, meta);
+//                // create transitions
+//                for (int i=0;i<transition_data.size();i++) {
+//                  const TransitionData& td = transition_data.at(i);
+//                  ClipPtr  primary = td.otc;
+//                  ClipPtr  secondary = td.ctc;
+//                  if (primary != nullptr || secondary != nullptr) {
+//                    if (primary == nullptr) {
+//                      primary = secondary;
+//                      secondary = nullptr;
+//                    }
+//                    const EffectMeta* meta = get_meta_from_name(td.name);
+//                    if (meta == nullptr) {
+//                      qWarning() << "Failed to link transition with name:" << td.name;
+//                      if (td.otc != nullptr) td.otc->opening_transition = -1;
+//                      if (td.ctc != nullptr) td.ctc->closing_transition = -1;
+//                    } else {
+//                      emit start_create_dual_transition(&td, primary, secondary, meta);
 
-                      waitCond.wait(&mutex);
-                    }
-                  }
-                }
+//                      waitCond.wait(&mutex);
+//                    }
+//                  }
+//                }
 
-                MediaPtr m = PanelManager::projectViewer().new_sequence(nullptr, s, false, parent);
+//                MediaPtr m = PanelManager::projectViewer().new_sequence(nullptr, s, false, parent);
 
-                loaded_sequences.append(m);
-              }
-                break;
+//                loaded_sequences.append(m);
+//              }
+//                break;
 
-              default:
-                qWarning() << "Unhandled worker type" << type;
-                break;
-            } //switch
-          }
-        }
-        if (cancelled) return false;
-      }
-      break;
-    }
-  }
-  return !cancelled;
+//              default:
+//                qWarning() << "Unhandled worker type" << type;
+//                break;
+//            } //switch
+//          }
+//        }
+//        if (cancelled) return false;
+//      }
+//      break;
+//    }
+//  }
+//  return !cancelled;
 }
 
 MediaPtr LoadThread::find_loaded_folder_by_id(int id) {

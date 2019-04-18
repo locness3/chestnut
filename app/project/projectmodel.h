@@ -66,10 +66,18 @@ public:
      * @return map of Media items
      */
     const QMap<int, MediaPtr>& items() const;
+
+    // TODO: may not be needed
     /**
      * Rebuild the links between project items
      */
     void relink();
+    /**
+     *  Search the model for a Media instance by Id
+     * @param id Media's id
+     * @return media ptr or null
+     */
+    MediaPtr findItemById(const int id);
 
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;

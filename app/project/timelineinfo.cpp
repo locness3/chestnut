@@ -1,5 +1,7 @@
 #include "timelineinfo.h"
 
+#include "debug.h"
+
 using project::TimelineInfo;
 
 constexpr const char* const XML_ELEM_NAME = "timelineinfo";
@@ -12,14 +14,43 @@ bool TimelineInfo::isVideo() const
 
 bool TimelineInfo::load(QXmlStreamReader& stream)
 {
-  //TODO:
-  return false;
+  while (stream.readNextStartElement()) {
+    const auto name = stream.name().toString().toLower();
+    if (name == "name") {
+      name_ = stream.readElementText();
+    } else if (name == "clipin") {
+      clip_in = stream.readElementText().toInt();
+    } else if (name == "enabled") {
+      enabled = stream.readElementText() == true;
+    } else if (name == "in") {
+      in = stream.readElementText().toInt();
+    } else if (name == "out") {
+      out = stream.readElementText().toInt();
+    } else if (name == "track") {
+      track_ = stream.readElementText().toInt();
+    } else if (name == "color") {
+      color.setRgb(QRgb(stream.readElementText().toInt()));
+    } else if (name == "autoscale") {
+      autoscale = stream.readElementText() == "true";
+    } else if (name == "speed") {
+      speed = stream.readElementText().toDouble();
+    } else if (name == "maintainpitch") {
+      maintain_audio_pitch = stream.readElementText() == "true";
+    } else if (name == "reverse") {
+      reverse = stream.readElementText() == "true";
+    } else if (name == "stream") {
+      media_stream = stream.readElementText().toInt();
+    } else {
+      qWarning() << "Unhandled element" << name;
+    }
+  }
+  return true;
 }
 
 bool TimelineInfo::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement(XML_ELEM_NAME);
-  stream.writeTextElement("name", name);
+  stream.writeTextElement("name", name_);
   stream.writeTextElement("clipin", QString::number(clip_in));
   stream.writeTextElement("enabled", enabled ? "true" : "false");
   stream.writeTextElement("in", QString::number(in));

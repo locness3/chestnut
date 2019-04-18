@@ -42,6 +42,11 @@ namespace {
 }
 
 
+Sequence::Sequence(const std::shared_ptr<Media>& parent) : parent_mda(parent)
+{
+
+}
+
 
 Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName)
   : ProjectItem(sequenceName),
@@ -277,11 +282,14 @@ bool Sequence::load(QXmlStreamReader& stream)
   for (const auto& attr : stream.attributes()) {
     const auto name = attr.name().toString().toLower();
     if (name == "id") {
-      save_id_ = attr.value().toInt();
+      if (auto mda  = parent_mda.lock()) {
+        save_id_ = attr.value().toInt();
+        mda->setId(save_id_);
+      }
     } else if (name == "folder") {
       const auto folder_id = attr.value().toInt();
       if (folder_id > 0) {
-        // the folder it's in? 0 being root?
+        // the folder it's in? 0 being root? Parent::Parent.children?
 //        parent = panels::PanelManager::projectViewer().model().getFolder(folder_id); //TODO: do what with it?
       }
     } else if (name == "open") {

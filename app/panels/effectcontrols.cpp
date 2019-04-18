@@ -509,7 +509,7 @@ void EffectControls::load_effects() {
       }
     }
     if (selected_clips.size() > 0) {
-      setWindowTitle(panel_name + global::sequence->clips_.at(selected_clips.at(0))->timeline_info.name);
+      setWindowTitle(panel_name + global::sequence->clips_.at(selected_clips.at(0))->timeline_info.name_);
       verticalScrollBar->setMaximum(qMax(0, effects_area->sizeHint().height() - headers->height() + scrollArea->horizontalScrollBar()->height()/* - keyframeView->height() - headers->height()*/));
       keyframeView->setEnabled(true);
       headers->setVisible(true);

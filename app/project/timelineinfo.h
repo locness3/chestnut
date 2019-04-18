@@ -28,8 +28,9 @@ public:
   std::atomic_int64_t in{0};
   std::atomic_int64_t out{0};
   std::atomic_int32_t track_{-1};
-  QString name = "";
+  QString name_ = "";
   QColor color = {0,0,0};
+  //TODO: make weak
   MediaPtr media = nullptr; //TODO: assess Media members in lieu of c++20 atomic_shared_ptr
   std::atomic_int32_t media_stream{-1};
   std::atomic<double> speed{1.0};

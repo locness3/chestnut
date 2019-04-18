@@ -296,6 +296,15 @@ void ProjectModel::relink()
   // if an item has a link id (i.e. folder id) find item and link them
 }
 
+
+MediaPtr ProjectModel::findItemById(const int id)
+{
+  if (project_items.count(id) > 0) {
+    return project_items.value(id);
+  }
+  return nullptr;
+}
+
 bool ProjectModel::load(QXmlStreamReader& stream)
 {
   QStringRef elem_name;
@@ -310,7 +319,7 @@ bool ProjectModel::load(QXmlStreamReader& stream)
       }
     } else if ( (elem_name == "folders") || (elem_name == "media") || (elem_name == "sequences") ) {
       while (stream.readNextStartElement()) {
-        auto mda = std::make_shared<Media>(root());
+        auto mda = std::make_shared<Media>(nullptr);
         if (!mda->load(stream)) {
           return false;
         }

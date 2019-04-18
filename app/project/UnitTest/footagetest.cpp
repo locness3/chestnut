@@ -9,7 +9,7 @@ FootageTest::FootageTest(QObject *parent) : QObject(parent)
 
 void FootageTest::testCaseIsImage()
 {
-  Footage ftg;
+  Footage ftg(nullptr);
   ftg.valid = true;
   // by default, not an image
   QVERIFY(ftg.isImage() == false);
@@ -30,7 +30,7 @@ void FootageTest::testCaseIsImage()
 
 void FootageTest::testCaseUninitSave()
 {
-  Footage ftg;
+  Footage ftg(nullptr);
   QString output;
   QXmlStreamWriter stream(&output);
   QVERIFY(ftg.save(stream) == false);

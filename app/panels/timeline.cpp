@@ -353,13 +353,13 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
         // video and audio (blueish)
         clp->timeline_info.color = AUDIO_VIDEO_COLOR;
       }
-      clp->timeline_info.name = ftg->name();
+      clp->timeline_info.name_ = ftg->name();
     } else if (clp->timeline_info.media->type() == MediaType::SEQUENCE) {
       // sequence (red?ish?)
       clp->timeline_info.color = SEQUENCE_COLOR;
 
       SequencePtr media = clp->timeline_info.media->object<Sequence>();
-      clp->timeline_info.name = media->name();
+      clp->timeline_info.name_ = media->name();
     }
     clp->recalculateMaxLength();
     added_clips.append(clp);

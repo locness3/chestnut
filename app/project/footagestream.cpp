@@ -32,30 +32,32 @@ bool FootageStream::load(QXmlStreamReader& stream)
     return false;
   }
 
+  // attributes
   for (const auto& attr : stream.attributes()) {
     const auto name = attr.name().toString().toLower();
     if (name == "id") {
       file_index = attr.value().toInt();
-    } else if (name == "infinite") {
+    } else if ( (name == "infinite")  && (type_ == StreamType::VIDEO) ) {
       infinite_length = attr.value().toString().toLower() == "true";
     } else {
       qWarning() << "Unknown attribute" << name;
     }
   }
 
+  // elements
   while (stream.readNextStartElement()) {
     const auto name = stream.name().toString().toLower();
-    if (name == "width") {
+    if ( (name == "width") && (type_ == StreamType::VIDEO) ) {
       video_width = stream.readElementText().toInt();
-    } else if (name == "height") {
+    } else if ( (name == "height") && (type_ == StreamType::VIDEO) ) {
       video_height = stream.readElementText().toInt();
-    } else if (name == "framerate") {
+    } else if ( (name == "framerate") && (type_ == StreamType::VIDEO) ) {
       video_frame_rate = stream.readElementText().toDouble();
-    } else if (name == "channels") {
+    } else if ( (name == "channels") && (type_ == StreamType::AUDIO) ) {
       audio_channels = stream.readElementText().toInt();
-    } else if (name == "frequency") {
+    } else if ( (name == "frequency") && (type_ == StreamType::AUDIO) ) {
       audio_frequency = stream.readElementText().toInt();
-    } else if (name == "layout") {
+    } else if ( (name == "layout") && (type_ == StreamType::AUDIO) ) {
       audio_layout = stream.readElementText().toInt();
     } else {
       qWarning() << "Unhandled element" << name;
@@ -72,7 +74,7 @@ bool FootageStream::save(QXmlStreamWriter& stream) const
     case StreamType::VIDEO:
       stream.writeStartElement("video");
       stream.writeAttribute("id", QString::number(file_index));
-      stream.writeAttribute("infinite", QString::number(infinite_length));
+      stream.writeAttribute("infinite", infinite_length ? "true" : "false");
 
       stream.writeTextElement("width", QString::number(video_width));
       stream.writeTextElement("height", QString::number(video_height));

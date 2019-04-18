@@ -40,6 +40,7 @@ class Sequence : public std::enable_shared_from_this<Sequence>, public project::
 public:
 
     Sequence() = default;
+    explicit Sequence(const std::shared_ptr<Media>& parent);
     Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName);
 
     std::shared_ptr<Sequence> copy();
@@ -92,6 +93,7 @@ private:
     double frame_rate_ = -0.0;
     int32_t audio_frequency_ = -1;
     int32_t audio_layout_ = -1;
+    std::weak_ptr<Media> parent_mda{};
 
     bool loadWorkArea(QXmlStreamReader& stream);
 };

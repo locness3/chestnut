@@ -83,3 +83,18 @@ void MediaTest::testCaseClear()
   QVERIFY(mda.object<Footage>() == nullptr);
   QVERIFY(mda.root_ == true);
 }
+
+/**
+ * @brief Check that when its id is set Media::nextID is greater
+ */
+void MediaTest::testCaseSetId()
+{
+  int id_begin = Media::nextID;
+  Media mda;
+  QVERIFY(id_begin == mda.id());
+  QVERIFY(Media::nextID > id_begin);
+  int new_id = Media::nextID + 100; // 100 has no significance
+  mda.setId(new_id);
+  QVERIFY(Media::nextID > mda.id());
+
+}

@@ -209,6 +209,7 @@
                     <xs:element ref="effect"/>
                 </xs:sequence>
             </xs:sequence>
+            <xs:attribute name="source" type="xs:integer"/>
 		</xs:complexType>
 	</xs:element>
 

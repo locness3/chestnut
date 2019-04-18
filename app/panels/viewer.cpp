@@ -431,7 +431,7 @@ void Viewer::pause() {
       clp->timeline_info.clip_in = 0;
       clp->timeline_info.track_ = recording_track;
       clp->timeline_info.color = PAUSE_COLOR;
-      clp->timeline_info.name = mda->name();
+      clp->timeline_info.name_ = mda->name();
 
       ftg->ready_lock.unlock();
 

@@ -99,6 +99,17 @@ int32_t Media::id() const
   return id_;
 }
 
+
+void Media::setId(const int32_t id)
+{
+  // this doesn't take into account other Media's id being the same.
+  // however, this function is only meant to be used at load or "relink"
+  id_ = id;
+  if (Media::nextID <= id) {
+    Media::nextID = id + 1;
+  }
+}
+
 void Media::clearObject() 
 {
   type_ = MediaType::NONE;
@@ -247,7 +258,6 @@ void Media::updateTooltip(const QString& error)
       break;
     default:
       throw UnhandledMediaTypeException();
-      break;
   }//switch
 
 }
@@ -282,7 +292,6 @@ void Media::setName(const QString &name)
       break;
     default:
       throw UnhandledMediaTypeException();
-      break;
   }//switch
 }
 
@@ -308,7 +317,6 @@ double Media::frameRate(const int32_t stream)
       break;
     default:
       throw UnhandledMediaTypeException();
-      break;
   }//switch
 
   return 0.0;
@@ -336,7 +344,6 @@ int32_t Media::samplingRate(const int32_t stream)
       break;
     default:
       throw UnhandledMediaTypeException();
-      break;
   }//switch
   return 0;
 }
@@ -461,6 +468,12 @@ void Media::removeChild(const int32_t index)
 }
 
 
+void Media::resetNextId()
+{
+  Media::nextID = 0;
+}
+
+
 bool Media::load(QXmlStreamReader& stream)
 {
   //TODO: use correct parents e.g. its folder
@@ -511,9 +524,13 @@ bool Media::loadAsFolder(QXmlStreamReader& stream)
   for (const auto& attr : stream.attributes()) {
     const auto attr_name = attr.name().toString().toLower();
     if (attr_name == "id") {
+      setId(attr.value().toInt());
       temp_id = attr.value().toInt();
     } else if (attr_name == "parent") {
       temp_id2 = attr.value().toInt();
+      if (auto par = parent_.lock()) {
+        par->setId(temp_id2);
+      }
     } else {
       qWarning() << "Unknown attribute" << attr_name;
     }
@@ -534,7 +551,7 @@ bool Media::loadAsFolder(QXmlStreamReader& stream)
 
 bool Media::loadAsSequence(QXmlStreamReader& stream)
 {
-  auto seq = std::make_shared<Sequence>();
+  auto seq = std::make_shared<Sequence>(shared_from_this());
   if (seq->load(stream)) {
     setSequence(seq);
     return true;
@@ -544,7 +561,7 @@ bool Media::loadAsSequence(QXmlStreamReader& stream)
 
 bool Media::loadAsFootage(QXmlStreamReader& stream)
 {
-  auto ftg = std::make_shared<Footage>();
+  auto ftg = std::make_shared<Footage>(shared_from_this());
   if (ftg->load(stream)) {
     setFootage(ftg);
     return true;
@@ -564,4 +581,6 @@ bool Media::saveAsFolder(QXmlStreamWriter& stream) const
   stream.writeEndElement();
   return true;
 }
+
+
 

@@ -36,7 +36,7 @@ void ClipTest::testCaseUsesCacher()
   auto seq = std::make_shared<Sequence>();
   Clip clp(seq);
   auto mda =  std::make_shared<Media>();
-  mda->setFootage(std::make_shared<Footage>());
+  mda->setFootage(std::make_shared<Footage>(mda));
   clp.timeline_info.media = mda;
   QVERIFY(clp.usesCacher() == true);
   mda = std::make_shared<Media>();
@@ -52,7 +52,7 @@ void ClipTest::testCaseMediaOpen()
   Clip clp(seq);
   QVERIFY(clp.mediaOpen() == false);
   auto mda =  std::make_shared<Media>();
-  mda->setFootage(std::make_shared<Footage>());
+  mda->setFootage(std::make_shared<Footage>(mda));
   clp.timeline_info.media = mda;
   QVERIFY(clp.mediaOpen() == false);
   clp.finished_opening = true;
