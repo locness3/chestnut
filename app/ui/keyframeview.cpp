@@ -40,10 +40,12 @@ using panels::PanelManager;
 
 long KeyframeView::adjust_row_keyframe(EffectRowPtr row, long time)
 {
-  //FIXME: the use of ptrs
+  Q_ASSERT(row != nullptr);
+  Q_ASSERT(row->parent_effect != nullptr);
   return time
       - row->parent_effect->parent_clip->timeline_info.clip_in
-      + (row->parent_effect->parent_clip->timeline_info.in - visible_in);
+      + row->parent_effect->parent_clip->timeline_info.in
+      - visible_in;
 }
 
 KeyframeView::KeyframeView(QWidget *parent) :
@@ -261,14 +263,21 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
   for (int i=0;i<rowY.size();i++) {
     if (mouse_y > rowY.at(i) - KEYFRAME_SIZE-KEYFRAME_SIZE && mouse_y < rowY.at(i)+KEYFRAME_SIZE+KEYFRAME_SIZE) {
       EffectRowPtr row = rows.at(i);
-
       row->focus_row();
+
+      if (row->parent_effect == nullptr) {
+        qWarning() << "Null parent Effect for Row";
+        continue;
+      }
 
       for (int k=0;k<row->fieldCount();k++) {
         EffectField* f = row->field(k);
         for (int j=0;j<f->keyframes.size();j++) {
-          long eval_keyframe_time = f->keyframes.at(j).time-row->parent_effect->parent_clip->timeline_info.clip_in
-              + (row->parent_effect->parent_clip->timeline_info.in - visible_in);
+          long eval_keyframe_time = f->keyframes.at(j).time
+              - row->parent_effect->parent_clip->timeline_info.clip_in
+              + row->parent_effect->parent_clip->timeline_info.in
+              - visible_in;
+
           if (eval_keyframe_time >= frame_min && eval_keyframe_time <= frame_max) {
             long eval_frame_diff = qAbs(eval_keyframe_time - drag_frame_start);
             if (keyframe_index == -1 || eval_frame_diff < frame_diff) {
@@ -360,7 +369,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
       long min_frame = qMin(frame_start, frame_end)-KEYFRAME_SIZE;
       long max_frame = qMax(frame_start, frame_end)+KEYFRAME_SIZE;
 
-      for (int i=0;i<rowY.size();i++) {
+      for (int i=0;i<rowY.size(); ++i) {
         if (rowY.at(i) >= min_row && rowY.at(i) <= max_row) {
           EffectRowPtr row = rows.at(i);
           for (int k=0;k<row->fieldCount();k++) {
@@ -386,7 +395,15 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
       if (PanelManager::timeLine().snapping) {
         for (int i=0;i<selected_keyframes.size();i++) {
           EffectField* field = selected_fields.at(i);
-          ClipPtr c = field->parent_row->parent_effect->parent_clip;
+          if ( (field == nullptr)
+               || (field->parent_row == nullptr)
+               || (field->parent_row->parent_effect == nullptr)
+               || (field->parent_row->parent_effect->parent_clip == nullptr) ) {
+            qWarning() << "Null instance(s)";
+            continue;
+          }
+
+          const ClipPtr& c = field->parent_row->parent_effect->parent_clip;
           long key_time = old_key_vals.at(i) + frame_diff - c->timeline_info.clip_in + c->timeline_info.in;
           long key_eval = key_time;
           if (PanelManager::timeLine().snap_to_point(global::sequence->playhead_, &key_eval)) {

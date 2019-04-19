@@ -933,18 +933,14 @@ bool Clip::load(QXmlStreamReader& stream)
           qWarning() << "Unhandled attribute";
         }
       }
-      EffectMeta meta = Effect::getRegisteredMeta(eff_name);
-      qDebug() << "Skipping effect: " << eff_name << eff_enabled;
-      stream.skipCurrentElement();
-      // TODO: effect loading is currently very tricky
-//      EffectMeta* meta = nullptr;
-//      auto eff = std::make_shared<Effect>(shared_from_this(), meta);
-//      if (eff->load(stream)) {
-//        effects.append(eff);
-//      } else {
-//        qCritical() << "Failed to load clip effect";
-//        return false;
-//      }
+      const EffectMeta meta = Effect::getRegisteredMeta(eff_name);
+      auto eff = create_effect(shared_from_this(), meta);
+      eff->set_enabled(eff_enabled);
+      if (!eff->load(stream)) {
+        qCritical() << "Failed to load clip effect";
+        return false;
+      }
+      effects.append(eff);
     } else {
       stream.skipCurrentElement();
       qWarning() << "Unhandled element" << name;

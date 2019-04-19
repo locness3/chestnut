@@ -44,15 +44,7 @@ Transition::Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em)
   secondary_clip(s),
   length(DEFAULT_TRANSITION_LENGTH)
 {
-  length_field = add_row(tr("Length:"), false)->add_field(EffectFieldType::DOUBLE, "length");
-  connect(length_field, SIGNAL(changed()), this, SLOT(set_length_from_slider()));
-  length_field->set_double_default_value(DEFAULT_TRANSITION_LENGTH);
-  length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
 
-  auto length_ui_ele = dynamic_cast<LabelSlider*>(length_field->ui_element);
-  length_ui_ele->set_display_type(SliderType::FRAMENUMBER);
-  length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr
-                                ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->frameRate());
 }
 
 int Transition::copy(const ClipPtr& c, const ClipPtr& s)
@@ -74,6 +66,23 @@ long Transition::get_length() const {
     return length * 2;
   }
   return length;
+}
+
+void Transition::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+  length_field = add_row(tr("Length:"), false)->add_field(EffectFieldType::DOUBLE, "length");
+  connect(length_field, SIGNAL(changed()), this, SLOT(set_length_from_slider()));
+  length_field->set_double_default_value(DEFAULT_TRANSITION_LENGTH);
+  length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
+
+  auto length_ui_ele = dynamic_cast<LabelSlider*>(length_field->ui_element);
+  length_ui_ele->set_display_type(SliderType::FRAMENUMBER);
+  length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr
+                                ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->frameRate());
 }
 
 void Transition::set_length_from_slider()

@@ -770,7 +770,7 @@ void GraphView::set_row(EffectRow *r) {
     selected_keys_old_doubles.clear();
     emit selection_changed(false, -1);
     row = r;
-    if (row != nullptr) {
+    if ( (row != nullptr) && (row->parent_effect != nullptr) && (row->parent_effect->parent_clip != nullptr)) {
       field_visibility.resize(row->fieldCount());
       field_visibility.fill(true);
       visible_in = row->parent_effect->parent_clip->timeline_info.in;

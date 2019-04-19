@@ -48,6 +48,8 @@ class Transition : public Effect {
     long get_true_length() const;
     long get_length() const;
 
+    virtual void setupUi() override;
+
     ClipWPtr secondary_clip;
   private slots:
     void set_length_from_slider();

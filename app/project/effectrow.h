@@ -33,54 +33,66 @@ class ClickableLabel;
 
 
 class EffectRow : public QObject, public project::IXMLStreamer {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    EffectRow(Effect* parent, const bool save, QGridLayout& uilayout, const QString& n, const int row,
-              const bool keyframable = true);
-    virtual ~EffectRow() override;
+  EffectRow(Effect* parent_eff,
+            const bool save,
+            QGridLayout& uilayout,
+            const QString& n,
+            const int row,
+            const bool keyframable = true);
 
-    EffectRow(const EffectRow& ) = delete;
-    EffectRow& operator=(const EffectRow&) = delete;
+  virtual ~EffectRow() override;
 
-    EffectField* add_field(const EffectFieldType type, const QString &id, int colspan = 1);
-    void add_widget(QWidget *w);
-    EffectField* field(const int index);
-    const QVector<EffectField*>& getFields() const;
-    int fieldCount();
-    void set_keyframe_now(ComboAction *ca);
-    void delete_keyframe_at_time(ComboAction *ca, long time);
-    ClickableLabel* label = nullptr;
-    Effect* parent_effect;
-    bool saveable;
-    const QString& get_name();
+  EffectRow(const EffectRow& ) = delete;
+  EffectRow& operator=(const EffectRow&) = delete;
 
-    bool isKeyframing();
-    void setKeyframing(bool);
+  EffectField* add_field(const EffectFieldType type, const QString &id, int colspan = 1);
+  void add_widget(QWidget *w);
+  EffectField* field(const int index);
+  EffectField* field(const QString& name);
+  const QVector<EffectField*>& getFields() const;
+  int fieldCount();
+  void set_keyframe_now(ComboAction *ca);
+  void delete_keyframe_at_time(ComboAction *ca, long time);
+  const QString& get_name();
 
-    virtual bool load(QXmlStreamReader& stream) override;
-    virtual bool save(QXmlStreamWriter& stream) const override;
+  bool isKeyframing();
+  void setKeyframing(bool);
+
+  virtual bool load(QXmlStreamReader& stream) override;
+  virtual bool save(QXmlStreamWriter& stream) const override;
+
+  Effect* parent_effect;
+  ClickableLabel* label = nullptr;
+  bool saveable;
+  QString name;
+
 public slots:
-    void goto_previous_key();
-    void toggle_key();
-    void goto_next_key();
-    void focus_row();
+  void goto_previous_key();
+  void toggle_key();
+  void goto_next_key();
+  void focus_row();
 private slots:
-    void set_keyframe_enabled(bool);
+  void set_keyframe_enabled(bool);
 private:
-    bool keyframing;
-    QGridLayout& ui;
-    QString name;
-    int ui_row;
-    QVector<EffectField*> fields;
+  bool keyframing{false};
+  QGridLayout& ui;
+  int ui_row{-1};
+  QVector<EffectField*> fields;
 
-    KeyframeNavigator* keyframe_nav;
+  KeyframeNavigator* keyframe_nav{nullptr};
 
-    bool just_made_unsafe_keyframe;
-    QVector<int> unsafe_keys;
-    QVector<QVariant> unsafe_old_data;
-    QVector<bool> key_is_new;
+  bool just_made_unsafe_keyframe{false};
+  QVector<int> unsafe_keys;
+  QVector<QVariant> unsafe_old_data;
+  QVector<bool> key_is_new;
 
-    int column_count;
+  int column_count{1};
+  bool keyframable_{false};
+
+  void setupUi();
+
 };
 
 typedef std::shared_ptr<EffectRow> EffectRowPtr;
