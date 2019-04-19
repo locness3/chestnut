@@ -31,6 +31,8 @@ class TransformEffect : public Effect {
     void refresh() override;
     void process_coords(double timecode, GLTextureCoords& coords, int data) override;
     virtual void gizmo_draw(double timecode, GLTextureCoords& coords) override;
+
+    virtual void setupUi() override;
   public slots:
     void toggle_uniform_scale(bool enabled);
   private:

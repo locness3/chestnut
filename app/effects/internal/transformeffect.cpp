@@ -43,101 +43,7 @@ constexpr int BLEND_MODE_OVERLAY = 3;
 
 TransformEffect::TransformEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em)
 {
-
   setCapability(Capability::COORDS);
-  EffectRowPtr position_row = add_row(tr("Position"));
-  position_x = position_row->add_field(EffectFieldType::DOUBLE, "posx"); // position X
-  position_y = position_row->add_field(EffectFieldType::DOUBLE, "posy"); // position Y
-
-  EffectRowPtr scale_row = add_row(tr("Scale"));
-  scale_x = scale_row->add_field(EffectFieldType::DOUBLE, "scalex"); // scale X (and Y is uniform scale is selected)
-  scale_x->set_double_minimum_value(0);
-  scale_x->set_double_maximum_value(3000);
-  scale_y = scale_row->add_field(EffectFieldType::DOUBLE, "scaley"); // scale Y (disabled if uniform scale is selected)
-  scale_y->set_double_minimum_value(0);
-  scale_y->set_double_maximum_value(3000);
-
-  EffectRowPtr uniform_scale_row = add_row(tr("Uniform Scale"));
-  uniform_scale_field = uniform_scale_row->add_field(EffectFieldType::BOOL, "uniformscale"); // uniform scale option
-
-  EffectRowPtr rotation_row = add_row(tr("Rotation"));
-  rotation = rotation_row->add_field(EffectFieldType::DOUBLE, "rotation");
-  rotation->set_double_default_value(0);
-
-  EffectRowPtr anchor_point_row = add_row(tr("Anchor Point"));
-  anchor_x_box = anchor_point_row->add_field(EffectFieldType::DOUBLE, "anchorx"); // anchor point X
-  anchor_y_box = anchor_point_row->add_field(EffectFieldType::DOUBLE, "anchory"); // anchor point Y
-
-  EffectRowPtr opacity_row = add_row(tr("Opacity"));
-  opacity = opacity_row->add_field(EffectFieldType::DOUBLE, "opacity"); // opacity
-  opacity->set_double_minimum_value(0);
-  opacity->set_double_maximum_value(100);
-
-  EffectRowPtr blend_mode_row = add_row(tr("Blend Mode"));
-  blend_mode_box = blend_mode_row->add_field(EffectFieldType::COMBO, "blendmode"); // blend mode
-  blend_mode_box->add_combo_item(tr("Normal"), BLEND_MODE_NORMAL);
-  blend_mode_box->add_combo_item(tr("Overlay"), BLEND_MODE_OVERLAY);
-  blend_mode_box->add_combo_item(tr("Screen"), BLEND_MODE_SCREEN);
-  blend_mode_box->add_combo_item(tr("Multiply"), BLEND_MODE_MULTIPLY);
-
-  // set up gizmos
-  top_left_gizmo = add_gizmo(GizmoType::DOT);
-  top_left_gizmo->set_cursor(Qt::SizeFDiagCursor);
-  top_left_gizmo->x_field1 = scale_x;
-
-  top_center_gizmo = add_gizmo(GizmoType::DOT);
-  top_center_gizmo->set_cursor(Qt::SizeVerCursor);
-  top_center_gizmo->y_field1 = scale_x;
-
-  top_right_gizmo = add_gizmo(GizmoType::DOT);
-  top_right_gizmo->set_cursor(Qt::SizeBDiagCursor);
-  top_right_gizmo->x_field1 = scale_x;
-
-  bottom_left_gizmo = add_gizmo(GizmoType::DOT);
-  bottom_left_gizmo->set_cursor(Qt::SizeBDiagCursor);
-  bottom_left_gizmo->x_field1 = scale_x;
-
-  bottom_center_gizmo = add_gizmo(GizmoType::DOT);
-  bottom_center_gizmo->set_cursor(Qt::SizeVerCursor);
-  bottom_center_gizmo->y_field1 = scale_x;
-
-  bottom_right_gizmo = add_gizmo(GizmoType::DOT);
-  bottom_right_gizmo->set_cursor(Qt::SizeFDiagCursor);
-  bottom_right_gizmo->x_field1 = scale_x;
-
-  left_center_gizmo = add_gizmo(GizmoType::DOT);
-  left_center_gizmo->set_cursor(Qt::SizeHorCursor);
-  left_center_gizmo->x_field1 = scale_x;
-
-  right_center_gizmo = add_gizmo(GizmoType::DOT);
-  right_center_gizmo->set_cursor(Qt::SizeHorCursor);
-  right_center_gizmo->x_field1 = scale_x;
-
-  anchor_gizmo = add_gizmo(GizmoType::TARGET);
-  anchor_gizmo->set_cursor(Qt::SizeAllCursor);
-  anchor_gizmo->x_field1 = anchor_x_box;
-  anchor_gizmo->y_field1 = anchor_y_box;
-  anchor_gizmo->x_field2 = position_x;
-  anchor_gizmo->y_field2 = position_y;
-
-  rotate_gizmo = add_gizmo(GizmoType::DOT);
-  rotate_gizmo->color = Qt::green;
-  rotate_gizmo->set_cursor(Qt::SizeAllCursor);
-  rotate_gizmo->x_field1 = rotation;
-
-  rect_gizmo = add_gizmo(GizmoType::POLY);
-  rect_gizmo->x_field1 = position_x;
-  rect_gizmo->y_field1 = position_y;
-
-  QObject::connect(uniform_scale_field, SIGNAL(toggled(bool)), this, SLOT(toggle_uniform_scale(bool)));
-
-  // set defaults
-  uniform_scale_field->set_bool_value(true);
-  uniform_scale_field->setDefaultValue(true);
-  blend_mode_box->set_combo_index(0);
-  blend_mode_box->setDefaultValue(0);
-  set = false;
-  TransformEffect::refresh();
 }
 
 void adjust_field(EffectField* field, double old_offset, double new_offset) {
@@ -151,7 +57,7 @@ void adjust_field(EffectField* field, double old_offset, double new_offset) {
 }
 
 void TransformEffect::refresh() {
-  if (parent_clip != nullptr && parent_clip->sequence != nullptr) {
+  if (ui_setup && parent_clip != nullptr && parent_clip->sequence != nullptr) {
     double new_default_pos_x = parent_clip->sequence->width()/2;
     double new_default_pos_y = parent_clip->sequence->height()/2;
 
@@ -269,4 +175,105 @@ void TransformEffect::gizmo_draw(double, GLTextureCoords& coords)
   rect_gizmo->world_pos[1] = QPoint(coords.vertices_[1].x_, coords.vertices_[1].y_);
   rect_gizmo->world_pos[2] = QPoint(coords.vertices_[2].x_, coords.vertices_[2].y_);
   rect_gizmo->world_pos[3] = QPoint(coords.vertices_[3].x_, coords.vertices_[3].y_);
+}
+
+void TransformEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+  EffectRowPtr position_row = add_row(tr("Position"));
+  position_x = position_row->add_field(EffectFieldType::DOUBLE, "posx"); // position X
+  position_y = position_row->add_field(EffectFieldType::DOUBLE, "posy"); // position Y
+
+  EffectRowPtr scale_row = add_row(tr("Scale"));
+  scale_x = scale_row->add_field(EffectFieldType::DOUBLE, "scalex"); // scale X (and Y is uniform scale is selected)
+  scale_x->set_double_minimum_value(0);
+  scale_x->set_double_maximum_value(3000);
+  scale_y = scale_row->add_field(EffectFieldType::DOUBLE, "scaley"); // scale Y (disabled if uniform scale is selected)
+  scale_y->set_double_minimum_value(0);
+  scale_y->set_double_maximum_value(3000);
+
+  EffectRowPtr uniform_scale_row = add_row(tr("Uniform Scale"));
+  uniform_scale_field = uniform_scale_row->add_field(EffectFieldType::BOOL, "uniformscale"); // uniform scale option
+
+  EffectRowPtr rotation_row = add_row(tr("Rotation"));
+  rotation = rotation_row->add_field(EffectFieldType::DOUBLE, "rotation");
+  rotation->set_double_default_value(0);
+
+  EffectRowPtr anchor_point_row = add_row(tr("Anchor Point"));
+  anchor_x_box = anchor_point_row->add_field(EffectFieldType::DOUBLE, "anchorx"); // anchor point X
+  anchor_y_box = anchor_point_row->add_field(EffectFieldType::DOUBLE, "anchory"); // anchor point Y
+
+  EffectRowPtr opacity_row = add_row(tr("Opacity"));
+  opacity = opacity_row->add_field(EffectFieldType::DOUBLE, "opacity"); // opacity
+  opacity->set_double_minimum_value(0);
+  opacity->set_double_maximum_value(100);
+
+  EffectRowPtr blend_mode_row = add_row(tr("Blend Mode"));
+  blend_mode_box = blend_mode_row->add_field(EffectFieldType::COMBO, "blendmode"); // blend mode
+  blend_mode_box->add_combo_item(tr("Normal"), BLEND_MODE_NORMAL);
+  blend_mode_box->add_combo_item(tr("Overlay"), BLEND_MODE_OVERLAY);
+  blend_mode_box->add_combo_item(tr("Screen"), BLEND_MODE_SCREEN);
+  blend_mode_box->add_combo_item(tr("Multiply"), BLEND_MODE_MULTIPLY);
+
+  // set up gizmos
+  top_left_gizmo = add_gizmo(GizmoType::DOT);
+  top_left_gizmo->set_cursor(Qt::SizeFDiagCursor);
+  top_left_gizmo->x_field1 = scale_x;
+
+  top_center_gizmo = add_gizmo(GizmoType::DOT);
+  top_center_gizmo->set_cursor(Qt::SizeVerCursor);
+  top_center_gizmo->y_field1 = scale_x;
+
+  top_right_gizmo = add_gizmo(GizmoType::DOT);
+  top_right_gizmo->set_cursor(Qt::SizeBDiagCursor);
+  top_right_gizmo->x_field1 = scale_x;
+
+  bottom_left_gizmo = add_gizmo(GizmoType::DOT);
+  bottom_left_gizmo->set_cursor(Qt::SizeBDiagCursor);
+  bottom_left_gizmo->x_field1 = scale_x;
+
+  bottom_center_gizmo = add_gizmo(GizmoType::DOT);
+  bottom_center_gizmo->set_cursor(Qt::SizeVerCursor);
+  bottom_center_gizmo->y_field1 = scale_x;
+
+  bottom_right_gizmo = add_gizmo(GizmoType::DOT);
+  bottom_right_gizmo->set_cursor(Qt::SizeFDiagCursor);
+  bottom_right_gizmo->x_field1 = scale_x;
+
+  left_center_gizmo = add_gizmo(GizmoType::DOT);
+  left_center_gizmo->set_cursor(Qt::SizeHorCursor);
+  left_center_gizmo->x_field1 = scale_x;
+
+  right_center_gizmo = add_gizmo(GizmoType::DOT);
+  right_center_gizmo->set_cursor(Qt::SizeHorCursor);
+  right_center_gizmo->x_field1 = scale_x;
+
+  anchor_gizmo = add_gizmo(GizmoType::TARGET);
+  anchor_gizmo->set_cursor(Qt::SizeAllCursor);
+  anchor_gizmo->x_field1 = anchor_x_box;
+  anchor_gizmo->y_field1 = anchor_y_box;
+  anchor_gizmo->x_field2 = position_x;
+  anchor_gizmo->y_field2 = position_y;
+
+  rotate_gizmo = add_gizmo(GizmoType::DOT);
+  rotate_gizmo->color = Qt::green;
+  rotate_gizmo->set_cursor(Qt::SizeAllCursor);
+  rotate_gizmo->x_field1 = rotation;
+
+  rect_gizmo = add_gizmo(GizmoType::POLY);
+  rect_gizmo->x_field1 = position_x;
+  rect_gizmo->y_field1 = position_y;
+
+  QObject::connect(uniform_scale_field, SIGNAL(toggled(bool)), this, SLOT(toggle_uniform_scale(bool)));
+
+  // set defaults
+  uniform_scale_field->set_bool_value(true);
+  uniform_scale_field->setDefaultValue(true);
+  blend_mode_box->set_combo_index(0);
+  blend_mode_box->setDefaultValue(0);
+  set = false;
+  this->refresh();
 }

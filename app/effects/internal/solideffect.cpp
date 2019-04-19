@@ -43,27 +43,7 @@ namespace  {
 SolidEffect::SolidEffect(ClipPtr  c, const EffectMeta& em) : Effect(c, em)
 {  
   setCapability(Capability::SUPERIMPOSE);
-  solid_type = add_row(tr("Type"))->add_field(EffectFieldType::COMBO, "type");
-  solid_type->add_combo_item(tr("Solid Color"), static_cast<int>(SolidType::COLOR));
-  solid_type->add_combo_item(tr("SMPTE Bars"), static_cast<int>(SolidType::BARS));
-  solid_type->add_combo_item(tr("Checkerboard"), static_cast<int>(SolidType::CHECKERBOARD));
 
-  opacity_field = add_row(tr("Opacity"))->add_field(EffectFieldType::DOUBLE, "opacity");
-  opacity_field->set_double_minimum_value(0);
-  opacity_field->set_double_maximum_value(100);
-  opacity_field->set_double_default_value(100);
-
-  solid_color_field = add_row(tr("Color"))->add_field(EffectFieldType::COLOR, "color");
-  solid_color_field->set_color_value(Qt::red);
-
-  checkerboard_size_field = add_row(tr("Checkerboard Size"))->add_field(EffectFieldType::DOUBLE, "checker_size");
-  checkerboard_size_field->set_double_minimum_value(1);
-  checkerboard_size_field->set_double_default_value(10);
-
-  // hacky but eh
-  QComboBox* solid_type_combo = static_cast<QComboBox*>(solid_type->get_ui_element());
-  QObject::connect(solid_type_combo, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_update(int)));
-  ui_update(solid_type_combo->currentIndex());
 }
 
 void SolidEffect::redraw(double timecode)
@@ -216,4 +196,33 @@ void SolidEffect::ui_update(int index)
   const auto sType = static_cast<SolidType>(index);
   solid_color_field->set_enabled( (sType == SolidType::COLOR) || (sType == SolidType::CHECKERBOARD) );
   checkerboard_size_field->set_enabled(sType == SolidType::CHECKERBOARD);
+}
+
+void SolidEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+  solid_type = add_row(tr("Type"))->add_field(EffectFieldType::COMBO, "type");
+  solid_type->add_combo_item(tr("Solid Color"), static_cast<int>(SolidType::COLOR));
+  solid_type->add_combo_item(tr("SMPTE Bars"), static_cast<int>(SolidType::BARS));
+  solid_type->add_combo_item(tr("Checkerboard"), static_cast<int>(SolidType::CHECKERBOARD));
+
+  opacity_field = add_row(tr("Opacity"))->add_field(EffectFieldType::DOUBLE, "opacity");
+  opacity_field->set_double_minimum_value(0);
+  opacity_field->set_double_maximum_value(100);
+  opacity_field->set_double_default_value(100);
+
+  solid_color_field = add_row(tr("Color"))->add_field(EffectFieldType::COLOR, "color");
+  solid_color_field->set_color_value(Qt::red);
+
+  checkerboard_size_field = add_row(tr("Checkerboard Size"))->add_field(EffectFieldType::DOUBLE, "checker_size");
+  checkerboard_size_field->set_double_minimum_value(1);
+  checkerboard_size_field->set_double_default_value(10);
+
+  // hacky but eh
+  QComboBox* solid_type_combo = static_cast<QComboBox*>(solid_type->get_ui_element());
+  QObject::connect(solid_type_combo, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_update(int)));
+  ui_update(solid_type_combo->currentIndex());
 }

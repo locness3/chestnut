@@ -331,20 +331,8 @@ const QMap<QString, EffectMeta>& Effect::getRegisteredMetas()
 
 Effect::Effect(ClipPtr c)
   : SequenceItem(project::SequenceItemType::CLIP),
-    parent_clip(std::move(c)),
-    container(new CollapsibleWidget())
+    parent_clip(std::move(c))
 {
-  // set up base UI
-  connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
-  connect(container->reset_button_, &QPushButton::clicked, this, &Effect::reset);
-  ui = new QWidget();
-  ui_layout = new QGridLayout();
-  ui_layout->setSpacing(4);
-  ui->setLayout(ui_layout);
-  container->setContents(ui);
-
-  connect(container->title_bar, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu(const QPoint&)));
-
 
 }
 
@@ -352,12 +340,7 @@ Effect::Effect(ClipPtr c, const EffectMeta& em) :
   Effect(c)
 {
   meta = em;
-  if (em.type >= 0) {
-    // set up UI from effect file
-    setupControlWidget(em);
-  } else {
-    qWarning() << "Unable to set up control widget for unknown type";
-  }
+
 }
 
 bool Effect::hasCapability(const Capability flag) const
@@ -405,6 +388,17 @@ EffectRowPtr Effect::add_row(const QString& name, bool savable, bool keyframable
 EffectRowPtr Effect::row(const int i)
 {
   return rows.at(i);
+}
+
+
+EffectRowPtr Effect::row(const QString& name)
+{
+  for (auto row : rows) {
+    if (row != nullptr && row->name == name) {
+      return row;
+    }
+  }
+  return nullptr;
 }
 
 
@@ -598,8 +592,30 @@ QString save_data_to_string(const EffectFieldType type, const QVariant& data)
 
 bool Effect::load(QXmlStreamReader& stream)
 {
-  //TODO:
-  return false;
+  while (stream.readNextStartElement()) {
+    auto name = stream.name().toString().toLower();
+    if (name == "row" && stream.readNextStartElement()) {
+      name = stream.name().toString().toLower();
+      if (name == "name") {
+        if (auto eff_row = row(stream.readElementText())) {
+          if (!eff_row->load(stream)) {
+            qCritical() << "Failed to load Effect row" << eff_row->name;
+            return false;
+          }
+        }
+      } else {
+        qCritical() << "Unexpected element" << name;
+        return false;
+      }
+    } else {
+      qWarning() << "Unhandled element" << name;
+    }
+  }
+
+
+  return true;
+
+
   int row_count = 0;
 
   const auto tag = stream.name().toString();
@@ -971,13 +987,29 @@ bool Effect::are_gizmos_enabled() const {
   return (!gizmos.empty());
 }
 
-EffectPtr Effect::effectFromStream(QXmlStreamReader& stream)
+
+void Effect::setupUi()
 {
-  // get effect name
-  // location effect in some list
-  // set up that effect with this
-  // return that effect
-  return nullptr;
+  ui_setup = true;
+  container = new CollapsibleWidget();
+  // set up base UI
+  connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
+  connect(container->reset_button_, &QPushButton::clicked, this, &Effect::reset);
+  ui = new QWidget();
+  ui_layout = new QGridLayout();
+  ui_layout->setSpacing(4);
+  ui->setLayout(ui_layout);
+  container->setContents(ui);
+
+  connect(container->title_bar, SIGNAL(customContextMenuRequested(const QPoint&)),
+          this, SLOT(show_context_menu(const QPoint&)));
+
+  if (meta.type >= 0) {
+    // set up UI from effect file
+    setupControlWidget(meta);
+  } else {
+    qWarning() << "Unable to set up control widget for unknown type";
+  }
 }
 
 void Effect::redraw(double)

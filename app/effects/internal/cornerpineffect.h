@@ -31,6 +31,7 @@ class CornerPinEffect : public Effect {
     virtual void process_coords(double timecode, GLTextureCoords& coords, int data) override;
     virtual void process_shader(double timecode, GLTextureCoords& coords, const int iteration) override;
     virtual void gizmo_draw(double timecode, GLTextureCoords& coords) override;
+    virtual void setupUi() override;
   private:
     EffectField* top_left_x;
     EffectField* top_left_y;

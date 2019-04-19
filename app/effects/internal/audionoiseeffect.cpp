@@ -22,13 +22,7 @@
 #include <random>
 
 AudioNoiseEffect::AudioNoiseEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em) {
-  amount_val = add_row(tr("Amount"))->add_field(EffectFieldType::DOUBLE, "amount");
-  amount_val->set_double_minimum_value(0);
-  amount_val->set_double_maximum_value(100);
-  amount_val->set_double_default_value(20);
 
-  mix_val = add_row(tr("Mix"))->add_field(EffectFieldType::BOOL, "mix");
-  mix_val->set_bool_value(true);
 
 }
 
@@ -60,3 +54,18 @@ void AudioNoiseEffect::process_audio(double timecode_start, double timecode_end,
   }
 }
 
+
+void AudioNoiseEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+  amount_val = add_row(tr("Amount"))->add_field(EffectFieldType::DOUBLE, "amount");
+  amount_val->set_double_minimum_value(0);
+  amount_val->set_double_maximum_value(100);
+  amount_val->set_double_default_value(20);
+
+  mix_val = add_row(tr("Mix"))->add_field(EffectFieldType::BOOL, "mix");
+  mix_val->set_bool_value(true);
+}

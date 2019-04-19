@@ -26,12 +26,7 @@
 #include "ui/collapsiblewidget.h"
 
 VolumeEffect::VolumeEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em) {
-  EffectRowPtr volume_row = add_row(tr("Volume"));
-  volume_val = volume_row->add_field(EffectFieldType::DOUBLE, "volume");
-  volume_val->set_double_minimum_value(0);
 
-  // set defaults
-  volume_val->set_double_default_value(100);
 }
 
 void VolumeEffect::process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int) {
@@ -62,4 +57,18 @@ void VolumeEffect::process_audio(double timecode_start, double timecode_end, qui
     samples[i+1] = (quint8) (left_samp >> 8);
     samples[i] = (quint8) left_samp;
   }
+}
+
+void VolumeEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+  EffectRowPtr volume_row = add_row(tr("Volume"));
+  volume_val = volume_row->add_field(EffectFieldType::DOUBLE, "volume");
+  volume_val->set_double_minimum_value(0);
+
+  // set defaults
+  volume_val->set_double_default_value(100);
 }

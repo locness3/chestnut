@@ -134,7 +134,7 @@ struct GLTextureCoords {
 qint16 mix_audio_sample(const qint16 a, const qint16 b);
 
 
-class Effect : public QObject, public project::SequenceItem, public project::IXMLStreamer {
+class Effect : public QObject,  public std::enable_shared_from_this<Effect>, public project::SequenceItem, public project::IXMLStreamer {
     Q_OBJECT
   public:
     static void registerMeta(const EffectMeta& meta);
@@ -149,6 +149,7 @@ class Effect : public QObject, public project::SequenceItem, public project::IXM
 
     EffectRowPtr add_row(const QString &name_, bool savable = true, bool keyframable = true);
     EffectRowPtr row(const int i);
+    EffectRowPtr row(const QString& name);
     const QVector<EffectRowPtr>& getRows() const;
 
     int row_count();
@@ -193,13 +194,13 @@ class Effect : public QObject, public project::SequenceItem, public project::IXM
     void gizmo_world_to_screen();
     bool are_gizmos_enabled() const;
 
-    static EffectPtr effectFromStream(QXmlStreamReader& stream);
+    virtual void setupUi();
 
     ClipPtr parent_clip; //TODO: make weak
-    EffectMeta meta;
-    int id = -1;
-    QString name_;
-    CollapsibleWidget* container = nullptr;
+    EffectMeta meta{};
+    int id{-1};
+    QString name_{};
+    CollapsibleWidget* container{nullptr};
     // glsl effect
     struct {
         QString vert_{};
@@ -213,6 +214,8 @@ class Effect : public QObject, public project::SequenceItem, public project::IXM
         QImage img_{};
         std::unique_ptr<QOpenGLTexture> texture_{};
     } superimpose_{};
+    bool ui_setup{false};
+
 
 
   public slots:

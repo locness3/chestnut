@@ -297,8 +297,9 @@ void EffectControls::open_effect(QVBoxLayout* const layout, const EffectPtr& e)
     qCritical() << "Null effect ptr";
     return;
   }
+  e->setupUi();
   CollapsibleWidget* container = e->container;
-  layout->addWidget(container);
+  layout->addWidget(container); // FIXME: threading issue with QObject::setParent. container was created in LoadThread
   connect(container, SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
 }
 
