@@ -64,7 +64,6 @@ constexpr auto SYSTEM_EFFECT_PATH = "../share/chestnut/effects";
 constexpr auto LOCAL_EFFECT_PATH = "effects";
 
 bool shaders_are_enabled = true;
-QVector<EffectMeta> effects;
 
 
 QMap<QString, EffectMeta> Effect::registered;
@@ -220,8 +219,7 @@ QList<QString> get_effects_paths()
 
 bool addEffect(QXmlStreamReader& reader,
                const QString& file_name,
-               const QString& effects_path,
-               QVector<EffectMeta>& effect_list)
+               const QString& effects_path)
 {
   QString effect_name = "";
   QString effect_cat = "";
@@ -231,6 +229,8 @@ bool addEffect(QXmlStreamReader& reader,
       effect_name = attrib.value().toString();
     } else if (attrib.name() == "category") {
       effect_cat = attrib.value().toString();
+    } else {
+      qWarning() << "Unhandled attribute" << attrib.name();
     }
   }
   if (!effect_name.isEmpty()) {
@@ -241,7 +241,6 @@ bool addEffect(QXmlStreamReader& reader,
     em.category = effect_cat;
     em.filename = file_name;
     em.path = effects_path;
-    effect_list.push_back(em);
     Effect::registerMeta(em);
     return true;
   }
@@ -251,9 +250,9 @@ bool addEffect(QXmlStreamReader& reader,
 }
 
 //TODO:
-void load_shader_effects(QVector<EffectMeta>& effect_list)
+void load_shader_effects()
 {
-  for (auto& effects_path : get_effects_paths()){
+  for (const auto& effects_path : get_effects_paths()) {
     const QDir effects_dir(effects_path);
     if (!effects_dir.exists()) {
       qWarning() << "Effects directory does not exist, " << effects_dir.absolutePath();
@@ -270,7 +269,7 @@ void load_shader_effects(QVector<EffectMeta>& effect_list)
       QXmlStreamReader reader(&file);
       while (!reader.atEnd()) {
         if (reader.name() == "effect") {
-          if (!addEffect(reader, file.fileName(), effects_path, effect_list)) {
+          if (!addEffect(reader, file.fileName(), effects_path)) {
             qCritical() << "Invalid effect found in" << entry;
           }
           break;
@@ -290,7 +289,7 @@ void init_effects()
   auto lmb = []() {
     qInfo() << "Initializing effects...";
     load_internal_effects();
-    load_shader_effects(effects);
+    load_shader_effects();
     qInfo() << "Finished initializing effects";
   };
   std::thread t(lmb);
@@ -356,6 +355,8 @@ Effect::Effect(ClipPtr c, const EffectMeta& em) :
   if (em.type >= 0) {
     // set up UI from effect file
     setupControlWidget(em);
+  } else {
+    qWarning() << "Unable to set up control widget for unknown type";
   }
 }
 
@@ -1184,7 +1185,7 @@ void Effect::setupControlWidget(const EffectMeta& em)
                 // get field type
                 auto [fieldType, attrId] = getFieldType(attributes);
 
-                    if (attrId.isEmpty()) {
+                if (attrId.isEmpty()) {
                   qCritical() << "Couldn't load field from" << em.filename << "- ID cannot be empty.";
                 } else if (fieldType != EffectFieldType::UNKNOWN) {
                   auto field = row->add_field(fieldType, attrId);

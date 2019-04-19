@@ -107,7 +107,6 @@ constexpr int EFFECT_INTERNAL_TEMPORAL = 13;
 constexpr int EFFECT_INTERNAL_COUNT = 14;
 
 
-extern QVector<EffectMeta> effects; //TODO: remove
 
 enum class Capability {
   SHADER = 0,

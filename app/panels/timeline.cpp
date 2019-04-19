@@ -1618,25 +1618,27 @@ void Timeline::transition_tool_click() {
 
   QMenu transition_menu(this);
 
-  for (int i=0;i<effects.size();i++) {
-    const EffectMeta& em = effects.at(i);
-    if (em.type == EFFECT_TYPE_TRANSITION && em.subtype == EFFECT_TYPE_VIDEO) {
-      QAction* a = transition_menu.addAction(em.name);
-      a->setObjectName("v");
-      a->setData(reinterpret_cast<quintptr>(&em));
-    }
-  }
+  //FIXME:
+//  for (int i=0;i<effects.size();i++) {
+//    const EffectMeta& em = effects.at(i);
+//    if (em.type == EFFECT_TYPE_TRANSITION && em.subtype == EFFECT_TYPE_VIDEO) {
+//      QAction* a = transition_menu.addAction(em.name);
+//      a->setObjectName("v");
+//      a->setData(reinterpret_cast<quintptr>(&em));
+//    }
+//  }
 
   transition_menu.addSeparator();
 
-  for (int i=0;i<effects.size();i++) {
-    const EffectMeta& em = effects.at(i);
-    if (em.type == EFFECT_TYPE_TRANSITION && em.subtype == EFFECT_TYPE_AUDIO) {
-      QAction* a = transition_menu.addAction(em.name);
-      a->setObjectName("a");
-      a->setData(reinterpret_cast<quintptr>(&em));
-    }
-  }
+  //FIXME:
+//  for (int i=0;i<effects.size();i++) {
+//    const EffectMeta& em = effects.at(i);
+//    if (em.type == EFFECT_TYPE_TRANSITION && em.subtype == EFFECT_TYPE_AUDIO) {
+//      QAction* a = transition_menu.addAction(em.name);
+//      a->setObjectName("a");
+//      a->setData(reinterpret_cast<quintptr>(&em));
+//    }
+//  }
 
   connect(&transition_menu, SIGNAL(triggered(QAction*)), this, SLOT(transition_menu_select(QAction*)));
 

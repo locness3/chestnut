@@ -49,10 +49,8 @@ LoadThread::LoadThread(LoadDialog* l, const bool a)
   connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
   connect(this, SIGNAL(success()), this, SLOT(success_func()));
   connect(this, SIGNAL(error()), this, SLOT(error_func()));
-  connect(this, SIGNAL(start_create_dual_transition(const TransitionData*,ClipPtr ,ClipPtr ,const EffectMeta*)),
-          this, SLOT(create_dual_transition(const TransitionData*,ClipPtr ,ClipPtr ,const EffectMeta*)));
-  connect(this, SIGNAL(start_create_effect_ui(QXmlStreamReader*, ClipPtr , int, const QString*, const EffectMeta*, long, bool)),
-          this, SLOT(create_effect_ui(QXmlStreamReader*, ClipPtr , int, const QString*, const EffectMeta*, long, bool)));
+  connect(this, &LoadThread::start_create_dual_transition, this, &LoadThread::create_dual_transition);
+  connect(this, &LoadThread::start_create_effect_ui, this, &LoadThread::create_effect_ui);
 }
 
 //const EffectMeta* get_meta_from_name(const QString& name) {
