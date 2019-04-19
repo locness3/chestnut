@@ -520,17 +520,14 @@ bool Media::save(QXmlStreamWriter& stream) const
 
 bool Media::loadAsFolder(QXmlStreamReader& stream)
 {
-  temp_id2 = 0;
   for (const auto& attr : stream.attributes()) {
     const auto attr_name = attr.name().toString().toLower();
     if (attr_name == "id") {
-      setId(attr.value().toInt());
-      temp_id = attr.value().toInt();
+      auto id = attr.value().toInt();
+      setId(id);
     } else if (attr_name == "parent") {
-      temp_id2 = attr.value().toInt();
-      if (auto par = parent_.lock()) {
-        par->setId(temp_id2);
-      }
+      auto par_id = attr.value().toInt();
+      parent_ = Project::model().findItemById(par_id);
     } else {
       qWarning() << "Unknown attribute" << attr_name;
     }

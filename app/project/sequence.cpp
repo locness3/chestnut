@@ -289,8 +289,10 @@ bool Sequence::load(QXmlStreamReader& stream)
     } else if (name == "folder") {
       const auto folder_id = attr.value().toInt();
       if (folder_id > 0) {
-        // the folder it's in? 0 being root? Parent::Parent.children?
-//        parent = panels::PanelManager::projectViewer().model().getFolder(folder_id); //TODO: do what with it?
+        auto folder = Project::model().findItemById(folder_id);
+        if (auto par = parent_mda.lock()) {
+          par->setParent(folder);
+        }
       }
     } else if (name == "open") {
       bool is_open = attr.value().toString().toLower() == "true";

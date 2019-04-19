@@ -102,10 +102,6 @@ public:
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 
-    //FIXME: varnames
-    int32_t temp_id = 0;  // folder id
-    int32_t temp_id2 = 0; // folder parent id
-
 protected:
     static int32_t nextID;
 private:

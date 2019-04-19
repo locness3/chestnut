@@ -23,6 +23,7 @@
 
 #include "io/previewgenerator.h"
 #include "project/clip.h"
+#include "panels/project.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -64,6 +65,10 @@ bool Footage::load(QXmlStreamReader& stream)
     auto name = attr.name().toString().toLower();
     if (name == "folder") {
       folder_ = attr.value().toInt(); // Media::parent.id
+      if (auto par = parent_mda.lock()) {
+        auto folder = Project::model().findItemById(folder_);
+        par->setParent(folder);
+      }
     } else if (name == "id") {
       save_id = attr.value().toInt();
       if (auto par = parent_mda.lock()) {

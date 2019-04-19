@@ -275,8 +275,9 @@ const MediaPtr ProjectModel::get(const QModelIndex& idx) const
 
 MediaPtr ProjectModel::getFolder(const int id)
 {
-  for (auto item : project_items) {
-    if ( (item->type() == MediaType::FOLDER) && (item->temp_id == id) ) {
+  for (const auto& item : project_items) {
+    if ( item && item->parentItem()
+         && (item->type() == MediaType::FOLDER) && (item->parentItem()->id() == id) ) {
       return item;
     }
   }
@@ -307,6 +308,9 @@ MediaPtr ProjectModel::findItemById(const int id)
 
 bool ProjectModel::load(QXmlStreamReader& stream)
 {
+  // items must be loaded in sequence :
+  // 1. folders 2. footage 3. sequences
+  // otherwise linking (parent<->child) won't work
   QStringRef elem_name;
   while (stream.readNextStartElement()) {
     elem_name = stream.name();
@@ -323,7 +327,7 @@ bool ProjectModel::load(QXmlStreamReader& stream)
         if (!mda->load(stream)) {
           return false;
         }
-        appendChild(nullptr, mda);
+        appendChild(mda->parentItem(), mda);
       }
     } else {
       stream.skipCurrentElement();
