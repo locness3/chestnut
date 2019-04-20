@@ -29,6 +29,8 @@ class ToneEffect : public Effect {
 
     void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count) override;
 
+    virtual void setupUi() override;
+
     EffectField* type_val;
     EffectField* freq_val;
     EffectField* amount_val;

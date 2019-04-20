@@ -34,8 +34,8 @@ void VolumeEffect::process_audio(double timecode_start, double timecode_end, qui
   for (int i=0;i<nb_bytes;i+=4) {
     double vol_val = log_volume(volume_val->get_double_value(timecode_start+(interval*i), true)*0.01);
 
-    qint32 right_samp = (qint16) (((samples[i+3] & 0xFF) << 8) | (samples[i+2] & 0xFF));
-    qint32 left_samp = (qint16) (((samples[i+1] & 0xFF) << 8) | (samples[i] & 0xFF));
+    qint32 right_samp = static_cast<qint16> (((samples[i+3] & 0xFF) << 8) | (samples[i+2] & 0xFF));
+    qint32 left_samp = static_cast<qint16> (((samples[i+1] & 0xFF) << 8) | (samples[i] & 0xFF));
 
     left_samp *= vol_val;
     right_samp *= vol_val;
@@ -52,10 +52,10 @@ void VolumeEffect::process_audio(double timecode_start, double timecode_end, qui
       right_samp = INT16_MIN;
     }
 
-    samples[i+3] = (quint8) (right_samp >> 8);
-    samples[i+2] = (quint8) right_samp;
-    samples[i+1] = (quint8) (left_samp >> 8);
-    samples[i] = (quint8) left_samp;
+    samples[i+3] = static_cast<quint8> (right_samp >> 8);
+    samples[i+2] = static_cast<quint8> (right_samp);
+    samples[i+1] = static_cast<quint8> (left_samp >> 8);
+    samples[i] = static_cast<quint8> (left_samp);
   }
 }
 

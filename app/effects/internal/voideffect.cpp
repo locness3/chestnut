@@ -7,18 +7,10 @@
 #include "ui/collapsiblewidget.h"
 #include "debug.h"
 
-VoidEffect::VoidEffect(ClipPtr c, const QString& n) : Effect(c)
+VoidEffect::VoidEffect(ClipPtr c, const QString& n)
+  : Effect(c)
 {
   name_ = n;
-  QString display_name;
-  if (n.isEmpty()) {
-    display_name = tr("(unknown)");
-  } else {
-    display_name = n;
-  }
-  EffectRowPtr row = add_row(tr("Missing Effect"), false, false);
-  row->add_widget(new QLabel(display_name));
-  container->setText(display_name);
 }
 
 bool VoidEffect::load(QXmlStreamReader &stream)
@@ -65,4 +57,23 @@ bool VoidEffect::save(QXmlStreamWriter &stream) const
 //    }
 //  }
   return false;
+}
+
+void VoidEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+
+  QString display_name;
+  if (name_.isEmpty()) {
+    display_name = tr("(unknown)");
+  } else {
+    display_name = name_;
+  }
+  EffectRowPtr row = add_row(tr("Missing Effect"), false, false);
+  row->add_widget(new QLabel(display_name));
+  container->setText(display_name);
+
 }

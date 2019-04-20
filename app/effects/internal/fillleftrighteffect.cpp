@@ -4,10 +4,7 @@ constexpr int FILL_TYPE_LEFT = 0;
 constexpr int FILL_TYPE_RIGHT = 1;
 
 FillLeftRightEffect::FillLeftRightEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em) {
-  EffectRowPtr type_row = add_row(tr("Type"));
-  fill_type = type_row->add_field(EffectFieldType::COMBO, "type");
-  fill_type->add_combo_item(tr("Fill Left with Right"), FILL_TYPE_LEFT);
-  fill_type->add_combo_item(tr("Fill Right with Left"), FILL_TYPE_RIGHT);
+
 }
 
 void FillLeftRightEffect::process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int) {
@@ -21,4 +18,17 @@ void FillLeftRightEffect::process_audio(double timecode_start, double timecode_e
       samples[i+2] = samples[i];
     }
   }
+}
+
+void FillLeftRightEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+
+  EffectRowPtr type_row = add_row(tr("Type"));
+  fill_type = type_row->add_field(EffectFieldType::COMBO, "type");
+  fill_type->add_combo_item(tr("Fill Left with Right"), FILL_TYPE_LEFT);
+  fill_type->add_combo_item(tr("Fill Right with Left"), FILL_TYPE_RIGHT);
 }

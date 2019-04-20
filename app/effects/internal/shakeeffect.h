@@ -31,6 +31,7 @@ class ShakeEffect : public Effect {
     ShakeEffect& operator=(const ShakeEffect&) = delete;
 
     void process_coords(double timecode, GLTextureCoords& coords, int data) override;
+    virtual void setupUi() override;
 
     EffectField* intensity_val;
     EffectField* rotation_val;

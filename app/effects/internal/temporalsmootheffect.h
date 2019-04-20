@@ -18,6 +18,7 @@ class TemporalSmoothEffect : public Effect
     TemporalSmoothEffect& operator=(const TemporalSmoothEffect&&) = delete;
 
     virtual void process_image(double timecode, gsl::span<uint8_t>& data) override;
+    virtual void setupUi() override;
   private:
     EffectField* frame_length_;
     EffectField* blend_mode_;

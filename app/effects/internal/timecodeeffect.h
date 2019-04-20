@@ -31,6 +31,7 @@ public:
 
     TimecodeEffect(const TimecodeEffect& ) = delete;
     TimecodeEffect& operator=(const TimecodeEffect&) = delete;
+    virtual void setupUi() override;
 
     EffectField* scale_val;
     EffectField* color_val;

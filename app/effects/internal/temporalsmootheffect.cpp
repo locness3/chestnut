@@ -7,18 +7,7 @@
 TemporalSmoothEffect::TemporalSmoothEffect(ClipPtr c, const EffectMeta& em) : Effect(std::move(c), em)
 {  
   setCapability(Capability::IMAGE);
-  frame_length_ = add_row(tr("Frame Length"))->add_field(EffectFieldType::DOUBLE, "length");
-  frame_length_->set_double_minimum_value(1.0);
-  frame_length_->set_double_maximum_value(10.0);
-  frame_length_->set_double_default_value(3.0);
 
-
-  blend_mode_ = add_row(tr("Blend Mode"))->add_field(EffectFieldType::COMBO, "mode");
-  blend_mode_->add_combo_item("Average", 0);
-  blend_mode_->add_combo_item("Median", 0);
-  blend_mode_->add_combo_item("Max", 0);
-  blend_mode_->add_combo_item("Min", 0);
-  blend_mode_->setDefaultValue(0);
 }
 
 TemporalSmoothEffect::~TemporalSmoothEffect()
@@ -130,5 +119,25 @@ void TemporalSmoothEffect::process_image(double timecode, gsl::span<uint8_t>& da
     }
     data[i] = val;
   }
+}
+
+void TemporalSmoothEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+
+  frame_length_ = add_row(tr("Frame Length"))->add_field(EffectFieldType::DOUBLE, "length");
+  frame_length_->set_double_minimum_value(1.0);
+  frame_length_->set_double_maximum_value(10.0);
+  frame_length_->set_double_default_value(3.0);
+
+  blend_mode_ = add_row(tr("Blend Mode"))->add_field(EffectFieldType::COMBO, "mode");
+  blend_mode_->add_combo_item("Average", 0);
+  blend_mode_->add_combo_item("Median", 0);
+  blend_mode_->add_combo_item("Max", 0);
+  blend_mode_->add_combo_item("Min", 0);
+  blend_mode_->setDefaultValue(0);
 }
 

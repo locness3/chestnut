@@ -14,6 +14,8 @@ public:
     VoidEffect(ClipPtr c, const QString& n);
     bool load(QXmlStreamReader &stream) override;
     bool save(QXmlStreamWriter &stream) const override;
+
+    virtual void setupUi() override;
 private:
     QByteArray bytes;
 };

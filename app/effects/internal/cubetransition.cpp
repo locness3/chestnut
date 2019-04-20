@@ -26,7 +26,6 @@ CubeTransition::CubeTransition(ClipPtr c, ClipPtr s, const EffectMeta& em) : Tra
 
 void CubeTransition::process_coords(double, GLTextureCoords& coords, int)
 {
-
   coords.vertices_[0].z_ = 1;
   coords.vertices_[3].z_ = 1;
 }

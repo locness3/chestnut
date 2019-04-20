@@ -11,6 +11,8 @@ public:
     FillLeftRightEffect operator=(const FillLeftRightEffect&) = delete;
 
   void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count) override;
+
+  virtual void setupUi() override;
 private:
     EffectField* fill_type;
 };
