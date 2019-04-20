@@ -190,7 +190,7 @@ public:
         QString vert_{};
         QString frag_{};
         std::unique_ptr<QOpenGLShaderProgram> program_{};
-        int iterations_{};
+        int iterations_{1};
     } glsl_{};
 
     // superimpose effect

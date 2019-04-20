@@ -1115,6 +1115,8 @@ void Effect::extractShaderDetails(const QXmlStreamAttributes& attributes)
       glsl_.frag_ = attr.value().toString();
     } else if (attr.name() == "iterations") {
       glsl_.iterations_ = attr.value().toInt();
+    } else {
+      qWarning() << "Unknown attribute" << attr.name();
     }
   }
 }
