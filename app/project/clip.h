@@ -175,7 +175,7 @@ class Clip : public project::SequenceItem,
 
     // other variables (should be deep copied/duplicated in copy())
     QList<EffectPtr> effects;
-    QVector<int> linked;
+    QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
     int opening_transition;
     int closing_transition;
 
@@ -234,6 +234,7 @@ class Clip : public project::SequenceItem,
 
   protected:
     virtual void run() override;
+    static int32_t next_id;
   private:
     friend class ClipTest;
     struct {
@@ -249,6 +250,7 @@ class Clip : public project::SequenceItem,
 
     std::atomic_bool finished_opening{false};
     bool pkt_written{};
+    int32_t id_{-1};
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 
@@ -280,6 +282,8 @@ class Clip : public project::SequenceItem,
     void move(ComboAction& ca, const long iin, const long iout,
               const long iclip_in, const int itrack, const bool verify_transitions = true,
               const bool relative = false);
+
+    void setId(const int32_t id);
 
 
 };

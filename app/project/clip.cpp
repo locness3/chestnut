@@ -50,6 +50,7 @@ constexpr bool WAIT_ON_CLOSE = true;
 constexpr AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;
 constexpr int AUDIO_SAMPLES = 2048;
 constexpr int AUDIO_BUFFER_PADDING = 2048;
+int32_t Clip::next_id = 0;
 
 
 double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sample_rate) {
@@ -66,7 +67,8 @@ Clip::Clip(SequencePtr s) :
   ignore_reverse(false),
   use_existing_frame(false),
   filter_graph(nullptr),
-  fbo(nullptr)
+  fbo(nullptr),
+  id_(next_id++)
 {
   media_handling.pkt = av_packet_alloc();
   timeline_info.autoscale = e_config.autoscale_by_default;
@@ -902,8 +904,8 @@ bool Clip::load(QXmlStreamReader& stream)
     if (name == "source") {
       load_id = attr.value().toInt();
       timeline_info.media = Project::model().findItemById(load_id);
-    } else if (name == "link_id") {
-      //TODO:
+    } else if (name == "id") {
+      setId(attr.value().toInt());
     } else {
       qWarning() << "Unhandled clip attribute" << name;
     }
@@ -919,6 +921,15 @@ bool Clip::load(QXmlStreamReader& stream)
       if (!timeline_info.load(stream)) {
         qCritical() << "Failed to load TimelineInfo";
         return false;
+      }
+    } else if (name == "links") {
+      while (stream.readNextStartElement()) {
+        if (stream.name().toString().toLower() == "link") {
+          linked.append(stream.readElementText().toInt());
+        } else {
+          stream.skipCurrentElement();
+          qWarning() << "Unhandled element" << stream.name();
+        }
       }
     } else if (name == "effect") {
       QString eff_name;
@@ -954,7 +965,7 @@ bool Clip::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement("clip");
   stream.writeAttribute("source", QString::number(timeline_info.media->id()));
-//  stream.writeAttribute("link_id", QString::number(0)); //FIXME:
+  stream.writeAttribute("id", QString::number(id_));
 
   stream.writeTextElement("opening", QString::number(opening_transition));
   stream.writeTextElement("closing", QString::number(closing_transition));
@@ -964,7 +975,12 @@ bool Clip::save(QXmlStreamWriter& stream) const
     return false;
   }
 
-  //TODO: linked?
+  stream.writeStartElement("links");
+  for (const auto link : linked) {
+    stream.writeTextElement("link", QString::number(link));
+  }
+  stream.writeEndElement(); // links
+
   for (const auto& eff : effects) {
     if (!eff->save(stream)) {
       qCritical() << "Failed to save effect";
@@ -1902,6 +1918,15 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
       //      ca.append(new SetPointer((void**) &closingTransition()->secondary_clip, nullptr)); //FIXME:
       ca.append(new AddTransitionCommand(shared_from_this(), nullptr, closingTransition(), TA_CLOSING_TRANSITION, 0));
     }
+  }
+}
+
+
+void Clip::setId(const int32_t id)
+{
+  id_ = id;
+  if (next_id <= id) {
+    next_id = id + 1;
   }
 }
 

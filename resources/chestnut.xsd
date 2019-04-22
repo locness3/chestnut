@@ -205,11 +205,19 @@
                 <xs:element name="opening" type="xs:integer"/>
                 <xs:element name="closing" type="xs:integer"/>
                 <xs:element ref="timelineinfo"/>
+                <xs:element name="links">
+                    <xs:complexType>
+                        <xs:sequence minOccurs="0"> 
+                            <xs:element name="link" type="xs:integer"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
                 <xs:sequence minOccurs="0" maxOccurs="unbounded">
                     <xs:element ref="effect"/>
                 </xs:sequence>
             </xs:sequence>
             <xs:attribute name="source" type="xs:integer"/>
+            <xs:attribute ref="id"/>
 		</xs:complexType>
 	</xs:element>
 

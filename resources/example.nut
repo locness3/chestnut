@@ -49,7 +49,7 @@
       <framerate>25.0000000000</framerate>
       <frequency>48000</frequency>
       <layout>2</layout>
-      <clip>
+      <clip source="1" id="0">
         <opening>-1</opening>
         <closing>-1</closing>
         
@@ -67,6 +67,7 @@
             <reverse>0</reverse>
             <stream>1</stream>
         </timelineinfo>
+        <links/>
 
         <effect enabled="true" name="transform">
             <row>
