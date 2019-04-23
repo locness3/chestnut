@@ -362,7 +362,7 @@ void Effect::clearCapability(const Capability flag)
 
 void Effect::copy_field_keyframes(const std::shared_ptr<Effect>& e)
 {
-  for (int i=0;i<rows.size();i++) {
+  for (int i=0; i<rows.size(); ++i) {
     EffectRowPtr row(rows.at(i));
     EffectRowPtr copy_row(e->rows.at(i));
     copy_row->setKeyframing(row->isKeyframing());

@@ -325,13 +325,12 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
   }
 }
 
-void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
+void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s)
+{
   // add clips
   long earliest_point = LONG_MAX;
   QVector<ClipPtr> added_clips;
-  for (int i=0;i<ghosts.size();i++) {
-    const Ghost& g = ghosts.at(i);
-
+  for (const auto& g : ghosts) {
     earliest_point = qMin(earliest_point, g.in);
 
     auto clp = std::make_shared<Clip>(s);
@@ -373,7 +372,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s) {
       const ClipPtr& cc = added_clips.at(j);
       if (c != cc && c->timeline_info.media == cc->timeline_info.media) {
         c->linked.append(j);
-      }
+    }
     }
 
     if (c->timeline_info.isVideo()) {

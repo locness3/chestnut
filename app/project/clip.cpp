@@ -93,27 +93,19 @@ Clip::~Clip() {
 }
 
 
-ClipPtr Clip::copy(SequencePtr s) {
+ClipPtr Clip::copy(SequencePtr s)
+{
   ClipPtr copyClip = std::make_shared<Clip>(s);
 
-  // TODO: use copy of TimelineInfo
-  copyClip->timeline_info.enabled = timeline_info.enabled;
-  copyClip->timeline_info.name_ = timeline_info.name_;
-  copyClip->timeline_info.clip_in = timeline_info.clip_in.load();
-  copyClip->timeline_info.in = timeline_info.in.load();
-  copyClip->timeline_info.out = timeline_info.out.load();
-  copyClip->timeline_info.track_ = timeline_info.track_.load();
-  copyClip->timeline_info.color = timeline_info.color;
-  copyClip->timeline_info.media = timeline_info.media;
-  copyClip->timeline_info.media_stream = timeline_info.media_stream.load();
-  copyClip->timeline_info.autoscale = timeline_info.autoscale;
-  copyClip->timeline_info.speed = timeline_info.speed.load();
-  copyClip->timeline_info.maintain_audio_pitch = timeline_info.maintain_audio_pitch;
-  copyClip->timeline_info.reverse = timeline_info.reverse;
+  copyClip->timeline_info = timeline_info;
 
   for (auto& eff : effects) {
     copyClip->effects.append(eff->copy(copyClip));
   }
+
+  // TODO: reassess the id + linkage
+  copyClip->id_ = id_;
+  copyClip->linked = linked;
 
   copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
 
@@ -1167,6 +1159,12 @@ int Clip::height() {
       break;
   }//switch
   return 0;
+}
+
+
+int32_t Clip::id() const
+{
+  return id_;
 }
 
 void Clip::refactorFrameRate(ComboAction* ca, double multiplier, bool change_timeline_points) {

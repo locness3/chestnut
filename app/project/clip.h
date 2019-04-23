@@ -136,6 +136,7 @@ class Clip : public project::SequenceItem,
     void recalculateMaxLength();
     int width();
     int height();
+    int32_t id() const;
     void refactorFrameRate(ComboAction* ca, double multiplier, bool change_timeline_points);
 
     // queue functions
