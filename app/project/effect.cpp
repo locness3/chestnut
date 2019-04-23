@@ -838,6 +838,7 @@ void Effect::process_image(const double, gsl::span<uint8_t>& /*data*/)
 EffectPtr Effect::copy(ClipPtr c)
 {
   EffectPtr copy_effect = create_effect(std::move(c), meta);
+  copy_effect->setupUi();
   copy_effect->set_enabled(is_enabled());
   copy_field_keyframes(copy_effect);
   return copy_effect;
