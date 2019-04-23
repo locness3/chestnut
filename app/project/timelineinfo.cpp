@@ -12,6 +12,27 @@ bool TimelineInfo::isVideo() const
   return track_ < 0;
 }
 
+
+TimelineInfo& TimelineInfo::operator=(const TimelineInfo& rhs)
+{
+  if (this != &rhs) {
+    enabled = rhs.enabled;
+    name_ = rhs.name_;
+    clip_in = rhs.clip_in.load();
+    in = rhs.in.load();
+    out = rhs.out.load();
+    track_ = rhs.track_.load();
+    color = rhs.color;
+    media = rhs.media;
+    media_stream = rhs.media_stream.load();
+    autoscale = rhs.autoscale;
+    speed = rhs.speed.load();
+    maintain_audio_pitch = rhs.maintain_audio_pitch;
+    reverse = rhs.reverse;
+  }
+  return *this;
+}
+
 bool TimelineInfo::load(QXmlStreamReader& stream)
 {
   while (stream.readNextStartElement()) {

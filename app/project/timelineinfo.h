@@ -19,6 +19,7 @@ class TimelineInfo : public project::IXMLStreamer
 public:
   TimelineInfo() = default;
   bool isVideo() const;
+  TimelineInfo& operator=(const TimelineInfo& rhs);
 
   virtual bool load(QXmlStreamReader& stream) override;
   virtual bool save(QXmlStreamWriter& stream) const override;
