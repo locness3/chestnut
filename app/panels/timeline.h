@@ -196,7 +196,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
 
     // splitting
     bool splitting;
-    QVector<int> split_tracks;
+    QSet<int> split_tracks;
     QVector<int> split_cache;
 
     // importing

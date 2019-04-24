@@ -371,8 +371,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s)
     for (int j=0;j<added_clips.size();j++) {
       const ClipPtr& cc = added_clips.at(j);
       if (c != cc && c->timeline_info.media == cc->timeline_info.media) {
-//        c->linked.append(j);
-        c->linkClip(*cc);
+        c->linkClip(cc);
       }
     }
 

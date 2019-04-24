@@ -897,9 +897,10 @@ bool Clip::isSelected(const bool containing)
 }
 
 
-void Clip::addLinkedClip(const Clip& clp)
+void Clip::addLinkedClip(const ClipPtr& clp)
 {
-  linked.append(clp.id());
+  Q_ASSERT(clp != nullptr);
+  linked.append(clp->id());
 }
 
 void Clip::setLinkedClips(const QVector<int32_t>& links)
@@ -912,15 +913,29 @@ const QVector<int32_t>& Clip::linkedClips() const
   return linked;
 }
 
-void Clip::linkClip(const Clip& clp)
+void Clip::linkClip(const ClipPtr& clp)
 {
-  linked.append(clp.id());
+  Q_ASSERT(clp != nullptr);
+  linked.append(clp->id());
 }
 
 
 void Clip::clearLinks()
 {
   linked.clear();
+}
+
+QSet<int> Clip::getLinkedTracks() const
+{
+  QSet<int> tracks;
+
+  for (auto link : linked) {
+    if (auto clp = global::sequence->clip(link)) { //FIXME: don't like that Sequence is required. use ClipPtr in linked
+      tracks.insert(clp->timeline_info.track_);
+    }
+  }
+
+  return tracks;
 }
 
 bool Clip::load(QXmlStreamReader& stream)

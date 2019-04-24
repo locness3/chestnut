@@ -93,7 +93,7 @@ class TimelineWidget : public QWidget {
     int getClipIndexFromCoords(long frame, int track);
 
     ClipPtr getClipFromCoords(const long frame, const int track) const;
-    bool splitClipEvent(const long frame, const QVector<int>& tracks);
+    bool splitClipEvent(const long frame, const QSet<int>& tracks);
 
     int track_resize_mouse_cache{};
     int track_resize_old_value{};
@@ -117,7 +117,11 @@ class TimelineWidget : public QWidget {
 
     SetSelectionsCommand* selection_command{};
 
-  public slots:
+    void mouseMoveSplitEvent(const bool alt_pressed, Timeline& time_line) const;
+    
+    void paintSplitEvent(QPainter& painter, Timeline& time_line);
+
+public slots:
     void setScroll(int);
 
   private slots:

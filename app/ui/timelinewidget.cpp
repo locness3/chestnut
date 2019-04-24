@@ -786,7 +786,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
       case TimelineToolType::RAZOR:
       {
         PanelManager::timeLine().splitting = true;
-        PanelManager::timeLine().split_tracks.append(PanelManager::timeLine().drag_track_start);
+        PanelManager::timeLine().split_tracks.insert(PanelManager::timeLine().drag_track_start);
         PanelManager::refreshPanels(false);
       }
         break;
@@ -1718,7 +1718,34 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame) {
   }
 }
 
-void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
+void TimelineWidget::mouseMoveSplitEvent(const bool alt_pressed, Timeline& time_line) const
+{
+  // dragging split cursor across tracks
+
+    const int track_start = qMin(time_line.cursor_track, time_line.drag_track_start);
+    const int track_end = qMax(time_line.cursor_track, time_line.drag_track_start);
+
+    for (int i = track_start; i < track_end; ++i) {
+      time_line.split_tracks.insert(i);
+    }
+
+  if (alt_pressed) {
+    return;
+  }
+  time_line.split_tracks.insert(time_line.drag_track_start);
+  if (auto sel_clip = getClipFromCoords(time_line.drag_frame_start,
+                                        time_line.drag_track_start) ) {
+    auto tracks = sel_clip->getLinkedTracks();
+    for (auto track : tracks) {
+      time_line.split_tracks.insert(track);
+    }
+  }
+}
+
+
+//FIXME: oh god
+void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
+{
   tooltip_timer.stop();
   if (global::sequence != nullptr) {
     bool alt = (event->modifiers() & Qt::AltModifier);
@@ -1726,15 +1753,23 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
     PanelManager::timeLine().cursor_frame = PanelManager::timeLine().getTimelineFrameFromScreenPoint(event->pos().x());
     PanelManager::timeLine().cursor_track = getTrackFromScreenPoint(event->pos().y());
 
-    PanelManager::timeLine().move_insert = ((event->modifiers() & Qt::ControlModifier) && (PanelManager::timeLine().tool == TimelineToolType::POINTER || PanelManager::timeLine().importing || PanelManager::timeLine().creating));
+    PanelManager::timeLine().move_insert = ((event->modifiers() & Qt::ControlModifier)
+                                            && (PanelManager::timeLine().tool == TimelineToolType::POINTER
+                                                || PanelManager::timeLine().importing
+                                                || PanelManager::timeLine().creating));
 
     if (!PanelManager::timeLine().moving_init) track_resizing = false;
 
     if (isLiveEditing()) {
-      PanelManager::timeLine().snap_to_timeline(&PanelManager::timeLine().cursor_frame, !e_config.edit_tool_also_seeks || !PanelManager::timeLine().selecting, true, true);
+      PanelManager::timeLine().snap_to_timeline(&PanelManager::timeLine().cursor_frame,
+                                                !e_config.edit_tool_also_seeks || !PanelManager::timeLine().selecting,
+                                                true,
+                                                true);
     }
     if (PanelManager::timeLine().selecting) {
-      int selection_count = 1 + qMax(PanelManager::timeLine().cursor_track, PanelManager::timeLine().drag_track_start) - qMin(PanelManager::timeLine().cursor_track, PanelManager::timeLine().drag_track_start) + PanelManager::timeLine().selection_offset;
+      int selection_count = 1 + qMax(PanelManager::timeLine().cursor_track,
+                                     PanelManager::timeLine().drag_track_start) - qMin(PanelManager::timeLine().cursor_track,
+                                                                                       PanelManager::timeLine().drag_track_start) + PanelManager::timeLine().selection_offset;
       if (global::sequence->selections_.size() != selection_count) {
         global::sequence->selections_.resize(selection_count);
       }
@@ -1792,7 +1827,9 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
       }
     } else if (PanelManager::timeLine().hand_moving) {
       PanelManager::timeLine().block_repaints = true;
-      PanelManager::timeLine().horizontalScrollBar->setValue(PanelManager::timeLine().horizontalScrollBar->value() + PanelManager::timeLine().drag_x_start - event->pos().x());
+      PanelManager::timeLine().horizontalScrollBar->setValue(PanelManager::timeLine().horizontalScrollBar->value()
+                                                             + PanelManager::timeLine().drag_x_start
+                                                             - event->pos().x());
       scrollBar->setValue(scrollBar->value() + PanelManager::timeLine().drag_y_start - event->pos().y());
       PanelManager::timeLine().block_repaints = false;
 
@@ -1826,7 +1863,8 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
             bool add = c->isSelected(true);
 
             // if a whole clip is not selected, maybe just a transition is
-            if (PanelManager::timeLine().tool == TimelineToolType::POINTER && (c->openingTransition() != nullptr || c->closingTransition() != nullptr)) {
+            if (PanelManager::timeLine().tool == TimelineToolType::POINTER
+                && (c->openingTransition() != nullptr || c->closingTransition() != nullptr) ) {
               // check if any selections contain the whole clip or transition
               for (int j=0;j<global::sequence->selections_.size();j++) {
                 const Selection& s = global::sequence->selections_.at(j);
@@ -1997,28 +2035,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
       }
       PanelManager::refreshPanels(false);
     } else if (PanelManager::timeLine().splitting) {
-      int track_start = qMin(PanelManager::timeLine().cursor_track, PanelManager::timeLine().drag_track_start);
-      int track_end = qMax(PanelManager::timeLine().cursor_track, PanelManager::timeLine().drag_track_start);
-      int track_size = 1 + track_end - track_start;
-      PanelManager::timeLine().split_tracks.resize(track_size);
-      for (int i=0;i<track_size;i++) {
-        PanelManager::timeLine().split_tracks[i] = track_start + i;
-      }
-
-      if (!alt) {
-        for (int i=0;i<track_size;i++) {
-          int clip_index = getClipIndexFromCoords(PanelManager::timeLine().drag_frame_start, PanelManager::timeLine().split_tracks[i]);
-          if (clip_index > -1) {
-            QVector<int> tracks = PanelManager::timeLine().get_tracks_of_linked_clips(clip_index);
-            for (int j=0;j<tracks.size();j++) {
-              // check if this track is already included
-              if (tracks.at(j) < track_start || tracks.at(j) > track_end) {
-                PanelManager::timeLine().split_tracks.append(tracks.at(j));
-              }
-            }
-          }
-        }
-      }
+      mouseMoveSplitEvent(alt, PanelManager::timeLine());
       PanelManager::refreshPanels(false);
     } else if (PanelManager::timeLine().rect_select_init) {
       if (PanelManager::timeLine().rect_select_proc) {
@@ -2123,9 +2140,11 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
               tooltip_timer.start();
               tooltip_clip = i;
 
-              if (c->openingTransition() != nullptr && PanelManager::timeLine().cursor_frame <= c->timeline_info.in + c->openingTransition()->get_true_length()) {
+              if (c->openingTransition() != nullptr &&
+                  PanelManager::timeLine().cursor_frame <= (c->timeline_info.in + c->openingTransition()->get_true_length()) ) {
                 PanelManager::timeLine().transition_select = TA_OPENING_TRANSITION;
-              } else if (c->closingTransition() != nullptr && PanelManager::timeLine().cursor_frame >= c->timeline_info.out - c->closingTransition()->get_true_length()) {
+              } else if (c->closingTransition() != nullptr
+                         && PanelManager::timeLine().cursor_frame >= (c->timeline_info.out - c->closingTransition()->get_true_length()) ) {
                 PanelManager::timeLine().transition_select = TA_CLOSING_TRANSITION;
               }
             }
@@ -2260,10 +2279,10 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
             PanelManager::timeLine().transition_tool_post_clip = -1;
             if (PanelManager::timeLine().cursor_frame < c->timeline_info.in + between_range) {
               PanelManager::timeLine().transition_tool_post_clip = getClipIndexFromCoords(c->timeline_info.in - 1,
-                                                                                   c->timeline_info.track_);
+                                                                                          c->timeline_info.track_);
             } else if (PanelManager::timeLine().cursor_frame > c->timeline_info.out - between_range) {
               PanelManager::timeLine().transition_tool_post_clip = getClipIndexFromCoords(c->timeline_info.out + 1,
-                                                                                   c->timeline_info.track_);
+                                                                                          c->timeline_info.track_);
             }
           }
         } else {
@@ -2371,10 +2390,28 @@ void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRec
 
 }
 
-void TimelineWidget::paintEvent(QPaintEvent*) {
+void TimelineWidget::paintSplitEvent(QPainter& painter, Timeline& time_line)
+{
+  for (auto track : time_line.split_tracks) {
+    if (is_track_visible(track)) {
+      int cursor_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(time_line.drag_frame_start);
+      int cursor_y = getScreenPointFromTrack(track);
+
+      painter.setPen(QColor(64, 64, 64)); //FIXME: magic number
+      painter.drawLine(cursor_x,
+                       cursor_y,
+                       cursor_x,
+                       cursor_y + time_line.calculate_track_height(track, -1));
+    }
+  }
+}
+
+//FIXME: oh god
+void TimelineWidget::paintEvent(QPaintEvent*)
+{
   // Draw clips
   if (global::sequence != nullptr) {
-    QPainter p(this);
+    QPainter painter(this);
 
     // get widget width and height
     int video_track_limit = 0;
@@ -2429,7 +2466,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
           if (actual_clip_rect.bottom() > height()) {
             actual_clip_rect.setBottom(height());
           }
-          p.fillRect(actual_clip_rect, (clip->timeline_info.enabled) ? clip->timeline_info.color : QColor(96, 96, 96));
+          painter.fillRect(actual_clip_rect, (clip->timeline_info.enabled) ? clip->timeline_info.color : QColor(96, 96, 96));
 
           int thumb_x = clip_rect.x() + 1;
 
@@ -2451,8 +2488,8 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
               // draw top and tail triangles
               int triangle_size = TRACK_MIN_HEIGHT >> 2;
               if (!ms->infinite_length && clip_rect.width() > triangle_size) {
-                p.setPen(Qt::NoPen);
-                p.setBrush(QColor(80, 80, 80));
+                painter.setPen(Qt::NoPen);
+                painter.setBrush(QColor(80, 80, 80));
                 if (clip->timeline_info.clip_in == 0
                     && clip_rect.x() + triangle_size > 0
                     && clip_rect.y() + triangle_size > 0
@@ -2463,7 +2500,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                     QPoint(clip_rect.x() + triangle_size, clip_rect.y()),
                     QPoint(clip_rect.x(), clip_rect.y() + triangle_size)
                   };
-                  p.drawPolygon(points, 3);
+                  painter.drawPolygon(points, 3);
                   text_rect.setLeft(text_rect.left() + (triangle_size >> 2));
                 }
                 if (clip->timeline_info.out - clip->timeline_info.in + clip->timeline_info.clip_in == clip->maximumLength()
@@ -2476,19 +2513,19 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                     QPoint(clip_rect.right() - triangle_size, clip_rect.y()),
                     QPoint(clip_rect.right(), clip_rect.y() + triangle_size)
                   };
-                  p.drawPolygon(points, 3);
+                  painter.drawPolygon(points, 3);
                   text_rect.setRight(text_rect.right() - (triangle_size >> 2));
                 }
               }
 
-              p.setBrush(Qt::NoBrush);
+              painter.setBrush(Qt::NoBrush);
 
               // draw thumbnail/waveform
               long media_length = clip->maximumLength();
 
               if (clip->timeline_info.isVideo()) {
                 // draw thumbnail
-                int thumb_y = p.fontMetrics().height()+CLIP_TEXT_PADDING+CLIP_TEXT_PADDING;
+                int thumb_y = painter.fontMetrics().height()+CLIP_TEXT_PADDING+CLIP_TEXT_PADDING;
                 if (thumb_x < width() && thumb_y < height()) {
                   int space_for_thumb = clip_rect.width()-1;
                   if (clip->openingTransition() != nullptr) {
@@ -2506,7 +2543,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                       && thumb_y + thumb_height >= 0
                       && space_for_thumb > MAX_TEXT_WIDTH) {
                     int thumb_clip_width = qMin(thumb_width, space_for_thumb);
-                    p.drawImage(QRect(thumb_x, clip_rect.y()+thumb_y, thumb_clip_width, thumb_height),
+                    painter.drawImage(QRect(thumb_x, clip_rect.y()+thumb_y, thumb_clip_width, thumb_height),
                                 ms->video_preview,
                                 QRect(0, 0, thumb_clip_width*((double)ms->video_preview.width()/(double)thumb_width), ms->video_preview.height()));
                   }
@@ -2517,7 +2554,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                 }
               } else if (clip_rect.height() > TRACK_MIN_HEIGHT) {
                 // draw waveform
-                p.setPen(QColor(80, 80, 80));
+                painter.setPen(QColor(80, 80, 80));
 
                 int waveform_start = -qMin(clip_rect.x(), 0);
                 int waveform_limit = qMin(clip_rect.width(), getScreenPointFromFrame(PanelManager::timeLine().zoom, media_length - clip->timeline_info.clip_in));
@@ -2529,7 +2566,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                   if (waveform_limit > 0) checkerboard_rect.setLeft(checkerboard_rect.left() + waveform_limit);
                 }
 
-                draw_waveform(clip, ms, media_length, p, clip_rect, waveform_start, waveform_limit, PanelManager::timeLine().zoom);
+                draw_waveform(clip, ms, media_length, painter, clip_rect, waveform_start, waveform_limit, PanelManager::timeLine().zoom);
               }
             }
             if (draw_checkerboard) {
@@ -2543,7 +2580,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                   && checkerboard_rect.top() < height()
                   && checkerboard_rect.bottom() >= 0) {
                 // draw "error lines" if media stream is missing
-                p.setPen(QPen(QColor(64, 64, 64), 2));
+                painter.setPen(QPen(QColor(64, 64, 64), 2));
                 int limit = checkerboard_rect.width();
                 int clip_height = checkerboard_rect.height();
                 for (int j=-clip_height;j<limit;j+=15) {
@@ -2559,34 +2596,34 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                     lines_end_y -= (checkerboard_rect.right() - lines_end_x);
                     lines_end_x = checkerboard_rect.right();
                   }
-                  p.drawLine(lines_start_x, lines_start_y, lines_end_x, lines_end_y);
+                  painter.drawLine(lines_start_x, lines_start_y, lines_end_x, lines_end_y);
                 }
               }
             }
           }
 
           // draw clip transitions
-          draw_transition(p, clip, clip_rect, text_rect, TA_OPENING_TRANSITION);
-          draw_transition(p, clip, clip_rect, text_rect, TA_CLOSING_TRANSITION);
+          draw_transition(painter, clip, clip_rect, text_rect, TA_OPENING_TRANSITION);
+          draw_transition(painter, clip, clip_rect, text_rect, TA_CLOSING_TRANSITION);
 
           // top left bevel
-          p.setPen(Qt::white);
-          if (clip_rect.x() >= 0 && clip_rect.x() < width()) p.drawLine(clip_rect.bottomLeft(), clip_rect.topLeft());
-          if (clip_rect.y() >= 0 && clip_rect.y() < height()) p.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.top()),
+          painter.setPen(Qt::white);
+          if (clip_rect.x() >= 0 && clip_rect.x() < width()) painter.drawLine(clip_rect.bottomLeft(), clip_rect.topLeft());
+          if (clip_rect.y() >= 0 && clip_rect.y() < height()) painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.top()),
                                                                          QPoint(qMin(width(), clip_rect.right()), clip_rect.top()));
 
           // draw text
           if (text_rect.width() > MAX_TEXT_WIDTH && text_rect.right() > 0 && text_rect.left() < width()) {
             if (!clip->timeline_info.enabled) {
-              p.setPen(Qt::gray);
+              painter.setPen(Qt::gray);
             } else if (color_brightness(clip->timeline_info.color) > 160) {
               // set to black if color is bright
-              p.setPen(Qt::black);
+              painter.setPen(Qt::black);
             }
             if (!clip->linkedClips().empty()) {
-              int underline_y = CLIP_TEXT_PADDING + p.fontMetrics().height() + clip_rect.top();
-              int underline_width = qMin(text_rect.width() - 1, p.fontMetrics().width(clip->name()));
-              p.drawLine(text_rect.x(), underline_y, text_rect.x() + underline_width, underline_y);
+              int underline_y = CLIP_TEXT_PADDING + painter.fontMetrics().height() + clip_rect.top();
+              int underline_width = qMin(text_rect.width() - 1, painter.fontMetrics().width(clip->name()));
+              painter.drawLine(text_rect.x(), underline_y, text_rect.x() + underline_width, underline_y);
             }
             QString name(clip->name());
             if (!qFuzzyCompare(clip->timeline_info.speed, 1.0) || clip->timeline_info.reverse) {
@@ -2596,13 +2633,13 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
               }
               name += QString::number(clip->timeline_info.speed * 100) + "%)";
             }
-            p.drawText(text_rect, 0, name, &text_rect);
+            painter.drawText(text_rect, 0, name, &text_rect);
           }
 
           // bottom right gray
-          p.setPen(QColor(0, 0, 0, 128));
-          if (clip_rect.right() >= 0 && clip_rect.right() < width()) p.drawLine(clip_rect.bottomRight(), clip_rect.topRight());
-          if (clip_rect.bottom() >= 0 && clip_rect.bottom() < height()) p.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.bottom()), QPoint(qMin(width(), clip_rect.right()), clip_rect.bottom()));
+          painter.setPen(QColor(0, 0, 0, 128));
+          if (clip_rect.right() >= 0 && clip_rect.right() < width()) painter.drawLine(clip_rect.bottomRight(), clip_rect.topRight());
+          if (clip_rect.bottom() >= 0 && clip_rect.bottom() < height()) painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.bottom()), QPoint(qMin(width(), clip_rect.right()), clip_rect.bottom()));
 
           // draw transition tool
           if (PanelManager::timeLine().tool == TimelineToolType::TRANSITION
@@ -2634,7 +2671,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
               if (transition_tool_rect.right() > width()) {
                 transition_tool_rect.setRight(width());
               }
-              p.fillRect(transition_tool_rect, QColor(0, 0, 0, 128));
+              painter.fillRect(transition_tool_rect, QColor(0, 0, 0, 128));
             }
           }
         }
@@ -2654,9 +2691,9 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                                       PanelManager::sequenceViewer().recording_end - PanelManager::sequenceViewer().recording_start),
               rec_track_height
               );
-        p.setPen(QPen(QColor(96, 96, 96), 2));
-        p.fillRect(rec_rect, QColor(192, 192, 192));
-        p.drawRect(rec_rect);
+        painter.setPen(QPen(QColor(96, 96, 96), 2));
+        painter.fillRect(rec_rect, QColor(192, 192, 192));
+        painter.drawRect(rec_rect);
       }
       QRect active_rec_rect(
             rec_track_x,
@@ -2665,28 +2702,28 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
                                     PanelManager::sequenceViewer().getSequence()->playhead_ - PanelManager::sequenceViewer().recording_start),
             rec_track_height
             );
-      p.setPen(QPen(QColor(192, 0, 0), 2));
-      p.fillRect(active_rec_rect, QColor(255, 96, 96));
-      p.drawRect(active_rec_rect);
+      painter.setPen(QPen(QColor(192, 0, 0), 2));
+      painter.fillRect(active_rec_rect, QColor(255, 96, 96));
+      painter.drawRect(active_rec_rect);
 
-      p.setPen(Qt::NoPen);
+      painter.setPen(Qt::NoPen);
 
       if (!PanelManager::sequenceViewer().playing) {
         int rec_marker_size = 6;
         int rec_track_midY = rec_track_y + (rec_track_height >> 1);
-        p.setBrush(Qt::white);
+        painter.setBrush(Qt::white);
         QPoint cue_marker[3] = {
           QPoint(rec_track_x, rec_track_midY - rec_marker_size),
           QPoint(rec_track_x + rec_marker_size, rec_track_midY),
           QPoint(rec_track_x, rec_track_midY + rec_marker_size)
         };
-        p.drawPolygon(cue_marker, 3);
+        painter.drawPolygon(cue_marker, 3);
       }
     }
 
     // Draw track lines
     if (e_config.show_track_lines) {
-      p.setPen(QColor(0, 0, 0, 96));
+      painter.setPen(QColor(0, 0, 0, 96));
       audio_track_limit++;
       if (video_track_limit == 0) video_track_limit--;
 
@@ -2694,13 +2731,13 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
         // only draw lines for video tracks
         for (int i=video_track_limit;i<0;i++) {
           int line_y = getScreenPointFromTrack(i) - 1;
-          p.drawLine(0, line_y, rect().width(), line_y);
+          painter.drawLine(0, line_y, rect().width(), line_y);
         }
       } else {
         // only draw lines for audio tracks
         for (int i=0;i<audio_track_limit;i++) {
           int line_y = getScreenPointFromTrack(i) + PanelManager::timeLine().calculate_track_height(i, -1);
-          p.drawLine(0, line_y, rect().width(), line_y);
+          painter.drawLine(0, line_y, rect().width(), line_y);
         }
       }
     }
@@ -2711,9 +2748,9 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
       if (is_track_visible(s.track)) {
         int selection_y = getScreenPointFromTrack(s.track);
         int selection_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(s.in);
-        p.setPen(Qt::NoPen);
-        p.setBrush(Qt::NoBrush);
-        p.fillRect(selection_x,
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(Qt::NoBrush);
+        painter.fillRect(selection_x,
                    selection_y,
                    PanelManager::timeLine().getTimelineScreenPointFromFrame(s.out) - selection_x,
                    PanelManager::timeLine().calculate_track_height(s.track, -1), QColor(0, 0, 0, 64));
@@ -2728,7 +2765,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
         rsy += height();
       }
       QRect rect_select(PanelManager::timeLine().rect_select_x, rsy, PanelManager::timeLine().rect_select_w, rsh);
-      draw_selection_rectangle(p, rect_select);
+      draw_selection_rectangle(painter, rect_select);
     }
 
     // Draw ghosts
@@ -2746,17 +2783,17 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
 
           insert_points.append(ghost_y + (ghost_height>>1));
 
-          p.setPen(QColor(255, 255, 0));
+          painter.setPen(QColor(255, 255, 0));
           for (int j=0;j<GHOST_THICKNESS;j++) {
-            p.drawRect(ghost_x+j, ghost_y+j, ghost_width-j-j, ghost_height-j-j);
+            painter.drawRect(ghost_x+j, ghost_y+j, ghost_width-j-j, ghost_height-j-j);
           }
         }
       }
 
       // draw insert indicator
       if (PanelManager::timeLine().move_insert && !insert_points.isEmpty()) {
-        p.setBrush(Qt::white);
-        p.setPen(Qt::NoPen);
+        painter.setBrush(Qt::white);
+        painter.setPen(Qt::NoPen);
         int insert_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(first_ghost);
         int tri_size = TRACK_MIN_HEIGHT>>2;
 
@@ -2766,7 +2803,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
             QPoint(insert_x + tri_size, insert_points.at(i)),
             QPoint(insert_x, insert_points.at(i) + tri_size)
           };
-          p.drawPolygon(points, 3);
+          painter.drawPolygon(points, 3);
         }
       }
     }
@@ -2774,32 +2811,24 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
 
     // Draw splitting cursor
     if (PanelManager::timeLine().splitting) {
-      for (int i=0;i<PanelManager::timeLine().split_tracks.size();i++) {
-        if (is_track_visible(PanelManager::timeLine().split_tracks.at(i))) {
-          int cursor_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(PanelManager::timeLine().drag_frame_start);
-          int cursor_y = getScreenPointFromTrack(PanelManager::timeLine().split_tracks.at(i));
-
-          p.setPen(QColor(64, 64, 64));
-          p.drawLine(cursor_x, cursor_y, cursor_x, cursor_y + PanelManager::timeLine().calculate_track_height(PanelManager::timeLine().split_tracks.at(i), -1));
-        }
-      }
+      paintSplitEvent(painter, PanelManager::timeLine());
     }
 
     // Draw playhead
-    p.setPen(Qt::red);
+    painter.setPen(Qt::red);
     int playhead_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(global::sequence->playhead_);
-    p.drawLine(playhead_x, rect().top(), playhead_x, rect().bottom());
+    painter.drawLine(playhead_x, rect().top(), playhead_x, rect().bottom());
 
     // draw border
-    p.setPen(QColor(0, 0, 0, 64));
+    painter.setPen(QColor(0, 0, 0, 64));
     int edge_y = (bottom_align) ? rect().height()-1 : 0;
-    p.drawLine(0, edge_y, rect().width(), edge_y);
+    painter.drawLine(0, edge_y, rect().width(), edge_y);
 
     // draw snap point
     if (PanelManager::timeLine().snapped) {
-      p.setPen(Qt::white);
+      painter.setPen(Qt::white);
       int snap_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(PanelManager::timeLine().snap_point);
-      p.drawLine(snap_x, 0, snap_x, height());
+      painter.drawLine(snap_x, 0, snap_x, height());
     }
 
     // Draw edit cursor
@@ -2807,8 +2836,8 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
       int cursor_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(PanelManager::timeLine().cursor_frame);
       int cursor_y = getScreenPointFromTrack(PanelManager::timeLine().cursor_track);
 
-      p.setPen(Qt::gray);
-      p.drawLine(cursor_x, cursor_y, cursor_x, cursor_y + PanelManager::timeLine().calculate_track_height(PanelManager::timeLine().cursor_track, -1));
+      painter.setPen(Qt::gray);
+      painter.drawLine(cursor_x, cursor_y, cursor_x, cursor_y + PanelManager::timeLine().calculate_track_height(PanelManager::timeLine().cursor_track, -1));
     }
   }
 }
@@ -2889,12 +2918,19 @@ ClipPtr TimelineWidget::getClipFromCoords(const long frame, const int track) con
 }
 
 
-bool TimelineWidget::splitClipEvent(const long frame, const QVector<int>& tracks)
+bool TimelineWidget::splitClipEvent(const long frame, const QSet<int>& tracks)
 {
   bool split = false;
   QVector<ClipPtr> new_clips;
-  //TODO: need to split linked clips if track size == 1
-  for (auto track : tracks) {
+  QSet<int> all_tracks = tracks;
+  if (tracks.size() == 1) {
+    // add the linked tracks
+    if (auto clp = getClipFromCoords(frame, *tracks.begin())) {
+      auto linked_tracks = clp->getLinkedTracks();
+      all_tracks = all_tracks.unite(linked_tracks);
+    }
+  }
+  for (auto track : all_tracks) {
     auto pre = getClipFromCoords(frame, track);
     if (pre != nullptr) {
       // Create copy
@@ -2919,6 +2955,7 @@ bool TimelineWidget::splitClipEvent(const long frame, const QVector<int>& tracks
       new_clips.append(post);
     }
   }
+  //FIXME: on a drag-split, all splits will become linked
   // Sort out links to each other
   for (const auto& new_clip : new_clips) {
     for (const auto& other_clip : new_clips) {
@@ -2926,7 +2963,7 @@ bool TimelineWidget::splitClipEvent(const long frame, const QVector<int>& tracks
         // ignore, don't link itself
         continue;
       }
-      new_clip->addLinkedClip(*other_clip);
+      new_clip->addLinkedClip(other_clip);
     }
   }
 

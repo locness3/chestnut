@@ -166,11 +166,16 @@ class Clip : public project::SequenceItem,
      */
     bool isSelected(const bool containing);
 
-    void addLinkedClip(const Clip& clp);
+    void addLinkedClip(const ClipPtr& clp);
     void setLinkedClips(const QVector<int32_t>& links);
     const QVector<int32_t>& linkedClips() const;
-    void linkClip(const Clip& clp);
+    void linkClip(const ClipPtr& clp);
     void clearLinks();
+    /**
+     * @brief Get tracks of linked clips
+     * @return set of timeline tracks
+     */
+    QSet<int> getLinkedTracks() const;
     void setId(const int32_t id);
 
     virtual bool load(QXmlStreamReader& stream) override;
@@ -259,6 +264,7 @@ class Clip : public project::SequenceItem,
     std::atomic_bool finished_opening{false};
     bool pkt_written{};
     int32_t id_{-1};
+    //TODO: link to ptrs
     QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
