@@ -133,19 +133,22 @@ void MoveClipAction::redo() {
   MainWindow::instance().setWindowModified(true);
 }
 
-DeleteClipAction::DeleteClipAction(SequencePtr  s, const int clip) :
-  seq(std::move(s)),
-  index(clip),
-  opening_transition(-1),
-  closing_transition(-1),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
+DeleteClipAction::DeleteClipAction(SequencePtr s, const int id)
+  : seq(std::move(s)),
+    clip_id(id),
+    opening_transition(-1),
+    closing_transition(-1),
+    old_project_changed(MainWindow::instance().isWindowModified())
+{
+
+}
 
 
 
-void DeleteClipAction::undo() {
+void DeleteClipAction::undo()
+{
   // restore ref to clip
-  seq->clips_[index] = ref;
+  seq->clips_.append(ref);
 
   // restore shared transitions
   if (opening_transition > -1) {
@@ -162,7 +165,7 @@ void DeleteClipAction::undo() {
 
   // restore links to this clip
   for (int i=linkClipIndex.size()-1;i>=0;i--) {
-//    seq->clips_.at(linkClipIndex.at(i))->linked.insert(linkLinkIndex.at(i), index); // FIXME:
+    //    seq->clips_.at(linkClipIndex.at(i))->linked.insert(linkLinkIndex.at(i), index); // FIXME:
   }
 
   ref = nullptr;
@@ -172,10 +175,10 @@ void DeleteClipAction::undo() {
 
 void DeleteClipAction::redo() {
   // remove ref to clip
-  ref = seq->clips_.at(index);
+  ref = seq->clip(clip_id);
   ref->close(true);
 
-  seq->clips_[index] = nullptr;
+  seq->deleteClip(clip_id);
 
   // save shared transitions
   if (ref->opening_transition > -1 && !ref->openingTransition()->secondary_clip.expired()) {
@@ -197,13 +200,13 @@ void DeleteClipAction::redo() {
     ClipPtr   c = seq->clips_.at(i);
     if (c != nullptr) {
       //FIXME:
-//      for (int j=0;j<c->linkedClips().size();j++) {
-//        if (c->linkedClips.at(j) == index) {
-//          linkClipIndex.append(i);
-//          linkLinkIndex.append(j);
-//          c->linked.removeAt(j);
-//        }
-//      }
+      //      for (int j=0;j<c->linkedClips().size();j++) {
+      //        if (c->linkedClips.at(j) == index) {
+      //          linkClipIndex.append(i);
+      //          linkLinkIndex.append(j);
+      //          c->linked.removeAt(j);
+      //        }
+      //      }
     }
   }
 
@@ -555,10 +558,10 @@ void AddClipCommand::redo() {
     for (const auto& original : clips) {
       ClipPtr copy = original->copyPreserveLinks(seq);
       //FIXME:
-//      copy->linked.resize(original->linked.size());
-//      for (int j=0;j<original->linked.size();j++) {
-//        copy->linked[j] = original->linked.at(j) + linkOffset;
-//      }
+      //      copy->linked.resize(original->linked.size());
+      //      for (int j=0;j<original->linked.size();j++) {
+      //        copy->linked[j] = original->linked.at(j) + linkOffset;
+      //      }
       if (original->opening_transition > -1) {
         copy->opening_transition = original->openingTransition()->copy(copy, nullptr);
       }
@@ -597,11 +600,11 @@ void LinkCommand::redo() {
     if (link) {
       for (int j=0;j<clips.size();j++) {
         if (i != j) {
-//          c->linked.append(clips.at(j)); //FIXME:
+          //          c->linked.append(clips.at(j)); //FIXME:
         }
       }
     } else {
-//      old_links.append(c->linked); //FIXME:
+      //      old_links.append(c->linked); //FIXME:
       c->clearLinks();
     }
   }

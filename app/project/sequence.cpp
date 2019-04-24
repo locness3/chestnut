@@ -287,6 +287,15 @@ ClipPtr Sequence::clip(const int32_t id)
   return nullptr;
 }
 
+
+void Sequence::deleteClip(const int32_t id)
+{
+  auto iter = std::find_if(clips_.begin(), clips_.end(), [id](const ClipPtr& clp) {return clp->id() == id;});
+  if (iter != clips_.end()) {
+    clips_.erase(iter);
+  }
+}
+
 bool Sequence::load(QXmlStreamReader& stream)
 {
   for (const auto& attr : stream.attributes()) {
