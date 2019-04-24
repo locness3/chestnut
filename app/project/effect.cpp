@@ -916,6 +916,10 @@ bool Effect::are_gizmos_enabled() const {
 
 void Effect::setupUi()
 {
+  if (ui_setup) {
+    // Don't re-init UI
+    return;
+  }
   ui_setup = true;
   container = new CollapsibleWidget();
   // set up base UI
@@ -933,6 +937,10 @@ void Effect::setupUi()
   if (meta.type >= 0) {
     // set up UI from effect file
     setupControlWidget(meta);
+    if (meta.internal < 0) {
+      // shader effect. no extra ui setup
+      setupUiWithLoadStore();
+    }
   } else {
     qWarning() << "Unable to set up control widget for unknown type";
   }
