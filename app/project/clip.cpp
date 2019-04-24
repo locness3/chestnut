@@ -884,13 +884,15 @@ bool Clip::isSelected(const bool containing)
   }
 
   for (const auto& selection : sequence->selections_) {
-    //FIXME: christ almighty. copy-pasted in Timeline()
-    if ( (timeline_info.track_ == selection.track)
-         && ( ( (timeline_info.in >= selection.in) && (timeline_info.out <= selection.out) && containing)
-              || (!containing
-                  && !( (timeline_info.in < selection.in) && (timeline_info.out < selection.in) )
-                  && !( (timeline_info.in > selection.in) && (timeline_info.out > selection.in) )))) {
+    const auto same_track = timeline_info.track_ == selection.track;
+    const auto in_range = timeline_info.in >= selection.in && timeline_info.out <= selection.out;
+    if (same_track && in_range && containing) {
       return true;
+    } else if (!same_track && !in_range && !containing) {
+      // i.e. "not selected"
+      return true;
+    } else {
+      // keep looking
     }
   }
   return false;

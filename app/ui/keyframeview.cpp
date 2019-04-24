@@ -113,19 +113,21 @@ void KeyframeView::paintEvent(QPaintEvent*) {
     visible_in = LONG_MAX;
     visible_out = 0;
 
-    for (int j=0;j<PanelManager::fxControls().selected_clips.size();j++) {
-      ClipPtr c = global::sequence->clips_.at(PanelManager::fxControls().selected_clips.at(j));
-      visible_in = qMin(visible_in, c->timeline_info.in.load());
-      visible_out = qMax(visible_out, c->timeline_info.out.load());
+    for (auto clip_id : PanelManager::fxControls().selected_clips) {
+      if (ClipPtr c = global::sequence->clip(clip_id)) {
+        visible_in = qMin(visible_in, c->timeline_info.in.load());
+        visible_out = qMax(visible_out, c->timeline_info.out.load());
+      }
     }
 
-    for (int j=0;j<PanelManager::fxControls().selected_clips.size();j++) {
-      ClipPtr c = global::sequence->clips_.at(PanelManager::fxControls().selected_clips.at(j));
+    for (auto clip_id : PanelManager::fxControls().selected_clips) {
+      ClipPtr c = global::sequence->clip(clip_id);
       for (const auto& e : c->effects) {
         if (e == nullptr) {
           qCritical() << "Null effect ptr";
           continue;
         }
+
         if (e->container->is_expanded()) {
           for (int rowIdx=0; rowIdx<e->row_count(); ++rowIdx) {
             EffectRowPtr row = e->row(rowIdx);
@@ -138,6 +140,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
                 + mapFrom(&PanelManager::fxControls(),
                           contents->mapTo(&PanelManager::fxControls(),
                                           contents->pos())).y() - e->container->title_bar->height()/* - y_scroll*/;
+
             for (int l=0;l<row->fieldCount();l++) {
               EffectField* f = row->field(l);
               for (int k=0;k<f->keyframes.size();k++) {
@@ -149,7 +152,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
                   int appearances = 0;
                   for (int m=0;m<row->fieldCount();m++) {
                     EffectField* compf = row->field(m);
-                    for (int n=0;n<compf->keyframes.size();n++) {
+                    for (int n=0;n<compf->keyframes.size();n++) { //FIXME: the 6th nested for loop!
                       if (f->keyframes.at(k).time == compf->keyframes.at(n).time) {
                         appearances++;
                       }
@@ -169,15 +172,15 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 
                   key_times.append(f->keyframes.at(k).time);
                 }
-              }
-            }
+              }//for
+            }//for
 
             rows.append(row);
             rowY.append(keyframe_y);
           }
         }
-      }
-    }
+      }//for
+    }//for
 
     int max_width = getScreenPointFromFrame(PanelManager::fxControls().zoom, visible_out - visible_in);
     if (max_width < width()) {

@@ -67,10 +67,11 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
             continue;
           }
           if (clip->timeline_info.isVideo() && (vclip == -1)) {
-            vclip = i;
+            vclip = clip->id();
           } else if (clip->timeline_info.track_ >= 0 && (aclip == -1) ) {
-            aclip = i;
+            aclip = clip->id();
           } else {
+            // TODO: Significance of -2?
             vclip = -2;
             aclip = -2;
             multiple = true;
@@ -90,7 +91,7 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
       }
       if (vclip >= 0 && aclip >= 0) {
         bool found = false;
-        ClipPtr vclip_ref = seq->clips_.at(vclip);
+        ClipPtr vclip_ref = seq->clip(vclip);
         for (auto l_clp : vclip_ref->linkedClips()) {
           if (l_clp == aclip) {
             found = true;

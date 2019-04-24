@@ -121,6 +121,8 @@ class TimelineWidget : public QWidget {
     
     void paintSplitEvent(QPainter& painter, Timeline& time_line);
 
+    void mousePressCreatingEvent(Timeline& time_line);
+
 public slots:
     void setScroll(int);
 

@@ -70,36 +70,21 @@ void EffectRow::setKeyframing(bool b)
 
 
 
-
-bool EffectRow::load(QXmlStreamReader& stream)
+bool EffectRow::load(const QVector<EffectFieldStore>& stores)
 {
-  // setup row's fields
-  while (stream.readNextStartElement()) {
-    auto name = stream.name().toString().toLower();
-    if (name == "field") {
-      if (stream.readNextStartElement()) {
-        name = stream.name().toString().toLower();
-        if (name == "name") {
-          const auto fld_name = stream.readElementText();
-          if (auto fld = field(fld_name)) {
-            if (!fld->load(stream)) {
-              return false;
-            }
-          } else {
-            qCritical() << "Unknown Field" << fld_name;
-            return false;
-          }
-        } else {
-          qCritical() << "Unexpected element" << name;
-          return false;
-        }
-      }
-    } else {
-      qCritical() << "Unexpected element" << name;
-      return false;
+  for (auto store_field : stores) {
+    if (auto load_field = field(store_field.name_)) {
+      load_field->load(store_field);
+//      load_field->setValue(store_field.value_);
     }
   }
-  return true;
+  return false;
+}
+
+bool EffectRow::load(QXmlStreamReader& /*stream*/)
+{
+  // Due to threading issues, load has to be done at a later stage
+  return false;
 }
 bool EffectRow::save(QXmlStreamWriter& stream) const
 {

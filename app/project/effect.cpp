@@ -592,121 +592,46 @@ QString save_data_to_string(const EffectFieldType type, const QVariant& data)
 
 bool Effect::load(QXmlStreamReader& stream)
 {
+  // may need to store the cfg and then use it on setupUI
   while (stream.readNextStartElement()) {
     auto name = stream.name().toString().toLower();
-    if (name == "row" && stream.readNextStartElement()) {
-      name = stream.name().toString().toLower();
-      if (name == "name") {
-        if (auto eff_row = row(stream.readElementText())) {
-          if (!eff_row->load(stream)) {
-            qCritical() << "Failed to load Effect row" << eff_row->name;
-            return false;
+    if (name == "row") {
+      // read row elements
+      EffectRowStore row_store;
+      while (stream.readNextStartElement()) {
+        name = stream.name().toString().toLower();
+        if (name == "name") {
+          row_store.name_ = stream.readElementText();
+          row_store.fields_.clear();
+        } else if (name == "field") {
+          EffectFieldStore field_store;
+          // read field elements
+          while (stream.readNextStartElement()) {
+            name = stream.name().toString().toLower();
+            if (name == "name") {
+              field_store.name_ = stream.readElementText();
+            } else if (name == "value") {
+              field_store.value_ = stream.readElementText();
+              // This is dependent on that <value> follows <name>
+              row_store.fields_.append(field_store);
+            } else {
+              qWarning() << "Unhandled element" << name;
+            }
           }
+        } else {
+          qCritical() << "Unexpected element" << name;
+          return false;
         }
-      } else {
-        qCritical() << "Unexpected element" << name;
-        return false;
-      }
+
+      }//while
+
+      load_store_.append(row_store);
     } else {
-      qWarning() << "Unhandled element" << name;
+      qCritical() << "Unhandled element" << name;
+      return false;
     }
   }
-
-
   return true;
-
-
-  int row_count = 0;
-
-  const auto tag = stream.name().toString();
-
-  while (!stream.atEnd() && !((stream.name() == tag) && stream.isEndElement())) {
-    stream.readNext();
-    if (stream.name() == "row" && stream.isStartElement()) {
-      if (row_count < rows.size()) {
-        EffectRowPtr row(rows.at(row_count));
-        int field_count = 0;
-
-        while (!stream.atEnd() && !(stream.name() == "row" && stream.isEndElement())) {
-          stream.readNext();
-
-          if ((stream.name() != "field") || !stream.isStartElement()) {
-            continue;
-          }
-
-          // read field
-          if (field_count < row->fieldCount()) {
-            // match field using ID
-            int field_number = field_count;
-            for (const auto& attr : stream.attributes()) {
-              if (attr.name() != "id") {
-                continue;
-              }
-              for (auto l=0; l<row->fieldCount(); ++l) {
-                if (row->field(l)->id == attr.value()) {
-                  field_number = l;
-                  qInfo() << "Found field by ID";
-                  break;
-                }
-              }
-              break;
-            }//for
-
-            auto field = row->field(field_number);
-
-            // get current field value
-            for (const auto& attr: stream.attributes()) {
-              if (attr.name() == "value") {
-                field->set_current_data(load_data_from_string(field->type, attr.value().toString()));
-                break;
-              }
-            }
-
-            while (!stream.atEnd() && !(stream.name() == "field" && stream.isEndElement())) {
-              stream.readNext();
-              if (stream.name() != "key" || !stream.isStartElement()) {
-                continue;
-              }
-
-              // read keyframes
-              row->setKeyframing(true);
-
-              EffectKeyframe key(field);
-              for (const auto& attr: stream.attributes()) {
-                if (attr.name() == "value") {
-                  key.data = load_data_from_string(field->type, attr.value().toString());
-                } else if (attr.name() == "frame") {
-                  key.time = attr.value().toLong();
-                } else if (attr.name() == "type") {
-                  key.type = static_cast<KeyframeType>(attr.value().toInt());
-                } else if (attr.name() == "prehx") {
-                  key.pre_handle_x = attr.value().toDouble();
-                } else if (attr.name() == "prehy") {
-                  key.pre_handle_y = attr.value().toDouble();
-                } else if (attr.name() == "posthx") {
-                  key.post_handle_x = attr.value().toDouble();
-                } else if (attr.name() == "posthy") {
-                  key.post_handle_y = attr.value().toDouble();
-                }
-              }
-              field->keyframes.append(key);
-            }
-          } else {
-            qCritical() << "Too many fields for effect" << id << "row" << row_count << ". Project might be corrupt. (Got"
-                        << field_count << ", expected <" << row->fieldCount()-1 << ")";
-          }
-          field_count++;
-        } //while
-
-      } else {
-        qCritical() << "Too many rows for effect" << id << ". Project might be corrupt. (Got" << row_count
-                    << ", expected <" << rows.size()-1 << ")";
-      }
-      row_count++;
-    } else if (stream.isStartElement()) {
-      custom_load(stream);
-    }
-  }
 }
 
 void Effect::custom_load(QXmlStreamReader& /*stream*/)
@@ -1011,6 +936,7 @@ void Effect::setupUi()
   } else {
     qWarning() << "Unable to set up control widget for unknown type";
   }
+
 }
 
 void Effect::redraw(double)
@@ -1189,6 +1115,17 @@ void Effect::extractShaderDetails(const QXmlStreamAttributes& attributes)
       glsl_.iterations_ = attr.value().toInt();
     } else {
       qWarning() << "Unknown attribute" << attr.name();
+    }
+  }
+}
+
+
+void Effect::setupUiWithLoadStore()
+{
+  for (auto store : load_store_) {
+    if (auto load_row = row(store.name_)) {
+      load_row->load(store.fields_);
+
     }
   }
 }

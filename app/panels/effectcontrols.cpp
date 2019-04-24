@@ -43,6 +43,8 @@
 #include "ui/resizablescrollbar.h"
 #include "debug.h"
 
+constexpr const char* const ADD_TRANSITION_ICON = ":/icons/add-transition.png";
+
 using panels::PanelManager;
 
 EffectControls::EffectControls(QWidget *parent) :
@@ -100,11 +102,12 @@ void EffectControls::set_zoom(bool in) {
   update_keyframes();
 }
 
-void EffectControls::menu_select(QAction* q) {
-  ComboAction* ca = new ComboAction();
-  for (int i=0;i<selected_clips.size();i++) {
-    ClipPtr c = global::sequence->clips_.at(selected_clips.at(i));
-    if ((c->timeline_info.isVideo()) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
+void EffectControls::menu_select(QAction* q)
+{
+  auto ca = new ComboAction();
+  for (auto clip_id : selected_clips) {
+    ClipPtr c = global::sequence->clip(clip_id);
+    if ( (c!= nullptr) &&  c->timeline_info.isVideo() && (effect_menu_subtype == EFFECT_TYPE_VIDEO)) {
       EffectMeta meta = Effect::getRegisteredMeta(q->data().toString());
       if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
         if (c->openingTransition() == nullptr) {
@@ -136,15 +139,20 @@ void EffectControls::delete_selected_keyframes() {
   keyframeView->delete_selected_keyframes();
 }
 
-void EffectControls::copy(bool del) {
+void EffectControls::copy(bool del)
+{
   if (mode == TA_NO_TRANSITION) {
     bool cleared = false;
 
-    ComboAction* ca = new ComboAction();
-    EffectDeleteCommand* del_com = (del) ? new EffectDeleteCommand() : nullptr;
-    for (int i=0;i<selected_clips.size();i++) {
-      ClipPtr c = global::sequence->clips_.at(selected_clips.at(i));
-      for (int j=0;j<c->effects.size();j++) {
+    auto ca = new ComboAction();
+    auto del_com = del ? new EffectDeleteCommand() : nullptr;
+    for (auto clip_id : selected_clips) {
+      ClipPtr c = global::sequence->clip(clip_id);
+      if (c == nullptr) {
+        qWarning() << "Null Clip instance";
+        continue;
+      }
+      for (int j=0; j<c->effects.size(); j++) {
         EffectPtr effect = c->effects.at(j);
         if (effect->container->selected) {
           if (!cleared) {
@@ -160,10 +168,11 @@ void EffectControls::copy(bool del) {
             del_com->fx.append(j);
           }
         }
-      }
+      }//for
     }
+
     if (del_com != nullptr) {
-      if (del_com->clips.size() > 0) {
+      if (!del_com->clips.empty()) {
         ca->append(del_com);
       } else {
         delete del_com;
@@ -276,16 +285,17 @@ void EffectControls::clear_effects(bool clear_cache) {
   setWindowTitle(panel_name + "(none)");
 }
 
-void EffectControls::deselect_all_effects(QWidget* sender) {
-  for (auto idx : selected_clips) {
-    if (auto clp = global::sequence->clips_.at(idx)) {
+void EffectControls::deselect_all_effects(QWidget* sender)
+{
+  for (auto clip_id : selected_clips) {
+    if (auto clp = global::sequence->clip(clip_id)) {
       for (auto efct : clp->effects) {
         if (efct && (efct->container != sender) ) {
           efct->container->header_click(false, false);
         }
       }
     } else {
-      qWarning() << "Null clip at index" << idx;
+      qWarning() << "Null clip for id" << clip_id;
     }
   }//for
   PanelManager::sequenceViewer().viewer_widget->update();
@@ -303,7 +313,8 @@ void EffectControls::open_effect(QVBoxLayout* const layout, const EffectPtr& e)
   connect(container, SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
 }
 
-void EffectControls::setup_ui() {
+void EffectControls::setup_ui()
+{
   QWidget* contents = new QWidget();
 
   QHBoxLayout* hlayout = new QHBoxLayout(contents);
@@ -412,7 +423,7 @@ void EffectControls::setup_ui() {
   aeHeaderLayout->addStretch();
 
   QPushButton* btnAddAudioTransition = new QPushButton(aeHeader);
-  btnAddAudioTransition->setIcon(QIcon(":/icons/add-transition.png"));
+  btnAddAudioTransition->setIcon(QIcon(ADD_TRANSITION_ICON));
   btnAddAudioTransition->setToolTip(tr("Add Audio Transition"));
   connect(btnAddAudioTransition, SIGNAL(clicked(bool)), this, SLOT(audio_transition_click()));
   aeHeaderLayout->addWidget(btnAddAudioTransition);
@@ -487,8 +498,12 @@ void EffectControls::load_effects() {
 
   if (!multiple) {
     // load in new clips
-    for (int i=0;i<selected_clips.size();i++) {
-      ClipPtr c = global::sequence->clips_.at(selected_clips.at(i));
+    for (auto clip_id : selected_clips) {
+      ClipPtr c = global::sequence->clip(clip_id);
+      if (c == nullptr) {
+        qWarning() << "Null Clip instance";
+        continue;
+      }
       QVBoxLayout* layout;
       if (c->timeline_info.isVideo()) {
         vcontainer->setVisible(true);
@@ -506,10 +521,20 @@ void EffectControls::load_effects() {
       } else if (mode == TA_CLOSING_TRANSITION && c->closingTransition() != nullptr) {
         open_effect(layout, c->closingTransition());
       }
-    }
-    if (selected_clips.size() > 0) {
-      setWindowTitle(panel_name + global::sequence->clips_.at(selected_clips.at(0))->timeline_info.name_);
-      verticalScrollBar->setMaximum(qMax(0, effects_area->sizeHint().height() - headers->height() + scrollArea->horizontalScrollBar()->height()/* - keyframeView->height() - headers->height()*/));
+    }//for
+
+    if (!selected_clips.empty()) {
+      if (auto sel_clip = global::sequence->clip(selected_clips.front())) {
+        setWindowTitle(panel_name + sel_clip->timeline_info.name_);
+      } else {
+        setWindowTitle(panel_name + "Error");
+        qWarning() << "Null Clip instance";
+      }
+      verticalScrollBar->setMaximum(qMax(0,
+                                         effects_area->sizeHint().height()
+                                         - headers->height()
+                                         + scrollArea->horizontalScrollBar()->height()
+                                         /* - keyframeView->height() - headers->height()*/));
       keyframeView->setEnabled(true);
       headers->setVisible(true);
       keyframeView->update();
@@ -517,13 +542,14 @@ void EffectControls::load_effects() {
   }
 }
 
-void EffectControls::delete_effects() {
+void EffectControls::delete_effects()
+{
   // load in new clips
   if (mode == TA_NO_TRANSITION) {
-    EffectDeleteCommand* command = new EffectDeleteCommand();
-    for (int i=0;i<selected_clips.size();i++) {
-      ClipPtr c = global::sequence->clips_.at(selected_clips.at(i));
-      for (int j=0;j<c->effects.size();j++) {
+    auto command = new EffectDeleteCommand();
+    for (auto clip_id : selected_clips) {
+      ClipPtr c = global::sequence->clip(clip_id);
+      for (int j=0; j<c->effects.size(); ++j) {
         EffectPtr effect = c->effects.at(j);
         if (effect->container->selected) {
           command->clips.append(c);
@@ -531,7 +557,8 @@ void EffectControls::delete_effects() {
         }
       }
     }
-    if (command->clips.size() > 0) {
+
+    if (!command->clips.empty()) {
       e_undo_stack.push(command);
       PanelManager::sequenceViewer().viewer_widget->update();
     } else {
@@ -575,18 +602,23 @@ void EffectControls::resizeEvent(QResizeEvent*) {
   verticalScrollBar->setMaximum(qMax(0, effects_area->height() - keyframeView->height() - headers->height()));
 }
 
-bool EffectControls::is_focused() {
-  if (this->hasFocus()) return true;
-  for (int i=0;i<selected_clips.size();i++) {
-    ClipPtr c = global::sequence->clips_.at(selected_clips.at(i));
-    if (c != nullptr) {
-      for (int j=0;j<c->effects.size();j++) {
-        if (c->effects.at(j)->container->is_focused()) {
-          return true;
-        }
-      }
-    } else {
+bool EffectControls::is_focused()
+{
+  if (this->hasFocus()) {
+    return true;
+  }
+
+  for (auto clip_id : selected_clips) {
+    ClipPtr c = global::sequence->clip(clip_id);
+    if (c == nullptr) {
       qWarning() << "Tried to check focus of a nullptr clip";
+      continue;
+    }
+
+    for (const auto& eff : c->effects) {
+      if (eff != nullptr && eff->container != nullptr && eff->container->is_focused()) {
+        return true;
+      }
     }
   }
   return false;

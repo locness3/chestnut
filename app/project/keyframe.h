@@ -31,6 +31,10 @@ enum class KeyframeType{
 
 class EffectField;
 
+struct EffectKeyframeStore {
+
+};
+
 class EffectKeyframe : public project::IXMLStreamer {
   public:
     EffectKeyframe() = default;

@@ -238,6 +238,11 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
 
     void setCapability(const Capability flag);
     void clearCapability(const Capability flag);
+    /**
+     * @brief Setup the effect with stored setup information (xml project file)
+     * @param stores
+     */
+    void setupUiWithLoadStore();
 
     template <typename T>
     T randomNumber()
@@ -264,6 +269,7 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     bool is_open_{false};
     bool bound_{false};
     static QMap<QString, EffectMeta> registered;
+    QVector<EffectRowStore> load_store_;
 
     bool valueHasChanged(const double timecode);
     int get_index_in_clip();
@@ -278,6 +284,7 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     void setupFileWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
     std::tuple<EffectFieldType, QString> getFieldType(const QXmlStreamAttributes& attributes) const;
     void extractShaderDetails(const QXmlStreamAttributes& attributes);
+
 };
 
 

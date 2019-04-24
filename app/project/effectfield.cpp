@@ -401,25 +401,27 @@ void EffectField::setValue(const QVariant& value)
     set_string_value(value.toString());
     break;
   case EffectFieldType::UNKNOWN:
+    [[fallthrough]];
   default:
     qWarning() << "unknown field type";
     break;
   }
 }
 
-bool  EffectField::load(QXmlStreamReader& stream)
+
+bool EffectField::load(const EffectFieldStore& store)
 {
-  while (stream.readNextStartElement()) {
-    const auto name = stream.name().toString().toLower();
-    if (name == "value") {
-      auto value = stream.readElementText();
-      setValue(value);
-    } else {
-      qCritical() << "Unexpected element" << name;
-      return false;
-    }
+  setValue(store.value_);
+  for (auto kf : store.keyframes_) {
+    // TODO: setup/create keyframes
   }
-  return true;
+  return false;
+}
+
+bool  EffectField::load(QXmlStreamReader& /*stream*/)
+{
+  // Due to threading issues, load has to be done at a later stage
+  return false;
 }
 bool EffectField::save(QXmlStreamWriter& stream) const
 {
