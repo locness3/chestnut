@@ -105,4 +105,6 @@ void CornerPinEffect::setupUi()
   bottom_right_gizmo = add_gizmo(GizmoType::DOT);
   bottom_right_gizmo->x_field1 = bottom_right_x;
   bottom_right_gizmo->y_field1 = bottom_right_y;
+
+  Effect::setupUiWithLoadStore();
 }

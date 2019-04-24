@@ -31,4 +31,6 @@ void FillLeftRightEffect::setupUi()
   fill_type = type_row->add_field(EffectFieldType::COMBO, "type");
   fill_type->add_combo_item(tr("Fill Left with Right"), FILL_TYPE_LEFT);
   fill_type->add_combo_item(tr("Fill Right with Left"), FILL_TYPE_RIGHT);
+
+  Effect::setupUiWithLoadStore();
 }

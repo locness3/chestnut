@@ -68,4 +68,6 @@ void AudioNoiseEffect::setupUi()
 
   mix_val = add_row(tr("Mix"))->add_field(EffectFieldType::BOOL, "mix");
   mix_val->set_bool_value(true);
+
+  Effect::setupUiWithLoadStore();
 }

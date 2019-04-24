@@ -100,4 +100,6 @@ void ShakeEffect::setupUi()
   intensity_val->set_double_default_value(25);
   rotation_val->set_double_default_value(10);
   frequency_val->set_double_default_value(5);
+
+  Effect::setupUiWithLoadStore();
 }

@@ -85,6 +85,8 @@ void TimecodeEffect::setupUi()
   offset_y_val = offset->add_field(EffectFieldType::DOUBLE, "offsety");
 
   prepend_text = add_row(tr("Prepend"))->add_field(EffectFieldType::STRING, "prepend", 2);
+
+  Effect::setupUiWithLoadStore();
 }
 
 

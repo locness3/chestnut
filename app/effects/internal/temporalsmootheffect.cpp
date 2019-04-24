@@ -139,5 +139,7 @@ void TemporalSmoothEffect::setupUi()
   blend_mode_->add_combo_item("Max", 0);
   blend_mode_->add_combo_item("Min", 0);
   blend_mode_->setDefaultValue(0);
+
+  Effect::setupUiWithLoadStore();
 }
 
