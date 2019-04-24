@@ -68,6 +68,7 @@ public:
     void setAudioLayout(const int32_t layout);
 
     void closeActiveClips(const int32_t depth=0);
+    ClipPtr clip(const int32_t id);
 
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;

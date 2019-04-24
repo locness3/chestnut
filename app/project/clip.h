@@ -65,6 +65,7 @@ class Clip : public project::SequenceItem,
     explicit Clip(SequencePtr s);
     virtual ~Clip() override;
     ClipPtr copy(SequencePtr s);
+    ClipPtr copyPreserveLinks(SequencePtr s);
 
     Clip() = delete;
     Clip(const Clip&) = delete;
@@ -165,6 +166,13 @@ class Clip : public project::SequenceItem,
      */
     bool isSelected(const bool containing);
 
+    void addLinkedClip(const Clip& clp);
+    void setLinkedClips(const QVector<int32_t>& links);
+    const QVector<int32_t>& linkedClips() const;
+    void linkClip(const Clip& clp);
+    void clearLinks();
+    void setId(const int32_t id);
+
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 
@@ -176,7 +184,6 @@ class Clip : public project::SequenceItem,
 
     // other variables (should be deep copied/duplicated in copy())
     QList<EffectPtr> effects;
-    QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
     int opening_transition;
     int closing_transition;
 
@@ -252,6 +259,7 @@ class Clip : public project::SequenceItem,
     std::atomic_bool finished_opening{false};
     bool pkt_written{};
     int32_t id_{-1};
+    QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 
@@ -284,7 +292,6 @@ class Clip : public project::SequenceItem,
               const long iclip_in, const int itrack, const bool verify_transitions = true,
               const bool relative = false);
 
-    void setId(const int32_t id);
 
 
 };

@@ -103,9 +103,7 @@ ClipPtr Clip::copy(SequencePtr s)
     copyClip->effects.append(eff->copy(copyClip));
   }
 
-  // TODO: reassess the id + linkage
-  copyClip->id_ = id_;
-  copyClip->linked = linked;
+  // leave id_ and linked for callees to assign
 
   copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
 
@@ -118,6 +116,15 @@ ClipPtr Clip::copy(SequencePtr s)
   copyClip->recalculateMaxLength();
 
   return copyClip;
+}
+
+
+ClipPtr Clip::copyPreserveLinks(SequencePtr s)
+{
+  auto clp = copy(s);
+  clp->id_ = id_;
+  clp->linked = linked;
+  return clp;
 }
 
 bool Clip::isActive(const long playhead) {
@@ -887,6 +894,33 @@ bool Clip::isSelected(const bool containing)
     }
   }
   return false;
+}
+
+
+void Clip::addLinkedClip(const Clip& clp)
+{
+  linked.append(clp.id());
+}
+
+void Clip::setLinkedClips(const QVector<int32_t>& links)
+{
+  linked = links;
+}
+
+const QVector<int32_t>& Clip::linkedClips() const
+{
+  return linked;
+}
+
+void Clip::linkClip(const Clip& clp)
+{
+  linked.append(clp.id());
+}
+
+
+void Clip::clearLinks()
+{
+  linked.clear();
 }
 
 bool Clip::load(QXmlStreamReader& stream)

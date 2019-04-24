@@ -162,7 +162,7 @@ void DeleteClipAction::undo() {
 
   // restore links to this clip
   for (int i=linkClipIndex.size()-1;i>=0;i--) {
-    seq->clips_.at(linkClipIndex.at(i))->linked.insert(linkLinkIndex.at(i), index);
+//    seq->clips_.at(linkClipIndex.at(i))->linked.insert(linkLinkIndex.at(i), index); // FIXME:
   }
 
   ref = nullptr;
@@ -196,13 +196,14 @@ void DeleteClipAction::redo() {
   for (int i=0;i<seq->clips_.size();i++) {
     ClipPtr   c = seq->clips_.at(i);
     if (c != nullptr) {
-      for (int j=0;j<c->linked.size();j++) {
-        if (c->linked.at(j) == index) {
-          linkClipIndex.append(i);
-          linkLinkIndex.append(j);
-          c->linked.removeAt(j);
-        }
-      }
+      //FIXME:
+//      for (int j=0;j<c->linkedClips().size();j++) {
+//        if (c->linkedClips.at(j) == index) {
+//          linkClipIndex.append(i);
+//          linkLinkIndex.append(j);
+//          c->linked.removeAt(j);
+//        }
+//      }
     }
   }
 
@@ -552,11 +553,12 @@ void AddClipCommand::redo() {
   } else {
     const auto linkOffset = seq->clips_.size();
     for (const auto& original : clips) {
-      ClipPtr copy = original->copy(seq);
-      copy->linked.resize(original->linked.size());
-      for (int j=0;j<original->linked.size();j++) {
-        copy->linked[j] = original->linked.at(j) + linkOffset;
-      }
+      ClipPtr copy = original->copyPreserveLinks(seq);
+      //FIXME:
+//      copy->linked.resize(original->linked.size());
+//      for (int j=0;j<original->linked.size();j++) {
+//        copy->linked[j] = original->linked.at(j) + linkOffset;
+//      }
       if (original->opening_transition > -1) {
         copy->opening_transition = original->openingTransition()->copy(copy, nullptr);
       }
@@ -580,9 +582,9 @@ void LinkCommand::undo() {
   for (int i=0;i<clips.size();i++) {
     ClipPtr   c = s->clips_.at(clips.at(i));
     if (link) {
-      c->linked.clear();
+      c->clearLinks();
     } else {
-      c->linked = old_links.at(i);
+      c->setLinkedClips(old_links.at(i));
     }
   }
   MainWindow::instance().setWindowModified(old_project_changed);
@@ -591,16 +593,16 @@ void LinkCommand::undo() {
 void LinkCommand::redo() {
   old_links.clear();
   for (int i=0;i<clips.size();i++) {
-    ClipPtr   c = s->clips_.at(clips.at(i));
+    ClipPtr c = s->clips_.at(clips.at(i));
     if (link) {
       for (int j=0;j<clips.size();j++) {
         if (i != j) {
-          c->linked.append(clips.at(j));
+//          c->linked.append(clips.at(j)); //FIXME:
         }
       }
     } else {
-      old_links.append(c->linked);
-      c->linked.clear();
+//      old_links.append(c->linked); //FIXME:
+      c->clearLinks();
     }
   }
   MainWindow::instance().setWindowModified(true);

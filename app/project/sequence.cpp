@@ -131,8 +131,7 @@ std::shared_ptr<Sequence> Sequence::copy()
     if (c == nullptr) {
       sqn->clips_[i] = nullptr;
     } else {
-      auto copy(c->copy(sqn));
-      copy->linked = c->linked;
+      auto copy(c->copyPreserveLinks(sqn));
       sqn->clips_[i] = copy;
     }
   }
@@ -275,6 +274,17 @@ void Sequence::closeActiveClips(const int32_t depth)
     }
     c->close(true);
   }//for
+}
+
+
+ClipPtr Sequence::clip(const int32_t id)
+{
+  for (const auto& clp : clips_) {
+    if ( (clp != nullptr) && (clp->id() == id) ) {
+      return clp;
+    }
+  }
+  return nullptr;
 }
 
 bool Sequence::load(QXmlStreamReader& stream)

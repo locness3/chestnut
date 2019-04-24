@@ -582,7 +582,8 @@ bool isLiveEditing()
           || PanelManager::timeLine().creating);
 }
 
-void TimelineWidget::mousePressEvent(QMouseEvent *event) {
+void TimelineWidget::mousePressEvent(QMouseEvent *event)
+{
   if (global::sequence == nullptr) {
     return;
   }
@@ -621,12 +622,16 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
     int comp = 0;
     switch (PanelManager::timeLine().creating_object) {
       case AddObjectType::TITLE:
+        [[fallthrough]];
       case AddObjectType::SOLID:
+        [[fallthrough]];
       case AddObjectType::BARS:
         comp = -1;
         break;
       case AddObjectType::TONE:
+        [[fallthrough]];
       case AddObjectType::NOISE:
+        [[fallthrough]];
       case AddObjectType::AUDIO:
         comp = 1;
         break;
@@ -651,10 +656,15 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
   } else {
     switch (tool) {
       case TimelineToolType::POINTER:
+        [[fallthrough]];
       case TimelineToolType::RIPPLE:
+        [[fallthrough]];
       case TimelineToolType::SLIP:
+        [[fallthrough]];
       case TimelineToolType::ROLLING:
+        [[fallthrough]];
       case TimelineToolType::SLIDE:
+        [[fallthrough]];
       case TimelineToolType::MENU:
       {
         if (track_resizing && tool != TimelineToolType::MENU) {
@@ -664,21 +674,22 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
           if (clip_index >= 0) {
             ClipPtr clip = global::sequence->clips_.at(clip_index);
             if (clip != nullptr) {
+              auto links = clip->linkedClips();
               if (clip->isSelected(true)) {
                 if (shift) {
                   PanelManager::timeLine().deselect_area(clip->timeline_info.in, clip->timeline_info.out, clip->timeline_info.track_);
 
                   if (!alt) {
-                    for (int i=0;i<clip->linked.size();i++) {
-                      ClipPtr link = global::sequence->clips_.at(clip->linked.at(i));
+                    for (int i=0; i<links.size(); i++) {
+                      ClipPtr link = global::sequence->clips_.at(links.at(i));
                       PanelManager::timeLine().deselect_area(link->timeline_info.in, link->timeline_info.out, link->timeline_info.track_);
                     }
                   }
                 } else if (PanelManager::timeLine().tool == TimelineToolType::POINTER && PanelManager::timeLine().transition_select != TA_NO_TRANSITION) {
                   PanelManager::timeLine().deselect_area(clip->timeline_info.in, clip->timeline_info.out, clip->timeline_info.track_);
 
-                  for (int i=0;i<clip->linked.size();i++) {
-                    ClipPtr link = global::sequence->clips_.at(clip->linked.at(i));
+                  for (int i=0;i<links.size();i++) {
+                    ClipPtr link = global::sequence->clips_.at(links.at(i));
                     PanelManager::timeLine().deselect_area(link->timeline_info.in, link->timeline_info.out, link->timeline_info.track_);
                   }
 
@@ -736,9 +747,9 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event) {
 
                 // if alt is not down, select links
                 if (!alt && PanelManager::timeLine().transition_select == TA_NO_TRANSITION) {
-                  for (int i=0;i<clip->linked.size();i++) {
-                    ClipPtr link = global::sequence->clips_.at(clip->linked.at(i));
-                    if (!link->isSelected(true)) {
+                  for (int i=0; i<links.size(); i++) {
+                    ClipPtr link = global::sequence->clip(links.at(i));
+                    if (link != nullptr && !link->isSelected(true)) {
                       Selection ss;
                       ss.in = link->timeline_info.in;
                       ss.out = link->timeline_info.out;
@@ -1180,17 +1191,8 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
           push_undo = true;
         }
       } else if (PanelManager::timeLine().splitting) {
-        bool split = false;
-        for (int i=0;i<PanelManager::timeLine().split_tracks.size();i++) {
-          int split_index = getClipIndexFromCoords(PanelManager::timeLine().drag_frame_start, PanelManager::timeLine().split_tracks.at(i));
-          if (split_index > -1 && PanelManager::timeLine().split_clip_and_relink(ca, split_index, PanelManager::timeLine().drag_frame_start, !alt)) {
-            split = true;
-          }
-        }
-        if (split) {
-          push_undo = true;
-        }
-        PanelManager::timeLine().split_cache.clear();
+        // FIXME: not always getting all tracks
+        push_undo = splitClipEvent(PanelManager::timeLine().drag_frame_start, PanelManager::timeLine().split_tracks);
       }
 
       // remove duplicate selections
@@ -2048,8 +2050,8 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event) {
             session_clips.append(clip);
 
             if (!alt) {
-              for (int j=0;j<clip->linked.size();j++) {
-                session_clips.append(global::sequence->clips_.at(clip->linked.at(j)));
+              for (int j=0;j<clip->linkedClips().size();j++) {
+                session_clips.append(global::sequence->clips_.at(clip->linkedClips().at(j)));
               }
             }
 
@@ -2581,7 +2583,7 @@ void TimelineWidget::paintEvent(QPaintEvent*) {
               // set to black if color is bright
               p.setPen(Qt::black);
             }
-            if (!clip->linked.empty()) {
+            if (!clip->linkedClips().empty()) {
               int underline_y = CLIP_TEXT_PADDING + p.fontMetrics().height() + clip_rect.top();
               int underline_width = qMin(text_rect.width() - 1, p.fontMetrics().width(clip->name()));
               p.drawLine(text_rect.x(), underline_y, text_rect.x() + underline_width, underline_y);
@@ -2864,7 +2866,8 @@ int TimelineWidget::getScreenPointFromTrack(int track) {
   return (bottom_align) ? height() - y - scroll : y - scroll;
 }
 
-int TimelineWidget::getClipIndexFromCoords(long frame, int track) {
+int TimelineWidget::getClipIndexFromCoords(long frame, int track)
+{
   for (int i=0;i<global::sequence->clips_.size();i++) {
     ClipPtr c = global::sequence->clips_.at(i);
     if (c != nullptr && c->timeline_info.track_ == track && frame >= c->timeline_info.in && frame < c->timeline_info.out) {
@@ -2872,6 +2875,62 @@ int TimelineWidget::getClipIndexFromCoords(long frame, int track) {
     }
   }
   return -1;
+}
+
+ClipPtr TimelineWidget::getClipFromCoords(const long frame, const int track) const
+{
+  for (const auto& seq_clip : global::sequence->clips_) {
+    if (seq_clip != nullptr && seq_clip->timeline_info.track_ == track && seq_clip->timeline_info.in <= frame
+        && seq_clip->timeline_info.out > frame) {
+      return seq_clip;
+    }
+  }
+  return nullptr;
+}
+
+
+bool TimelineWidget::splitClipEvent(const long frame, const QVector<int>& tracks)
+{
+  bool split = false;
+  QVector<ClipPtr> new_clips;
+  //TODO: need to split linked clips if track size == 1
+  for (auto track : tracks) {
+    auto pre = getClipFromCoords(frame, track);
+    if (pre != nullptr) {
+      // Create copy
+      auto post = pre->copy(global::sequence);
+      // Adjust the in/out points
+      pre->timeline_info.out = frame;
+      post->timeline_info.in = frame;
+      // Adjust transitions
+      post->closing_transition = pre->closing_transition;
+      pre->closing_transition = -1;
+      post->opening_transition = -1;
+      if (pre->openingTransition() != nullptr) {
+        pre->openingTransition()->set_length(qMin(pre->openingTransition()->get_length(), pre->length()));
+      }
+      if (post->closingTransition()) {
+        post->closingTransition()->set_length(qMin(post->closingTransition()->get_length(), post->length()));
+      }
+
+      // Put new clip in sequence
+      global::sequence->clips_.append(post);
+      split = true;
+      new_clips.append(post);
+    }
+  }
+  // Sort out links to each other
+  for (const auto& new_clip : new_clips) {
+    for (const auto& other_clip : new_clips) {
+      if (new_clip == other_clip) {
+        // ignore, don't link itself
+        continue;
+      }
+      new_clip->addLinkedClip(*other_clip);
+    }
+  }
+
+  return split;
 }
 
 void TimelineWidget::setScroll(int s) {

@@ -92,6 +92,9 @@ class TimelineWidget : public QWidget {
     int getScreenPointFromTrack(int track);
     int getClipIndexFromCoords(long frame, int track);
 
+    ClipPtr getClipFromCoords(const long frame, const int track) const;
+    bool splitClipEvent(const long frame, const QVector<int>& tracks);
+
     int track_resize_mouse_cache{};
     int track_resize_old_value{};
     bool track_resizing{false};
