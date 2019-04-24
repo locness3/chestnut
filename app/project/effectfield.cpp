@@ -44,7 +44,7 @@ QString fieldTypeValueToString(const EffectFieldType type, const QVariant& value
   switch (type) {
   case EffectFieldType::DOUBLE: return QString::number(value.toDouble());
   case EffectFieldType::COLOR: return value.value<QColor>().name();
-  case EffectFieldType::BOOL: return QString::number(value.toBool());
+  case EffectFieldType::BOOL: return value.toBool() ? "true" : "false";
   case EffectFieldType::COMBO: return QString::number(value.toInt());
   case EffectFieldType::STRING:
     [[fallthrough]];
