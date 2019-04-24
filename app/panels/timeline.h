@@ -263,18 +263,9 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void set_tool();
 
   private:
-    void set_zoom_value(double v);
     QVector<QPushButton*> tool_buttons;
-    void decheck_tool_buttons(QObject* sender);
-    void set_tool(int tool);
     long last_frame;
     int scroll;
-    void set_sb_max();
-
-    void setup_ui();
-
-    std::vector<ClipPtr> selectedClips();
-    std::vector<Selection> selections();
 
     int default_track_height;
 
@@ -288,6 +279,15 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     QPushButton* zoomOutButton{};
     QPushButton* recordButton{};
     QPushButton* addButton{};
+
+    void set_zoom_value(double v);
+    void decheck_tool_buttons(QObject* sender);
+    void set_tool(int tool);
+    void set_sb_max();
+    void setup_ui();
+    std::vector<ClipPtr> selectedClips();
+    std::vector<Selection> selections();
+    void pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const SequencePtr& seq);
 };
 
 #endif // TIMELINE_H

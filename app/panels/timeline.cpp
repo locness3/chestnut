@@ -951,60 +951,65 @@ bool selection_contains_transition(const Selection& s, ClipPtr c, int type) {
   }
 }
 
-void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& areas) {
+void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& areas)
+{
   clean_up_selections(areas);
 
   QVector<int> pre_clips;
   QVector<ClipPtr> post_clips;
 
-  for (int i=0;i<areas.size();i++) {
-    const Selection& s = areas.at(i);
+  for (const auto& sel : areas) {
     for (int j=0;j<global::sequence->clips_.size();j++) {
       ClipPtr c = global::sequence->clips_.at(j);
-      if (c != nullptr && c->timeline_info.track_ == s.track && !c->undeletable) {
-        if (selection_contains_transition(s, c, TA_OPENING_TRANSITION)) {
+      if (c != nullptr && c->timeline_info.track_ == sel.track && !c->undeletable) {
+        if (selection_contains_transition(sel, c, TA_OPENING_TRANSITION)) {
           // delete opening transition
           ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
-        } else if (selection_contains_transition(s, c, TA_CLOSING_TRANSITION)) {
+        } else if (selection_contains_transition(sel, c, TA_CLOSING_TRANSITION)) {
           // delete closing transition
           ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
-        } else if (c->timeline_info.in >= s.in && c->timeline_info.out <= s.out) {
+        } else if (c->timeline_info.in >= sel.in && c->timeline_info.out <= sel.out) {
           // clips falls entirely within deletion area
           ca->append(new DeleteClipAction(global::sequence, j));
-        } else if (c->timeline_info.in < s.in && c->timeline_info.out > s.out) {
+        } else if (c->timeline_info.in < sel.in && c->timeline_info.out > sel.out) {
           // middle of clip is within deletion area
 
           // duplicate clip
-          ClipPtr post = split_clip(ca, j, s.in, s.out);
+          ClipPtr post = split_clip(ca, j, sel.in, sel.out);
 
           pre_clips.append(j);
           post_clips.append(post);
-        } else if (c->timeline_info.in < s.in && c->timeline_info.out > s.in) {
+        } else if (c->timeline_info.in < sel.in && c->timeline_info.out > sel.in) {
           // only out point is in deletion area
-          move_clip(ca, c, c->timeline_info.in, s.in, c->timeline_info.clip_in, c->timeline_info.track_);
+          move_clip(ca, c, c->timeline_info.in, sel.in, c->timeline_info.clip_in, c->timeline_info.track_);
 
           if (c->closingTransition() != nullptr) {
-            if (s.in < c->timeline_info.out - c->closingTransition()->get_true_length()) {
+            if (sel.in < c->timeline_info.out - c->closingTransition()->get_true_length()) {
               ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
             } else {
-              ca->append(new ModifyTransitionCommand(c, TA_CLOSING_TRANSITION, c->closingTransition()->get_true_length() - (c->timeline_info.out - s.in)));
+              ca->append(new ModifyTransitionCommand(c,
+                                                     TA_CLOSING_TRANSITION,
+                                                     c->closingTransition()->get_true_length() - c->timeline_info.out - sel.in));
             }
           }
-        } else if (c->timeline_info.in < s.out && c->timeline_info.out > s.out) {
+        } else if (c->timeline_info.in < sel.out && c->timeline_info.out > sel.out) {
           // only in point is in deletion area
-          move_clip(ca, c, s.out, c->timeline_info.out, c->timeline_info.clip_in + (s.out - c->timeline_info.in), c->timeline_info.track_);
+          move_clip(ca, c, sel.out, c->timeline_info.out,
+                    c->timeline_info.clip_in + sel.out - c->timeline_info.in,
+                    c->timeline_info.track_);
 
           if (c->openingTransition() != nullptr) {
-            if (s.out > c->timeline_info.in + c->openingTransition()->get_true_length()) {
+            if (sel.out > c->timeline_info.in + c->openingTransition()->get_true_length()) {
               ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
             } else {
-              ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION, c->openingTransition()->get_true_length() - (s.out - c->timeline_info.in)));
+              ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION,
+                                                     c->openingTransition()->get_true_length() - sel.out - c->timeline_info.in));
             }
           }
         }
       }
-    }
-  }
+    }//for
+  }//for
   relink_clips_using_ids(pre_clips, post_clips);
   ca->append(new AddClipCommand(global::sequence, post_clips));
 }
@@ -1084,79 +1089,86 @@ void Timeline::relink_clips_using_ids(QVector<int>& old_clips, QVector<ClipPtr>&
   }
 }
 
-void Timeline::paste(bool insert) {
-  if (e_clipboard.size() > 0) {
-    if (e_clipboard_type == CLIPBOARD_TYPE_CLIP) {
-      ComboAction* ca = new ComboAction();
+void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const SequencePtr& seq)
+{
+  auto ca = new ComboAction();
 
-      // create copies and delete areas that we'll be pasting to
-      QVector<Selection> delete_areas;
-      QVector<ClipPtr> pasted_clips;
-      int64_t paste_start = LONG_MAX;
-      int64_t paste_end = LONG_MIN;
-      for (int i=0;i<e_clipboard.size();i++) {
-        ClipPtr c = std::dynamic_pointer_cast<Clip>(e_clipboard.at(i));
+  // create copies and delete areas that we'll be pasting to
+  QVector<Selection> delete_areas;
+  QVector<ClipPtr> pasted_clips;
+  int64_t paste_start = LONG_MAX;
+  int64_t paste_end = LONG_MIN;
+  for (int i=0; i<items.size(); i++) {
+    ClipPtr c = std::dynamic_pointer_cast<Clip>(items.at(i));
 
-        // create copy of clip and offset by playhead
-        ClipPtr cc = c->copy(global::sequence);
+    // create copy of clip and offset by playhead
+    ClipPtr cc = c->copy(seq);
 
-        // convert frame rates
-        cc->timeline_info.in = refactor_frame_number(cc->timeline_info.in, c->timeline_info.cached_fr,
-                                                     global::sequence->frameRate());
-        cc->timeline_info.out = refactor_frame_number(cc->timeline_info.out, c->timeline_info.cached_fr,
-                                                      global::sequence->frameRate());
-        cc->timeline_info.clip_in = refactor_frame_number(cc->timeline_info.clip_in, c->timeline_info.cached_fr,
-                                                          global::sequence->frameRate());
+    // convert frame rates
+    cc->timeline_info.in = refactor_frame_number(cc->timeline_info.in, c->timeline_info.cached_fr,
+                                                 seq->frameRate());
+    cc->timeline_info.out = refactor_frame_number(cc->timeline_info.out, c->timeline_info.cached_fr,
+                                                  seq->frameRate());
+    cc->timeline_info.clip_in = refactor_frame_number(cc->timeline_info.clip_in, c->timeline_info.cached_fr,
+                                                      seq->frameRate());
 
-        cc->timeline_info.in += global::sequence->playhead_;
-        cc->timeline_info.out += global::sequence->playhead_;
-        cc->timeline_info.track_ = c->timeline_info.track_.load();
+    cc->timeline_info.in += seq->playhead_;
+    cc->timeline_info.out += seq->playhead_;
+    cc->timeline_info.track_ = c->timeline_info.track_.load();
 
-        paste_start = qMin(paste_start, cc->timeline_info.in.load());
-        paste_end = qMax(paste_end, cc->timeline_info.out.load());
+    paste_start = qMin(paste_start, cc->timeline_info.in.load());
+    paste_end = qMax(paste_end, cc->timeline_info.out.load());
 
-        pasted_clips.append(cc);
+    pasted_clips.append(cc);
 
-        if (!insert) {
-          Selection s;
-          s.in = cc->timeline_info.in;
-          s.out = cc->timeline_info.out;
-          s.track = c->timeline_info.track_;
-          delete_areas.append(s);
-        }
-      }
-      if (insert) {
-        split_cache.clear();
-        split_all_clips_at_point(ca, global::sequence->playhead_);
-        ripple_clips(ca, global::sequence, paste_start, paste_end - paste_start);
-      } else {
-        delete_areas_and_relink(ca, delete_areas);
-      }
+    if (!insert) {
+      Selection s;
+      s.in = cc->timeline_info.in;
+      s.out = cc->timeline_info.out;
+      s.track = c->timeline_info.track_;
+      delete_areas.append(s);
+    }
+  }//for
 
-      // correct linked clips
-      for (int i=0;i<e_clipboard.size();i++) {
-        // these indices should correspond
-        ClipPtr oc = std::dynamic_pointer_cast<Clip>(e_clipboard.at(i));
+  if (insert) {
+    split_cache.clear();
+    split_all_clips_at_point(ca, seq->playhead_);
+    ripple_clips(ca, seq, paste_start, paste_end - paste_start);
+  } else {
+    delete_areas_and_relink(ca, delete_areas);
+  }
 
-        for (int j=0; j<oc->linkedClips().size(); j++) {
-          for (int k=0; k<e_clipboard.size(); k++) { // find clip with that ID
-            ClipPtr comp = std::dynamic_pointer_cast<Clip>(e_clipboard.at(k));
-            if (comp->load_id == oc->linkedClips().at(j)) {
+  // correct linked clips
+  for (int i=0;i<items.size();i++) {
+    // these indices should correspond
+    ClipPtr oc = std::dynamic_pointer_cast<Clip>(items.at(i));
+
+    for (int j=0; j<oc->linkedClips().size(); j++) {
+      for (int k=0; k<items.size(); k++) { // find clip with that ID
+        ClipPtr comp = std::dynamic_pointer_cast<Clip>(items.at(k));
+        if (comp->load_id == oc->linkedClips().at(j)) {
 //              pasted_clips.at(i)->linked.append(k); //FIXME:
-            }
-          }
         }
       }
+    }
+  }
 
-      ca->append(new AddClipCommand(global::sequence, pasted_clips));
+  ca->append(new AddClipCommand(seq, pasted_clips));
 
-      e_undo_stack.push(ca);
+  e_undo_stack.push(ca);
 
-      PanelManager::refreshPanels(true);
+  PanelManager::refreshPanels(true);
 
-      if (e_config.paste_seeks) {
-        PanelManager::sequenceViewer().seek(paste_end);
-      }
+  if (e_config.paste_seeks) {
+    PanelManager::sequenceViewer().seek(paste_end);
+  }
+}
+
+void Timeline::paste(bool insert)
+{
+  if (!e_clipboard.empty()) {
+    if (e_clipboard_type == CLIPBOARD_TYPE_CLIP) {
+      pasteClip(e_clipboard, insert, global::sequence);
     } else if (e_clipboard_type == CLIPBOARD_TYPE_EFFECT) {
       ComboAction* ca = new ComboAction();
       bool push = false;
