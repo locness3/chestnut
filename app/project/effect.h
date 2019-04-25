@@ -66,7 +66,7 @@ class EffectMeta { //TODO: address types
     QString filename{};
     QString path{};
     int internal{-1};
-    int type{-1};
+    int type{-1}; //FIXME: get rid of the use of type>-1 for validity checking
     int subtype{-1};
     int id;
 

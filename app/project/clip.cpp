@@ -960,10 +960,10 @@ bool Clip::load(QXmlStreamReader& stream)
 
   while (stream.readNextStartElement()) {
     const auto name = stream.name().toString().toLower();
-    if (name == "opening") {
-      opening_transition = stream.readElementText().toInt();
-    } else if (name == "closing") {
-      closing_transition = stream.readElementText().toInt();
+    if (name == "opening_transition") {
+      transition_.opening_ = loadTransition(stream);
+    } else if (name == "closing_transition") {
+      transition_.closing_ = loadTransition(stream);
     } else if (name == "timelineinfo") {
       if (!timeline_info.load(stream)) {
         qCritical() << "Failed to load TimelineInfo";
@@ -979,26 +979,10 @@ bool Clip::load(QXmlStreamReader& stream)
         }
       }
     } else if (name == "effect") {
-      QString eff_name;
-      bool eff_enabled = false;
-      for (const auto& attr : stream.attributes()) {
-        const auto name = attr.name().toString().toLower();
-        if (name == "name") {
-          eff_name = attr.value().toString().toLower();
-        } else if (name == "enabled") {
-          eff_enabled = attr.value() == "true";
-        } else {
-          qWarning() << "Unhandled attribute";
-        }
-      }
-      const EffectMeta meta = Effect::getRegisteredMeta(eff_name);
-      auto eff = create_effect(shared_from_this(), meta, false);
-      eff->set_enabled(eff_enabled);
-      if (!eff->load(stream)) {
-        qCritical() << "Failed to load clip effect";
+      if (!loadInEffect(stream)){
+        qCritical() << "Failed to load Effect";
         return false;
       }
-      effects.append(eff);
     } else {
       stream.skipCurrentElement();
       qWarning() << "Unhandled element" << name;
@@ -1395,24 +1379,26 @@ bool Clip::retrieve_next_frame(AVFrame* frame) {
     if (read_ret >= 0) {
       int send_ret = avcodec_send_packet(media_handling.codecCtx, media_handling.pkt);
       if (send_ret < 0) {
-        dout << "[ERROR] Failed to send packet to decoder." << send_ret;
+        qCritical() << "Failed to send packet to decoder." << send_ret;
         return send_ret;
       }
     } else {
       if (read_ret == AVERROR_EOF) {
         int send_ret = avcodec_send_packet(media_handling.codecCtx, nullptr);
         if (send_ret < 0) {
-          dout << "[ERROR] Failed to send packet to decoder." << send_ret;
+          qCritical() << "Failed to send packet to decoder." << send_ret;
           return send_ret;
         }
       } else {
-        dout << "[ERROR] Could not read frame." << read_ret;
+        qCritical() << "Could not read frame." << read_ret;
         return read_ret; // skips trying to find a frame at all
       }
     }
   }
   if (receive_ret < 0) {
-    if (receive_ret != AVERROR_EOF) dout << "[ERROR] Failed to receive packet from decoder." << receive_ret;
+    if (receive_ret != AVERROR_EOF) {
+      qCritical() << "Failed to receive packet from decoder." << receive_ret;
+    }
     result = receive_ret;
   }
 
@@ -1992,6 +1978,60 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
       ca.append(new AddTransitionCommand(shared_from_this(), nullptr, closingTransition(), TA_CLOSING_TRANSITION, 0));
     }
   }
+}
+
+
+bool Clip::loadInEffect(QXmlStreamReader& stream)
+{
+  QString eff_name;
+  bool eff_enabled = false;
+  for (const auto& attr : stream.attributes()) {
+    const auto name = attr.name().toString().toLower();
+    if (name == "name") {
+      eff_name = attr.value().toString().toLower();
+    } else if (name == "enabled") {
+      eff_enabled = attr.value() == "true";
+    } else {
+      qWarning() << "Unhandled attribute";
+    }
+  }
+  const EffectMeta meta = Effect::getRegisteredMeta(eff_name);
+  auto eff = create_effect(shared_from_this(), meta, false);
+  eff->set_enabled(eff_enabled);
+  if (!eff->load(stream)) {
+    qCritical() << "Failed to load clip effect";
+    return false;
+  }
+  effects.append(eff);
+  return true;
+}
+
+
+TransitionPtr Clip::loadTransition(QXmlStreamReader& stream)
+{
+  QString tran_name;
+  int tran_length = 0;
+  while (stream.readNextStartElement()) {
+    const auto name = stream.name().toString().toLower();
+    if (name == "name") {
+      tran_name = stream.readElementText();
+    } else if (name == "length") {
+      tran_length = stream.readElementText().toInt();
+    } else {
+      qWarning() << "Unknown element" << name;
+      stream.skipCurrentElement();
+    }
+  }
+
+  if ( (tran_name.size() > 0) && (tran_length > 0) ) {
+    // both seemingly valid values loaded from file
+    auto meta = Effect::getRegisteredMeta(tran_name);
+    if (meta.type > -1) {
+      return get_transition_from_meta(shared_from_this(), nullptr, meta, false);
+    }
+    qWarning() << "Invalid Effect meta for Transition" << tran_name;
+  }
+  return nullptr;
 }
 
 

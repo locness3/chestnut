@@ -189,8 +189,8 @@ class Clip : public project::SequenceItem,
 
     // other variables (should be deep copied/duplicated in copy())
     QList<EffectPtr> effects;
-    int opening_transition;
-    int closing_transition;
+    int opening_transition; //FIXME: really dislike how this refers to an index in a clipboard
+    int closing_transition; //FIXME: really dislike how this refers to an index in a clipboard
 
     // media handling
     struct {
@@ -266,6 +266,10 @@ class Clip : public project::SequenceItem,
     int32_t id_{-1};
     //TODO: link to ptrs
     QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
+    struct {
+        TransitionPtr opening_;
+        TransitionPtr closing_;
+    } transition_;
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 
@@ -297,6 +301,9 @@ class Clip : public project::SequenceItem,
     void move(ComboAction& ca, const long iin, const long iout,
               const long iclip_in, const int itrack, const bool verify_transitions = true,
               const bool relative = false);
+
+    bool loadInEffect(QXmlStreamReader& stream);
+    TransitionPtr loadTransition(QXmlStreamReader& stream);
 
 
 

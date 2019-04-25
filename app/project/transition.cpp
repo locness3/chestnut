@@ -93,7 +93,7 @@ void Transition::set_length_from_slider()
   panels::PanelManager::refreshPanels(false);
 }
 
-TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em, const bool setup = true)
+TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em, const bool setup)
 {
   TransitionPtr trans;
   if (!em.filename.isEmpty()) {

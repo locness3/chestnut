@@ -35,7 +35,7 @@ constexpr int TRANSITION_INTERNAL_CUBE = 4;
 constexpr int TRANSITION_INTERNAL_COUNT = 5;
 
 int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em, long length = -1);
-
+TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em, const bool setup = true);
 
 
 class Transition : public Effect {
