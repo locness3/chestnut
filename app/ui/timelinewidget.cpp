@@ -436,11 +436,11 @@ void TimelineWidget::dragLeaveEvent(QDragLeaveEvent* event) {
   }
 }
 
-void delete_area_under_ghosts(ComboAction* ca) {
+void delete_area_under_ghosts(ComboAction* ca)
+{
   // delete areas before adding
   QVector<Selection> delete_areas;
-  for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
-    const Ghost& g = PanelManager::timeLine().ghosts.at(i);
+  for (const auto& g : PanelManager::timeLine().ghosts) {
     Selection sel;
     sel.in = g.in;
     sel.out = g.out;
@@ -859,8 +859,8 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
       bool push_undo = false;
 
       if (PanelManager::timeLine().creating) {
-        if (PanelManager::timeLine().ghosts.size() > 0) {
-          const Ghost& g = PanelManager::timeLine().ghosts.at(0);
+        if (!PanelManager::timeLine().ghosts.empty()) {
+          const Ghost& g = PanelManager::timeLine().ghosts.front();
 
           if (PanelManager::timeLine().creating_object == AddObjectType::AUDIO) {
             MainWindow::instance().statusBar()->clearMessage();
@@ -1128,6 +1128,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
           push_undo = true;
         }
       } else if (PanelManager::timeLine().selecting || PanelManager::timeLine().rect_select_proc) {
+        //FIXME:
       } else if (PanelManager::timeLine().transition_tool_proc) {
         const Ghost& g = PanelManager::timeLine().ghosts.at(0);
 
@@ -1207,7 +1208,6 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
           push_undo = true;
         }
       } else if (PanelManager::timeLine().splitting) {
-        // FIXME: not always getting all tracks
         push_undo = splitClipEvent(PanelManager::timeLine().drag_frame_start, PanelManager::timeLine().split_tracks);
       }
 
