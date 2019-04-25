@@ -100,6 +100,10 @@ ClipPtr Clip::copy(SequencePtr s)
   copyClip->timeline_info = timeline_info;
 
   for (auto& eff : effects) {
+    if (eff == nullptr) {
+      qWarning() << "Null Effect instance";
+      continue;
+    }
     copyClip->effects.append(eff->copy(copyClip));
   }
 
@@ -988,7 +992,7 @@ bool Clip::load(QXmlStreamReader& stream)
         }
       }
       const EffectMeta meta = Effect::getRegisteredMeta(eff_name);
-      auto eff = create_effect(shared_from_this(), meta);
+      auto eff = create_effect(shared_from_this(), meta, false);
       eff->set_enabled(eff_enabled);
       if (!eff->load(stream)) {
         qCritical() << "Failed to load clip effect";

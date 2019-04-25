@@ -71,27 +71,52 @@ int EffectMeta::nextId = 0;
 
 using panels::PanelManager;
 
-EffectPtr create_effect(ClipPtr c, const EffectMeta& em)
+EffectPtr create_effect(ClipPtr c, const EffectMeta& em, const bool setup)
 {
   if (!em.filename.isEmpty()) {
     // load effect from file
     return std::make_shared<Effect>(c, em);
   }
+  EffectPtr eff;
   if (em.internal >= 0 && em.internal < EFFECT_INTERNAL_COUNT) {
     // must be an internal effect
     switch (em.internal) {
-      case EFFECT_INTERNAL_TRANSFORM: return std::make_shared<TransformEffect>(c, em);
-      case EFFECT_INTERNAL_TEXT: return std::make_shared<TextEffect>(c, em);
-      case EFFECT_INTERNAL_TIMECODE: return std::make_shared<TimecodeEffect>(c, em);
-      case EFFECT_INTERNAL_SOLID: return std::make_shared<SolidEffect>(c, em);
-      case EFFECT_INTERNAL_NOISE: return std::make_shared<AudioNoiseEffect>(c, em);
-      case EFFECT_INTERNAL_VOLUME: return std::make_shared<VolumeEffect>(c, em);
-      case EFFECT_INTERNAL_PAN: return std::make_shared<PanEffect>(c, em);
-      case EFFECT_INTERNAL_TONE: return std::make_shared<ToneEffect>(c, em);
-      case EFFECT_INTERNAL_SHAKE: return std::make_shared<ShakeEffect>(c, em);
-      case EFFECT_INTERNAL_CORNERPIN: return std::make_shared<CornerPinEffect>(c, em);
-      case EFFECT_INTERNAL_FILLLEFTRIGHT: return std::make_shared<FillLeftRightEffect>(c, em);
-      case EFFECT_INTERNAL_TEMPORAL: return std::make_shared<TemporalSmoothEffect>(c, em);
+      case EFFECT_INTERNAL_TRANSFORM:
+        eff = std::make_shared<TransformEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_TEXT:
+        eff = std::make_shared<TextEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_TIMECODE:
+        eff = std::make_shared<TimecodeEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_SOLID:
+        eff = std::make_shared<SolidEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_NOISE:
+        eff = std::make_shared<AudioNoiseEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_VOLUME:
+        eff = std::make_shared<VolumeEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_PAN:
+        eff = std::make_shared<PanEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_TONE:
+        eff = std::make_shared<ToneEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_SHAKE:
+        eff = std::make_shared<ShakeEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_CORNERPIN:
+        eff = std::make_shared<CornerPinEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_FILLLEFTRIGHT:
+        eff = std::make_shared<FillLeftRightEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_TEMPORAL:
+        eff = std::make_shared<TemporalSmoothEffect>(c, em);
+        break;
       default:
         qWarning() << "Unknown Effect Type" << em.internal;
         break;
@@ -103,7 +128,10 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta& em)
                           QCoreApplication::translate("Effect", "No candidate for effect '%1'. This effect may be corrupt. "
                                                                 "Try reinstalling it for Chestnut.").arg(em.name));
   }
-  return nullptr;
+  if ( (eff != nullptr) && setup) {
+    eff->setupUi();
+  }
+  return eff;
 }
 
 EffectMeta get_internal_meta(const int internal_id, const int type)

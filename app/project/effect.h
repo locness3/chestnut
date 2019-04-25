@@ -78,7 +78,7 @@ extern bool shaders_are_enabled;
 
 double log_volume(const double linear);
 void init_effects();
-std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta& em);
+std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta& em, const bool setup=true);
 EffectMeta get_internal_meta(const int internal_id, const int type);
 
 constexpr int EFFECT_TYPE_INVALID = 0;
