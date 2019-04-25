@@ -49,10 +49,7 @@
       <framerate>25.0000000000</framerate>
       <frequency>48000</frequency>
       <layout>2</layout>
-      <clip source="1" id="0">
-        <opening>-1</opening>
-        <closing>-1</closing>
-        
+      <clip source="1" id="0">        
         <timelineinfo>
             <name>clipcanvas_14348_Avid_DNxHD</name>
             <clipin>0</clipin>
@@ -67,6 +64,16 @@
             <reverse>0</reverse>
             <stream>1</stream>
         </timelineinfo>
+        
+        <opening_transition>
+            <id>1</id>
+            <length>100</length>            
+        </opening_transition>     
+        <closing_transition>
+            <id>-1</id>
+            <length>-1</length>
+        </closing_transition>   
+        
         <links/>
 
         <effect enabled="true" name="transform">

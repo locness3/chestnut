@@ -152,7 +152,7 @@
 		<xs:complexType>
             <xs:sequence>  
                 <xs:element ref="name"/>
-                <xs:element ref="value"/> <!-- may need to be a string -->
+                <xs:element name="value" type="xs:string"/>
             </xs:sequence>
 		</xs:complexType>
 	</xs:element>
@@ -167,6 +167,13 @@
             </xs:sequence>
 		</xs:complexType>
 	</xs:element>
+	
+    <xs:complexType name="transition">
+        <xs:sequence>
+            <xs:element name="id" type="xs:integer"/>
+            <xs:element name="length" type="xs:integer"/>
+        </xs:sequence>
+    </xs:complexType>
 
 	<xs:element name="effect">
 		<xs:complexType>
@@ -202,9 +209,9 @@
 	<xs:element name="clip">
 		<xs:complexType>
             <xs:sequence>                
-                <xs:element name="opening" type="xs:integer"/>
-                <xs:element name="closing" type="xs:integer"/>
                 <xs:element ref="timelineinfo"/>
+                <xs:element name="opening_transition" type="transition"/>
+                <xs:element name="closing_transition" type="transition"/>                   
                 <xs:element name="links">
                     <xs:complexType>
                         <xs:sequence minOccurs="0"> 
