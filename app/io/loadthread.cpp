@@ -674,7 +674,14 @@ void LoadThread::success_func()
   }
 
   MainWindow::instance().setWindowModified(autorecovery);
-//  if (open_seq != nullptr) set_sequence(open_seq);
+  if (global::sequence != nullptr) {
+    // global::sequence will be set in file load as required
+    //TODO: think of a better way than this and playback.h - set_sequence()
+    PanelManager::fxControls().clear_effects(true);
+    PanelManager::sequenceViewer().set_main_sequence();
+    PanelManager::timeLine().update_sequence();
+    PanelManager::timeLine().setFocus();
+  }
   PanelManager::refreshPanels(false);
   //TODO: get Project panel to update using its model
 }
