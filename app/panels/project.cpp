@@ -80,7 +80,12 @@ constexpr int THROBBER_INTERVAL       = 20; //ms
 constexpr int THROBBER_LIMIT          = 20;
 constexpr int THROBBER_SIZE           = 50;
 constexpr int MIN_WIDTH = 320;
-constexpr bool READABLE_XML_SAVE = true; // creates bigger files
+
+#ifdef QT_NO_DEBUG
+constexpr bool XML_SAVE_FORMATTING = true;
+#else
+constexpr bool XML_SAVE_FORMATTING = true; // creates bigger files
+#endif
 
 Project::Project(QWidget *parent) :
   QDockWidget(parent)
@@ -1083,7 +1088,7 @@ void Project::save_project(bool autorecovery) {
   }
 
   QXmlStreamWriter stream(&file);
-  stream.setAutoFormatting(READABLE_XML_SAVE);
+  stream.setAutoFormatting(XML_SAVE_FORMATTING);
   stream.writeStartDocument(); // doc
 
   if (!PanelManager::projectViewer().model().save(stream)) {
