@@ -145,8 +145,8 @@ class Clip : public project::SequenceItem,
     void removeEarliestFromQueue();
 
 
-    TransitionPtr openingTransition();
-    TransitionPtr closingTransition();
+    TransitionPtr openingTransition() const;
+    TransitionPtr closingTransition() const;
 
     /**
      * @brief set frame cache to a position

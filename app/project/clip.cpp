@@ -675,7 +675,7 @@ void Clip::removeEarliestFromQueue() {
   queue.removeAt(earliest_frame);
 }
 
-TransitionPtr Clip::openingTransition()
+TransitionPtr Clip::openingTransition() const
 {
   if (opening_transition > -1) {
     if (sequence == nullptr) {
@@ -686,7 +686,7 @@ TransitionPtr Clip::openingTransition()
   return nullptr;
 }
 
-TransitionPtr Clip::closingTransition()
+TransitionPtr Clip::closingTransition() const
 {
   if (closing_transition > -1) {
     if (sequence == nullptr) {
@@ -1014,13 +1014,33 @@ bool Clip::save(QXmlStreamWriter& stream) const
   stream.writeAttribute("source", QString::number(timeline_info.media->id()));
   stream.writeAttribute("id", QString::number(id_));
 
-  stream.writeTextElement("opening", QString::number(opening_transition));
-  stream.writeTextElement("closing", QString::number(closing_transition));
 
   if (!timeline_info.save(stream)) {
     qCritical() << "Failed to save timeline info";
     return false;
   }
+
+  stream.writeStartElement("opening_transition");
+  auto length = -1;
+  QString trans_name;
+  if (auto trans = openingTransition()) {
+    length = trans->get_length();
+    trans_name = trans->meta.name;
+  }
+  stream.writeTextElement("name", trans_name);
+  stream.writeTextElement("length", QString::number(length));
+  stream.writeEndElement();
+
+  stream.writeStartElement("closing_transition");
+  length = -1;
+  trans_name.clear();
+  if (auto trans = closingTransition()) {
+    length = trans->get_length();
+    trans_name = trans->meta.name;
+  }
+  stream.writeTextElement("name", trans_name);
+  stream.writeTextElement("length", QString::number(length));
+  stream.writeEndElement();
 
   stream.writeStartElement("links");
   for (const auto link : linked) {
