@@ -52,7 +52,9 @@ int Transition::copy(const ClipPtr& c, const ClipPtr& s)
   return create_transition(c, s, meta, length);
 }
 
-void Transition::set_length(const long value) {
+void Transition::set_length(const long value)
+{
+  Q_ASSERT(length_field != nullptr);
   length = value;
   length_field->set_double_value(value);
 }
@@ -91,34 +93,46 @@ void Transition::set_length_from_slider()
   panels::PanelManager::refreshPanels(false);
 }
 
-TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em)
+TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em, const bool setup = true)
 {
+  TransitionPtr trans;
   if (!em.filename.isEmpty()) {
     // load effect from file
-    return std::make_shared<Transition>(c, s, em);
-  }
-
-  if (em.internal >= 0 && em.internal < TRANSITION_INTERNAL_COUNT) {
+    trans = std::make_shared<Transition>(c, s, em);
+  } else if ( (em.internal >= 0) && (em.internal < TRANSITION_INTERNAL_COUNT) ) {
     // must be an internal effect
     switch (em.internal) {
-      case TRANSITION_INTERNAL_CROSSDISSOLVE: return std::make_shared<CrossDissolveTransition>(c, s, em);
-      case TRANSITION_INTERNAL_LINEARFADE: return std::make_shared<LinearFadeTransition>(c, s, em);
-      case TRANSITION_INTERNAL_EXPONENTIALFADE: return std::make_shared<ExponentialFadeTransition>(c, s, em);
-      case TRANSITION_INTERNAL_LOGARITHMICFADE: return std::make_shared<LogarithmicFadeTransition>(c, s, em);
-      case TRANSITION_INTERNAL_CUBE: return std::make_shared<CubeTransition>(c, s, em);
-      default:
-        qWarning() << "Unhandled transition" << em.internal;
-        break;
+    case TRANSITION_INTERNAL_CROSSDISSOLVE:
+      trans = std::make_shared<CrossDissolveTransition>(c, s, em);
+      break;
+    case TRANSITION_INTERNAL_LINEARFADE:
+      trans = std::make_shared<LinearFadeTransition>(c, s, em);
+      break;
+    case TRANSITION_INTERNAL_EXPONENTIALFADE:
+      trans = std::make_shared<ExponentialFadeTransition>(c, s, em);
+      break;
+    case TRANSITION_INTERNAL_LOGARITHMICFADE:
+      trans = std::make_shared<LogarithmicFadeTransition>(c, s, em);
+      break;
+    case TRANSITION_INTERNAL_CUBE:
+      trans = std::make_shared<CubeTransition>(c, s, em);
+      break;
+    default:
+      qWarning() << "Unhandled transition" << em.internal;
+      break;
     }
   } else {
     qCritical() << "Invalid transition data";
     QMessageBox::critical(&MainWindow::instance(),
                           QCoreApplication::translate("transition", "Invalid transition"),
                           QCoreApplication::translate("transition", "No candidate for transition '%1'. This transition "
-                                                      "may be corrupt. Try reinstalling it or Olive.").arg(em.name)
+                                                                    "may be corrupt. Try reinstalling it or Olive.").arg(em.name)
                           );
   }
-  return nullptr;
+  if ((trans != nullptr) && setup) {
+    trans->setupUi();
+  }
+  return trans;
 }
 
 int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em, long length) {

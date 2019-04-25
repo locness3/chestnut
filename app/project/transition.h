@@ -55,7 +55,7 @@ class Transition : public Effect {
     void set_length_from_slider();
   private:
     long length; // used only for transitions
-    EffectField* length_field;
+    EffectField* length_field{nullptr};
 };
 
 

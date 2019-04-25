@@ -73,12 +73,11 @@ using panels::PanelManager;
 
 EffectPtr create_effect(ClipPtr c, const EffectMeta& em, const bool setup)
 {
+  EffectPtr eff;
   if (!em.filename.isEmpty()) {
     // load effect from file
-    return std::make_shared<Effect>(c, em);
-  }
-  EffectPtr eff;
-  if (em.internal >= 0 && em.internal < EFFECT_INTERNAL_COUNT) {
+    eff = std::make_shared<Effect>(c, em);
+  } else if (em.internal >= 0 && em.internal < EFFECT_INTERNAL_COUNT) {
     // must be an internal effect
     switch (em.internal) {
       case EFFECT_INTERNAL_TRANSFORM:
