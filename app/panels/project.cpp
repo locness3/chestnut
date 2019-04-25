@@ -82,7 +82,7 @@ constexpr int THROBBER_SIZE           = 50;
 constexpr int MIN_WIDTH = 320;
 
 #ifdef QT_NO_DEBUG
-constexpr bool XML_SAVE_FORMATTING = true;
+constexpr bool XML_SAVE_FORMATTING = false;
 #else
 constexpr bool XML_SAVE_FORMATTING = true; // creates bigger files
 #endif
