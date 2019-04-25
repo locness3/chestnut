@@ -170,7 +170,7 @@
 	
     <xs:complexType name="transition">
         <xs:sequence>
-            <xs:element name="id" type="xs:integer"/>
+            <xs:element name="name" type="xs:string"/>
             <xs:element name="length" type="xs:integer"/>
         </xs:sequence>
     </xs:complexType>

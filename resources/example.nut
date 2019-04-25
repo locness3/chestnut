@@ -66,11 +66,11 @@
         </timelineinfo>
         
         <opening_transition>
-            <id>1</id>
+            <name>crossdissolve</name>
             <length>100</length>            
         </opening_transition>     
         <closing_transition>
-            <id>-1</id>
+            <name></name>
             <length>-1</length>
         </closing_transition>   
         
