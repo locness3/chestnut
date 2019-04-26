@@ -1635,23 +1635,21 @@ void MainWindow::nest()
   if (global::sequence == nullptr) {
     return;
   }
-  QVector<int> selected_clips;
+  QVector<ClipPtr> selected_clips;
   int64_t earliest_point = LONG_MAX;
 
   // get selected clips
-  for (int i=0;i<global::sequence->clips_.size();i++) {
-    ClipPtr  c = global::sequence->clips_.at(i);
-    if (c != nullptr && c->isSelected(true)) {
-      selected_clips.append(i);
-      earliest_point = qMin(c->timeline_info.in.load(), earliest_point);
+  for (const auto& seq_clip : global::sequence->clips_) {
+    if (seq_clip != nullptr && seq_clip->isSelected(true)) {
+      selected_clips.append(seq_clip);
+      earliest_point = qMin(seq_clip->timeline_info.in.load(), earliest_point);
     }
   }
 
   // nest them
   if (!selected_clips.isEmpty()) {
-    ComboAction* ca = new ComboAction();
-
-    SequencePtr s = std::make_shared<Sequence>();
+    auto ca = new ComboAction();
+    auto s = std::make_shared<Sequence>();
 
     // create "nest" sequence
     s->setName(PanelManager::projectViewer().get_next_sequence_name(tr("Nested Sequence")));
@@ -1662,12 +1660,12 @@ void MainWindow::nest()
     s->setAudioLayout(global::sequence->audioLayout());
 
     // copy all selected clips to the nest
-    for (int i=0;i<selected_clips.size();i++) {
+    for (const auto& sel_clip : selected_clips) {
       // delete clip from old sequence
-      ca->append(new DeleteClipAction(global::sequence, selected_clips.at(i)));
+      ca->append(new DeleteClipAction(sel_clip));
 
       // copy to new
-      ClipPtr  copy = global::sequence->clips_.at(selected_clips.at(i))->copy(s);
+      ClipPtr copy = sel_clip->copy(s);
       copy->timeline_info.in -= earliest_point;
       copy->timeline_info.out -= earliest_point;
       s->clips_.append(copy);

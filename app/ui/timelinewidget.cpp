@@ -689,7 +689,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
 
                   if (!alt) {
                     for (int i=0; i<links.size(); i++) {
-                      ClipPtr link = global::sequence->clips_.at(links.at(i));
+                      ClipPtr link = global::sequence->clip(links.at(i));
                       PanelManager::timeLine().deselect_area(link->timeline_info.in,
                                                              link->timeline_info.out,
                                                              link->timeline_info.track_);
@@ -702,7 +702,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
                                                          sel_clip->timeline_info.track_);
 
                   for (int i=0;i<links.size();i++) {
-                    ClipPtr link = global::sequence->clips_.at(links.at(i));
+                    ClipPtr link = global::sequence->clip(links.at(i));
                     PanelManager::timeLine().deselect_area(link->timeline_info.in,
                                                            link->timeline_info.out,
                                                            link->timeline_info.track_);
@@ -1199,13 +1199,15 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
           }
 
           if (PanelManager::timeLine().transition_tool_post_clip > -1) {
-            //FIXME: transition
-//            ca->append(new AddTransitionCommand(pre, post, nullptr, PanelManager::timeLine().transition_tool_meta,
-//                                                TA_OPENING_TRANSITION, transition_end - pre->timeline_info.in));
+            ca->append(new AddTransitionCommand(pre, post, PanelManager::timeLine().transition_tool_meta,
+                                                ClipTransitionType::OPENING,
+                                                transition_end - pre->timeline_info.in));
           } else {
-            //FIXME: transition
-//            ca->append(new AddTransitionCommand(pre, nullptr, nullptr, PanelManager::timeLine().transition_tool_meta,
-//                                                PanelManager::timeLine().transition_tool_type, transition_end - transition_start));
+            const auto trans_type = PanelManager::timeLine().transition_tool_type == TA_OPENING_TRANSITION
+                ? ClipTransitionType::OPENING  : ClipTransitionType::CLOSING;
+
+            ca->append(new AddTransitionCommand(pre, nullptr, PanelManager::timeLine().transition_tool_meta,
+                                                trans_type, transition_end - transition_start));
           }
 
           push_undo = true;
@@ -2087,7 +2089,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
 
             if (!alt) {
               for (int j=0;j<clip->linkedClips().size();j++) {
-                session_clips.append(global::sequence->clips_.at(clip->linkedClips().at(j)));
+                session_clips.append(global::sequence->clip(clip->linkedClips().at(j)));
               }
             }
 

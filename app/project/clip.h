@@ -202,6 +202,11 @@ class Clip : public project::SequenceItem,
      * @return
      */
     ClipType type() const;
+    /**
+     * @brief Obtain the Media parent
+     * @return MediaPtr or null
+     */
+    MediaPtr parent();
 
     void addLinkedClip(const ClipPtr& clp);
     void setLinkedClips(const QVector<int32_t>& links);

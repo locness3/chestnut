@@ -966,7 +966,7 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
           ca->append(new DeleteTransitionCommand(c, ClipTransitionType::CLOSING));
         } else if (c->timeline_info.in >= sel.in && c->timeline_info.out <= sel.out) {
           // clips falls entirely within deletion area
-          ca->append(new DeleteClipAction(global::sequence, j));
+          ca->append(new DeleteClipAction(c));
         } else if (c->timeline_info.in < sel.in && c->timeline_info.out > sel.out) {
           // middle of clip is within deletion area
 

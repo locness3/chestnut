@@ -110,19 +110,12 @@ private:
 
 class DeleteClipAction : public QUndoCommand {
 public:
-  DeleteClipAction(SequencePtr  s, const int id);
+  explicit DeleteClipAction(ClipPtr del_clip);
   virtual void undo() override;
   virtual void redo() override;
 private:
-  SequencePtr seq;
-  ClipPtr ref;
-  int clip_id;
-
-  int opening_transition;
-  int closing_transition;
-
-  QVector<int> linkClipIndex;
-  QVector<int> linkLinkIndex;
+  SequencePtr sequence_;
+  ClipPtr clip_;
 
   bool old_project_changed;
 };

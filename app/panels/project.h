@@ -135,7 +135,6 @@ private:
     QVector<MediaPtr> last_imported_media;
     static std::unique_ptr<ProjectModel> model_;
 
-    void save_folder(QXmlStreamWriter& stream, const MediaType type, bool set_ids_only, const QModelIndex &parent = QModelIndex());
     void list_all_sequences_worker(QVector<MediaPtr> &list, MediaPtr parent); //TODO: recursive depth limit
     QString get_file_name_from_path(const QString &path) const;
     QString get_file_ext_from_path(const QString &path) const;

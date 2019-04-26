@@ -969,6 +969,12 @@ ClipType Clip::type() const
   return ClipType::VISUAL;
 }
 
+
+MediaPtr Clip::parent()
+{
+  return timeline_info.media;
+}
+
 void Clip::addLinkedClip(const ClipPtr& clp)
 {
   Q_ASSERT(clp != nullptr);

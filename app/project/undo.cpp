@@ -42,6 +42,8 @@ QUndoStack e_undo_stack;
 
 using panels::PanelManager;
 
+//FIXME: far too much logic held in these actions
+
 ComboAction::~ComboAction()
 {
   for (auto cmd : commands){
@@ -133,83 +135,34 @@ void MoveClipAction::redo() {
   MainWindow::instance().setWindowModified(true);
 }
 
-DeleteClipAction::DeleteClipAction(SequencePtr s, const int id)
-  : seq(std::move(s)),
-    clip_id(id),
-    opening_transition(-1),
-    closing_transition(-1),
-    old_project_changed(MainWindow::instance().isWindowModified())
+
+DeleteClipAction::DeleteClipAction(ClipPtr del_clip) : clip_(std::move(del_clip))
 {
 
 }
 
-
-
 void DeleteClipAction::undo()
 {
-  // restore ref to clip
-  seq->clips_.append(ref);
-
-  // restore shared transitions
-  if (opening_transition > -1) {
-    seq->transitions_.at(opening_transition)->secondary_clip = seq->transitions_.at(opening_transition)->parent_clip;
-    seq->transitions_.at(opening_transition)->parent_clip = ref;
-    //    ref->opening_transition = opening_transition; //FIXME:
-    opening_transition = -1;
-  }
-  if (closing_transition > -1) {
-    seq->transitions_.at(closing_transition)->secondary_clip = ref;
-    //    ref->closing_transition = closing_transition; //FIXME:
-    closing_transition = -1;
+  if ( (clip_ != nullptr) && (clip_->sequence != nullptr) ) {
+    clip_->sequence->clips_.append(clip_);
+  } else {
+    qCritical() << "Null instance(s)";
   }
 
-  // restore links to this clip
-  for (int i=linkClipIndex.size()-1;i>=0;i--) {
-    //    seq->clips_.at(linkClipIndex.at(i))->linked.insert(linkLinkIndex.at(i), index); // FIXME:
-  }
-
-  ref = nullptr;
+  // TODO: restore links to this clip
 
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
-void DeleteClipAction::redo() {
-  // remove ref to clip
-  ref = seq->clip(clip_id);
-  ref->close(true);
-
-  seq->deleteClip(clip_id);
-
-  // save shared transitions
-  //FIXME:
-  //  if (ref->opening_transition > -1 && !ref->openingTransition()->secondary_clip.expired()) {
-  //    opening_transition = ref->opening_transition;
-  //    ref->openingTransition()->parent_clip = ref->openingTransition()->secondary_clip.lock();
-  //    ref->openingTransition()->secondary_clip.reset();
-  //    ref->opening_transition = -1;
-  //  }
-  //  if (ref->closing_transition > -1 && !ref->closingTransition()->secondary_clip.expired()) {
-  //    closing_transition = ref->closing_transition;
-  //    ref->closingTransition()->secondary_clip.reset();
-  //    ref->closing_transition = -1;
-  //  }
-
-  // delete link to this clip
-  linkClipIndex.clear();
-  linkLinkIndex.clear();
-  for (int i=0;i<seq->clips_.size();i++) {
-    ClipPtr   c = seq->clips_.at(i);
-    if (c != nullptr) {
-      //FIXME:
-      //      for (int j=0;j<c->linkedClips().size();j++) {
-      //        if (c->linkedClips.at(j) == index) {
-      //          linkClipIndex.append(i);
-      //          linkLinkIndex.append(j);
-      //          c->linked.removeAt(j);
-      //        }
-      //      }
-    }
+void DeleteClipAction::redo()
+{
+  if ( (clip_ != nullptr) && (clip_->sequence != nullptr) ) {
+    clip_->sequence->deleteClip(clip_->id());
+  } else {
+    qCritical() << "Null instance(s)";
   }
+
+  // TODO: delete links to this clip
 
   MainWindow::instance().setWindowModified(true);
 }
