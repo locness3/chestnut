@@ -96,11 +96,15 @@ bool CollapsibleWidget::is_focused() {
   return title_bar->hasFocus();
 }
 
-bool CollapsibleWidget::is_expanded() {
+bool CollapsibleWidget::is_expanded()
+{
+  Q_ASSERT(contents != nullptr);
   return contents->isVisible();
 }
 
-void CollapsibleWidget::set_button_icon(bool open) {
+void CollapsibleWidget::set_button_icon(bool open)
+{
+  Q_ASSERT(collapse_button != nullptr);
   collapse_button->setIcon(open ? QIcon(":/icons/tri-down.png") : QIcon(":/icons/tri-right.png"));
 }
 
@@ -114,21 +118,30 @@ void CollapsibleWidget::setContents(QWidget* c) {
   }
 }
 
-void CollapsibleWidget::setText(const QString &s) {
+void CollapsibleWidget::setText(const QString &s)
+{
+  Q_ASSERT(header != nullptr);
   header->setText(s);
 }
 
-void CollapsibleWidget::on_enabled_change(bool b) {
+void CollapsibleWidget::on_enabled_change(bool b)
+{
+  Q_ASSERT(contents != nullptr);
   contents->setEnabled(b);
 }
 
-void CollapsibleWidget::on_visible_change() {
+void CollapsibleWidget::on_visible_change()
+{
+  Q_ASSERT(contents != nullptr);
   contents->setVisible(!contents->isVisible());
   set_button_icon(contents->isVisible());
   emit visibleChanged();
 }
 
-CollapsibleWidgetHeader::CollapsibleWidgetHeader(QWidget* parent) : QWidget(parent), selected(false) {
+CollapsibleWidgetHeader::CollapsibleWidgetHeader(QWidget* parent)
+  : QWidget(parent),
+    selected(false)
+{
   setContextMenuPolicy(Qt::CustomContextMenu);
 }
 

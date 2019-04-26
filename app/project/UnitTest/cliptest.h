@@ -27,6 +27,8 @@ class ClipTest : public QObject
       * @brief Test that the Clip's media is open
       */
      void testCaseMediaOpen();
+
+     void testCaseClipType();
 };
 
 #endif // CLIPTEST_H

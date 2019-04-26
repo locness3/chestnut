@@ -49,7 +49,6 @@ void ProjectModelTest::testCaseGetFolderPopulated()
   ProjectModel model;
   auto mda = std::make_shared<Media>();
   mda->setFolder();
-  mda->temp_id = 1;
   model.add(mda);
   QVERIFY(model.getFolder(1) == mda);
   QVERIFY(model.getFolder(0) == nullptr);

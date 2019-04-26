@@ -1283,7 +1283,7 @@ void Clip::refactorFrameRate(ComboAction* ca, double multiplier, bool change_tim
            qRound(static_cast<double>(timeline_info.in) * multiplier),
            qRound(static_cast<double>(timeline_info.out) * multiplier),
            qRound(static_cast<double>(timeline_info.clip_in) * multiplier),
-           timeline_info.track_.load());
+           timeline_info.track_);
     }
   }
 

@@ -52,15 +52,15 @@ void MediaTest::testCaseSetAsFootage()
 
 void MediaTest::testCaseSetAsSequence()
 {
-  Media mda;
+  auto mda = std::make_shared<Media>();
   auto sqn = std::make_shared<Sequence>();
-  QVERIFY(mda.setSequence(sqn) == true);
-  QVERIFY(mda.setSequence(sqn) == false);
+  QVERIFY(mda->setSequence(sqn) == true);
+  QVERIFY(mda->setSequence(sqn) == false);
   sqn.reset();
-  QVERIFY(mda.setSequence(sqn) == false);
-  QVERIFY(mda.type() == MediaType::SEQUENCE);
-  QVERIFY(mda.object<Sequence>() != nullptr);
-  QVERIFY(mda.root_ == false);
+  QVERIFY(mda->setSequence(sqn) == false);
+  QVERIFY(mda->type() == MediaType::SEQUENCE);
+  QVERIFY(mda->object<Sequence>() != nullptr);
+  QVERIFY(mda->root_ == false);
 }
 
 

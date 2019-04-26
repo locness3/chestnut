@@ -63,3 +63,16 @@ void ClipTest::testCaseMediaOpen()
   QVERIFY(clp.mediaOpen() == false);
 }
 
+
+void ClipTest::testCaseClipType()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  clp.timeline_info.track_ = 100;
+  QVERIFY(clp.type() == ClipType::AUDIO);
+  clp.timeline_info.track_ = -100;
+  QVERIFY(clp.type() == ClipType::VISUAL);
+  clp.timeline_info.track_ = 0;
+  QVERIFY(clp.type() == ClipType::AUDIO);
+}
+
