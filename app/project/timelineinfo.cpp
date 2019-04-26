@@ -42,7 +42,7 @@ bool TimelineInfo::load(QXmlStreamReader& stream)
     } else if (name == "clipin") {
       clip_in = stream.readElementText().toInt();
     } else if (name == "enabled") {
-      enabled = stream.readElementText() == true;
+      enabled = stream.readElementText() == "true";
     } else if (name == "in") {
       in = stream.readElementText().toInt();
     } else if (name == "out") {
@@ -50,7 +50,7 @@ bool TimelineInfo::load(QXmlStreamReader& stream)
     } else if (name == "track") {
       track_ = stream.readElementText().toInt();
     } else if (name == "color") {
-      color.setRgb(QRgb(stream.readElementText().toInt()));
+      color.setRgb(static_cast<QRgb>(stream.readElementText().toUInt()));
     } else if (name == "autoscale") {
       autoscale = stream.readElementText() == "true";
     } else if (name == "speed") {
