@@ -720,9 +720,10 @@ ClipPtr Timeline::split_clip(ComboAction* ca, int p, long frame, long post_in)
     }
     if (pre->closingTransition() != nullptr) {
       // move closing transition
-      post->closing_transition = pre->closing_transition;
+      post->transition_.closing_ = pre->transition_.closing_;
       // remove closing transition from pre-split clip
-      ca->append(new SetValCommand<int>(pre->closing_transition, pre->closing_transition, -1));
+      pre->transition_.closing_ = nullptr;
+//      ca->append(new SetValCommand<int>(pre->closing_transition, pre->closing_transition, -1)); //FIXME:
 
       // update references
       ca->append(new SetValCommand<ClipWPtr>(post->closingTransition()->secondary_clip,
@@ -774,9 +775,10 @@ ClipPtr Timeline::split_clip(ComboAction* ca, const ClipPtr& clp, const long fra
   }
   if (clp->closingTransition() != nullptr) {
     // move closing transition
-    post->closing_transition = clp->closing_transition;
+    post->transition_.closing_ = clp->transition_.closing_;
     // remove closing transition from pre-split clip
-    ca->append(new SetValCommand<int>(clp->closing_transition, clp->closing_transition, -1));
+    clp->transition_.closing_ = nullptr;
+//    ca->append(new SetValCommand<int>(clp->closing_transition, clp->closing_transition, -1)); //FIXME:
 
     // update references
     ca->append(new SetValCommand<ClipWPtr>(post->closingTransition()->secondary_clip,
@@ -964,10 +966,10 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
       if (c != nullptr && c->timeline_info.track_ == sel.track && !c->undeletable) {
         if (selection_contains_transition(sel, c, TA_OPENING_TRANSITION)) {
           // delete opening transition
-          ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
+//          ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition)); //FIXME:
         } else if (selection_contains_transition(sel, c, TA_CLOSING_TRANSITION)) {
           // delete closing transition
-          ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
+//          ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition)); //FIXME:
         } else if (c->timeline_info.in >= sel.in && c->timeline_info.out <= sel.out) {
           // clips falls entirely within deletion area
           ca->append(new DeleteClipAction(global::sequence, j));
@@ -985,7 +987,7 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
 
           if (c->closingTransition() != nullptr) {
             if (sel.in < c->timeline_info.out - c->closingTransition()->get_true_length()) {
-              ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
+//              ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
             } else {
               ca->append(new ModifyTransitionCommand(c,
                                                      TA_CLOSING_TRANSITION,
@@ -1000,7 +1002,7 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
 
           if (c->openingTransition() != nullptr) {
             if (sel.out > c->timeline_info.in + c->openingTransition()->get_true_length()) {
-              ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
+//              ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition)); //FIXME:
             } else {
               ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION,
                                                      c->openingTransition()->get_true_length() - sel.out - c->timeline_info.in));
@@ -1390,7 +1392,7 @@ bool Timeline::split_selection(ComboAction* ca) {
             }
 
             if (clip->closingTransition() != nullptr) {
-              ca->append(new DeleteTransitionCommand(clip->sequence, clip->closing_transition));
+//              ca->append(new DeleteTransitionCommand(clip->sequence, clip->closing_transition)); //FIXME:
 
               split_A->sequence->hardDeleteTransition(split_A, TA_CLOSING_TRANSITION);
             }

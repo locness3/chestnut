@@ -820,31 +820,33 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
   }
 }
 
-void make_room_for_transition(ComboAction* ca, ClipPtr c, int type, long transition_start, long transition_end, bool delete_old_transitions) {
+void make_room_for_transition(ComboAction* ca, ClipPtr c, int type,
+                              long transition_start, long transition_end, bool delete_old_transitions) {
   // make room for transition
-  if (type == TA_OPENING_TRANSITION) {
-    if (delete_old_transitions && c->openingTransition() != nullptr) {
-      ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
-    }
-    if (c->closingTransition() != nullptr) {
-      if (transition_end >= c->timeline_info.out) {
-        ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
-      } else if (transition_end > c->timeline_info.out - c->closingTransition()->get_true_length()) {
-        ca->append(new ModifyTransitionCommand(c, TA_CLOSING_TRANSITION, c->timeline_info.out - transition_end));
-      }
-    }
-  } else {
-    if (delete_old_transitions && c->closingTransition() != nullptr) {
-      ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
-    }
-    if (c->openingTransition() != nullptr) {
-      if (transition_start <= c->timeline_info.in) {
-        ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
-      } else if (transition_start < c->timeline_info.in + c->openingTransition()->get_true_length()) {
-        ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION, transition_start - c->timeline_info.in));
-      }
-    }
-  }
+  //FIXME:
+//  if (type == TA_OPENING_TRANSITION) {
+//    if (delete_old_transitions && c->openingTransition() != nullptr) {
+//      ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
+//    }
+//    if (c->closingTransition() != nullptr) {
+//      if (transition_end >= c->timeline_info.out) {
+//        ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
+//      } else if (transition_end > c->timeline_info.out - c->closingTransition()->get_true_length()) {
+//        ca->append(new ModifyTransitionCommand(c, TA_CLOSING_TRANSITION, c->timeline_info.out - transition_end));
+//      }
+//    }
+//  } else {
+//    if (delete_old_transitions && c->closingTransition() != nullptr) {
+//      ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
+//    }
+//    if (c->openingTransition() != nullptr) {
+//      if (transition_start <= c->timeline_info.in) {
+//        ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
+//      } else if (transition_start < c->timeline_info.in + c->openingTransition()->get_true_length()) {
+//        ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION, transition_start - c->timeline_info.in));
+//      }
+//    }
+//  }
 }
 
 void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
@@ -1071,7 +1073,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
                     max_open_length -= c->closingTransition()->get_true_length();
                   }
                   if (max_open_length <= 0) {
-                    ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition));
+//                    ca->append(new DeleteTransitionCommand(c->sequence, c->opening_transition)); //FIXME:
                   } else if (c->openingTransition()->get_true_length() > max_open_length) {
                     ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION, max_open_length));
                   }
@@ -1082,7 +1084,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
                     max_open_length -= c->openingTransition()->get_true_length();
                   }
                   if (max_open_length <= 0) {
-                    ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition));
+//                    ca->append(new DeleteTransitionCommand(c->sequence, c->closing_transition)); //FIXME:
                   } else if (c->closingTransition()->get_true_length() > max_open_length) {
                     ca->append(new ModifyTransitionCommand(c, TA_CLOSING_TRANSITION, max_open_length));
                   }
@@ -2955,9 +2957,10 @@ bool TimelineWidget::splitClipEvent(const long frame, const QSet<int>& tracks)
       pre->timeline_info.out = frame;
       post->timeline_info.in = frame;
       // Adjust transitions
-      post->closing_transition = pre->closing_transition;
-      pre->closing_transition = -1;
-      post->opening_transition = -1;
+      //FIXME:
+//      post->closing_transition = pre->closing_transition;
+//      pre->closing_transition = -1;
+//      post->opening_transition = -1;
       if (pre->openingTransition() != nullptr) {
         pre->openingTransition()->set_length(qMin(pre->openingTransition()->get_length(), pre->length()));
       }

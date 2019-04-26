@@ -50,7 +50,7 @@ class Transition : public Effect {
 
     virtual void setupUi() override;
 
-    ClipWPtr secondary_clip;
+    ClipWPtr secondary_clip; // Presumably the clip (of the same track) which the transition is spread over
   private slots:
     void set_length_from_slider();
   private:

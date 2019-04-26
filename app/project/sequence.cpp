@@ -151,39 +151,47 @@ int64_t Sequence::endFrame() const
 
 void Sequence::hardDeleteTransition(const ClipPtr& c, const int32_t type)
 {
-  auto transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
-  if (transition_index < 0) {
-    return;
-  }
-  auto del = true;
 
-  auto transition_for_delete = transitions_.at(transition_index);
-  if (auto secondary = transition_for_delete->secondary_clip.lock()) {
-    for (const auto& comp : clips_) {
-      if ( (!comp) && (c != comp) ) {
-        continue;
-      }
-      if ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) ) {
-        if (type == TA_OPENING_TRANSITION) {
-          // convert to closing transition
-          transition_for_delete->parent_clip = secondary;
-        }
-
-        del = false;
-        secondary.reset();
-      }
-    }//for
-  }
-
-  if (del) {
-    transitions_[transition_index] = nullptr;
-  }
 
   if (type == TA_OPENING_TRANSITION) {
-    c->opening_transition = -1;
+    c->transition_.opening_ = nullptr;
   } else {
-    c->closing_transition = -1;
+    c->transition_.closing_ = nullptr;
   }
+//TODO: reassess
+//  auto tran = (type == TA_OPENING_TRANSITION) ? c->transition_.opening_ : c->transition_.closing_;
+//  if (tran == nullptr) {
+//    return;
+//  }
+//  auto del = true;
+
+//  auto transition_for_delete = transitions_.at(transition_index);
+//  if (auto secondary = transition_for_delete->secondary_clip.lock()) {
+//    for (const auto& comp : clips_) {
+//      if ( (!comp) && (c != comp) ) {
+//        continue;
+//      }
+//      if ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) ) {
+//        if (type == TA_OPENING_TRANSITION) {
+//          // convert to closing transition
+//          transition_for_delete->parent_clip = secondary;
+//        }
+
+//        del = false;
+//        secondary.reset();
+//      }
+//    }//for
+//  }
+
+//  if (del) {
+//    transitions_[transition_index] = nullptr;
+//  }
+
+//  if (type == TA_OPENING_TRANSITION) {
+//    c->opening_transition = -1;
+//  } else {
+//    c->closing_transition = -1;
+//  }
 }
 
 

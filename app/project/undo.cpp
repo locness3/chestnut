@@ -154,12 +154,12 @@ void DeleteClipAction::undo()
   if (opening_transition > -1) {
     seq->transitions_.at(opening_transition)->secondary_clip = seq->transitions_.at(opening_transition)->parent_clip;
     seq->transitions_.at(opening_transition)->parent_clip = ref;
-    ref->opening_transition = opening_transition;
+//    ref->opening_transition = opening_transition; //FIXME:
     opening_transition = -1;
   }
   if (closing_transition > -1) {
     seq->transitions_.at(closing_transition)->secondary_clip = ref;
-    ref->closing_transition = closing_transition;
+//    ref->closing_transition = closing_transition; //FIXME:
     closing_transition = -1;
   }
 
@@ -181,17 +181,18 @@ void DeleteClipAction::redo() {
   seq->deleteClip(clip_id);
 
   // save shared transitions
-  if (ref->opening_transition > -1 && !ref->openingTransition()->secondary_clip.expired()) {
-    opening_transition = ref->opening_transition;
-    ref->openingTransition()->parent_clip = ref->openingTransition()->secondary_clip.lock();
-    ref->openingTransition()->secondary_clip.reset();
-    ref->opening_transition = -1;
-  }
-  if (ref->closing_transition > -1 && !ref->closingTransition()->secondary_clip.expired()) {
-    closing_transition = ref->closing_transition;
-    ref->closingTransition()->secondary_clip.reset();
-    ref->closing_transition = -1;
-  }
+  //FIXME:
+//  if (ref->opening_transition > -1 && !ref->openingTransition()->secondary_clip.expired()) {
+//    opening_transition = ref->opening_transition;
+//    ref->openingTransition()->parent_clip = ref->openingTransition()->secondary_clip.lock();
+//    ref->openingTransition()->secondary_clip.reset();
+//    ref->opening_transition = -1;
+//  }
+//  if (ref->closing_transition > -1 && !ref->closingTransition()->secondary_clip.expired()) {
+//    closing_transition = ref->closing_transition;
+//    ref->closingTransition()->secondary_clip.reset();
+//    ref->closing_transition = -1;
+//  }
 
   // delete link to this clip
   linkClipIndex.clear();
@@ -344,41 +345,45 @@ AddTransitionCommand::AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr c
 
 void AddTransitionCommand::undo() {
   clip->sequence->hardDeleteTransition(clip, type);
-  if (secondary != nullptr) secondary->sequence->hardDeleteTransition(secondary, (type == TA_OPENING_TRANSITION) ? TA_CLOSING_TRANSITION : TA_OPENING_TRANSITION);
-
-  if (type == TA_OPENING_TRANSITION) {
-    clip->opening_transition = old_ptransition;
-    if (secondary != nullptr) secondary->closing_transition = old_stransition;
-  } else {
-    clip->closing_transition = old_ptransition;
-    if (secondary != nullptr) secondary->opening_transition = old_stransition;
+  if (secondary != nullptr) {
+    secondary->sequence->hardDeleteTransition(secondary, (type == TA_OPENING_TRANSITION) ? TA_CLOSING_TRANSITION : TA_OPENING_TRANSITION);
   }
+
+  //FIXME:
+//  if (type == TA_OPENING_TRANSITION) {
+//    clip->opening_transition = old_ptransition;
+//    if (secondary != nullptr) secondary->closing_transition = old_stransition;
+//  } else {
+//    clip->closing_transition = old_ptransition;
+//    if (secondary != nullptr) secondary->opening_transition = old_stransition;
+//  }
 
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
 void AddTransitionCommand::redo() {
-  if (type == TA_OPENING_TRANSITION) {
-    old_ptransition = clip->opening_transition;
-    clip->opening_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
-    if (secondary != nullptr) {
-      old_stransition = secondary->closing_transition;
-      secondary->closing_transition = clip->opening_transition;
-    }
-    if (length > 0) {
-      clip->openingTransition()->set_length(length);
-    }
-  } else {
-    old_ptransition = clip->closing_transition;
-    clip->closing_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
-    if (secondary != nullptr) {
-      old_stransition = secondary->opening_transition;
-      secondary->opening_transition = clip->closing_transition;
-    }
-    if (length > 0) {
-      clip->closingTransition()->set_length(length);
-    }
-  }
+  //FIXME:
+//  if (type == TA_OPENING_TRANSITION) {
+//    old_ptransition = clip->opening_transition;
+//    clip->opening_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
+//    if (secondary != nullptr) {
+//      old_stransition = secondary->closing_transition;
+//      secondary->closing_transition = clip->opening_transition;
+//    }
+//    if (length > 0) {
+//      clip->openingTransition()->set_length(length);
+//    }
+//  } else {
+//    old_ptransition = clip->closing_transition;
+//    clip->closing_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
+//    if (secondary != nullptr) {
+//      old_stransition = secondary->opening_transition;
+//      secondary->opening_transition = clip->closing_transition;
+//    }
+//    if (length > 0) {
+//      clip->closingTransition()->set_length(length);
+//    }
+//  }
   MainWindow::instance().setWindowModified(true);
 }
 
@@ -426,33 +431,35 @@ DeleteTransitionCommand::DeleteTransitionCommand(SequencePtr  s, const int trans
 void DeleteTransitionCommand::undo() {
   seq->transitions_[index] = transition;
 
-  if (otc != nullptr) {
-    otc->opening_transition = index;
-  }
-  if (ctc != nullptr) {
-    ctc->closing_transition = index;
-  }
+  //FIXME:
+//  if (otc != nullptr) {
+//    otc->opening_transition = index;
+//  }
+//  if (ctc != nullptr) {
+//    ctc->closing_transition = index;
+//  }
 
   transition = nullptr;
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
 void DeleteTransitionCommand::redo() {
-  for (const auto& c : seq->clips_) {
-    if (c != nullptr) {
-      if (c->opening_transition == index) {
-        otc = c;
-        c->opening_transition = -1;
-      }
-      if (c->closing_transition == index) {
-        ctc = c;
-        c->closing_transition = -1;
-      }
-    }
-  }
+  //FIXME:
+//  for (const auto& c : seq->clips_) {
+//    if (c != nullptr) {
+//      if (c->opening_transition == index) {
+//        otc = c;
+//        c->opening_transition = -1;
+//      }
+//      if (c->closing_transition == index) {
+//        ctc = c;
+//        c->closing_transition = -1;
+//      }
+//    }
+//  }
 
-  transition = seq->transitions_.at(index);
-  seq->transitions_[index] = nullptr;
+//  transition = seq->transitions_.at(index);
+//  seq->transitions_[index] = nullptr;
 
   MainWindow::instance().setWindowModified(true);
 }
@@ -562,12 +569,13 @@ void AddClipCommand::redo() {
       //      for (int j=0;j<original->linked.size();j++) {
       //        copy->linked[j] = original->linked.at(j) + linkOffset;
       //      }
-      if (original->opening_transition > -1) {
-        copy->opening_transition = original->openingTransition()->copy(copy, nullptr);
-      }
-      if (original->closing_transition > -1) {
-        copy->closing_transition = original->closingTransition()->copy(copy, nullptr);
-      }
+      //FIXME:
+//      if (original->opening_transition > -1) {
+//        copy->opening_transition = original->openingTransition()->copy(copy, nullptr);
+//      }
+//      if (original->closing_transition > -1) {
+//        copy->closing_transition = original->closingTransition()->copy(copy, nullptr);
+//      }
       seq->clips_.append(copy);
     }
   }

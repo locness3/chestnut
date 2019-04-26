@@ -55,6 +55,12 @@ using ClipPtr = std::shared_ptr<Clip>;
 using ClipUPtr = std::unique_ptr<Clip>;
 using ClipWPtr = std::weak_ptr<Clip>;
 
+enum class ClipTransitionType {
+  OPENING,
+  CLOSING,
+  BOTH
+};
+
 class Clip : public project::SequenceItem,
     public std::enable_shared_from_this<Clip>,
     public project::IXMLStreamer,
@@ -123,7 +129,14 @@ class Clip : public project::SequenceItem,
      * @return true==clips position nudged
      */
     bool nudge(const int pos);
-
+    /**
+     * @brief         Set the transition effect(s) to the clip if none already
+     * @param meta    Information about the Transition effect
+     * @param type    opening, closing or both transitions
+     * @param length  Length of the transition in frames
+     * @return  bool==success
+     */
+    bool setTransition(EffectMeta& meta, const ClipTransitionType type, const int length);
 
     void resetAudio();
     void reset();
@@ -143,6 +156,7 @@ class Clip : public project::SequenceItem,
     // queue functions
     void clearQueue();
     void removeEarliestFromQueue();
+
 
 
     TransitionPtr openingTransition() const;
@@ -189,8 +203,6 @@ class Clip : public project::SequenceItem,
 
     // other variables (should be deep copied/duplicated in copy())
     QList<EffectPtr> effects;
-    int opening_transition; //FIXME: really dislike how this refers to an index in a clipboard
-    int closing_transition; //FIXME: really dislike how this refers to an index in a clipboard
 
     // media handling
     struct {
@@ -244,6 +256,10 @@ class Clip : public project::SequenceItem,
         long target_frame = -1;
     } audio_playback;
 
+    struct {
+        TransitionPtr opening_;
+        TransitionPtr closing_;
+    } transition_;
 
   protected:
     virtual void run() override;
@@ -266,10 +282,6 @@ class Clip : public project::SequenceItem,
     int32_t id_{-1};
     //TODO: link to ptrs
     QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
-    struct {
-        TransitionPtr opening_;
-        TransitionPtr closing_;
-    } transition_;
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 

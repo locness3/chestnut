@@ -111,12 +111,13 @@ void EffectControls::menu_select(QAction* q)
     if ( (c != nullptr) &&  (c->timeline_info.isVideo() == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) ) {
       EffectMeta meta = Effect::getRegisteredMeta(q->data().toString());
       if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
-        if (c->openingTransition() == nullptr) {
-          ca->append(new AddTransitionCommand(c, nullptr, nullptr, meta, TA_OPENING_TRANSITION, TRANSITION_LENGTH));
-        }
-        if (c->closingTransition() == nullptr) {
-          ca->append(new AddTransitionCommand(c, nullptr, nullptr, meta, TA_CLOSING_TRANSITION, TRANSITION_LENGTH));
-        }
+        c->setTransition(meta, ClipTransitionType::BOTH, TRANSITION_LENGTH);
+//        if (c->openingTransition() == nullptr) {
+//          ca->append(new AddTransitionCommand(c, nullptr, nullptr, meta, TA_OPENING_TRANSITION, TRANSITION_LENGTH));
+//        }
+//        if (c->closingTransition() == nullptr) {
+//          ca->append(new AddTransitionCommand(c, nullptr, nullptr, meta, TA_CLOSING_TRANSITION, TRANSITION_LENGTH));
+//        }
       } else {
         ca->append(new AddEffectCommand(c, nullptr, meta));
       }

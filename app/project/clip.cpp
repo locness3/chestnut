@@ -60,8 +60,6 @@ double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sam
 Clip::Clip(SequencePtr s) :
   SequenceItem(project::SequenceItemType::CLIP),
   sequence(std::move(s)),
-  opening_transition(-1),
-  closing_transition(-1),
   undeletable(false),
   replaced(false),
   ignore_reverse(false),
@@ -76,19 +74,12 @@ Clip::Clip(SequencePtr s) :
 }
 
 
-Clip::~Clip() {
+Clip::~Clip()
+{
   if (is_open) {
     close(WAIT_ON_CLOSE);
   }
 
-  if (opening_transition != -1) {
-    sequence->hardDeleteTransition(shared_from_this(), TA_OPENING_TRANSITION);
-  }
-  if (closing_transition != -1) {
-    sequence->hardDeleteTransition(shared_from_this(), TA_CLOSING_TRANSITION);
-  }
-
-  effects.clear();
   av_packet_free(&media_handling.pkt);
 }
 
@@ -111,12 +102,14 @@ ClipPtr Clip::copy(SequencePtr s)
 
   copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
 
-  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
-    copyClip->opening_transition = openingTransition()->copy(copyClip, nullptr);
-  }
-  if (closingTransition() != nullptr && !closingTransition()->secondary_clip.expired()) {
-    copyClip->closing_transition = closingTransition()->copy(copyClip, nullptr);
-  }
+  //TODO: copy transitions
+//  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
+//    copyClip->opening_transition = openingTransition()->copy(copyClip, nullptr);
+//  }
+//  if (closingTransition() != nullptr && !closingTransition()->secondary_clip.expired()) {
+//    copyClip->closing_transition = closingTransition()->copy(copyClip, nullptr);
+//  }
+
   copyClip->recalculateMaxLength();
 
   return copyClip;
@@ -595,6 +588,35 @@ bool Clip::nudge(const int pos)
   return true;
 }
 
+
+bool Clip::setTransition(EffectMeta& meta, const ClipTransitionType type, const int length)
+{
+  switch (type) {
+    case ClipTransitionType::BOTH:
+      transition_.opening_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      transition_.closing_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      if ( (transition_.opening_ != nullptr) && (transition_.closing_ != nullptr) ) {
+        transition_.opening_->set_length(length);
+        transition_.closing_->set_length(length);
+        return true;
+      }
+      return false;
+    case ClipTransitionType::CLOSING:
+      transition_.closing_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      if (transition_.closing_ != nullptr) {
+        transition_.closing_->set_length(length);
+      }
+    case ClipTransitionType::OPENING:
+      transition_.opening_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      if (transition_.opening_ != nullptr) {
+        transition_.opening_->set_length(length);
+        return true;
+      }
+      return false;
+  }
+  return false;
+}
+
 void Clip::reset()
 {
   audio_playback.just_reset = false;
@@ -677,24 +699,26 @@ void Clip::removeEarliestFromQueue() {
 
 TransitionPtr Clip::openingTransition() const
 {
-  if (opening_transition > -1) {
-    if (sequence == nullptr) {
-      return e_clipboard_transitions.at(opening_transition);
-    }
-    return sequence->transitions_.at(opening_transition);
-  }
-  return nullptr;
+  return transition_.opening_;
+//  if (opening_transition > -1) {
+//    if (sequence == nullptr) {
+//      return e_clipboard_transitions.at(opening_transition);
+//    }
+//    return sequence->transitions_.at(opening_transition);
+//  }
+//  return nullptr;
 }
 
 TransitionPtr Clip::closingTransition() const
 {
-  if (closing_transition > -1) {
-    if (sequence == nullptr) {
-      return e_clipboard_transitions.at(closing_transition);
-    }
-    return sequence->transitions_.at(closing_transition);
-  }
-  return nullptr;
+  return transition_.closing_;
+//  if (closing_transition > -1) {
+//    if (sequence == nullptr) {
+//      return e_clipboard_transitions.at(closing_transition);
+//    }
+//    return sequence->transitions_.at(closing_transition);
+//  }
+//  return nullptr;
 }
 
 /**
