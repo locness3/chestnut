@@ -1200,11 +1200,13 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
           }
 
           if (PanelManager::timeLine().transition_tool_post_clip > -1) {
-            ca->append(new AddTransitionCommand(pre, post, nullptr, PanelManager::timeLine().transition_tool_meta,
-                                                TA_OPENING_TRANSITION, transition_end - pre->timeline_info.in));
+            //FIXME: transition
+//            ca->append(new AddTransitionCommand(pre, post, nullptr, PanelManager::timeLine().transition_tool_meta,
+//                                                TA_OPENING_TRANSITION, transition_end - pre->timeline_info.in));
           } else {
-            ca->append(new AddTransitionCommand(pre, nullptr, nullptr, PanelManager::timeLine().transition_tool_meta,
-                                                PanelManager::timeLine().transition_tool_type, transition_end - transition_start));
+            //FIXME: transition
+//            ca->append(new AddTransitionCommand(pre, nullptr, nullptr, PanelManager::timeLine().transition_tool_meta,
+//                                                PanelManager::timeLine().transition_tool_type, transition_end - transition_start));
           }
 
           push_undo = true;

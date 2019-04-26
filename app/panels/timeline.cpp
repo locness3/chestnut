@@ -404,21 +404,15 @@ void Timeline::add_transition()
   auto ca = new ComboAction();
   bool adding = false;
 
-  for (int i=0;i<global::sequence->clips_.size();i++) {
-    ClipPtr c = global::sequence->clips_.at(i);
-    if (c != nullptr && c->isSelected(true)) {
-      if (c->openingTransition() == nullptr) {
-        ca->append(new AddTransitionCommand(c, nullptr, nullptr,
-                                            get_internal_meta(TRANSITION_INTERNAL_LINEARFADE, EFFECT_TYPE_TRANSITION),
-                                            TA_OPENING_TRANSITION, 30));
-        adding = true;
-      }
-      if (c->closingTransition() == nullptr) {
-        ca->append(new AddTransitionCommand(c, nullptr, nullptr,
-                                            get_internal_meta(TRANSITION_INTERNAL_LINEARFADE, EFFECT_TYPE_TRANSITION),
-                                            TA_OPENING_TRANSITION, 30));
-        adding = true;
-      }
+  const auto audio_meta = get_internal_meta(TRANSITION_INTERNAL_LINEARFADE, EFFECT_TYPE_TRANSITION);
+  const auto video_meta = get_internal_meta(TRANSITION_INTERNAL_CROSSDISSOLVE, EFFECT_TYPE_TRANSITION);
+
+
+  for (const auto& clp : global::sequence->clips_) {
+    if (clp != nullptr && clp->isSelected(true)){
+      auto meta = clp->type() == ClipType::AUDIO ? audio_meta : video_meta;
+      ca->append(new AddTransitionCommand(clp, nullptr, meta, ClipTransitionType::BOTH, 30));
+      adding = true;
     }
   }
 
@@ -2043,15 +2037,17 @@ void move_clip(ComboAction* ca, ClipPtr c, long iin, long iout, long iclip_in, i
         && c->openingTransition()->secondary_clip.lock()->timeline_info.out != iin) {
       // separate transition
       //            ca->append(new SetPointer(reinterpret_cast<void**>(&c->openingTransition()->secondary_clip), nullptr)); //FIXME: casting
-      ca->append(new AddTransitionCommand(c->openingTransition()->secondary_clip.lock(), nullptr,
-                                          c->openingTransition(), TA_CLOSING_TRANSITION, 0));
+      //FIXME: transition
+//      ca->append(new AddTransitionCommand(c->openingTransition()->secondary_clip.lock(), nullptr,
+//                                          c->openingTransition(), TA_CLOSING_TRANSITION, 0));
     }
 
     if (c->closingTransition() != nullptr && !c->closingTransition()->secondary_clip.expired()
         && c->closingTransition()->parent_clip->timeline_info.in != iout) {
       // separate transition
       //            ca->append(new SetPointer(reinterpret_cast<void**>(&c->closingTransition()->secondary_clip), nullptr)); //FIXME: casting
-      ca->append(new AddTransitionCommand(c, nullptr, c->closingTransition(), TA_CLOSING_TRANSITION, 0));
+      //FIXME: transition
+//      ca->append(new AddTransitionCommand(c, nullptr, c->closingTransition(), TA_CLOSING_TRANSITION, 0));
     }
   }
 }

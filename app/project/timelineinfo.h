@@ -18,6 +18,8 @@ class TimelineInfo : public project::IXMLStreamer
 {
 public:
   TimelineInfo() = default;
+
+  [[deprecated("Replaced by ClipType Clip::type()")]]
   bool isVideo() const;
   TimelineInfo& operator=(const TimelineInfo& rhs);
 

@@ -108,21 +108,16 @@ void EffectControls::menu_select(QAction* q)
   auto ca = new ComboAction();
   for (auto clip_id : selected_clips) {
     const ClipPtr& c = global::sequence->clip(clip_id);
-    if ( (c != nullptr) &&  (c->timeline_info.isVideo() == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) ) {
+    if ( (c != nullptr) &&  ((c->type() == ClipType::VISUAL) == (effect_menu_subtype == EFFECT_TYPE_VIDEO)) ) {
       EffectMeta meta = Effect::getRegisteredMeta(q->data().toString());
       if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
-        c->setTransition(meta, ClipTransitionType::BOTH, TRANSITION_LENGTH);
-//        if (c->openingTransition() == nullptr) {
-//          ca->append(new AddTransitionCommand(c, nullptr, nullptr, meta, TA_OPENING_TRANSITION, TRANSITION_LENGTH));
-//        }
-//        if (c->closingTransition() == nullptr) {
-//          ca->append(new AddTransitionCommand(c, nullptr, nullptr, meta, TA_CLOSING_TRANSITION, TRANSITION_LENGTH));
-//        }
+        ca->append(new AddTransitionCommand(c, nullptr, meta, ClipTransitionType::BOTH, TRANSITION_LENGTH));
       } else {
         ca->append(new AddEffectCommand(c, nullptr, meta));
       }
     }
   }
+
   e_undo_stack.push(ca);
   if (effect_menu_type == EFFECT_TYPE_TRANSITION) {
     PanelManager::refreshPanels(true);

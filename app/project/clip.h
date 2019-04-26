@@ -61,6 +61,12 @@ enum class ClipTransitionType {
   BOTH
 };
 
+enum class ClipType {
+  AUDIO,
+  VISUAL,
+  UNKNOWN
+};
+
 class Clip : public project::SequenceItem,
     public std::enable_shared_from_this<Clip>,
     public project::IXMLStreamer,
@@ -136,7 +142,12 @@ class Clip : public project::SequenceItem,
      * @param length  Length of the transition in frames
      * @return  bool==success
      */
-    bool setTransition(EffectMeta& meta, const ClipTransitionType type, const int length);
+    bool setTransition(const EffectMeta& meta, const ClipTransitionType type, const int length);
+    /**
+     * @brief Delete the Clip's transition(s)
+     * @param type  opening, closing or both transitions
+     */
+    void deleteTransition(const ClipTransitionType type);
 
     void resetAudio();
     void reset();
@@ -179,6 +190,11 @@ class Clip : public project::SequenceItem,
      * @return true==is selected
      */
     bool isSelected(const bool containing);
+    /**
+     * @brief Obtain this clip type
+     * @return
+     */
+    ClipType type() const;
 
     void addLinkedClip(const ClipPtr& clp);
     void setLinkedClips(const QVector<int32_t>& links);

@@ -589,7 +589,7 @@ bool Clip::nudge(const int pos)
 }
 
 
-bool Clip::setTransition(EffectMeta& meta, const ClipTransitionType type, const int length)
+bool Clip::setTransition(const EffectMeta& meta, const ClipTransitionType type, const int length)
 {
   switch (type) {
     case ClipTransitionType::BOTH:
@@ -605,7 +605,9 @@ bool Clip::setTransition(EffectMeta& meta, const ClipTransitionType type, const 
       transition_.closing_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
       if (transition_.closing_ != nullptr) {
         transition_.closing_->set_length(length);
+        return true;
       }
+      return false;
     case ClipTransitionType::OPENING:
       transition_.opening_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
       if (transition_.opening_ != nullptr) {
@@ -615,6 +617,23 @@ bool Clip::setTransition(EffectMeta& meta, const ClipTransitionType type, const 
       return false;
   }
   return false;
+}
+
+
+void Clip::deleteTransition(const ClipTransitionType type)
+{
+  switch (type) {
+    case ClipTransitionType::BOTH:
+      transition_.opening_ = nullptr;
+      transition_.closing_ = nullptr;
+      break;
+    case ClipTransitionType::CLOSING:
+      transition_.closing_ = nullptr;
+      break;
+    case ClipTransitionType::OPENING:
+      transition_.opening_ = nullptr;
+      break;
+  }
 }
 
 void Clip::reset()
@@ -926,6 +945,13 @@ bool Clip::isSelected(const bool containing)
   return false;
 }
 
+ClipType Clip::type() const
+{
+  if (timeline_info.track_ >= 0) {
+    return ClipType::AUDIO;
+  }
+  return ClipType::VISUAL;
+}
 
 void Clip::addLinkedClip(const ClipPtr& clp)
 {
@@ -1990,8 +2016,9 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
          (openingTransition()->secondary_clip.lock()->timeline_info.out != iin) ) {
       // separate transition
       //            ca.append(new SetPointer((void**) &openingTransition()->secondary_clip, nullptr)); //FIXME:
-      ca.append(new AddTransitionCommand(openingTransition()->secondary_clip.lock(), nullptr,
-                                         openingTransition(), TA_CLOSING_TRANSITION, 0));
+      //FIXME: transition
+//      ca.append(new AddTransitionCommand(openingTransition()->secondary_clip.lock(), nullptr,
+//                                         openingTransition(), TA_CLOSING_TRANSITION, 0));
     }
 
     if ( (closingTransition() != nullptr) &&
@@ -1999,7 +2026,8 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
          (closingTransition()->parent_clip->timeline_info.in != iout) ) {
       // separate transition
       //      ca.append(new SetPointer((void**) &closingTransition()->secondary_clip, nullptr)); //FIXME:
-      ca.append(new AddTransitionCommand(shared_from_this(), nullptr, closingTransition(), TA_CLOSING_TRANSITION, 0));
+      //FIXME: transition
+//      ca.append(new AddTransitionCommand(shared_from_this(), nullptr, closingTransition(), TA_CLOSING_TRANSITION, 0));
     }
   }
 }
