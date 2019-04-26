@@ -91,6 +91,7 @@ constexpr qint64 WEEK_IN_SECONDS = 604800000;
 constexpr qint64 AUTORECOVERY_INTERVAL_MILLIS = 60000;
 
 constexpr int NUDGE_VAL = 1;
+constexpr int UNDO_STACK_LIMIT = 10;
 
 
 void MainWindow::nudgeClip(const bool forward)
@@ -590,6 +591,7 @@ void MainWindow::new_project()
   if (can_close_project()) {
     PanelManager::fxControls().clear_effects(true);
     e_undo_stack.clear();
+    e_undo_stack.setUndoLimit(UNDO_STACK_LIMIT);
     project_url.clear();
     PanelManager::projectViewer().new_project();
     updateTitle("");
