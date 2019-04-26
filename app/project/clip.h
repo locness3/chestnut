@@ -154,6 +154,13 @@ class Clip : public project::SequenceItem,
      * @return ptr or null
      */
     TransitionPtr getTransition(const ClipTransitionType type);
+    /**
+     * @brief Split this clip at a sequence frame.
+     * If possible to split, a new clip starting after the split is returned and the current clip is modified.
+     * @param frame   Sequence playhead
+     * @return  The Clip after the split or nullptr
+     */
+    ClipPtr split(const long frame);
 
     void resetAudio();
     void reset();

@@ -2957,31 +2957,16 @@ bool TimelineWidget::splitClipEvent(const long frame, const QSet<int>& tracks)
     }
   }
   for (auto track : all_tracks) {
-    auto pre = getClipFromCoords(frame, track);
-    if (pre != nullptr) {
-      // Create copy
-      auto post = pre->copy(global::sequence);
-      // Adjust the in/out points
-      pre->timeline_info.out = frame;
-      post->timeline_info.in = frame;
-      // Adjust transitions
-      //FIXME:
-//      post->closing_transition = pre->closing_transition;
-//      pre->closing_transition = -1;
-//      post->opening_transition = -1;
-      if (pre->openingTransition() != nullptr) {
-        pre->openingTransition()->set_length(qMin(pre->openingTransition()->get_length(), pre->length()));
+    if (auto pre = getClipFromCoords(frame, track)) {
+      if (auto post = pre->split(frame)) {
+        // Put new clip in sequence
+        global::sequence->clips_.append(post);
+        split = true;
+        new_clips.append(post);
       }
-      if (post->closingTransition()) {
-        post->closingTransition()->set_length(qMin(post->closingTransition()->get_length(), post->length()));
-      }
-
-      // Put new clip in sequence
-      global::sequence->clips_.append(post);
-      split = true;
-      new_clips.append(post);
     }
   }
+
   //FIXME: on a drag-split, all splits will become linked
   // Sort out links to each other
   for (const auto& new_clip : new_clips) {

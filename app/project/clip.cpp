@@ -652,6 +652,34 @@ TransitionPtr Clip::getTransition(const ClipTransitionType type)
   return nullptr;
 }
 
+
+ClipPtr Clip::split(const long frame)
+{
+  // check limits
+  if (frame <= timeline_info.in || frame >= timeline_info.out) {
+    qWarning() << "Unable to split. Out-of-range";
+    return nullptr;
+  }
+  // Create copy
+  auto post = copy(this->sequence);
+  // Adjust the in/out points
+  timeline_info.out = frame;
+  post->timeline_info.in = frame;
+  // Adjust transitions
+  post->transition_.closing_ = transition_.closing_;
+  post->transition_.opening_ = nullptr;
+  transition_.closing_ = nullptr;
+
+  // ensure transition lengths within limits
+  if (transition_.opening_ != nullptr) {
+    transition_.opening_->set_length(qMin(transition_.opening_->get_length(), length()));
+  }
+  if (transition_.closing_) {
+    post->transition_.closing_->set_length(qMin(post->transition_.closing_->get_length(), post->length()));
+  }
+  return post;
+}
+
 void Clip::reset()
 {
   audio_playback.just_reset = false;
