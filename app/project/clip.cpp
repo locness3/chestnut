@@ -86,33 +86,33 @@ Clip::~Clip()
 
 ClipPtr Clip::copy(SequencePtr s)
 {
-  ClipPtr copyClip = std::make_shared<Clip>(s);
+  auto copy_clip = std::make_shared<Clip>(std::move(s));
 
-  copyClip->timeline_info = timeline_info;
+  copy_clip->timeline_info = timeline_info;
 
   for (auto& eff : effects) {
     if (eff == nullptr) {
       qWarning() << "Null Effect instance";
       continue;
     }
-    copyClip->effects.append(eff->copy(copyClip));
+    copy_clip->effects.append(eff->copy(copy_clip));
   }
 
   // leave id_ and linked for callees to assign
 
-  copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
+  copy_clip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
 
-  //TODO: copy transitions
-//  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
-//    copyClip->opening_transition = openingTransition()->copy(copyClip, nullptr);
-//  }
-//  if (closingTransition() != nullptr && !closingTransition()->secondary_clip.expired()) {
-//    copyClip->closing_transition = closingTransition()->copy(copyClip, nullptr);
-//  }
+  // copy transitions
+  if (auto trans = getTransition(ClipTransitionType::OPENING)) {
+    copy_clip->setTransition(trans->meta, ClipTransitionType::OPENING, trans->get_length());
+  }
+  if (auto trans = getTransition(ClipTransitionType::CLOSING)) {
+    copy_clip->setTransition(trans->meta, ClipTransitionType::CLOSING, trans->get_length());
+  }
 
-  copyClip->recalculateMaxLength();
+  copy_clip->recalculateMaxLength();
 
-  return copyClip;
+  return copy_clip;
 }
 
 
@@ -589,7 +589,7 @@ bool Clip::nudge(const int pos)
 }
 
 
-bool Clip::setTransition(const EffectMeta& meta, const ClipTransitionType type, const int length)
+bool Clip::setTransition(const EffectMeta& meta, const ClipTransitionType type, const long length)
 {
   switch (type) {
     case ClipTransitionType::BOTH:

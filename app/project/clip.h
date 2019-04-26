@@ -142,7 +142,7 @@ class Clip : public project::SequenceItem,
      * @param length  Length of the transition in frames
      * @return  bool==success
      */
-    bool setTransition(const EffectMeta& meta, const ClipTransitionType type, const int length);
+    bool setTransition(const EffectMeta& meta, const ClipTransitionType type, const long length);
     /**
      * @brief Delete the Clip's transition(s)
      * @param type  opening, closing or both transitions
@@ -242,7 +242,7 @@ class Clip : public project::SequenceItem,
         AVFrame* frame = nullptr;
         AVDictionary* opts = nullptr;
         long calculated_length = -1;
-    } media_handling;
+    } media_handling; //FIXME: the use of this lot should really be its own library/class
 
     // temporary variables
     int load_id{};

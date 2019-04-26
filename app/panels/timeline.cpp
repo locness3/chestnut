@@ -467,7 +467,8 @@ bool Timeline::focused() {
   return (global::sequence != nullptr && (headers->hasFocus() || video_area->hasFocus() || audio_area->hasFocus()));
 }
 
-void Timeline::repaint_timeline() {
+void Timeline::repaint_timeline()
+{
   if (block_repaints) {
     return;
   }

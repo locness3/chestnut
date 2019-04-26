@@ -2659,8 +2659,13 @@ void TimelineWidget::paintEvent(QPaintEvent*)
 
           // bottom right gray
           painter.setPen(QColor(0, 0, 0, 128));
-          if (clip_rect.right() >= 0 && clip_rect.right() < width()) painter.drawLine(clip_rect.bottomRight(), clip_rect.topRight());
-          if (clip_rect.bottom() >= 0 && clip_rect.bottom() < height()) painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.bottom()), QPoint(qMin(width(), clip_rect.right()), clip_rect.bottom()));
+          if (clip_rect.right() >= 0 && clip_rect.right() < width()) {
+            painter.drawLine(clip_rect.bottomRight(), clip_rect.topRight());
+          }
+          if (clip_rect.bottom() >= 0 && clip_rect.bottom() < height()) {
+            painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.bottom()),
+                             QPoint(qMin(width(), clip_rect.right()), clip_rect.bottom()));
+          }
 
           // draw transition tool
           if (PanelManager::timeLine().tool == TimelineToolType::TRANSITION
