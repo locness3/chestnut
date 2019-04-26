@@ -636,6 +636,22 @@ void Clip::deleteTransition(const ClipTransitionType type)
   }
 }
 
+
+TransitionPtr Clip::getTransition(const ClipTransitionType type)
+{
+  switch (type) {
+    case ClipTransitionType::OPENING:
+      return transition_.opening_;
+    case ClipTransitionType::CLOSING:
+      return transition_.closing_;
+    case ClipTransitionType::BOTH:
+      [[fallthrough]];
+    default:
+      break;
+  }
+  return nullptr;
+}
+
 void Clip::reset()
 {
   audio_playback.just_reset = false;

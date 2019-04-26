@@ -381,51 +381,73 @@ void ModifyTransitionCommand::redo()
   }
 }
 
-DeleteTransitionCommand::DeleteTransitionCommand(SequencePtr  s, const int transition_index) :
-  seq(std::move(s)),
-  index(transition_index),
-  transition(nullptr),
-  otc(nullptr),
-  ctc(nullptr),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
+DeleteTransitionCommand::DeleteTransitionCommand(ClipPtr clp, const ClipTransitionType type)
+  : clip_(std::move(clp)),
+    type_(type),
+    old_project_changed(MainWindow::instance().isWindowModified())
+{
+  if (clip_ != nullptr) {
+    // Hold values required to re-create transition(s) for the clip
+    switch (type_) {
+    case ClipTransitionType::OPENING:
+      populateOpening();
+      break;
+    case ClipTransitionType::CLOSING:
+      populateClosing();
+      break;
+    case ClipTransitionType::BOTH:
+      populateClosing();
+      populateOpening();
+      break;
+    }
+  }
+}
 
-
-
-void DeleteTransitionCommand::undo() {
-  seq->transitions_[index] = transition;
-
-  //FIXME:
-  //  if (otc != nullptr) {
-  //    otc->opening_transition = index;
-  //  }
-  //  if (ctc != nullptr) {
-  //    ctc->closing_transition = index;
-  //  }
-
-  transition = nullptr;
+void DeleteTransitionCommand::undo()
+{
+  if (clip_ != nullptr) {
+    switch (type_) {
+    case ClipTransitionType::OPENING:
+      clip_->setTransition(meta_.opening_, type_, lengths_.opening_);
+      break;
+    case ClipTransitionType::CLOSING:
+      clip_->setTransition(meta_.closing_, type_, lengths_.closing_);
+      break;
+    case ClipTransitionType::BOTH:
+      clip_->setTransition(meta_.opening_, ClipTransitionType::OPENING, lengths_.opening_);
+      clip_->setTransition(meta_.closing_, ClipTransitionType::CLOSING, lengths_.closing_);
+      break;
+    }
+  }
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
-void DeleteTransitionCommand::redo() {
-  //FIXME:
-  //  for (const auto& c : seq->clips_) {
-  //    if (c != nullptr) {
-  //      if (c->opening_transition == index) {
-  //        otc = c;
-  //        c->opening_transition = -1;
-  //      }
-  //      if (c->closing_transition == index) {
-  //        ctc = c;
-  //        c->closing_transition = -1;
-  //      }
-  //    }
-  //  }
-
-  //  transition = seq->transitions_.at(index);
-  //  seq->transitions_[index] = nullptr;
-
+void DeleteTransitionCommand::redo()
+{
+  if (clip_ != nullptr) {
+    clip_->deleteTransition(type_);
+  }
   MainWindow::instance().setWindowModified(true);
+}
+
+
+
+void DeleteTransitionCommand::populateOpening()
+{
+  if (auto trans = clip_->getTransition(ClipTransitionType::OPENING)) {
+    meta_.opening_ = trans->meta;
+    lengths_.opening_ = trans->get_length();
+    secondary_.opening_ = trans->secondary_clip;
+  }
+}
+
+void DeleteTransitionCommand::populateClosing()
+{
+  if (auto trans = clip_->getTransition(ClipTransitionType::CLOSING)) {
+    meta_.closing_ = trans->meta;
+    lengths_.closing_ = trans->get_length();
+    secondary_.closing_ = trans->secondary_clip;
+  }
 }
 
 NewSequenceCommand::NewSequenceCommand(MediaPtr s, MediaPtr iparent, const bool modified) :

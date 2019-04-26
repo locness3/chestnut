@@ -148,6 +148,12 @@ class Clip : public project::SequenceItem,
      * @param type  opening, closing or both transitions
      */
     void deleteTransition(const ClipTransitionType type);
+    /**
+     * @brief Obtain this clip transition
+     * @param type  Only 1 transition type i.e. opening or closing
+     * @return ptr or null
+     */
+    TransitionPtr getTransition(const ClipTransitionType type);
 
     void resetAudio();
     void reset();
@@ -169,8 +175,9 @@ class Clip : public project::SequenceItem,
     void removeEarliestFromQueue();
 
 
-
+    [[deprecated("Use Clip::getTransition")]]
     TransitionPtr openingTransition() const;
+    [[deprecated("Use Clip::getTransition")]]
     TransitionPtr closingTransition() const;
 
     /**

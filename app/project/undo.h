@@ -159,12 +159,6 @@ private:
 
 class AddTransitionCommand : public QUndoCommand {
 public:
-//    AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const EffectMeta& itransition,
-//                         const int itype, const int ilength);
-//    AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const int itype, const int ilength);
-
-//    AddTransitionCommand(const AddTransitionCommand& ) = delete;
-//    AddTransitionCommand& operator=(const AddTransitionCommand&) = delete;
   AddTransitionCommand(ClipPtr parent,
                        ClipPtr secondary,
                        const EffectMeta& meta,
@@ -199,16 +193,30 @@ private:
 
 class DeleteTransitionCommand : public QUndoCommand {
 public:
-  DeleteTransitionCommand(SequencePtr  s, const int transition_index);
+  DeleteTransitionCommand(ClipPtr clp, const ClipTransitionType type);
+
   virtual void undo() override;
   virtual void redo() override;
 private:
-  SequencePtr seq;
-  int index;
-  TransitionPtr transition;
-  ClipPtr otc;
-  ClipPtr ctc;
+  ClipPtr clip_;
+  ClipTransitionType type_;
+
+  struct {
+    ClipWPtr opening_{};
+    ClipWPtr closing_{};
+  } secondary_;
+
+  struct {
+    EffectMeta opening_{};
+    EffectMeta closing_{};
+  } meta_;
+  struct {
+    int opening_;
+    int closing_;
+  } lengths_;
   bool old_project_changed;
+  void populateOpening();
+  void populateClosing();
 };
 
 class SetTimelineInOutCommand : public QUndoCommand {
