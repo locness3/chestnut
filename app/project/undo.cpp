@@ -87,6 +87,11 @@ void ComboAction::appendPost(QUndoCommand* u) {
   post_commands.append(u);
 }
 
+int ComboAction::size() const
+{
+  return commands.size();
+}
+
 MoveClipAction::MoveClipAction(const ClipPtr& c, const long iin, const long iout, const long iclip_in, const int itrack, const bool irelative)
   : clip(c),
     old_in(c->timeline_info.in),
@@ -1247,4 +1252,23 @@ void RefreshClips::redo()
       }
     }
   }
+}
+
+NudgeClipCommand::NudgeClipCommand(ClipPtr clp, const int value)
+  : clip_(std::move(clp)),
+    nudge_value_(value)
+{
+
+}
+
+void NudgeClipCommand::undo()
+{
+  Q_ASSERT(clip_ != nullptr);
+  clip_->nudge(-nudge_value_);
+}
+
+void NudgeClipCommand::redo()
+{
+  Q_ASSERT(clip_ != nullptr);
+  clip_->nudge(nudge_value_);
 }

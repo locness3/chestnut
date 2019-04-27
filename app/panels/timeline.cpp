@@ -198,17 +198,24 @@ void Timeline::nudgeClips(const int pos)
 {  
   Q_ASSERT(sequence_ != nullptr);
 
-  // TODO: make this a QUndoCommand
+  auto ca = new ComboAction();
   for (const auto& clp : selectedClips()) {
     if (clp != nullptr) {
-      clp->nudge(pos);
+      ca->append(new NudgeClipCommand(clp, pos));
     }
   }
 
   for (auto& sel : sequence_->selections_) {
+    //TODO: selection command?
     //TODO:check limits
     sel.in += pos;
     sel.out += pos;
+  }
+
+  if (ca->size() > 0) {
+    e_undo_stack.push(ca);
+  } else {
+    delete ca;
   }
 
   repaint_timeline();
@@ -1627,7 +1634,7 @@ void Timeline::transition_tool_click()
 
 void Timeline::transition_menu_select(QAction* a)
 {
-  transition_tool_meta = Effect::getRegisteredMeta(a->data().toString().toLower());
+  transition_tool_meta = Effect::getRegisteredMeta(a->data().toString());
 
   if (a->objectName() == "v") {
     transition_tool_side = -1;
