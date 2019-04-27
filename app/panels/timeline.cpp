@@ -1594,32 +1594,29 @@ void Timeline::record_btn_click()
   }
 }
 
-void Timeline::transition_tool_click() {
+void Timeline::transition_tool_click()
+{
   creating = false;
 
   QMenu transition_menu(this);
 
-  //FIXME: menus
-  //  for (int i=0;i<effects.size();i++) {
-  //    const EffectMeta& em = effects.at(i);
-  //    if (em.type == EFFECT_TYPE_TRANSITION && em.subtype == EFFECT_TYPE_VIDEO) {
-  //      QAction* a = transition_menu.addAction(em.name);
-  //      a->setObjectName("v");
-  //      a->setData(reinterpret_cast<quintptr>(&em));
-  //    }
-  //  }
+  for (const auto& named_meta : Effect::getRegisteredMetas().toStdMap()) {
+    if ( (named_meta.second.type == EFFECT_TYPE_TRANSITION) && (named_meta.second.subtype == EFFECT_TYPE_VIDEO) ) {
+      QAction* action = transition_menu.addAction(named_meta.second.name);
+      action->setObjectName("v");
+      action->setData(named_meta.first);
+    }
+  }
 
   transition_menu.addSeparator();
 
-  //FIXME: menus
-  //  for (int i=0;i<effects.size();i++) {
-  //    const EffectMeta& em = effects.at(i);
-  //    if (em.type == EFFECT_TYPE_TRANSITION && em.subtype == EFFECT_TYPE_AUDIO) {
-  //      QAction* a = transition_menu.addAction(em.name);
-  //      a->setObjectName("a");
-  //      a->setData(reinterpret_cast<quintptr>(&em));
-  //    }
-  //  }
+  for (const auto& named_meta : Effect::getRegisteredMetas().toStdMap()) {
+    if ( (named_meta.second.type == EFFECT_TYPE_TRANSITION) && (named_meta.second.subtype == EFFECT_TYPE_AUDIO) ) {
+      QAction* action = transition_menu.addAction(named_meta.second.name);
+      action->setObjectName("a");
+      action->setData(named_meta.first);
+    }
+  }
 
   connect(&transition_menu, SIGNAL(triggered(QAction*)), this, SLOT(transition_menu_select(QAction*)));
 
