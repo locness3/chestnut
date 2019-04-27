@@ -56,10 +56,11 @@ public:
     ComboAction& operator=(const ComboAction&) = delete;
     ComboAction& operator=(const ComboAction&&) = delete;
 
-    virtual void undo() override;
-    virtual void redo() override;
-    void append(QUndoCommand* u);
-    void appendPost(QUndoCommand* u);
+  virtual void undo() override;
+  virtual void redo() override;
+  void append(QUndoCommand* u);
+  void appendPost(QUndoCommand* u);
+  int size() const;
 private:
     QVector<QUndoCommand*> commands;
     QVector<QUndoCommand*> post_commands;
@@ -697,6 +698,16 @@ public:
     virtual void redo() override;
 private:
     MediaPtr media;
+};
+
+class NudgeClipCommand: public QUndoCommand {
+  public:
+    NudgeClipCommand(ClipPtr clp, const int val);
+    virtual void undo() override;
+    virtual void redo() override;
+  private:
+    ClipPtr clip_;
+    int nudge_value_;
 };
 
 #endif // UNDO_H

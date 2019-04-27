@@ -173,18 +173,27 @@ void Timeline::next_cut()
  * @param pos
  */
 void Timeline::nudgeClips(const int pos)
-{
-  // TODO: make this a QUndoCommand
+{  
+  Q_ASSERT(global::sequence != nullptr);
+
+  auto ca = new ComboAction();
   for (const auto& clp : selectedClips()) {
     if (clp != nullptr) {
-      clp->nudge(pos);
+      ca->append(new NudgeClipCommand(clp, pos));
     }
   }
 
   for (auto& sel : global::sequence->selections_) {
+    //TODO: selection command?
     //TODO:check limits
     sel.in += pos;
     sel.out += pos;
+  }
+
+  if (ca->size() > 0) {
+    e_undo_stack.push(ca);
+  } else {
+    delete ca;
   }
 
   repaint_timeline();
@@ -1903,7 +1912,7 @@ std::vector<ClipPtr> Timeline::selectedClips()
   std::vector<ClipPtr> clips;
   auto seqClips = global::sequence->clips_;
   for (const auto& clp : seqClips) {
-    if (clp->isSelected(true)) {
+    if ((clp != nullptr) && clp->isSelected(true)) {
       clips.emplace_back(clp);
     }
   }
