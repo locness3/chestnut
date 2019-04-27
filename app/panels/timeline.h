@@ -108,7 +108,6 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void set_zoom(bool in);
     void copy(bool del);
     void paste(bool insert);
-    bool split_selection(ComboAction* ca);
     bool split_all_clips_at_point(ComboAction *ca, long point);
     void clean_up_selections(QVector<Selection>& areas);
     void deselect_area(long in, long out, int track);
