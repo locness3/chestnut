@@ -165,6 +165,7 @@ void LoadThread::success_func()
     //TODO: think of a better way than this and playback.h - set_sequence()
     PanelManager::fxControls().clear_effects(true);
     PanelManager::sequenceViewer().set_main_sequence();
+    PanelManager::timeLine().setSequence(global::sequence);
     PanelManager::timeLine().update_sequence();
     PanelManager::timeLine().setFocus();
   }

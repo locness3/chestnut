@@ -491,7 +491,7 @@ void insert_clips(ComboAction* ca) {
       }
       if (!found) {
         if (c->timeline_info.in < earliest_new_point && c->timeline_info.out > earliest_new_point) {
-          PanelManager::timeLine().split_clip_and_relink(ca, i, earliest_new_point, true);
+//          PanelManager::timeLine().split_clip_and_relink(ca, i, earliest_new_point, true); //FIXME:
         }
 
         // determine if we should close the gap the old clips left behind
@@ -2959,6 +2959,7 @@ bool TimelineWidget::splitClipEvent(const long frame, const QSet<int>& tracks)
   for (auto track : all_tracks) {
     if (auto pre = getClipFromCoords(frame, track)) {
       if (auto post = pre->split(frame)) {
+        //TODO: make an UndoCommand
         // Put new clip in sequence
         global::sequence->clips_.append(post);
         split = true;

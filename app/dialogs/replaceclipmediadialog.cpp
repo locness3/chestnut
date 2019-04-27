@@ -80,7 +80,8 @@ ReplaceClipMediaDialog::ReplaceClipMediaDialog(QWidget *parent, MediaPtr old_med
   tree->setModel(&Project::model());
 }
 
-void ReplaceClipMediaDialog::replace() {
+void ReplaceClipMediaDialog::replace()
+{
   QModelIndexList selected_items = tree->selectionModel()->selectedRows();
   if (selected_items.size() != 1) {
     QMessageBox::critical(
@@ -114,16 +115,13 @@ void ReplaceClipMediaDialog::replace() {
               QMessageBox::Ok
               );
       } else {
-        ReplaceClipMediaCommand* rcmc = new ReplaceClipMediaCommand(
-                                          media_,
-                                          new_item,
-                                          use_same_media_in_points->isChecked()
-                                          );
+        auto rcmc = new ReplaceClipMediaCommand(media_,
+                                                new_item,
+                                                use_same_media_in_points->isChecked());
 
-        for (int i=0;i<global::sequence->clips_.size();i++) {
-          ClipPtr c = global::sequence->clips_.at(i);
-          if (c != nullptr && c->timeline_info.media == media_) {
-            rcmc->clips.append(c);
+        for (const auto& clp : global::sequence->clips_) {
+          if ( (clp != nullptr) && (clp->timeline_info.media == media_) ) {
+            rcmc->clips.append(clp);
           }
         }
 
@@ -131,7 +129,6 @@ void ReplaceClipMediaDialog::replace() {
 
         close();
       }
-
     }
   }
 }

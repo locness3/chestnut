@@ -59,11 +59,12 @@ long refactor_frame_number(long framenumber, double source_frame_rate, double ta
 
 
 
-void set_sequence(SequencePtr s)
+void set_sequence(const SequencePtr& s)
 {
     PanelManager::fxControls().clear_effects(true);
-    global::sequence = std::move(s);
+    global::sequence = s;
     PanelManager::sequenceViewer().set_main_sequence();
+    PanelManager::timeLine().setSequence(s);
     PanelManager::timeLine().update_sequence();
     PanelManager::timeLine().setFocus();
 }

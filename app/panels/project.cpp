@@ -493,7 +493,7 @@ void Project::delete_selected_media()
       for (auto j=0; j<sequence_items.size() && (!abort) && (!skip); ++j) {
         auto seq = sequence_items.at(j)->object<Sequence>();
         for (auto k=0; (k<seq->clips_.size()) && (!abort) && (!skip); ++k) {
-          auto c = seq->clips_.at(k);
+          const auto& c = seq->clips_.at(k);
           if ( (c != nullptr) && (c->timeline_info.media == item) ) {
             if (!confirm_delete) {
               auto ftg = item->object<Footage>();

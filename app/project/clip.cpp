@@ -98,7 +98,7 @@ ClipPtr Clip::copy(SequencePtr s)
     copy_clip->effects.append(eff->copy(copy_clip));
   }
 
-  // leave id_ and linked for callees to assign
+  // leave id_ modification and linked population for callees
 
   copy_clip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
 
@@ -680,6 +680,44 @@ ClipPtr Clip::split(const long frame)
   return post;
 }
 
+
+QVector<ClipPtr> Clip::splitAll(const long frame)
+{
+  QVector<ClipPtr> split_clips;
+
+  // check limits
+  if (frame <= timeline_info.in || frame >= timeline_info.out) {
+    qWarning() << "Unable to split. Out-of-range";
+    return split_clips;
+  }
+
+  auto split_clip = split(frame);
+  if (split_clip == nullptr) {
+    qWarning() << "Clip not splitted";
+    return split_clips;
+  }
+
+  split_clips.append(split_clip);
+  for (auto l : linked) {
+    if (auto l_clip = sequence->clip(l)) {
+      if (l_clip == nullptr) {
+        qWarning() << "Linked Clip instance is null";
+        continue;
+      }
+      split_clip = l_clip->split(frame);
+      if (split_clip == nullptr) {
+        qWarning() << "Failed to split linked Clip";
+        continue;
+      }
+      split_clips.append(split_clip);
+    }
+  }
+
+  linkClips(split_clips);
+
+  return split_clips;
+}
+
 void Clip::reset()
 {
   audio_playback.just_reset = false;
@@ -989,6 +1027,11 @@ bool Clip::isSelected(const bool containing)
   return false;
 }
 
+bool Clip::inRange(const long frame) const
+{
+  return ( (timeline_info.in < frame) && (timeline_info.out > frame) );
+}
+
 ClipType Clip::type() const
 {
   if (timeline_info.track_ >= 0) {
@@ -1006,7 +1049,9 @@ MediaPtr Clip::parent()
 void Clip::addLinkedClip(const ClipPtr& clp)
 {
   Q_ASSERT(clp != nullptr);
-  linked.append(clp->id());
+  if (clp->id() != id()) {
+    linked.append(clp->id());
+  }// else trying to link itself
 }
 
 void Clip::setLinkedClips(const QVector<int32_t>& links)
@@ -2134,6 +2179,23 @@ TransitionPtr Clip::loadTransition(QXmlStreamReader& stream)
     qWarning() << "Invalid Effect meta for Transition" << tran_name;
   }
   return nullptr;
+}
+
+
+void Clip::linkClips(const QVector<ClipPtr>& linked_clips) const
+{
+  for (auto link : linked_clips) {
+    if (link == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    for (auto other : linked_clips) {
+      if (other == nullptr) {
+        continue;
+      }
+      link->addLinkedClip(other);
+    }
+  }
 }
 
 

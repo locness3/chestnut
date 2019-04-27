@@ -267,6 +267,42 @@ void Sequence::setAudioLayout(const int32_t layout)
 }
 
 
+QSet<int> Sequence::tracks(const int32_t frame) const
+{
+  QSet<int> pop_tracks;
+
+  for (const auto& c : clips_) {
+    if (c == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    if (c->inRange(frame)) {
+      pop_tracks.insert(c->timeline_info.track_);
+    }
+  }
+
+  return pop_tracks;
+}
+
+QVector<ClipPtr> Sequence::clips(const int32_t frame) const
+{
+  QVector<ClipPtr> frame_clips;
+
+  for (const auto& c : clips_) {
+    if (c == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    if (c->inRange(frame)) {
+      frame_clips.append(c);
+    }
+  }
+  return frame_clips;
+}
+
+
+
+
 void Sequence::closeActiveClips(const int32_t depth)
 {
   if (depth > RECURSION_LIMIT) return;

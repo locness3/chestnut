@@ -161,6 +161,12 @@ class Clip : public project::SequenceItem,
      * @return  The Clip after the split or nullptr
      */
     ClipPtr split(const long frame);
+    /**
+     * @brief         Split this clip and it's linked clips, ensuring the splits are linked afterwards
+     * @param frame   Sequence playhead
+     * @return        A list of linked, split clips
+     */
+    QVector<ClipPtr> splitAll(const long frame);
 
     void resetAudio();
     void reset();
@@ -204,6 +210,12 @@ class Clip : public project::SequenceItem,
      * @return true==is selected
      */
     bool isSelected(const bool containing);
+    /**
+     * @brief Identify if clip is populated at frame position (irregardless of track)
+     * @param frame position
+     * @return true if clip in range
+     */
+    bool inRange(const long frame) const; //TODO: think of a better name
     /**
      * @brief Obtain this clip type
      * @return
@@ -351,6 +363,7 @@ class Clip : public project::SequenceItem,
 
     bool loadInEffect(QXmlStreamReader& stream);
     TransitionPtr loadTransition(QXmlStreamReader& stream);
+    void linkClips(const QVector<ClipPtr>& linked_clips) const;
 
 
 

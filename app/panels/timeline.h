@@ -103,17 +103,13 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     Timeline& operator=(const Timeline&) = delete;
     Timeline& operator=(const Timeline&&) = delete;
 
+    bool setSequence(const SequencePtr& seq);
     bool focused();
     void set_zoom(bool in);
     void copy(bool del);
     void paste(bool insert);
-    ClipPtr split_clip(ComboAction* ca, int p, long frame);
-    ClipPtr split_clip(ComboAction* ca, int p, long frame, long post_in);
-    ClipPtr split_clip(ComboAction* ca, const ClipPtr& clp, const long frame, const long post_in);
     bool split_selection(ComboAction* ca);
     bool split_all_clips_at_point(ComboAction *ca, long point);
-    bool split_clip_and_relink(ComboAction* ca, int clip, long frame, bool relink);
-    bool split_clip_and_relink(ComboAction* ca, const ClipPtr& clip, const long frame, const bool relink);
     void clean_up_selections(QVector<Selection>& areas);
     void deselect_area(long in, long out, int track);
     void delete_areas_and_relink(ComboAction *ca, QVector<Selection>& areas);
@@ -279,6 +275,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     QPushButton* zoomOutButton{};
     QPushButton* recordButton{};
     QPushButton* addButton{};
+    SequencePtr sequence_{};
 
     void set_zoom_value(double v);
     void decheck_tool_buttons(QObject* sender);
@@ -288,6 +285,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     std::vector<ClipPtr> selectedClips();
     std::vector<Selection> selections();
     void pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const SequencePtr& seq);
+    ClipPtr split_clip(ComboAction& ca, const ClipPtr& pre_clip, const long frame) const;
 };
 
 #endif // TIMELINE_H

@@ -47,38 +47,39 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
   QVector<int> selected_clips;
   int mode = TA_NO_TRANSITION;
   if (seq != nullptr) {
-    for (int i=0; i < seq->clips_.size();i++) {
-      if (ClipPtr clip = seq->clips_.at(i)) {
-        for (const auto& s : seq->selections_) {
-          bool add = true;
-          if ( (clip->timeline_info.in >= s.in)
-               && (clip->timeline_info.out <= s.out)
-               && (clip->timeline_info.track_ == s.track)) {
-            mode = TA_NO_TRANSITION;
-          } else if (selection_contains_transition(s, clip, TA_OPENING_TRANSITION)) {
-            mode = TA_OPENING_TRANSITION;
-          } else if (selection_contains_transition(s, clip, TA_CLOSING_TRANSITION)) {
-            mode = TA_CLOSING_TRANSITION;
-          } else {
-            add = false;
-          }
-
-          if (!add) {
-            continue;
-          }
-          if (clip->timeline_info.isVideo() && (vclip == -1)) {
-            vclip = clip->id();
-          } else if (clip->timeline_info.track_ >= 0 && (aclip == -1) ) {
-            aclip = clip->id();
-          } else {
-            // TODO: Significance of -2?
-            vclip = -2;
-            aclip = -2;
-            multiple = true;
-            break;
-          }
-        }//for
+    for (const auto& seq_clip : seq->clips_) {
+      if (seq_clip == nullptr) {
+        continue;
       }
+      for (const auto& seq_sel : seq->selections_) {
+        bool add = true;
+        if ( (seq_clip->timeline_info.in >= seq_sel.in)
+             && (seq_clip->timeline_info.out <= seq_sel.out)
+             && (seq_clip->timeline_info.track_ == seq_sel.track)) {
+          mode = TA_NO_TRANSITION;
+        } else if (selection_contains_transition(seq_sel, seq_clip, TA_OPENING_TRANSITION)) {
+          mode = TA_OPENING_TRANSITION;
+        } else if (selection_contains_transition(seq_sel, seq_clip, TA_CLOSING_TRANSITION)) {
+          mode = TA_CLOSING_TRANSITION;
+        } else {
+          add = false;
+        }
+
+        if (!add) {
+          continue;
+        }
+        if (seq_clip->timeline_info.isVideo() && (vclip == -1)) {
+          vclip = seq_clip->id();
+        } else if (seq_clip->timeline_info.track_ >= 0 && (aclip == -1) ) {
+          aclip = seq_clip->id();
+        } else {
+          // TODO: Significance of -2?
+          vclip = -2;
+          aclip = -2;
+          multiple = true;
+          break;
+        }
+      }//for
     }
 
     if (!multiple) {
