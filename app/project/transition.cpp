@@ -44,7 +44,6 @@ Transition::Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em)
   secondary_clip(s),
   length(DEFAULT_TRANSITION_LENGTH)
 {
-
 }
 
 int Transition::copy(const ClipPtr& c, const ClipPtr& s)

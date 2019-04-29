@@ -208,6 +208,10 @@ bool Clip::openWorker() {
     av_dump_format(media_handling.formatCtx, 0, filename, 0);
 
     media_handling.stream = media_handling.formatCtx->streams[ms->file_index];
+    if ( (media_handling.stream == nullptr) || (media_handling.stream->codecpar == nullptr) ) {
+       qCritical() << "Stream Info instance(s) are null";
+      return false;
+    }
     media_handling.codec = avcodec_find_decoder(media_handling.stream->codecpar->codec_id);
     media_handling.codecCtx = avcodec_alloc_context3(media_handling.codec);
     avcodec_parameters_to_context(media_handling.codecCtx, media_handling.stream->codecpar);
@@ -1107,8 +1111,14 @@ bool Clip::load(QXmlStreamReader& stream)
     const auto name = stream.name().toString().toLower();
     if (name == "opening_transition") {
       transition_.opening_ = loadTransition(stream);
+      if (transition_.opening_) {
+        transition_.opening_->setupUi();
+      }
     } else if (name == "closing_transition") {
       transition_.closing_ = loadTransition(stream);
+      if (transition_.closing_) {
+        transition_.closing_->setupUi();
+      }
     } else if (name == "timelineinfo") {
       if (!timeline_info.load(stream)) {
         qCritical() << "Failed to load TimelineInfo";
@@ -2149,6 +2159,7 @@ bool Clip::loadInEffect(QXmlStreamReader& stream)
     qCritical() << "Failed to load clip effect";
     return false;
   }
+  eff->setupUi();
   effects.append(eff);
   return true;
 }

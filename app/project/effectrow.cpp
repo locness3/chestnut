@@ -40,8 +40,8 @@ EffectRow::EffectRow(Effect* parent_eff, const bool save, QGridLayout& uilayout,
     parent_effect(parent_eff),
     label(new ClickableLabel(n + ":")),
     saveable(save),
-    ui(uilayout),
     name(n),
+    ui(uilayout),
     ui_row(row),
     keyframable_(keyframable)
 {
@@ -75,7 +75,6 @@ bool EffectRow::load(const QVector<EffectFieldStore>& stores)
   for (auto store_field : stores) {
     if (auto load_field = field(store_field.name_)) {
       load_field->load(store_field);
-//      load_field->setValue(store_field.value_);
     }
   }
   return false;
@@ -383,10 +382,11 @@ void EffectRow::setupUi()
 {
   ui.addWidget(label, ui_row, 0);
 
-  if ( (parent_effect != nullptr) && (parent_effect->meta.type >= 0)
+  if ( (parent_effect != nullptr)
+       && (parent_effect->meta.type >= 0)
        && (parent_effect->meta.type != EFFECT_TYPE_TRANSITION)
        && keyframable_) {
-    qDebug() << "Setup of valid, keyframable transition";
+
     connect(label, SIGNAL(clicked()), this, SLOT(focus_row()));
 
     keyframe_nav = new KeyframeNavigator();
@@ -396,6 +396,8 @@ void EffectRow::setupUi()
     connect(keyframe_nav, SIGNAL(keyframe_enabled_changed(bool)), this, SLOT(set_keyframe_enabled(bool)));
     connect(keyframe_nav, SIGNAL(clicked()), this, SLOT(focus_row()));
     ui.addWidget(keyframe_nav, ui_row, 6);
+
+    qDebug() << "Setup of valid, keyframable effect";
   }
 }
 

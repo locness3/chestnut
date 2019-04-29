@@ -50,7 +50,6 @@
 #include "panels/effectcontrols.h"
 #include "dialogs/newsequencedialog.h"
 #include "dialogs/mediapropertiesdialog.h"
-#include "dialogs/loaddialog.h"
 #include "io/clipboard.h"
 #include "project/media.h"
 #include "ui/sourcetable.h"
@@ -348,7 +347,7 @@ void Project::open_properties() {
                                                  QLineEdit::Normal,
                                                  item->name());
         if (!new_name.isEmpty()) {
-          MediaRename* mr = new MediaRename(item, new_name);
+          auto mr = new MediaRename(item, new_name);
           e_undo_stack.push(mr);
         }
       }
@@ -930,9 +929,65 @@ void Project::load_project(bool autorecovery)
 {
   new_project();
 
-  LoadDialog ld(this, autorecovery);
-  if (ld.exec() == QDialog::Accepted) {
+  QFile file(project_url);
+  if (!file.open(QIODevice::ReadOnly)) {
+    qCritical() << "Could not open file";
+    return;
+  }
+
+  bool success = false;
+  QXmlStreamReader stream(&file);
+  if (stream.readNextStartElement() && stream.name() == "project") {
+    if (PanelManager::projectViewer().model().load(stream)) {
+      qInfo() << "Successful load of project file" <<  file.fileName();
+      success = true;
+
+    } else {
+      qCritical() << "Failed to read project file" << file.fileName();
+    }
+  } else {
+    qWarning() << "Read failure" << file.fileName();
+  }
+
+  file.close();
+
+  if (success) {
+    if (autorecovery) {
+//      QString orig_filename = internal_proj_url;
+//      int insert_index = internal_proj_url.lastIndexOf(PROJ_FILE_EXT, -1, Qt::CaseInsensitive);
+//      if (insert_index == -1) insert_index = internal_proj_url.length();
+//      int counter = 1;
+//      while (QFileInfo::exists(orig_filename)) {
+//        orig_filename = internal_proj_url;
+//        QString recover_text = "recovered";
+//        if (counter > 1) {
+//          recover_text += " " + QString::number(counter);
+//        }
+//        orig_filename.insert(insert_index, " (" + recover_text + ")");
+//        counter++;
+//      }
+//      MainWindow::instance().updateTitle(orig_filename);
+    } else {
+      PanelManager::projectViewer().add_recent_project(project_url);
+    }
+
+    MainWindow::instance().setWindowModified(autorecovery);
+    if (global::sequence != nullptr) {
+      // global::sequence will be set in file load as required
+      //TODO: think of a better way than this and playback.h - set_sequence()
+      PanelManager::fxControls().clear_effects(true);
+      PanelManager::sequenceViewer().set_main_sequence();
+      PanelManager::timeLine().setSequence(global::sequence);
+      PanelManager::timeLine().update_sequence();
+      PanelManager::timeLine().setFocus();
+    }
+    PanelManager::refreshPanels(false);
     refresh();
+  } else {
+    QMessageBox::critical(&MainWindow::instance(),
+                          tr("Project Load Error"),
+                          tr("Error loading project: %1").arg(project_url),
+                          QMessageBox::Ok);
   }
 }
 
@@ -954,31 +1009,6 @@ void Project::save_project(bool autorecovery) {
   if (!PanelManager::projectViewer().model().save(stream)) {
     qWarning() << "Failed to save project file:" << file.fileName();
   }
-
-//  stream.writeStartElement("project"); // project
-
-//  stream.writeTextElement("version", QString::number(SAVE_VERSION));
-
-//  stream.writeTextElement("url", project_url);
-//  proj_dir = QFileInfo(project_url).absoluteDir();
-
-//  save_folder(stream, MediaType::FOLDER, true);
-
-//  stream.writeStartElement("folders"); // folders
-//  save_folder(stream, MediaType::FOLDER, false);
-//  stream.writeEndElement(); // folders
-
-//  stream.writeStartElement("media"); // media
-//  save_folder(stream, MediaType::FOOTAGE, false);
-//  stream.writeEndElement(); // media
-
-//  save_folder(stream, MediaType::SEQUENCE, true);
-
-//  stream.writeStartElement("sequences"); // sequences
-//  save_folder(stream, MediaType::SEQUENCE, false);
-//  stream.writeEndElement();// sequences
-
-//  stream.writeEndElement(); // project
 
   stream.writeEndDocument(); // doc
 
