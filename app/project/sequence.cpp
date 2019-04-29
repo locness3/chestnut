@@ -267,7 +267,7 @@ void Sequence::setAudioLayout(const int32_t layout)
 }
 
 
-QSet<int> Sequence::tracks(const int32_t frame) const
+QSet<int> Sequence::tracks(const long frame) const
 {
   QSet<int> pop_tracks;
 
@@ -284,7 +284,7 @@ QSet<int> Sequence::tracks(const int32_t frame) const
   return pop_tracks;
 }
 
-QVector<ClipPtr> Sequence::clips(const int32_t frame) const
+QVector<ClipPtr> Sequence::clips(const long frame) const
 {
   QVector<ClipPtr> frame_clips;
 

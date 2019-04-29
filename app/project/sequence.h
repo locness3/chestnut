@@ -72,13 +72,13 @@ public:
      * @param frame   Position
      * @return        Set of tracks
      */
-    QSet<int> tracks(const int32_t frame) const;
+    QSet<int> tracks(const long frame) const;
     /**
      * @brief         Obtain all clips at a position in the sequence
      * @param frame   Position
      * @return        list of clips
      */
-    QVector<ClipPtr> clips(const int32_t frame) const;
+    QVector<ClipPtr> clips(const long frame) const;
 
     void closeActiveClips(const int32_t depth=0);
     ClipPtr clip(const int32_t id);

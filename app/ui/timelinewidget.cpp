@@ -2946,40 +2946,38 @@ ClipPtr TimelineWidget::getClipFromCoords(const long frame, const int track) con
 
 bool TimelineWidget::splitClipEvent(const long frame, const QSet<int>& tracks)
 {
+  Q_ASSERT(global::sequence != nullptr);
   bool split = false;
-  QVector<ClipPtr> new_clips;
-  QSet<int> all_tracks = tracks;
-  if (tracks.size() == 1) {
-    // add the linked tracks
-    if (auto clp = getClipFromCoords(frame, *tracks.begin())) {
-      auto linked_tracks = clp->getLinkedTracks();
-      all_tracks = all_tracks.unite(linked_tracks);
-    }
-  }
-  for (auto track : all_tracks) {
-    if (auto pre = getClipFromCoords(frame, track)) {
-      if (auto post = pre->split(frame)) {
-        //TODO: make an UndoCommand
-        // Put new clip in sequence
-        global::sequence->clips_.append(post);
-        split = true;
-        new_clips.append(post);
-      }
-    }
-  }
 
-  //FIXME: on a drag-split, all splits will become linked
-  // Sort out links to each other
-  for (const auto& new_clip : new_clips) {
-    for (const auto& other_clip : new_clips) {
-      if (new_clip == other_clip) {
-        // ignore, don't link itself
+  QSet<int> split_ids;
+  QVector<ClipPtr> posts;
+
+  QVector<ClipPtr> clips = global::sequence->clips(frame);
+  for (const auto& clp : clips) {
+    if ( (clp == nullptr)
+         || (tracks.find(clp->timeline_info.track_) == tracks.end())
+         || (split_ids.find(clp->id()) != split_ids.end()) ) {
+      // null, not to be split or already done (via a linked clip)
+      continue;
+    }
+    auto splits = clp->splitAll(frame);
+    // make sure clip and its linked aren't split again
+    split_ids.insert(clp->timeline_info.track_);
+    for (auto l : splits) {
+      if (l == nullptr) {
         continue;
       }
-      new_clip->addLinkedClip(other_clip);
+      split_ids.insert(l->timeline_info.track_);
     }
+    posts = posts + splits;
   }
 
+  if (!posts.empty()) {
+    auto ca = new ComboAction();
+    ca->append(new AddClipCommand(global::sequence, posts));
+    e_undo_stack.push(ca);
+    PanelManager::timeLine().repaint_timeline();
+  }
   return split;
 }
 

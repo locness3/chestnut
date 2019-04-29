@@ -85,16 +85,6 @@ class TimelineWidget : public QWidget {
 
     void wheelEvent(QWheelEvent *event) override;
   private:
-    void init_ghosts();
-    void update_ghosts(const QPoint& mouse_pos, bool lock_frame);
-    bool is_track_visible(int track);
-    int getTrackFromScreenPoint(int y);
-    int getScreenPointFromTrack(int track);
-    int getClipIndexFromCoords(long frame, int track);
-
-    ClipPtr getClipFromCoords(const long frame, const int track) const;
-    bool splitClipEvent(const long frame, const QSet<int>& tracks);
-
     int track_resize_mouse_cache{};
     int track_resize_old_value{};
     bool track_resizing{false};
@@ -116,6 +106,16 @@ class TimelineWidget : public QWidget {
     int scroll{};
 
     SetSelectionsCommand* selection_command{};
+
+    void init_ghosts();
+    void update_ghosts(const QPoint& mouse_pos, bool lock_frame);
+    bool is_track_visible(int track);
+    int getTrackFromScreenPoint(int y);
+    int getScreenPointFromTrack(int track);
+    int getClipIndexFromCoords(long frame, int track);
+
+    ClipPtr getClipFromCoords(const long frame, const int track) const;
+    bool splitClipEvent(const long frame, const QSet<int>& tracks);
 
     void mouseMoveSplitEvent(const bool alt_pressed, Timeline& time_line) const;
     
