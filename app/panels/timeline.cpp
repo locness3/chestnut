@@ -204,7 +204,13 @@ void ripple_clips(ComboAction* ca, SequencePtr s, long point, long length, const
   ca->append(new RippleAction(s, point, length, ignore));
 }
 
-void Timeline::toggle_show_all() {
+void Timeline::toggle_show_all()
+{
+  if (global::sequence == nullptr) {
+    qWarning() << "Sequence instance is null";
+    return;
+  }
+
   showing_all = !showing_all;
   if (showing_all) {
     old_zoom = zoom;
@@ -1338,11 +1344,16 @@ bool Timeline::split_all_clips_at_point(ComboAction* ca, long point) {
 
 void Timeline::split_at_playhead()
 {
+  if (global::sequence == nullptr) {
+    qWarning() << "Sequence instance is null";
+    return;
+  }
+
   ComboAction* ca = new ComboAction();
   bool split_selected = false;
   split_cache.clear();
 
-  if (global::sequence->selections_.size() > 0) {
+  if (!global::sequence->selections_.empty()) {
     // see if whole clips are selected
     QVector<int> pre_clips;
     QVector<ClipPtr> post_clips;
@@ -1484,6 +1495,10 @@ void Timeline::setMarker() const
 
 void Timeline::toggle_links()
 {
+  if (global::sequence == nullptr) {
+    qWarning() << "Sequence instance is null";
+    return;
+  }
   auto command = new LinkCommand();
   command->s = global::sequence;
   for (int i=0;i<global::sequence->clips_.size();i++) {
@@ -1493,7 +1508,7 @@ void Timeline::toggle_links()
         command->clips.append(i);
       }
 
-      if (c->linked.size() > 0) {
+      if (!c->linked.empty()) {
         command->link = false; // prioritize unlinking
 
         for (int j=0;j<c->linked.size();j++) { // add links to the command
@@ -1534,7 +1549,12 @@ void Timeline::decrease_track_height() {
   repaint_timeline();
 }
 
-void Timeline::deselect() {
+void Timeline::deselect()
+{
+  if (global::sequence == nullptr) {
+    qWarning() << "Sequence instance is null";
+    return;
+  }
   global::sequence->selections_.clear();
   repaint_timeline();
 }
