@@ -669,6 +669,7 @@ ClipPtr Clip::split(const long frame)
   // Adjust the in/out points
   timeline_info.out = frame;
   post->timeline_info.in = frame;
+  post->timeline_info.clip_in = frame; //TODO: reassess if this is dependent on framerate diff (src v sequence) and clip speed
   // Adjust transitions
   post->transition_.closing_ = transition_.closing_;
   post->transition_.opening_ = nullptr;

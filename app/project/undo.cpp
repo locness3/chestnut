@@ -479,7 +479,7 @@ void DeleteMediaCommand::redo() {
   done = true;
 }
 
-AddClipCommand::AddClipCommand(SequencePtr  s, QVector<ClipPtr  >& add) :
+AddClipCommand::AddClipCommand(SequencePtr s, QVector<ClipPtr>& add) :
   seq(std::move(s)),
   clips(add),
   old_project_changed(MainWindow::instance().isWindowModified())
@@ -524,6 +524,37 @@ void AddClipCommand::redo() {
     }
   }
   MainWindow::instance().setWindowModified(true);
+}
+
+
+AddClipsCommand::AddClipsCommand(SequencePtr seq, const QVector<ClipPtr>& clips)
+  : sequence_(std::move(seq)),
+    clips_(clips),
+    old_project_changed_(MainWindow::instance().isWindowModified())
+{
+
+}
+
+void AddClipsCommand::undo()
+{
+  Q_ASSERT(sequence_ != nullptr);
+
+  for (const auto& undo_clip : clips_) {
+    if (undo_clip == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    auto itor = std::find_if(sequence_->clips_.begin(), sequence_->clips_.end(), [&undo_clip] (const ClipPtr& clp) {
+      return (clp != nullptr) && (clp->id() == undo_clip->id());
+    });
+    sequence_->clips_.erase(itor);
+  }
+}
+
+void AddClipsCommand::redo()
+{
+  Q_ASSERT(sequence_ != nullptr);
+  sequence_->clips_ = sequence_->clips_ + clips_;
 }
 
 LinkCommand::LinkCommand()

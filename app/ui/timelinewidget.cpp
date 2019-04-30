@@ -2974,7 +2974,7 @@ bool TimelineWidget::splitClipEvent(const long frame, const QSet<int>& tracks)
 
   if (!posts.empty()) {
     auto ca = new ComboAction();
-    ca->append(new AddClipCommand(global::sequence, posts));
+    ca->append(new AddClipsCommand(global::sequence, posts));
     e_undo_stack.push(ca);
     PanelManager::timeLine().repaint_timeline();
   }

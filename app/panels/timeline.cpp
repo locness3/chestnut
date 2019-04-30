@@ -1270,9 +1270,9 @@ void Timeline::split_at_playhead()
     }//else ignore this clip. should be split already
   }//for
 
-  if (!tracks.empty()) {
+  if (!posts.empty()) {
     auto ca = new ComboAction();
-    ca->append(new AddClipCommand(sequence_, posts));
+    ca->append(new AddClipsCommand(sequence_, posts));
     e_undo_stack.push(ca);
     PanelManager::timeLine().repaint_timeline();
   }

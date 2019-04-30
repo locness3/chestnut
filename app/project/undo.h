@@ -284,6 +284,17 @@ private:
   bool old_project_changed;
 };
 
+class AddClipsCommand : public QUndoCommand {
+  public:
+    AddClipsCommand(SequencePtr seq, const QVector<ClipPtr>& clips);
+    virtual void undo() override;
+    virtual void redo() override;
+  private:
+    SequencePtr sequence_;
+    QVector<ClipPtr> clips_;
+    bool old_project_changed_;
+};
+
 class LinkCommand : public QUndoCommand {
 public:
   LinkCommand();
