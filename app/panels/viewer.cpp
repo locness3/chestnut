@@ -51,20 +51,25 @@ extern "C" {
 
 using panels::PanelManager;
 
+constexpr double NTSC_24 = 23.976;
+constexpr double NTSC_30 = 29.97;
+constexpr double NTSC_60 = 59.94;
+
+constexpr int FRAMES_IN_ONE_MINUTE = 1798; // 1800 - 2
+constexpr int FRAMES_IN_TEN_MINUTES = 17978; // (FRAMES_IN_ONE_MINUTE * 10) - 2
+
+constexpr int RECORD_FLASHER_INTERVAL = 500;
+
+constexpr int MEDIA_WIDTH = 1980;
+constexpr int MEDIA_HEIGHT = 1080;
+constexpr int MEDIA_AUDIO_FREQUENCY = 48000;
+constexpr int MEDIA_FRAME_RATE = 30;
+
+constexpr const char* const PANEL_NAME = "Viewer";
+constexpr const char* const PANEL_TITLE_FORMAT = "%1: %2";
+
+
 namespace {
-  const int FRAMES_IN_ONE_MINUTE = 1798; // 1800 - 2
-  const int FRAMES_IN_TEN_MINUTES = 17978; // (FRAMES_IN_ONE_MINUTE * 10) - 2
-
-  const int RECORD_FLASHER_INTERVAL = 500;
-
-  const int MEDIA_WIDTH = 1980;
-  const int MEDIA_HEIGHT = 1080;
-  const int MEDIA_AUDIO_FREQUENCY = 48000;
-  const int MEDIA_FRAME_RATE = 30;
-
-  const char* const PANEL_NAME = "Viewer";
-  const char* const PANEL_TITLE_FORMAT = "%1: %2";
-
   const QColor PAUSE_COLOR(128,192,128); // RGB
 }
 
@@ -109,7 +114,6 @@ Viewer::Viewer(QWidget *parent) :
   update_end_timecode();
 }
 
-Viewer::~Viewer() {}
 
 bool Viewer::is_focused() {
   return headers->hasFocus()
@@ -272,11 +276,17 @@ QString frame_to_timecode(long frame, const int view, const double frame_rate)
                  );
 }
 
-bool frame_rate_is_droppable(float rate) {
-  return (qFuzzyCompare(rate, 23.976f) || qFuzzyCompare(rate, 29.97f) || qFuzzyCompare(rate, 59.94f));
+bool frame_rate_is_droppable(const double rate)
+{
+  return (qFuzzyCompare(rate, NTSC_24) || qFuzzyCompare(rate, NTSC_30) || qFuzzyCompare(rate, NTSC_60));
 }
 
-void Viewer::seek(long p) {
+void Viewer::seek(long p)
+{
+  if (seq == nullptr) {
+    qDebug() << "No assigned sequence";
+    return;
+  }
   pause();
   seq->playhead_ = p;
   bool update_fx = false;
