@@ -1069,11 +1069,10 @@ MediaPtr Clip::parent()
   return timeline_info.media;
 }
 
-void Clip::addLinkedClip(const ClipPtr& clp)
+void Clip::addLinkedClip(const Clip& clp)
 {
-  Q_ASSERT(clp != nullptr);
-  if (clp->id() != id()) {
-    linked.append(clp->id());
+  if (clp.id_ != id_) {
+    linked.append(clp.id_);
   }// else trying to link itself
 }
 
@@ -1086,13 +1085,6 @@ const QVector<int32_t>& Clip::linkedClips() const
 {
   return linked;
 }
-
-void Clip::linkClip(const ClipPtr& clp)
-{
-  Q_ASSERT(clp != nullptr);
-  linked.append(clp->id());
-}
-
 
 void Clip::clearLinks()
 {
@@ -1110,6 +1102,29 @@ QSet<int> Clip::getLinkedTracks() const
   }
 
   return tracks;
+}
+
+/**
+ * @brief           Update the linked clips using a mapping of old_id : new_clip
+ * @param mapping   Mapped ids and clips
+ */
+void Clip::relink(const QMap<int, ClipPtr>& mapping)
+{
+  QVector<int> new_links;
+  for (auto link : linked) {
+    if (mapping.contains(link)) {
+      if (auto m_clip = mapping.value(link)) {
+        new_links.append(m_clip->id());
+      } else {
+        qWarning() << "New link was a null Clip instance";
+        new_links.append(link);
+      }
+    } else {
+      qDebug() << "No new link for id:" << link;
+      new_links.append(link);
+    }
+  }
+  setLinkedClips(new_links);
 }
 
 bool Clip::load(QXmlStreamReader& stream)
@@ -2223,7 +2238,7 @@ void Clip::linkClips(const QVector<ClipPtr>& linked_clips) const
       if (other == nullptr) {
         continue;
       }
-      link->addLinkedClip(other);
+      link->addLinkedClip(*other);
     }
   }
 }

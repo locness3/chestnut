@@ -31,6 +31,10 @@ class ClipTest : public QObject
      void testCaseClipType();
 
      void testCaseisSelected();
+
+     void testCaseaddLinkedClip();
+
+     void testCaseRelink();
 };
 
 #endif // CLIPTEST_H

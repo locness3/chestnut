@@ -398,12 +398,16 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s)
   ca->append(new AddClipCommand(s, added_clips));
 
   // link clips from the same media
-  for (int i=0;i<added_clips.size();i++) {
-    const ClipPtr& c = added_clips.at(i);
-    for (int j=0;j<added_clips.size();j++) {
-      const ClipPtr& cc = added_clips.at(j);
-      if (c != cc && c->timeline_info.media == cc->timeline_info.media) {
-        c->linkClip(cc);
+  for (const auto& c : added_clips) {
+    if (c == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    for (const auto& cc : added_clips) {
+      if ( (cc != nullptr)
+          && (c != cc)
+          && (c->timeline_info.media == cc->timeline_info.media) ) {
+        c->addLinkedClip(*cc);
       }
     }
 
@@ -857,6 +861,7 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
       }
     }//for
   }//for
+
   relink_clips_using_ids(pre_clips, post_clips);
   ca->append(new AddClipCommand(sequence_, post_clips));
 }
@@ -870,51 +875,51 @@ void Timeline::copy(bool del)
 
   long min_in = 0;
 
-  for (int i=0;i<sequence_->clips_.size();i++) {
-    ClipPtr c = sequence_->clips_.at(i);
-    if (c != nullptr) {
-      for (int j=0;j<sequence_->selections_.size();j++) {
-        const Selection& s = sequence_->selections_.at(j);
-        if (c->isSelected(s)) {
-          if (!cleared) {
-            clear_clipboard();
-            cleared = true;
-            e_clipboard_type = CLIPBOARD_TYPE_CLIP;
-          }
 
-          std::shared_ptr<Clip> copied_clip(c->copy(nullptr));
-
-          // copy linked IDs (we correct these later in paste())
-          copied_clip->setLinkedClips(c->linkedClips());
-
-          if (copied_clip->timeline_info.in < s.in) {
-            copied_clip->timeline_info.clip_in += (s.in - copied_clip->timeline_info.in);
-            copied_clip->timeline_info.in = s.in;
-          }
-
-          if (copied_clip->timeline_info.out > s.out) {
-            copied_clip->timeline_info.out = s.out;
-          }
-
-          if (copied) {
-            min_in = qMin(min_in, s.in);
-          } else {
-            min_in = s.in;
-            copied = true;
-          }
-
-          copied_clip->load_id = i;
-
-          e_clipboard.append(copied_clip);
-        }
-      }//for
+  for (const auto& c : sequence_->clips_) {
+    if (c == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
     }
+    for (const Selection& s : sequence_->selections_) {
+      if (!c->isSelected(s)) {
+        // ignore
+        continue;
+      }
+
+      if (!cleared) {
+        clear_clipboard();
+        cleared = true;
+        e_clipboard_type = CLIPBOARD_TYPE_CLIP;
+      }
+
+      std::shared_ptr<Clip> copied_clip(c->copyPreserveLinks(nullptr));
+
+      if (copied_clip->timeline_info.in < s.in) {
+        copied_clip->timeline_info.clip_in += (s.in - copied_clip->timeline_info.in);
+        copied_clip->timeline_info.in = s.in;
+      }
+
+      if (copied_clip->timeline_info.out > s.out) {
+        copied_clip->timeline_info.out = s.out;
+      }
+
+      if (copied) {
+        min_in = qMin(min_in, s.in);
+      } else {
+        min_in = s.in;
+        copied = true;
+      }
+
+
+      e_clipboard.append(copied_clip);
+    }//for
   }//for
 
-  for (int i=0;i<e_clipboard.size();i++) {
+  for (const auto& e_c : e_clipboard) {
     // initialize all timeline_ins to 0 or offsets of
-    std::dynamic_pointer_cast<Clip>(e_clipboard.at(i))->timeline_info.in -= min_in;
-    std::dynamic_pointer_cast<Clip>(e_clipboard.at(i))->timeline_info.out -= min_in;
+    std::dynamic_pointer_cast<Clip>(e_c)->timeline_info.in -= min_in;
+    std::dynamic_pointer_cast<Clip>(e_c)->timeline_info.out -= min_in;
   }
 
   if (del && copied) {
@@ -949,11 +954,15 @@ void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const b
   QVector<ClipPtr> pasted_clips;
   int64_t paste_start = LONG_MAX;
   int64_t paste_end = LONG_MIN;
+  QMap<int, ClipPtr> mapped_clips;
+
   for (int i=0; i<items.size(); i++) {
     ClipPtr c = std::dynamic_pointer_cast<Clip>(items.at(i));
 
     // create copy of clip and offset by playhead
     ClipPtr cc = c->copy(seq);
+    mapped_clips[c->id()] = cc;
+    cc->setLinkedClips(c->linkedClips());
 
     // convert frame rates
     cc->timeline_info.in = refactor_frame_number(cc->timeline_info.in, c->timeline_info.cached_fr,
@@ -981,6 +990,15 @@ void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const b
     }
   }//for
 
+  // update clip linkage for the copies
+  for (const auto& p_clip : pasted_clips) {
+    if (p_clip == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    p_clip->relink(mapped_clips);
+  }
+
   if (insert) {
     split_cache.clear();
     // TODO: if clip is in the way, resize it ("split") and paste in place
@@ -988,21 +1006,6 @@ void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const b
     ripple_clips(ca, seq, paste_start, paste_end - paste_start);
   } else {
     delete_areas_and_relink(ca, delete_areas);
-  }
-
-  // correct linked clips
-  for (int i=0;i<items.size();i++) {
-    // these indices should correspond
-    ClipPtr oc = std::dynamic_pointer_cast<Clip>(items.at(i));
-
-    for (int j=0; j<oc->linkedClips().size(); j++) {
-      for (int k=0; k<items.size(); k++) { // find clip with that ID
-        ClipPtr comp = std::dynamic_pointer_cast<Clip>(items.at(k));
-        if (comp->load_id == oc->linkedClips().at(j)) {
-          //              pasted_clips.at(i)->linked.append(k); //FIXME:
-        }
-      }
-    }
   }
 
   ca->append(new AddClipCommand(seq, pasted_clips));

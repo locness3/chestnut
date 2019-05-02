@@ -239,16 +239,20 @@ class Clip : public project::SequenceItem,
      */
     MediaPtr parent();
 
-    void addLinkedClip(const ClipPtr& clp);
+    void addLinkedClip(const Clip& clp);
     void setLinkedClips(const QVector<int32_t>& links);
     const QVector<int32_t>& linkedClips() const;
-    void linkClip(const ClipPtr& clp);
     void clearLinks();
     /**
      * @brief Get tracks of linked clips
      * @return set of timeline tracks
      */
     QSet<int> getLinkedTracks() const;
+    /**
+     * @brief           Update the linked clips using a mapping of old_id : new_clip
+     * @param mapping   Mapped ids and clips
+     */
+    void relink(const QMap<int, ClipPtr>& mapping);
     void setId(const int32_t id);
 
     virtual bool load(QXmlStreamReader& stream) override;

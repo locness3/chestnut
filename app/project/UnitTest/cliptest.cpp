@@ -98,3 +98,33 @@ void ClipTest::testCaseisSelected()
   QVERIFY(clp.isSelected(sel) == false);
 }
 
+
+void ClipTest::testCaseaddLinkedClip()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+
+  Clip linked_clip(seq);
+  clp.addLinkedClip(linked_clip);
+
+  QVERIFY(clp.linked.contains(linked_clip.id_) == true);
+}
+
+void ClipTest::testCaseRelink()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+
+  Clip linked_clip(seq);
+  clp.addLinkedClip(linked_clip);
+
+  auto copied_link = linked_clip.copy(seq);
+  QMap<int, ClipPtr> mapped_links;
+  mapped_links[linked_clip.id_] = copied_link;
+
+  clp.relink(mapped_links);
+
+  QVERIFY(clp.linked.contains(copied_link->id_));
+  QVERIFY(clp.linked.size() == 1);
+}
+
