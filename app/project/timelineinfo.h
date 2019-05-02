@@ -18,10 +18,14 @@ class TimelineInfo : public project::IXMLStreamer
 {
 public:
   TimelineInfo() = default;
+  ~TimelineInfo() override = default;
 
   [[deprecated("Replaced by ClipType Clip::type()")]]
   bool isVideo() const;
   TimelineInfo& operator=(const TimelineInfo& rhs);
+  TimelineInfo& operator=(const TimelineInfo&&) = delete;
+  TimelineInfo(const TimelineInfo&) = delete;
+  TimelineInfo(const TimelineInfo&&) = delete;
 
   virtual bool load(QXmlStreamReader& stream) override;
   virtual bool save(QXmlStreamWriter& stream) const override;
