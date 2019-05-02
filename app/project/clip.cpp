@@ -174,7 +174,7 @@ bool Clip::openWorker() {
     const char* const filename = ftg->url.toUtf8().data();
 
     FootageStreamPtr ms;
-    if (timeline_info.isVideo()) {
+    if (type() == ClipType::VISUAL) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -471,7 +471,7 @@ bool Clip::open(const bool open_multithreaded) {
     multithreaded = open_multithreaded;
     if (multithreaded) {
       if (open_lock.tryLock()) {
-        this->start((timeline_info.isVideo()) ? QThread::HighPriority : QThread::TimeCriticalPriority);
+        this->start((type() == ClipType::VISUAL) ? QThread::HighPriority : QThread::TimeCriticalPriority);
       }
     } else {
       finished_opening = false;
@@ -773,9 +773,9 @@ void Clip::refresh()
   if (replaced && timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
     FootagePtr m = timeline_info.media->object<Footage>();
 
-    if (timeline_info.isVideo() && !m->video_tracks.empty())  {
+    if ((type() == ClipType::VISUAL) && !m->video_tracks.empty())  {
       timeline_info.media_stream = m->video_tracks.front()->file_index;
-    } else if ( (timeline_info.track_ >= 0) && !m->audio_tracks.empty()) {
+    } else if ((type() == ClipType::AUDIO) && !m->audio_tracks.empty()) {
       timeline_info.media_stream = m->audio_tracks.front()->file_index;
     }
   }
@@ -846,7 +846,7 @@ void Clip::frame(const long playhead, bool& texture_failed)
     auto ftg = timeline_info.media->object<Footage>();
     if (!ftg) return;
     FootageStreamPtr ms;
-    if (timeline_info.isVideo()) {
+    if (type() == ClipType::VISUAL) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -1108,17 +1108,12 @@ QSet<int> Clip::getLinkedTracks() const
  * @brief           Update the linked clips using a mapping of old_id : new_clip
  * @param mapping   Mapped ids and clips
  */
-void Clip::relink(const QMap<int, ClipPtr>& mapping)
+void Clip::relink(const QMap<int, int>& mapping)
 {
   QVector<int> new_links;
   for (auto link : linked) {
     if (mapping.contains(link)) {
-      if (auto m_clip = mapping.value(link)) {
-        new_links.append(m_clip->id());
-      } else {
-        qWarning() << "New link was a null Clip instance";
-        new_links.append(link);
-      }
+      new_links.append(mapping.value(link));
     } else {
       qDebug() << "No new link for id:" << link;
       new_links.append(link);
@@ -1266,7 +1261,6 @@ long Clip::length()
 }
 
 double Clip::mediaFrameRate() {
-  Q_ASSERT(timeline_info.isVideo());
   if (timeline_info.media != nullptr) {
     double rate = timeline_info.media->frameRate(timeline_info.media_stream);
     if (!qIsNaN(rate)) {

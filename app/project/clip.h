@@ -252,7 +252,7 @@ class Clip : public project::SequenceItem,
      * @brief           Update the linked clips using a mapping of old_id : new_clip
      * @param mapping   Mapped ids and clips
      */
-    void relink(const QMap<int, ClipPtr>& mapping);
+    void relink(const QMap<int, int>& mapping);
     void setId(const int32_t id);
 
     virtual bool load(QXmlStreamReader& stream) override;

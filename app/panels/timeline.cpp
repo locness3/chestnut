@@ -954,14 +954,14 @@ void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const b
   QVector<ClipPtr> pasted_clips;
   int64_t paste_start = LONG_MAX;
   int64_t paste_end = LONG_MIN;
-  QMap<int, ClipPtr> mapped_clips;
+  QMap<int, int> mapped_clips;
 
   for (int i=0; i<items.size(); i++) {
     ClipPtr c = std::dynamic_pointer_cast<Clip>(items.at(i));
 
     // create copy of clip and offset by playhead
     ClipPtr cc = c->copy(seq);
-    mapped_clips[c->id()] = cc;
+    mapped_clips[c->id()] = cc->id();
     cc->setLinkedClips(c->linkedClips());
 
     // convert frame rates

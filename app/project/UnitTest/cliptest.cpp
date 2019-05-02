@@ -119,8 +119,8 @@ void ClipTest::testCaseRelink()
   clp.addLinkedClip(linked_clip);
 
   auto copied_link = linked_clip.copy(seq);
-  QMap<int, ClipPtr> mapped_links;
-  mapped_links[linked_clip.id_] = copied_link;
+  QMap<int, int> mapped_links;
+  mapped_links[linked_clip.id_] = copied_link->id();
 
   clp.relink(mapped_links);
 
