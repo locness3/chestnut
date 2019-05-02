@@ -669,7 +669,7 @@ ClipPtr Clip::split(const long frame)
   // Adjust the in/out points
   timeline_info.out = frame;
   post->timeline_info.in = frame;
-  post->timeline_info.clip_in = frame; //TODO: reassess if this is dependent on framerate diff (src v sequence) and clip speed
+  post->timeline_info.clip_in = timeline_info.clip_in + post->timeline_info.in - timeline_info.in;
   // Adjust transitions
   post->transition_.closing_ = transition_.closing_;
   post->transition_.opening_ = nullptr;
@@ -721,6 +721,15 @@ QVector<ClipPtr> Clip::splitAll(const long frame)
   linkClips(split_clips);
 
   return split_clips;
+}
+
+/**
+ * @brief The length in frames of the clip
+ * @return
+ */
+int64_t Clip::length() const
+{
+  return timeline_info.out - timeline_info.in + timeline_info.clip_in;
 }
 
 void Clip::reset()

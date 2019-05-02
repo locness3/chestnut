@@ -168,6 +168,12 @@ class Clip : public project::SequenceItem,
      */
     QVector<ClipPtr> splitAll(const long frame);
 
+    /**
+     * @brief The length in frames of the clip
+     * @return
+     */
+    int64_t length() const;
+
     void resetAudio();
     void reset();
     void refresh();

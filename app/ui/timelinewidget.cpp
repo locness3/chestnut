@@ -2524,7 +2524,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
                   painter.drawPolygon(points, 3);
                   text_rect.setLeft(text_rect.left() + (triangle_size >> 2));
                 }
-                if (clip->timeline_info.out - clip->timeline_info.in + clip->timeline_info.clip_in == clip->maximumLength()
+                if (clip->length() == clip->maximumLength()
                     && clip_rect.right() - triangle_size < width()
                     && clip_rect.y() + triangle_size > 0
                     && clip_rect.right() > 0
@@ -2544,21 +2544,24 @@ void TimelineWidget::paintEvent(QPaintEvent*)
               // draw thumbnail/waveform
               long media_length = clip->maximumLength();
 
-              if (clip->timeline_info.isVideo()) {
+              if (clip->type() == ClipType::VISUAL) {
                 // draw thumbnail
-                int thumb_y = painter.fontMetrics().height()+CLIP_TEXT_PADDING+CLIP_TEXT_PADDING;
+                int thumb_y = painter.fontMetrics().height() + CLIP_TEXT_PADDING + CLIP_TEXT_PADDING;
                 if (thumb_x < width() && thumb_y < height()) {
                   int space_for_thumb = clip_rect.width()-1;
-                  if (clip->openingTransition() != nullptr) {
-                    int ot_width = getScreenPointFromFrame(PanelManager::timeLine().zoom, clip->openingTransition()->get_true_length());
+                  if (auto open_tran = clip->getTransition(ClipTransitionType::OPENING)) {
+                    int ot_width = getScreenPointFromFrame(PanelManager::timeLine().zoom,
+                                                           open_tran->get_true_length());
                     thumb_x += ot_width;
                     space_for_thumb -= ot_width;
                   }
-                  if (clip->closingTransition() != nullptr) {
-                    space_for_thumb -= getScreenPointFromFrame(PanelManager::timeLine().zoom, clip->closingTransition()->get_true_length());
+                  if (auto close_tran = clip->getTransition(ClipTransitionType::CLOSING)) {
+                    space_for_thumb -= getScreenPointFromFrame(PanelManager::timeLine().zoom,
+                                                               close_tran->get_true_length());
                   }
                   int thumb_height = clip_rect.height()-thumb_y;
-                  int thumb_width = (thumb_height*((double)ms->video_preview.width()/(double)ms->video_preview.height()));
+                  int thumb_width = (thumb_height * (static_cast<double>(ms->video_preview.width())
+                                                     / static_cast<double>(ms->video_preview.height())));
                   if (thumb_x + thumb_width >= 0
                       && thumb_height > thumb_y
                       && thumb_y + thumb_height >= 0
@@ -2566,10 +2569,13 @@ void TimelineWidget::paintEvent(QPaintEvent*)
                     int thumb_clip_width = qMin(thumb_width, space_for_thumb);
                     painter.drawImage(QRect(thumb_x, clip_rect.y()+thumb_y, thumb_clip_width, thumb_height),
                                 ms->video_preview,
-                                QRect(0, 0, thumb_clip_width*((double)ms->video_preview.width()/(double)thumb_width), ms->video_preview.height()));
+                                QRect(0, 0,
+                                      thumb_clip_width * (static_cast<double>(ms->video_preview.width())
+                                                          / static_cast<double>(thumb_width)),
+                                      ms->video_preview.height()));
                   }
                 }
-                if (clip->timeline_info.out - clip->timeline_info.in + clip->timeline_info.clip_in > clip->maximumLength()) {
+                if (clip->length() > clip->maximumLength()) {
                   draw_checkerboard = true;
                   checkerboard_rect.setLeft(PanelManager::timeLine().getTimelineScreenPointFromFrame(clip->maximumLength() + clip->timeline_info.in - clip->timeline_info.clip_in));
                 }
@@ -2962,12 +2968,12 @@ bool TimelineWidget::splitClipEvent(const long frame, const QSet<int>& tracks)
     }
     auto splits = clp->splitAll(frame);
     // make sure clip and its linked aren't split again
-    split_ids.insert(clp->timeline_info.track_);
+    split_ids.insert(clp->id());
     for (auto l : splits) {
       if (l == nullptr) {
         continue;
       }
-      split_ids.insert(l->timeline_info.track_);
+      split_ids.insert(l->id());
     }
     posts = posts + splits;
   }
