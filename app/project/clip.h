@@ -217,6 +217,12 @@ class Clip : public project::SequenceItem,
      */
     bool isSelected(const bool containing);
     /**
+     * @brief     Identify if this clip is contained by a selection area
+     * @param sel The area selected
+     * @return    true==clip is selected
+     */
+    bool isSelected(const Selection& sel) const;
+    /**
      * @brief Identify if clip is populated at frame position (irregardless of track)
      * @param frame position
      * @return true if clip in range
@@ -270,6 +276,7 @@ class Clip : public project::SequenceItem,
     } media_handling; //FIXME: the use of this lot should really be its own library/class
 
     // temporary variables
+    [[deprecated]]
     int load_id{};
     bool undeletable;
     bool reached_end{};

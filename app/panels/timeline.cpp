@@ -875,9 +875,7 @@ void Timeline::copy(bool del)
     if (c != nullptr) {
       for (int j=0;j<sequence_->selections_.size();j++) {
         const Selection& s = sequence_->selections_.at(j);
-        if (s.track == c->timeline_info.track_ &&
-            !( ( (c->timeline_info.in <= s.in) && (c->timeline_info.out <= s.in) )
-               || ( (c->timeline_info.in >= s.out) && (c->timeline_info.out >= s.out) ) )) {
+        if (c->isSelected(s)) {
           if (!cleared) {
             clear_clipboard();
             cleared = true;

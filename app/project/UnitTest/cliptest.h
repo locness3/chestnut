@@ -29,6 +29,8 @@ class ClipTest : public QObject
      void testCaseMediaOpen();
 
      void testCaseClipType();
+
+     void testCaseisSelected();
 };
 
 #endif // CLIPTEST_H

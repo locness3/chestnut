@@ -19,15 +19,15 @@
 #define SELECTION_H
 
 struct Selection {
-    long in;
-    long out;
-    int track;
+    long in{-1};
+    long out{-1};
+    int track{0};
 
-    long old_in;
-    long old_out;
-    int old_track;
+    long old_in{-1};
+    long old_out{-1};
+    int old_track{-1};
 
-    bool trim_in;
+    bool trim_in{false};
 };
 
 #endif // SELECTION_H

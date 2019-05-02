@@ -1041,6 +1041,15 @@ bool Clip::isSelected(const bool containing)
   return false;
 }
 
+
+bool Clip::isSelected(const Selection& sel) const
+{
+
+  return ( (sel.track == timeline_info.track_) &&
+      !( ( (timeline_info.in <= sel.in) && (timeline_info.out <= sel.in) )
+         || ( (timeline_info.in >= sel.out) && (timeline_info.out >= sel.out) ) ));
+}
+
 bool Clip::inRange(const long frame) const
 {
   return ( (timeline_info.in < frame) && (timeline_info.out > frame) );

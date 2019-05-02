@@ -76,3 +76,25 @@ void ClipTest::testCaseClipType()
   QVERIFY(clp.type() == ClipType::AUDIO);
 }
 
+void ClipTest::testCaseisSelected()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  Selection sel;
+  sel.track = 1;
+  clp.timeline_info.track_ = 0;
+  QVERIFY(clp.isSelected(sel) == false);
+  clp.timeline_info.in = 0;
+  clp.timeline_info.out = 1;
+  clp.timeline_info.track_ = 1;
+  QVERIFY(clp.isSelected(sel) == false);
+  sel.in = 0;
+  sel.out = 100;
+  QVERIFY(clp.isSelected(sel) == true);
+  sel.in = 1;
+  QVERIFY(clp.isSelected(sel) == false);
+  clp.timeline_info.in = 100;
+  clp.timeline_info.out = 101;
+  QVERIFY(clp.isSelected(sel) == false);
+}
+
