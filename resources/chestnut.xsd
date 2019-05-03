@@ -125,24 +125,17 @@
             <xs:attribute ref="out" />
 		</xs:complexType>
 	</xs:element>
-	
-	<xs:element name="bezier"> 
-	    <xs:complexType>
-    	    <xs:sequence>                
-    	        <xs:element name="prex"     type="xs:integer"/>
-                <xs:element name="prey"     type="xs:integer"/>
-                <xs:element name="postx"    type="xs:integer"/>
-                <xs:element name="posty"    type="xs:integer"/>
-            </xs:sequence>    
-	    </xs:complexType>
-    </xs:element>
+
 	
 	<xs:element name="keyframe">
 		<xs:complexType>
-            <xs:sequence minOccurs="0" maxOccurs="1">
+            <xs:sequence minOccurs="1" maxOccurs="1">
                 <xs:element name="value"    type="xs:string"/>
-                <xs:element name="frame"    type="xs:integer"/>
-                <xs:element ref="bezier"/>
+                <xs:element name="frame"    type="xs:integer"/>    	       
+                <xs:element name="prex"     type="xs:integer"/>
+                <xs:element name="prey"     type="xs:integer"/>
+                <xs:element name="postx"    type="xs:integer"/>
+                <xs:element name="posty"    type="xs:integer"/>
             </xs:sequence>
             <xs:attribute name="type" type="xs:integer"/>
 		</xs:complexType>
@@ -153,6 +146,9 @@
             <xs:sequence>  
                 <xs:element ref="name"/>
                 <xs:element name="value" type="xs:string"/>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element ref="keyframe"/>
+                </xs:sequence>
             </xs:sequence>
 		</xs:complexType>
 	</xs:element>
