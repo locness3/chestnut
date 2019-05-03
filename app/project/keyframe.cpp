@@ -23,6 +23,15 @@
 #include "undo.h"
 #include "panels/panelmanager.h"
 
+constexpr auto ROOT_TAG = "keyframe";
+constexpr auto TYPE_TAG = "type";
+constexpr auto DATA_TAG = "value";
+constexpr auto TIME_TAG = "frame";
+constexpr auto PRE_HANDLE_X_TAG = "prex";
+constexpr auto PRE_HANDLE_Y_TAG = "prey";
+constexpr auto POST_HANDLE_X_TAG = "postx";
+constexpr auto POST_HANDLE_Y_TAG = "posty";
+
 void delete_keyframes(QVector<EffectField*>& selected_key_fields, QVector<int> &selected_keys)
 {
   QVector<EffectField*> fields;
@@ -64,29 +73,35 @@ EffectKeyframe::EffectKeyframe(const EffectField* parent) : parent_(parent)
 
 bool EffectKeyframe::load(QXmlStreamReader& stream)
 {
+  bool type_set = false;
   for (auto attr : stream.attributes()) {
     auto name = attr.name().toString().toLower();
-    if (name == "type") {
+    if (name == TYPE_TAG) {
       type = static_cast<KeyframeType>(attr.value().toInt());
+      type_set = true;
     } else {
       qWarning() << "Unhandled attribute" << name;
     }
   }
 
+  if (!type_set) {
+    qCritical() << "No Keyframe type found in stream";
+    return false;
+  }
+
   while (stream.readNextStartElement()) {
     auto name = stream.name().toString().toLower();
-    if (name == "value") {
-      auto val = stream.readElementText();
-      data.setValue(val);
-    } else if (name == "frame") {
+    if (name == DATA_TAG) {
+      data.setValue(stream.readElementText());
+    } else if (name == TIME_TAG) {
       time = stream.readElementText().toInt();
-    } else if (name == "prex") {
+    } else if (name == PRE_HANDLE_X_TAG) {
       pre_handle_x = stream.readElementText().toInt();
-    } else if (name == "prey") {
+    } else if (name == PRE_HANDLE_Y_TAG) {
       pre_handle_y = stream.readElementText().toInt();
-    } else if (name == "postx") {
+    } else if (name == POST_HANDLE_X_TAG) {
       post_handle_x = stream.readElementText().toInt();
-    } else if (name == "posty") {
+    } else if (name == POST_HANDLE_Y_TAG) {
       post_handle_y = stream.readElementText().toInt();
     } else {
       qWarning() << "Unhandled Element" << name;
@@ -99,16 +114,16 @@ bool EffectKeyframe::load(QXmlStreamReader& stream)
 bool EffectKeyframe::save(QXmlStreamWriter& stream) const
 {
   Q_ASSERT(parent_ != nullptr);
-  stream.writeStartElement("keyframe");
+  stream.writeStartElement(ROOT_TAG);
 
-  stream.writeAttribute("type", QString::number(static_cast<int>(type)));
+  stream.writeAttribute(TYPE_TAG, QString::number(static_cast<int>(type)));
 
-  stream.writeTextElement("value", fieldTypeValueToString(parent_->type, data));
-  stream.writeTextElement("frame", QString::number(time));
-  stream.writeTextElement("prex", QString::number(pre_handle_x));
-  stream.writeTextElement("prey", QString::number(pre_handle_y));
-  stream.writeTextElement("postx", QString::number(post_handle_x));
-  stream.writeTextElement("posty", QString::number(post_handle_y));
+  stream.writeTextElement(DATA_TAG, fieldTypeValueToString(parent_->type, data));
+  stream.writeTextElement(TIME_TAG, QString::number(time));
+  stream.writeTextElement(PRE_HANDLE_X_TAG, QString::number(pre_handle_x));
+  stream.writeTextElement(PRE_HANDLE_Y_TAG, QString::number(pre_handle_y));
+  stream.writeTextElement(POST_HANDLE_X_TAG, QString::number(post_handle_x));
+  stream.writeTextElement(POST_HANDLE_Y_TAG, QString::number(post_handle_y));
   stream.writeEndElement();
   return true;
 }
