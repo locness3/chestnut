@@ -329,8 +329,11 @@ void GraphView::paintEvent(QPaintEvent *)
 
   // draw playhead
   p.setPen(Qt::red);
-  int playhead_x = get_screen_x(panels::PanelManager::sequenceViewer().getSequence()->playhead_ - visible_in);
-  p.drawLine(playhead_x, 0, playhead_x, height());
+
+  if (panels::PanelManager::sequenceViewer().getSequence() != nullptr) {
+    int playhead_x = get_screen_x(panels::PanelManager::sequenceViewer().getSequence()->playhead_ - visible_in);
+    p.drawLine(playhead_x, 0, playhead_x, height());
+  }
 
   if (rect_select) {
     draw_selection_rectangle(p, QRect(rect_select_x, rect_select_y, rect_select_w, rect_select_h));
