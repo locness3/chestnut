@@ -37,8 +37,8 @@ class EffectKeyframe : public project::IXMLStreamer {
     EffectKeyframe() = default;
     explicit EffectKeyframe(const EffectField* const parent);
 
-    long time;
-    KeyframeType type;
+    long time{-1};
+    KeyframeType type{KeyframeType::UNKNOWN};
     QVariant data;
 
     // only for bezier type

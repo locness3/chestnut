@@ -24,7 +24,7 @@ void EffectKeyframeTest::loadMissingElementsTestCase()
   QXmlStreamReader reader(data);
   reader.readNextStartElement();
   EffectKeyframe kf;
-  QVERIFY(kf.load(reader) == false); //FIXME: this is failing
+  QVERIFY(kf.load(reader) == false);
   QVERIFY(kf.type == static_cast<KeyframeType>(1));
 }
 
@@ -42,7 +42,6 @@ void EffectKeyframeTest::loadPopulatedTestCase()
 
   QXmlStreamReader reader(data);
   reader.readNextStartElement();
-  auto name = reader.name();
   EffectKeyframe kf;
   QVERIFY(kf.load(reader) == true);
   QVERIFY(kf.type == static_cast<KeyframeType>(1));

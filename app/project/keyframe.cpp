@@ -89,6 +89,12 @@ bool EffectKeyframe::load(QXmlStreamReader& stream)
     return false;
   }
 
+  // NOTE: these are only needed for bezier type
+  auto post_x_set = false;
+  auto post_y_set = false;
+  auto pre_x_set = false;
+  auto pre_y_set = false;
+
   while (stream.readNextStartElement()) {
     auto name = stream.name().toString().toLower();
     if (name == DATA_TAG) {
@@ -97,18 +103,23 @@ bool EffectKeyframe::load(QXmlStreamReader& stream)
       time = stream.readElementText().toInt();
     } else if (name == PRE_HANDLE_X_TAG) {
       pre_handle_x = stream.readElementText().toInt();
+      pre_x_set = true;
     } else if (name == PRE_HANDLE_Y_TAG) {
       pre_handle_y = stream.readElementText().toInt();
+      pre_y_set = true;
     } else if (name == POST_HANDLE_X_TAG) {
       post_handle_x = stream.readElementText().toInt();
+      post_x_set = true;
     } else if (name == POST_HANDLE_Y_TAG) {
       post_handle_y = stream.readElementText().toInt();
+      post_y_set = true;
     } else {
       qWarning() << "Unhandled Element" << name;
       stream.skipCurrentElement();
     }
   }
-  return true;
+
+  return (!data.isNull() && time >= 0 && post_x_set && post_y_set && pre_x_set && pre_y_set);
 }
 
 bool EffectKeyframe::save(QXmlStreamWriter& stream) const
