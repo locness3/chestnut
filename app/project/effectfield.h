@@ -42,12 +42,6 @@ enum class EffectFieldType {
   UNKNOWN
 };
 
-struct EffectFieldStore {
-  QString name_;
-  QVariant value_;
-  QVector<EffectKeyframeStore> keyframes_;
-};
-
 
 QString fieldTypeValueToString(const EffectFieldType type, const QVariant& value);
 
@@ -115,7 +109,6 @@ public:
 
   void setValue(const QVariant& value);
 
-  bool load(const EffectFieldStore& store);
   virtual bool load(QXmlStreamReader& stream) override;
   virtual bool save(QXmlStreamWriter& stream) const override;
 

@@ -126,8 +126,6 @@ void TextEffect::setupUi()
 
   connect(shadow_bool, SIGNAL(toggled(bool)), this, SLOT(shadow_enable(bool)));
   connect(outline_bool, SIGNAL(toggled(bool)), this, SLOT(outline_enable(bool)));
-
-  Effect::setupUiWithLoadStore();
 }
 
 void TextEffect::redraw(double timecode) {

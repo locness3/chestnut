@@ -2181,7 +2181,7 @@ bool Clip::loadInEffect(QXmlStreamReader& stream)
     }
   }
   const EffectMeta meta = Effect::getRegisteredMeta(eff_name);
-  auto eff = create_effect(shared_from_this(), meta, false);
+  auto eff = create_effect(shared_from_this(), meta, true);
   eff->set_enabled(eff_enabled);
   if (!eff->load(stream)) {
     qCritical() << "Failed to load clip effect";

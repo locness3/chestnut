@@ -276,5 +276,4 @@ void TransformEffect::setupUi()
   blend_mode_box->setDefaultValue(0);
   set = false;
   this->refresh();
-  Effect::setupUiWithLoadStore();
 }

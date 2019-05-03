@@ -69,21 +69,34 @@ void EffectRow::setKeyframing(bool b)
 }
 
 
-
-bool EffectRow::load(const QVector<EffectFieldStore>& stores)
+bool EffectRow::load(QXmlStreamReader& stream)
 {
-  for (auto store_field : stores) {
-    if (auto load_field = field(store_field.name_)) {
-      load_field->load(store_field);
+  EffectField* eff_fld = nullptr;
+  while (stream.readNextStartElement()) {
+    auto elem_name = stream.name().toString().toLower();
+    if (elem_name == "name") {
+      auto fld_name = stream.readElementText();
+      eff_fld = field(fld_name);
+      if (eff_fld == nullptr) {
+        qWarning() << "No EffectRow Field found" << fld_name;
+      }
+    } else if ( (elem_name == "value") && (eff_fld != nullptr) ) {
+      auto val = stream.readElementText();
+      eff_fld->setValue(val);
+    } else if ( (elem_name == "keyframe") && (eff_fld != nullptr) ) {
+      //TODO:
+      EffectKeyframe kf;
+      kf.load(stream);
+      eff_fld->keyframes.append(kf);
+      setKeyframing(true);
+
+    }
+    else {
+      qWarning() << "Unknown Row Element" << elem_name;
+      stream.skipCurrentElement();
     }
   }
-  return false;
-}
-
-bool EffectRow::load(QXmlStreamReader& /*stream*/)
-{
-  // Due to threading issues, load has to be done at a later stage
-  return false;
+  return true;
 }
 bool EffectRow::save(QXmlStreamWriter& stream) const
 {

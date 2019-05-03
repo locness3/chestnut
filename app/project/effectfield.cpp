@@ -409,19 +409,21 @@ void EffectField::setValue(const QVariant& value)
 }
 
 
-bool EffectField::load(const EffectFieldStore& store)
+bool EffectField::load(QXmlStreamReader& stream)
 {
-  setValue(store.value_);
-  for (auto kf : store.keyframes_) {
-    // TODO: setup/create keyframes
+  while (stream.readNextStartElement()) {
+    auto name = stream.name().toString().toLower();
+    if (name == "value") {
+      setValue(stream.readElementText());
+    } else if (name == "keyframe") {
+      // TODO:
+      stream.skipCurrentElement();
+    } else {
+      qWarning() << "Unhandled element" << name;
+      stream.skipCurrentElement();
+    }
   }
-  return false;
-}
-
-bool  EffectField::load(QXmlStreamReader& /*stream*/)
-{
-  // Due to threading issues, load has to be done at a later stage
-  return false;
+  return true;
 }
 bool EffectField::save(QXmlStreamWriter& stream) const
 {

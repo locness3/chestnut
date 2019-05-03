@@ -360,7 +360,6 @@ Effect::Effect(ClipPtr c)
   : SequenceItem(project::SequenceItemType::CLIP),
     parent_clip(std::move(c))
 {
-
 }
 
 Effect::Effect(ClipPtr c, const EffectMeta& em) :
@@ -421,7 +420,7 @@ EffectRowPtr Effect::row(const int i)
 EffectRowPtr Effect::row(const QString& name)
 {
   for (auto row : rows) {
-    if (row != nullptr && row->name == name) {
+    if (row != nullptr && (row->name.toLower() == name.toLower()) ) {
       return row;
     }
   }
@@ -623,36 +622,24 @@ bool Effect::load(QXmlStreamReader& stream)
   while (stream.readNextStartElement()) {
     auto name = stream.name().toString().toLower();
     if (name == "row") {
-      // read row elements
-      EffectRowStore row_store;
+      EffectRowPtr eff_row;
       while (stream.readNextStartElement()) {
         name = stream.name().toString().toLower();
         if (name == "name") {
-          row_store.name_ = stream.readElementText();
-          row_store.fields_.clear();
-        } else if (name == "field") {
-          EffectFieldStore field_store;
-          // read field elements
-          while (stream.readNextStartElement()) {
-            name = stream.name().toString().toLower();
-            if (name == "name") {
-              field_store.name_ = stream.readElementText();
-            } else if (name == "value") {
-              field_store.value_ = stream.readElementText();
-              // This is dependent on that <value> follows <name>
-              row_store.fields_.append(field_store);
-            } else {
-              qWarning() << "Unhandled element" << name;
-            }
+          auto row_name = stream.readElementText();
+          eff_row = row(row_name);
+          if (eff_row == nullptr) {
+            qWarning() << "No row found for this effect. name=" << row_name;
+            stream.skipCurrentElement();
           }
-        } else {
-          qCritical() << "Unexpected element" << name;
-          return false;
+        } else if (name == "field" && eff_row != nullptr) {
+          eff_row->load(stream);
         }
-
-      }//while
-
-      load_store_.append(row_store);
+        else {
+          qWarning() << "Unhandled Element" << name;
+          stream.skipCurrentElement();
+        }
+      }
     } else {
       qCritical() << "Unhandled element" << name;
       return false;
@@ -966,7 +953,6 @@ void Effect::setupUi()
     setupControlWidget(meta);
     if (meta.internal < 0) {
       // shader effect. no extra ui setup
-      setupUiWithLoadStore();
     }
   } else {
     qWarning() << "Unable to set up control widget for unknown type";
@@ -1150,17 +1136,6 @@ void Effect::extractShaderDetails(const QXmlStreamAttributes& attributes)
       glsl_.iterations_ = attr.value().toInt();
     } else {
       qWarning() << "Unknown attribute" << attr.name();
-    }
-  }
-}
-
-
-void Effect::setupUiWithLoadStore()
-{
-  for (auto store : load_store_) {
-    if (auto load_row = row(store.name_)) {
-      load_row->load(store.fields_);
-
     }
   }
 }

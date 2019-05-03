@@ -71,6 +71,4 @@ void VolumeEffect::setupUi()
 
   // set defaults
   volume_val->set_double_default_value(100);
-
-  Effect::setupUiWithLoadStore();
 }

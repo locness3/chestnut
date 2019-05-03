@@ -64,6 +64,4 @@ void PanEffect::setupUi()
 
   // set defaults
   pan_val->set_double_default_value(0);
-
-  Effect::setupUiWithLoadStore();
 }

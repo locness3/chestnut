@@ -64,8 +64,36 @@ EffectKeyframe::EffectKeyframe(const EffectField* parent) : parent_(parent)
 
 bool EffectKeyframe::load(QXmlStreamReader& stream)
 {
-  //TODO:
-  return false;
+  for (auto attr : stream.attributes()) {
+    auto name = attr.name().toString().toLower();
+    if (name == "type") {
+      type = static_cast<KeyframeType>(attr.value().toInt());
+    } else {
+      qWarning() << "Unhandled attribute" << name;
+    }
+  }
+
+  while (stream.readNextStartElement()) {
+    auto name = stream.name().toString().toLower();
+    if (name == "value") {
+      auto val = stream.readElementText();
+      data.setValue(val);
+    } else if (name == "frame") {
+      time = stream.readElementText().toInt();
+    } else if (name == "prex") {
+      pre_handle_x = stream.readElementText().toInt();
+    } else if (name == "prey") {
+      pre_handle_y = stream.readElementText().toInt();
+    } else if (name == "postx") {
+      post_handle_x = stream.readElementText().toInt();
+    } else if (name == "posty") {
+      post_handle_y = stream.readElementText().toInt();
+    } else {
+      qWarning() << "Unhandled Element" << name;
+      stream.skipCurrentElement();
+    }
+  }
+  return true;
 }
 
 bool EffectKeyframe::save(QXmlStreamWriter& stream) const

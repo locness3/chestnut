@@ -31,11 +31,6 @@ class ComboAction;
 class KeyframeNavigator;
 class ClickableLabel;
 
-struct EffectRowStore {
-    QString name_;
-    QVector<EffectFieldStore> fields_;
-};
-
 class EffectRow : public QObject, public project::IXMLStreamer {
   Q_OBJECT
 public:
@@ -64,12 +59,6 @@ public:
   bool isKeyframing();
   void setKeyframing(bool);
 
-  /**
-   * @brief         Setup this row with fields from storage (project file)
-   * @param stores  The fields for this row
-   * @return true==success
-   */
-  bool load(const QVector<EffectFieldStore>& stores);
   virtual bool load(QXmlStreamReader& stream) override;
   virtual bool save(QXmlStreamWriter& stream) const override;
 
