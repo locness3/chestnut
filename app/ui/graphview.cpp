@@ -797,8 +797,9 @@ void GraphView::set_selected_keyframe_type(const KeyframeType type)
   }
 }
 
-void GraphView::set_field_visibility(int field, bool b) {
-  field_visibility[field] = b;
+void GraphView::set_field_visibility(int field, bool b)
+{
+  field_visibility.insert(field, b);
   update();
 }
 
