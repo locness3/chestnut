@@ -2231,7 +2231,12 @@ TransitionPtr Clip::loadTransition(QXmlStreamReader& stream)
     // both seemingly valid values loaded from file
     auto meta = Effect::getRegisteredMeta(tran_name);
     if (meta.type > -1) {
-      return get_transition_from_meta(shared_from_this(), nullptr, meta, false);
+      if (auto tran = get_transition_from_meta(shared_from_this(), nullptr, meta, true)) {
+        tran->set_length(tran_length);
+        return tran;
+      } else {
+        qWarning() << "Unabled to get transition from meta";
+      }
     }
     qWarning() << "Invalid Effect meta for Transition" << tran_name;
   }
