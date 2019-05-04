@@ -43,7 +43,7 @@ class Transition : public Effect {
   public:
     Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em);
 
-    int copy(const ClipPtr& c, const ClipPtr& s);
+//    int copy(const ClipPtr& c, const ClipPtr& s);
     void set_length(const long value);
     long get_true_length() const;
     long get_length() const;

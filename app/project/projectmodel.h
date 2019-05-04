@@ -67,11 +67,6 @@ public:
      */
     const QMap<int, MediaPtr>& items() const;
 
-    // TODO: may not be needed
-    /**
-     * Rebuild the links between project items
-     */
-    void relink();
     /**
      *  Search the model for a Media instance by Id
      * @param id Media's id

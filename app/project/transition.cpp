@@ -46,10 +46,10 @@ Transition::Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em)
 {
 }
 
-int Transition::copy(const ClipPtr& c, const ClipPtr& s)
-{
-  return create_transition(c, s, meta, length);
-}
+//int Transition::copy(const ClipPtr& c, const ClipPtr& s)
+//{
+//  return create_transition(c, s, meta, length);
+//}
 
 void Transition::set_length(const long value)
 {

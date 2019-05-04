@@ -2545,7 +2545,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
               // draw thumbnail/waveform
               long media_length = clip->maximumLength();
 
-              if (clip->type() == ClipType::VISUAL) {
+              if (clip->mediaType() == ClipType::VISUAL) {
                 // draw thumbnail
                 int thumb_y = painter.fontMetrics().height() + CLIP_TEXT_PADDING + CLIP_TEXT_PADDING;
                 if (thumb_x < width() && thumb_y < height()) {

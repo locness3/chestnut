@@ -232,12 +232,12 @@ class Clip : public project::SequenceItem,
      * @brief Obtain this clip type
      * @return
      */
-    ClipType type() const;
+    ClipType mediaType() const;
     /**
      * @brief Obtain the Media parent
      * @return MediaPtr or null
      */
-    MediaPtr parent();
+    MediaPtr parentMedia();
 
     void addLinkedClip(const Clip& clp);
     void setLinkedClips(const QVector<int32_t>& links);
@@ -319,8 +319,8 @@ class Clip : public project::SequenceItem,
     } audio_playback;
 
     struct {
-        TransitionPtr opening_;
-        TransitionPtr closing_;
+        TransitionPtr opening_{nullptr};
+        TransitionPtr closing_{nullptr};
     } transition_;
 
   protected:

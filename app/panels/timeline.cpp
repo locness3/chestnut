@@ -411,7 +411,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s)
       }
     }
 
-    if (c->type() == ClipType::VISUAL) {
+    if (c->mediaType() == ClipType::VISUAL) {
       // add default video effects
       c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TRANSFORM, EFFECT_TYPE_EFFECT)));
     } else {
@@ -448,7 +448,7 @@ void Timeline::add_transition()
 
   for (const auto& clp : sequence_->clips_) {
     if (clp != nullptr && clp->isSelected(true)){
-      auto meta = clp->type() == ClipType::AUDIO ? audio_meta : video_meta;
+      auto meta = clp->mediaType() == ClipType::AUDIO ? audio_meta : video_meta;
       ca->append(new AddTransitionCommand(clp, nullptr, meta, ClipTransitionType::BOTH, 30));
       adding = true;
     }

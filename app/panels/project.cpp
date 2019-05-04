@@ -873,7 +873,7 @@ void Project::delete_clips_using_selected_media()
       }
         for (auto item : items) {
         MediaPtr m = item_to_media(item);
-        if (del_clip->parent() == m) {
+        if (del_clip->parentMedia() == m) {
           ca->append(new DeleteClipAction(del_clip));
           deleted = true;
         }

@@ -174,7 +174,7 @@ bool Clip::openWorker() {
     const char* const filename = ftg->url.toUtf8().data();
 
     FootageStreamPtr ms;
-    if (type() == ClipType::VISUAL) {
+    if (mediaType() == ClipType::VISUAL) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -242,11 +242,11 @@ bool Clip::openWorker() {
     if ((media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_APNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_TIFF
-     #ifndef DISABLE_PSD
+  #ifndef DISABLE_PSD
          && media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PSD)
-    #else
+  #else
          )
-    #endif
+  #endif
         || !e_config.disable_multithreading_for_images) {
       av_dict_set(&media_handling.opts, "threads", "auto", 0);
     }
@@ -471,7 +471,7 @@ bool Clip::open(const bool open_multithreaded) {
     multithreaded = open_multithreaded;
     if (multithreaded) {
       if (open_lock.tryLock()) {
-        this->start((type() == ClipType::VISUAL) ? QThread::HighPriority : QThread::TimeCriticalPriority);
+        this->start((mediaType() == ClipType::VISUAL) ? QThread::HighPriority : QThread::TimeCriticalPriority);
       }
     } else {
       finished_opening = false;
@@ -615,21 +615,24 @@ bool Clip::setTransition(const EffectMeta& meta, const ClipTransitionType type, 
         }
         return true;
       }
-      return false;
+      break;
     case ClipTransitionType::CLOSING:
       transition_.closing_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
       if (transition_.closing_ != nullptr) {
         transition_.closing_->set_length(qMin(length, this->length()));
         return true;
       }
-      return false;
+      break;
     case ClipTransitionType::OPENING:
       transition_.opening_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
       if (transition_.opening_ != nullptr) {
         transition_.opening_->set_length(qMin(length, this->length()));
         return true;
       }
-      return false;
+      break;
+    default:
+      qWarning() << "Unhandled Transition type";
+      break;
   }
   return false;
 }
@@ -784,9 +787,9 @@ void Clip::refresh()
   if (replaced && timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
     FootagePtr m = timeline_info.media->object<Footage>();
 
-    if ((type() == ClipType::VISUAL) && !m->video_tracks.empty())  {
+    if ((mediaType() == ClipType::VISUAL) && !m->video_tracks.empty())  {
       timeline_info.media_stream = m->video_tracks.front()->file_index;
-    } else if ((type() == ClipType::AUDIO) && !m->audio_tracks.empty()) {
+    } else if ((mediaType() == ClipType::AUDIO) && !m->audio_tracks.empty()) {
       timeline_info.media_stream = m->audio_tracks.front()->file_index;
     }
   }
@@ -857,7 +860,7 @@ void Clip::frame(const long playhead, bool& texture_failed)
     auto ftg = timeline_info.media->object<Footage>();
     if (!ftg) return;
     FootageStreamPtr ms;
-    if (type() == ClipType::VISUAL) {
+    if (mediaType() == ClipType::VISUAL) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -1066,7 +1069,7 @@ bool Clip::inRange(const long frame) const
   return ( (timeline_info.in < frame) && (timeline_info.out > frame) );
 }
 
-ClipType Clip::type() const
+ClipType Clip::mediaType() const
 {
   if (timeline_info.track_ >= 0) {
     return ClipType::AUDIO;
@@ -1075,7 +1078,7 @@ ClipType Clip::type() const
 }
 
 
-MediaPtr Clip::parent()
+MediaPtr Clip::parentMedia()
 {
   return timeline_info.media;
 }

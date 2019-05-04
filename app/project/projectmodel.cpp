@@ -290,13 +290,6 @@ const QMap<int, MediaPtr>& ProjectModel::items() const
   return project_items;
 }
 
-void ProjectModel::relink()
-{
-  // TODO:
-  // go through project_items
-  // if an item has a link id (i.e. folder id) find item and link them
-}
-
 
 MediaPtr ProjectModel::findItemById(const int id)
 {
