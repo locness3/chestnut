@@ -1,5 +1,6 @@
 #include "cliptest.h"
 #include "project/clip.h"
+#include "project/transition.h"
 
 
 ClipTest::ClipTest()
@@ -126,5 +127,92 @@ void ClipTest::testCaseRelink()
 
   QVERIFY(clp.linked.contains(copied_link->id_));
   QVERIFY(clp.linked.size() == 1);
+}
+
+
+void ClipTest::testCaseSetTransition()
+{
+  auto seq = std::make_shared<Sequence>();
+  auto clp = std::make_shared<Clip>(seq);
+  EffectMeta meta;
+  meta.type = TRANSITION_INTERNAL_CROSSDISSOLVE;
+  meta.internal = 0;
+  clp->timeline_info.in = 0;
+  clp->timeline_info.out = 0;
+  // Attempt to set transition for clip of length zero
+  QVERIFY(clp->setTransition(meta, ClipTransitionType::CLOSING, 1000) == false);
+  clp->timeline_info.in = 0;
+  clp->timeline_info.out = 500;
+  // Attempt to set transition of length greater than clip length
+  QVERIFY(clp->setTransition(meta, ClipTransitionType::CLOSING, 1000) == true);
+  QVERIFY(clp->getTransition(ClipTransitionType::CLOSING) != nullptr);
+  QVERIFY(clp->getTransition(ClipTransitionType::CLOSING)->get_length() == clp->length());
+}
+
+
+void ClipTest::testCaseSplit()
+{
+  auto seq = std::make_shared<Sequence>();
+  auto clp = std::make_shared<Clip>(seq);
+  clp->timeline_info.in = 0;
+  clp->timeline_info.clip_in = 0;
+  clp->timeline_info.out = 1000;
+
+  auto split_clip = clp->split(500);
+
+  QVERIFY(split_clip != nullptr);
+  QVERIFY(split_clip->length() == 500);
+  QVERIFY(split_clip->timeline_info.in == 500);
+  QVERIFY(split_clip->timeline_info.clip_in == 500);
+  QVERIFY(clp->length() == 500);
+  QVERIFY(clp->timeline_info.in == 0);
+  QVERIFY(clp->timeline_info.clip_in == 0);
+  QVERIFY(clp->timeline_info.out == 500);
+}
+
+void ClipTest::testCaseSplitWithClosingTransition()
+{
+  auto seq = std::make_shared<Sequence>();
+  auto clp = std::make_shared<Clip>(seq);
+  EffectMeta meta;
+  meta.type = TRANSITION_INTERNAL_CROSSDISSOLVE;
+  meta.internal = 0;
+  clp->timeline_info.in = 0;
+  clp->timeline_info.clip_in = 0;
+  clp->timeline_info.out = 1000;
+  clp->setTransition(meta, ClipTransitionType::CLOSING, 500);
+  auto orig_tran = clp->getTransition(ClipTransitionType::CLOSING);
+  // split clip into the closing transition
+  auto split_clip = clp->split(900);
+  QVERIFY(clp->getTransition(ClipTransitionType::CLOSING) == nullptr);
+  // ensure ownership has been transferred
+  QVERIFY(split_clip->getTransition(ClipTransitionType::CLOSING) == orig_tran);
+  // transition in split should be resized to fit
+  QVERIFY(split_clip->getTransition(ClipTransitionType::CLOSING)->get_length() == 100);
+  //clip should be of same length as transition
+  QVERIFY(split_clip->length() == 100);
+}
+
+
+void ClipTest::testCaseSplitWithOpeningTransition()
+{
+  auto seq = std::make_shared<Sequence>();
+  auto clp = std::make_shared<Clip>(seq);
+  EffectMeta meta;
+  meta.type = TRANSITION_INTERNAL_CROSSDISSOLVE;
+  meta.internal = 0;
+  clp->timeline_info.in = 0;
+  clp->timeline_info.clip_in = 0;
+  clp->timeline_info.out = 1000;
+  clp->setTransition(meta, ClipTransitionType::OPENING, 500);
+  // split clip into the opening transition
+  auto split_clip = clp->split(100);
+  // original clip should keep the transition but length modified
+  QVERIFY(clp->getTransition(ClipTransitionType::OPENING) != nullptr);
+  QVERIFY(split_clip->getTransition(ClipTransitionType::OPENING) == nullptr);
+  // transition in original should be resized to fit
+  QVERIFY(clp->getTransition(ClipTransitionType::OPENING)->get_length() == 100);
+  //original clip should be of same length as transition
+  QVERIFY(clp->length() == 100);
 }
 

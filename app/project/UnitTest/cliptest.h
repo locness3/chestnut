@@ -35,6 +35,14 @@ class ClipTest : public QObject
      void testCaseaddLinkedClip();
 
      void testCaseRelink();
+
+     void testCaseSetTransition();
+
+     void testCaseSplit();
+
+     void testCaseSplitWithClosingTransition();
+
+     void testCaseSplitWithOpeningTransition();
 };
 
 #endif // CLIPTEST_H

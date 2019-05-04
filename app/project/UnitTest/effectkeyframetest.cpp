@@ -4,6 +4,7 @@
 #include <QtTest>
 
 #include "project/keyframe.h"
+#include "project/effectfield.h"
 
 EffectKeyframeTest::EffectKeyframeTest(QObject *parent) : QObject(parent)
 {
@@ -55,7 +56,9 @@ void EffectKeyframeTest::loadPopulatedTestCase()
 
 void EffectKeyframeTest::saveTestCase()
 {
-  EffectKeyframe kf;
+  auto field = std::make_unique<EffectField>(nullptr);
+  EffectKeyframe kf(field.get());
+
 
   kf.data.setValue(0.01);
   kf.time = 1000;

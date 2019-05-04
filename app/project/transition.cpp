@@ -125,7 +125,7 @@ TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& e
     QMessageBox::critical(&MainWindow::instance(),
                           QCoreApplication::translate("transition", "Invalid transition"),
                           QCoreApplication::translate("transition", "No candidate for transition '%1'. This transition "
-                                                                    "may be corrupt. Try reinstalling it or Olive.").arg(em.name)
+                                                                    "may be corrupt. Try reinstalling it or Chestnut.").arg(em.name)
                           );
   }
   if ((trans != nullptr) && setup) {

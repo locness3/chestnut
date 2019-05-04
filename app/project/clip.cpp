@@ -595,27 +595,38 @@ bool Clip::nudge(const int pos)
 
 bool Clip::setTransition(const EffectMeta& meta, const ClipTransitionType type, const long length)
 {
+  if (this->length() < 1) {
+    qWarning() << "Cannot set Transition for Clip of length 0";
+    return false;
+  }
+
   switch (type) {
     case ClipTransitionType::BOTH:
       transition_.opening_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
       transition_.closing_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
       if ( (transition_.opening_ != nullptr) && (transition_.closing_ != nullptr) ) {
-        transition_.opening_->set_length(length);
-        transition_.closing_->set_length(length);
+        if ( (length * 2) > this->length()) {
+          // Fit transitions into clip length
+          transition_.opening_->set_length(length/2);
+          transition_.closing_->set_length(length/2);
+        } else {
+          transition_.opening_->set_length(length);
+          transition_.closing_->set_length(length);
+        }
         return true;
       }
       return false;
     case ClipTransitionType::CLOSING:
       transition_.closing_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
       if (transition_.closing_ != nullptr) {
-        transition_.closing_->set_length(length);
+        transition_.closing_->set_length(qMin(length, this->length()));
         return true;
       }
       return false;
     case ClipTransitionType::OPENING:
       transition_.opening_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
       if (transition_.opening_ != nullptr) {
-        transition_.opening_->set_length(length);
+        transition_.opening_->set_length(qMin(length, this->length()));
         return true;
       }
       return false;
@@ -679,7 +690,7 @@ ClipPtr Clip::split(const long frame)
   if (transition_.opening_ != nullptr) {
     transition_.opening_->set_length(qMin(transition_.opening_->get_length(), length()));
   }
-  if (transition_.closing_) {
+  if (post->transition_.closing_ != nullptr) {
     post->transition_.closing_->set_length(qMin(post->transition_.closing_->get_length(), post->length()));
   }
   return post;
