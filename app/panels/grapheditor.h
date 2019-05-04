@@ -36,9 +36,6 @@ class GraphEditor : public QDockWidget {
   public:
     explicit GraphEditor(QWidget* parent = nullptr);
 
-    GraphEditor(const GraphEditor& ) = delete;
-    GraphEditor& operator=(const GraphEditor&) = delete;
-
     void update_panel();
     void set_row(EffectRow* r);
     bool view_is_focused();
@@ -53,7 +50,7 @@ class GraphEditor : public QDockWidget {
     QVector<QPushButton*> slider_proxy_buttons;
     QVector<LabelSlider*> slider_proxy_sources;
     QLabel* current_row_desc;
-    EffectRow* row;
+    EffectRow* row{nullptr};
     KeyframeNavigator* keyframe_nav;
     QPushButton* linear_button;
     QPushButton* bezier_button;
