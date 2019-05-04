@@ -127,7 +127,7 @@ GraphEditor::GraphEditor(QWidget* parent) : QDockWidget(parent), row(nullptr) {
 
   connect(view, SIGNAL(zoom_changed(double)), header, SLOT(update_zoom(double)));
   connect(view, SIGNAL(x_scroll_changed(int)), header, SLOT(set_scroll(int)));
-  connect(view, SIGNAL(selection_changed(bool, int)), this, SLOT(set_key_button_enabled(bool, int))); //FIXME:
+  connect(view, &GraphView::selection_changed, this, &GraphEditor::set_key_button_enabled); //FIXME:
 
   connect(linear_button, SIGNAL(clicked(bool)), this, SLOT(set_keyframe_type()));
   connect(bezier_button, SIGNAL(clicked(bool)), this, SLOT(set_keyframe_type()));
@@ -199,7 +199,7 @@ void GraphEditor::set_row(EffectRow *r)
     }
   }
 
-  if (found_vals && (row != nullptr) && (row->parent_effect != nullptr) ) {
+  if (found_vals && (r != nullptr) && (r->parent_effect != nullptr) ) {
     row = r;
     current_row_desc->setText(row->parent_effect->parent_clip->timeline_info.name_
                               + " :: " + row->parent_effect->meta.name + " :: " + row->get_name());
@@ -210,7 +210,7 @@ void GraphEditor::set_row(EffectRow *r)
     connect(keyframe_nav, SIGNAL(goto_next_key()), row, SLOT(goto_next_key()));
   } else {
     row = nullptr;
-    current_row_desc->setText(0);
+    current_row_desc->setText("None");
   }
   view->set_row(row);
   update_panel();

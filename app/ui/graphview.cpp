@@ -771,7 +771,7 @@ void GraphView::set_row(EffectRow *r) {
     selected_keys_fields.clear();
     selected_keys_old_vals.clear();
     selected_keys_old_doubles.clear();
-    emit selection_changed(false, -1);
+    emit selection_changed(false, KeyframeType::UNKNOWN);
     row = r;
     if ( (row != nullptr) && (row->parent_effect != nullptr) && (row->parent_effect->parent_clip != nullptr)) {
       field_visibility.resize(row->fieldCount());
@@ -881,5 +881,5 @@ void GraphView::selection_update()
 
   update();
 
-  emit selection_changed(!selected_keys.empty(), static_cast<int>(selected_key_type));
+  emit selection_changed(!selected_keys.empty(), selected_key_type);
 }

@@ -53,7 +53,7 @@ class GraphView : public QWidget {
     void x_scroll_changed(int);
     void y_scroll_changed(int);
     void zoom_changed(double);
-    void selection_changed(bool, int);
+    void selection_changed(bool, KeyframeType);
   private:
     int x_scroll;
     int y_scroll;
