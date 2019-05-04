@@ -36,6 +36,8 @@ class ClipTest : public QObject
 
      void testCaseRelink();
 
+     void testCaseClearLinks();
+
      void testCaseSetTransition();
 
      void testCaseSplit();
@@ -43,6 +45,16 @@ class ClipTest : public QObject
      void testCaseSplitWithClosingTransition();
 
      void testCaseSplitWithOpeningTransition();
+
+     void testCaseSplitWithBothTransitions();
+
+     void testCaseDeleteTransition();
+
+     void testCaseNudge();
+
+     void testCaseInRange();
+
+     void testCaseIsSelectedBySelection();
 };
 
 #endif // CLIPTEST_H

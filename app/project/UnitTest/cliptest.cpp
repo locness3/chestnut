@@ -130,6 +130,18 @@ void ClipTest::testCaseRelink()
 }
 
 
+void ClipTest::testCaseClearLinks()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  clp.linked.append(1);
+  clp.linked.append(2);
+  clp.linked.append(3);
+  clp.clearLinks();
+  QVERIFY(clp.linkedClips().empty());
+}
+
+
 void ClipTest::testCaseSetTransition()
 {
   auto seq = std::make_shared<Sequence>();
@@ -214,5 +226,125 @@ void ClipTest::testCaseSplitWithOpeningTransition()
   QVERIFY(clp->getTransition(ClipTransitionType::OPENING)->get_length() == 100);
   //original clip should be of same length as transition
   QVERIFY(clp->length() == 100);
+}
+
+
+void ClipTest::testCaseSplitWithBothTransitions()
+{
+  auto seq = std::make_shared<Sequence>();
+  auto clp = std::make_shared<Clip>(seq);
+  EffectMeta meta;
+  meta.type = TRANSITION_INTERNAL_CROSSDISSOLVE;
+  meta.internal = 0;
+  clp->timeline_info.in = 0;
+  clp->timeline_info.clip_in = 0;
+  clp->timeline_info.out = 1000;
+  auto trans_len = 100;
+  clp->setTransition(meta, ClipTransitionType::OPENING, trans_len);
+  clp->setTransition(meta, ClipTransitionType::CLOSING, trans_len);
+  // split clip between transitions
+  auto split_clip = clp->split(500);
+  // original clip should keep the opening transition, unmodified
+  QVERIFY(clp->getTransition(ClipTransitionType::OPENING) != nullptr);
+  QVERIFY(clp->getTransition(ClipTransitionType::OPENING)->get_length() == trans_len);
+  QVERIFY(clp->getTransition(ClipTransitionType::CLOSING) == nullptr);
+  // split clip should get the closing transition, unmodified
+  QVERIFY(split_clip->getTransition(ClipTransitionType::OPENING) == nullptr);
+  QVERIFY(split_clip->getTransition(ClipTransitionType::CLOSING) != nullptr);
+  QVERIFY(split_clip->getTransition(ClipTransitionType::CLOSING)->get_length() == trans_len);
+}
+
+
+void ClipTest::testCaseDeleteTransition()
+{
+  auto seq = std::make_shared<Sequence>();
+  auto clp = std::make_shared<Clip>(seq);
+  clp->timeline_info.in = 0;
+  clp->timeline_info.clip_in = 0;
+  clp->timeline_info.out = 1000;
+
+  EffectMeta meta;
+  meta.type = TRANSITION_INTERNAL_CROSSDISSOLVE;
+  meta.internal = 0;
+  auto trans_len = 100;
+  clp->setTransition(meta, ClipTransitionType::OPENING, trans_len);
+  clp->setTransition(meta, ClipTransitionType::CLOSING, trans_len);
+
+  // ensure transition is null on delete
+  clp->deleteTransition(ClipTransitionType::OPENING);
+  QVERIFY(clp->getTransition(ClipTransitionType::OPENING) == nullptr);
+  clp->deleteTransition(ClipTransitionType::CLOSING);
+  QVERIFY(clp->getTransition(ClipTransitionType::CLOSING) == nullptr);
+
+  // ensure all transitions are null on delete
+  clp->setTransition(meta, ClipTransitionType::OPENING, trans_len);
+  clp->setTransition(meta, ClipTransitionType::CLOSING, trans_len);
+  clp->deleteTransition(ClipTransitionType::BOTH);
+  QVERIFY(clp->getTransition(ClipTransitionType::OPENING) == nullptr);
+  QVERIFY(clp->getTransition(ClipTransitionType::CLOSING) == nullptr);
+
+}
+
+
+void ClipTest::testCaseNudge()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  clp.timeline_info.in = 0;
+  clp.timeline_info.clip_in = 0;
+  clp.timeline_info.out = 1000;
+
+  // advance clip in timeline by 1 frame
+  clp.nudge(1);
+  QVERIFY(clp.timeline_info.in == 1);
+  QVERIFY(clp.timeline_info.out == 1001);
+}
+
+
+void ClipTest::testCaseInRange()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  clp.timeline_info.in = 0;
+  clp.timeline_info.clip_in = 0;
+  clp.timeline_info.out = 1000;
+
+  QVERIFY(clp.inRange(500) == true);
+  QVERIFY(clp.inRange(-500) == false);
+  QVERIFY(clp.inRange(0) == false);
+  QVERIFY(clp.inRange(1000) == false);
+  QVERIFY(clp.inRange(10000) == false);
+}
+
+
+void ClipTest::testCaseIsSelectedBySelection()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  clp.timeline_info.in = 0;
+  clp.timeline_info.clip_in = 0;
+  clp.timeline_info.out = 1000;
+  clp.timeline_info.track_ = 0;
+  clp.timeline_info.enabled = true;
+
+  Selection sel;
+  sel.in = 100;
+  sel.out = 200;
+  sel.track = 0;
+
+  QVERIFY(clp.isSelected(sel) == true);
+  //Selection is on different track
+  sel.track = 100;
+  QVERIFY(clp.isSelected(sel) == false);
+  // selection is greater than clip
+  sel.track = 0;
+  sel.in = 0;
+  sel.out = 10000;
+  QVERIFY(clp.isSelected(sel) == true);
+  // selecting an unenabled clip //TODO: what should be the behaviour???
+  clp.timeline_info.enabled = false;
+  QVERIFY(clp.isSelected(sel) == true);
+
+
 }
 
