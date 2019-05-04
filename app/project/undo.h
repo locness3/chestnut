@@ -272,17 +272,17 @@ private:
   bool done{};
 };
 
-class AddClipCommand : public QUndoCommand {
-public:
-  AddClipCommand(SequencePtr  s, QVector<ClipPtr>& add);
-  virtual void undo() override;
-  virtual void redo() override;
-private:
-  SequencePtr seq;
-  QVector<ClipPtr> clips;
-  QVector<ClipPtr> undone_clips;
-  bool old_project_changed;
-};
+//class AddClipCommand : public QUndoCommand {
+//public:
+//  AddClipCommand(SequencePtr  s, QVector<ClipPtr>& add);
+//  virtual void undo() override;
+//  virtual void redo() override;
+//private:
+//  SequencePtr seq;
+//  QVector<ClipPtr> clips;
+//  QVector<ClipPtr> undone_clips;
+//  bool old_project_changed;
+//};
 
 class AddClipsCommand : public QUndoCommand {
   public:

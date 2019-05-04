@@ -447,7 +447,7 @@ void Viewer::pause() {
 
       QVector<ClipPtr> add_clips;
       add_clips.append(clp);
-      e_undo_stack.push(new AddClipCommand(seq, add_clips)); // add clip
+      e_undo_stack.push(new AddClipsCommand(seq, add_clips)); // add clip
     }
   }
 }

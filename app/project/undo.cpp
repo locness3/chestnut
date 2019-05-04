@@ -479,54 +479,6 @@ void DeleteMediaCommand::redo() {
   done = true;
 }
 
-AddClipCommand::AddClipCommand(SequencePtr s, QVector<ClipPtr>& add) :
-  seq(std::move(s)),
-  clips(add),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
-
-
-void AddClipCommand::undo() {
-  PanelManager::fxControls().clear_effects(true);
-  for (int i=0;i<clips.size();i++) {
-    ClipPtr   c = seq->clips_.last();
-    PanelManager::timeLine().deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
-    undone_clips.prepend(c);
-    c->close(true);
-    seq->clips_.removeLast();
-  }
-  MainWindow::instance().setWindowModified(old_project_changed);
-}
-
-void AddClipCommand::redo() {
-  if (!undone_clips.empty()) {
-    for (const auto& u_clip : undone_clips) {
-      seq->clips_.append(u_clip);
-    }
-    undone_clips.clear();
-  } else {
-    const auto linkOffset = seq->clips_.size();
-    for (const auto& original : clips) {
-      ClipPtr copy = original->copyPreserveLinks(seq);
-      //FIXME:
-      //      copy->linked.resize(original->linked.size());
-      //      for (int j=0;j<original->linked.size();j++) {
-      //        copy->linked[j] = original->linked.at(j) + linkOffset;
-      //      }
-      //FIXME:
-      //      if (original->opening_transition > -1) {
-      //        copy->opening_transition = original->openingTransition()->copy(copy, nullptr);
-      //      }
-      //      if (original->closing_transition > -1) {
-      //        copy->closing_transition = original->closingTransition()->copy(copy, nullptr);
-      //      }
-      seq->clips_.append(copy);
-    }
-  }
-  MainWindow::instance().setWindowModified(true);
-}
-
-
 AddClipsCommand::AddClipsCommand(SequencePtr seq, const QVector<ClipPtr>& clips)
   : sequence_(std::move(seq)),
     clips_(clips),

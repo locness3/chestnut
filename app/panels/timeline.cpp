@@ -395,7 +395,7 @@ void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s)
     clp->recalculateMaxLength();
     added_clips.append(clp);
   }
-  ca->append(new AddClipCommand(s, added_clips));
+  ca->append(new AddClipsCommand(s, added_clips));
 
   // link clips from the same media
   for (const auto& c : added_clips) {
@@ -863,7 +863,7 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
   }//for
 
   relink_clips_using_ids(pre_clips, post_clips);
-  ca->append(new AddClipCommand(sequence_, post_clips));
+  ca->append(new AddClipsCommand(sequence_, post_clips));
 }
 
 void Timeline::copy(bool del)
@@ -1008,7 +1008,7 @@ void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const b
     delete_areas_and_relink(ca, delete_areas);
   }
 
-  ca->append(new AddClipCommand(seq, pasted_clips));
+  ca->append(new AddClipsCommand(seq, pasted_clips));
 
   e_undo_stack.push(ca);
 

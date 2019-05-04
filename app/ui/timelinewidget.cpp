@@ -890,7 +890,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
 
             QVector<ClipPtr> add;
             add.append(c);
-            ca->append(new AddClipCommand(global::sequence, add));
+            ca->append(new AddClipsCommand(global::sequence, add));
 
             if (c->timeline_info.isVideo()) {
               // default video effects (before custom effects)
@@ -1017,7 +1017,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
               // relink duplicated clips
               PanelManager::timeLine().relink_clips_using_ids(old_clips, new_clips);
 
-              ca->append(new AddClipCommand(global::sequence, new_clips));
+              ca->append(new AddClipsCommand(global::sequence, new_clips));
             }
           } else {
             // INSERT if holding ctrl
