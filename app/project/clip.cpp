@@ -118,7 +118,7 @@ ClipPtr Clip::copy(SequencePtr s)
 
 ClipPtr Clip::copyPreserveLinks(SequencePtr s)
 {
-  auto clp = copy(s);
+  auto clp = copy(std::move(s));
   clp->id_ = id_;
   clp->linked = linked;
   return clp;
@@ -146,7 +146,7 @@ bool Clip::isActive(const long playhead) {
 bool Clip::usesCacher() const
 {
   return (( (timeline_info.media == nullptr) && (timeline_info.track_ >= 0) )
-      || ( (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE)));
+          || ( (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE)));
 }
 
 /**
@@ -201,7 +201,7 @@ bool Clip::openWorker() {
     if (errCode < 0) {
       char err[1024];
       av_strerror(errCode, err, 1024);
-       qCritical() << "Could not open" << filename << "-" << err;
+      qCritical() << "Could not open" << filename << "-" << err;
       return false;
     }
 
@@ -209,7 +209,7 @@ bool Clip::openWorker() {
 
     media_handling.stream = media_handling.formatCtx->streams[ms->file_index];
     if ( (media_handling.stream == nullptr) || (media_handling.stream->codecpar == nullptr) ) {
-       qCritical() << "Stream Info instance(s) are null";
+      qCritical() << "Stream Info instance(s) are null";
       return false;
     }
     media_handling.codec = avcodec_find_decoder(media_handling.stream->codecpar->codec_id);
@@ -242,11 +242,11 @@ bool Clip::openWorker() {
     if ((media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_APNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_TIFF
-#ifndef DISABLE_PSD
+     #ifndef DISABLE_PSD
          && media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PSD)
-#else
+    #else
          )
-#endif
+    #endif
         || !e_config.disable_multithreading_for_images) {
       av_dict_set(&media_handling.opts, "threads", "auto", 0);
     }
@@ -815,25 +815,25 @@ void Clip::removeEarliestFromQueue() {
 TransitionPtr Clip::openingTransition() const
 {
   return transition_.opening_;
-//  if (opening_transition > -1) {
-//    if (sequence == nullptr) {
-//      return e_clipboard_transitions.at(opening_transition);
-//    }
-//    return sequence->transitions_.at(opening_transition);
-//  }
-//  return nullptr;
+  //  if (opening_transition > -1) {
+  //    if (sequence == nullptr) {
+  //      return e_clipboard_transitions.at(opening_transition);
+  //    }
+  //    return sequence->transitions_.at(opening_transition);
+  //  }
+  //  return nullptr;
 }
 
 TransitionPtr Clip::closingTransition() const
 {
   return transition_.closing_;
-//  if (closing_transition > -1) {
-//    if (sequence == nullptr) {
-//      return e_clipboard_transitions.at(closing_transition);
-//    }
-//    return sequence->transitions_.at(closing_transition);
-//  }
-//  return nullptr;
+  //  if (closing_transition > -1) {
+  //    if (sequence == nullptr) {
+  //      return e_clipboard_transitions.at(closing_transition);
+  //    }
+  //    return sequence->transitions_.at(closing_transition);
+  //  }
+  //  return nullptr;
 }
 
 /**
@@ -892,7 +892,7 @@ void Clip::frame(const long playhead, bool& texture_failed)
 
         int previous_frame_count = 0;
         if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
-          minimum_ts -= (second_pts * e_config.previous_queue_size);
+          minimum_ts -= qFloor(second_pts * e_config.previous_queue_size);
         }
 
         for (int i=0;i<queue.size();i++) {
@@ -973,8 +973,8 @@ void Clip::frame(const long playhead, bool& texture_failed)
       uint8_t* data = target_frame->data[0];
       int frame_size;
 
-      for (int i=0;i<effects.size();i++) {
-        EffectPtr e = effects.at(i);
+      //      for (int i=0;i<effects.size();i++) {
+      for (const auto& e : effects) {
         if (e->hasCapability(Capability::IMAGE)) {
           if (!copied) {
             frame_size = target_frame->linesize[0]*target_frame->height;
@@ -1031,12 +1031,12 @@ bool Clip::isSelected(const bool containing)
     const auto in_range = timeline_info.in >= selection.in && timeline_info.out <= selection.out;
     if (same_track && in_range && containing) {
       return true;
-    } else if (!same_track && !in_range && !containing) {
+    }
+    if (!same_track && !in_range && !containing) {
       // i.e. "not selected"
       return true;
-    } else {
-      // keep looking
     }
+    // keep looking
   }
   return false;
 }
@@ -1046,8 +1046,8 @@ bool Clip::isSelected(const Selection& sel) const
 {
 
   return ( (sel.track == timeline_info.track_) &&
-      !( ( (timeline_info.in <= sel.in) && (timeline_info.out <= sel.in) )
-         || ( (timeline_info.in >= sel.out) && (timeline_info.out >= sel.out) ) ));
+           !( ( (timeline_info.in <= sel.in) && (timeline_info.out <= sel.in) )
+              || ( (timeline_info.in >= sel.out) && (timeline_info.out >= sel.out) ) ));
 }
 
 bool Clip::inRange(const long frame) const
@@ -1127,8 +1127,7 @@ bool Clip::load(QXmlStreamReader& stream)
   for (const auto& attr : stream.attributes()) {
     const auto name = attr.name().toString().toLower();
     if (name == "source") {
-      load_id = attr.value().toInt();
-      timeline_info.media = Project::model().findItemById(load_id);
+      timeline_info.media = Project::model().findItemById(attr.value().toInt());
     } else if (name == "id") {
       setId(attr.value().toInt());
     } else {
@@ -1229,29 +1228,29 @@ bool Clip::save(QXmlStreamWriter& stream) const
 
 long Clip::clipInWithTransition()
 {
-  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
+  if (transition_.opening_ != nullptr && !transition_.opening_->secondary_clip.expired()) {
     // we must be the secondary clip, so return (timeline in - length)
-    return timeline_info.clip_in - openingTransition()->get_true_length();
+    return timeline_info.clip_in - transition_.opening_->get_true_length();
   }
   return timeline_info.clip_in;
 }
 
 long Clip::timelineInWithTransition()
 {
-  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
+  if (transition_.opening_ != nullptr && !transition_.opening_->secondary_clip.expired()) {
     // we must be the secondary clip, so return (timeline in - length)
-    return timeline_info.in - openingTransition()->get_true_length();
+    return timeline_info.in - transition_.opening_->get_true_length();
   }
   return timeline_info.in;
 }
 
 long Clip::timelineOutWithTransition() {
-  if (closingTransition() != nullptr && !closingTransition()->secondary_clip.expired()) {
+  if (transition_.closing_ != nullptr && !transition_.closing_->secondary_clip.expired()) {
     // we must be the primary clip, so return (timeline out + length2)
-    return timeline_info.out + closingTransition()->get_true_length();
-  } else {
-    return timeline_info.out;
+    return timeline_info.out + transition_.closing_->get_true_length();
   }
+
+  return timeline_info.out;
 }
 
 // timeline functions
@@ -1421,11 +1420,11 @@ void Clip::refactorFrameRate(ComboAction* ca, double multiplier, bool change_tim
   }
 
   // move keyframes
-  for (auto effectNow : effects) {
+  for (const auto& effectNow : effects) {
     if (!effectNow) {
       continue;
     }
-    for (auto effectRowNow : effectNow->getRows()) {
+    for (const auto& effectRowNow : effectNow->getRows()) {
       if (!effectRowNow) {
         continue;
       }
@@ -1455,16 +1454,15 @@ void Clip::run() {
       can_cache.wait(&lock);
       if (!cache_info.caching) {
         break;
-      } else {
-        while (true) {
-          cache_worker(cache_info.playhead, cache_info.reset, cache_info.scrubbing, cache_info.nests);
-          if (multithreaded && cache_info.interrupt && (timeline_info.isVideo()) ) {
-            cache_info.interrupt = false;
-          } else {
-            break;
-          }
-        }//while
       }
+      while (true) {
+        cache_worker(cache_info.playhead, cache_info.reset, cache_info.scrubbing, cache_info.nests);
+        if (multithreaded && cache_info.interrupt && (timeline_info.isVideo()) ) {
+          cache_info.interrupt = false;
+        } else {
+          break;
+        }
+      }//while
     }//while
 
     qWarning() << "caching thread stopped";
@@ -1484,34 +1482,33 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
   // perform all audio effects
   const double timecode_end = timecode_start + bytes_to_seconds(nb_bytes, frame->channels, frame->sample_rate);
 
-  for (int j=0; j < effects.size();j++) {
-    EffectPtr e = effects.at(j);
-    if (e->is_enabled()) {
+  for (const auto& e : effects) {
+    if (e != nullptr && e->is_enabled()) {
       e->process_audio(timecode_start, timecode_end, frame->data[0], nb_bytes, 2);
     }
   }
-  if (openingTransition() != nullptr) {
+  if (transition_.opening_ != nullptr) {
     if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
       const double transition_start = (clipInWithTransition() / sequence->frameRate());
-      const double transition_end = (clipInWithTransition() + openingTransition()->get_length()) / sequence->frameRate();
+      const double transition_end = (clipInWithTransition() + transition_.opening_->get_length()) / sequence->frameRate();
       if (timecode_end < transition_end) {
         const double adjustment = transition_end - transition_start;
         const double adjusted_range_start = (timecode_start - transition_start) / adjustment;
         const double adjusted_range_end = (timecode_end - transition_start) / adjustment;
-        openingTransition()->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_OPENING_TRANSITION);
+        transition_.opening_->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_OPENING_TRANSITION);
       }
     }
   }
-  if (closingTransition() != nullptr) {
+  if (transition_.closing_ != nullptr) {
     if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
       const long length_with_transitions = timelineOutWithTransition() - timelineInWithTransition();
-      const double transition_start = (clipInWithTransition() + length_with_transitions - closingTransition()->get_length()) / sequence->frameRate();
+      const double transition_start = (clipInWithTransition() + length_with_transitions - transition_.closing_->get_length()) / sequence->frameRate();
       const double transition_end = (clipInWithTransition() + length_with_transitions) / sequence->frameRate();
       if (timecode_start > transition_start) {
         const double adjustment = transition_end - transition_start;
         const double adjusted_range_start = (timecode_start - transition_start) / adjustment;
         const double adjusted_range_end = (timecode_end - transition_start) / adjustment;
-        closingTransition()->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_CLOSING_TRANSITION);
+        transition_.closing_->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_CLOSING_TRANSITION);
       }
     }
   }
@@ -1622,7 +1619,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
   long frame_skip = 0;
   double last_fr = sequence->frameRate();
   if (!nests.isEmpty()) {
-    for (auto nestedClip : nests) {
+    for (const auto& nestedClip : nests) {
       const auto offset = nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
       timeline_in = refactor_frame_number(timeline_in, last_fr,
                                           nestedClip->sequence->frameRate()) + offset;
@@ -1719,8 +1716,9 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
                 dout << "[ERROR] Could not pull from filtergraph";
                 reached_end = true;
                 break;
-              } else {
-                if (!timeline_info.reverse) break;
+              }
+              if (!timeline_info.reverse) {
+                break;
               }
             }
 
@@ -1855,41 +1853,42 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
     // mix audio into internal buffer
     if (av_frame->nb_samples == 0) {
       break;
-    } else {
-      // have audio data so write to audio_data_buffer
-      long buffer_timeline_out = get_buffer_offset_from_frame(sequence->frameRate(), timeline_out);
-      audio_write_lock.lock();
-
-      while (audio_playback.frame_sample_index < nb_bytes
-             && audio_playback.buffer_write < audio_ibuffer_read+(AUDIO_IBUFFER_SIZE>>1)
-             && audio_playback.buffer_write < buffer_timeline_out) {
-        int upper_byte_index = (audio_playback.buffer_write + 1) % AUDIO_IBUFFER_SIZE;
-        int lower_byte_index = (audio_playback.buffer_write) % AUDIO_IBUFFER_SIZE;
-        const qint16 old_sample = static_cast<qint16>( ((audio_ibuffer[upper_byte_index] & 0xFF) << 8)
-                                                 | (audio_ibuffer[lower_byte_index] & 0xFF));
-        const qint16 new_sample = static_cast<qint16>(((av_frame->data[0][audio_playback.frame_sample_index + 1] & 0xFF) << 8)
-            | (av_frame->data[0][audio_playback.frame_sample_index] & 0xFF));
-        const qint16 mixed_sample = mix_audio_sample(old_sample, new_sample);
-
-        audio_ibuffer[upper_byte_index] = static_cast<quint8>((mixed_sample >> 8) & 0xFF);
-        audio_ibuffer[lower_byte_index] = static_cast<quint8>(mixed_sample & 0xFF);
-
-        audio_playback.buffer_write += 2;
-        audio_playback.frame_sample_index += 2;
-      }//while
-      audio_write_lock.unlock();
-
-      if (scrubbing && (audio_thread != nullptr) ) {
-          audio_thread->notifyReceiver();
-      }
-
-      if (audio_playback.frame_sample_index == nb_bytes) {
-        audio_playback.frame_sample_index = -1;
-      } else {
-        // assume we have no more data to send
-        break;
-      }
     }
+
+    // have audio data so write to audio_data_buffer
+    long buffer_timeline_out = get_buffer_offset_from_frame(sequence->frameRate(), timeline_out);
+    audio_write_lock.lock();
+
+    while (audio_playback.frame_sample_index < nb_bytes
+           && audio_playback.buffer_write < audio_ibuffer_read+(AUDIO_IBUFFER_SIZE>>1)
+           && audio_playback.buffer_write < buffer_timeline_out) {
+      int upper_byte_index = (audio_playback.buffer_write + 1) % AUDIO_IBUFFER_SIZE;
+      int lower_byte_index = (audio_playback.buffer_write) % AUDIO_IBUFFER_SIZE;
+      const auto old_sample = static_cast<qint16>( ((audio_ibuffer[upper_byte_index] & 0xFF) << 8)
+                                                   | (audio_ibuffer[lower_byte_index] & 0xFF));
+      const auto new_sample = static_cast<qint16>(((av_frame->data[0][audio_playback.frame_sample_index + 1] & 0xFF) << 8)
+          | (av_frame->data[0][audio_playback.frame_sample_index] & 0xFF));
+      const qint16 mixed_sample = mix_audio_sample(old_sample, new_sample);
+
+      audio_ibuffer[upper_byte_index] = static_cast<quint8>((mixed_sample >> 8) & 0xFF);
+      audio_ibuffer[lower_byte_index] = static_cast<quint8>(mixed_sample & 0xFF);
+
+      audio_playback.buffer_write += 2;
+      audio_playback.frame_sample_index += 2;
+    }//while
+    audio_write_lock.unlock();
+
+    if (scrubbing && (audio_thread != nullptr) ) {
+      audio_thread->notifyReceiver();
+    }
+
+    if (audio_playback.frame_sample_index == nb_bytes) {
+      audio_playback.frame_sample_index = -1;
+    } else {
+      // assume we have no more data to send
+      break;
+    }
+
     if (reached_end) {
       av_frame->nb_samples = 0;
     }
@@ -1921,10 +1920,14 @@ void Clip::cache_video_worker(const long playhead) {
     ignore_reverse = false;
 
     int64_t smallest_pts = INT64_MAX;
-    if (reverse && queue.size() > 0) {
+    if (reverse && !queue.empty()) {
       int64_t quarter_sec = qRound64(av_q2d(av_inv_q(media_handling.stream->time_base))) >> 2;
-      for (int i=0;i<queue.size();i++) {
-        smallest_pts = qMin(smallest_pts, queue.at(i)->pts);
+      for (auto q : queue) {
+        if (q == nullptr) {
+          qWarning() << "AVFrame instance is null";
+          continue;
+        }
+        smallest_pts = qMin(smallest_pts, q->pts);
       }
       avcodec_flush_buffers(media_handling.codecCtx);
       reached_end = false;
@@ -1975,38 +1978,43 @@ void Clip::cache_video_worker(const long playhead) {
         }
         av_frame_free(&frame);
         break;
-      } else {
-        if (reverse && ((smallest_pts == target_pts && frame->pts >= smallest_pts) || (smallest_pts != target_pts && frame->pts > smallest_pts))) {
-          av_frame_free(&frame);
-          break;
-        } else {
-          // thread-safety while adding frame to the queue
-          queue_lock.lock();
-          queue.append(frame);
+      }
 
-          auto ftg = timeline_info.media->object<Footage>();
-          if (auto ms = ftg->video_stream_from_file_index(timeline_info.media_stream)) {
-            if (!ms->infinite_length && !reverse && queue.size() == limit) {
-              // see if we got the frame we needed (used for speed ups primarily)
-              bool found = false;
-              for (int i=0;i<queue.size();i++) {
-                if (queue.at(i)->pts >= target_pts) {
-                  found = true;
-                  break;
-                }
-              }
-              if (found) {
-                queue_lock.unlock();
-                break;
-              } else {
-                // remove earliest frame and loop to store another
-                removeEarliestFromQueue();
-              }
+      if (reverse && (( (smallest_pts == target_pts) && (frame->pts >= smallest_pts) )
+                      || ((smallest_pts != target_pts) && (frame->pts > smallest_pts)))) {
+        av_frame_free(&frame);
+        break;
+      }
+
+      // thread-safety while adding frame to the queue
+      queue_lock.lock();
+      queue.append(frame);
+
+      auto ftg = timeline_info.media->object<Footage>();
+      if (auto ms = ftg->video_stream_from_file_index(timeline_info.media_stream)) {
+        if (!ms->infinite_length && !reverse && queue.size() == limit) {
+          // see if we got the frame we needed (used for speed ups primarily)
+          bool found = false;
+          for (auto q : queue) {
+            if (q == nullptr) {
+              qWarning() << "AVFrame instance is null";
+              continue;
+            }
+            if (q->pts >= target_pts) {
+              found = true;
+              break;
             }
           }
-          queue_lock.unlock();
+          if (found) {
+            queue_lock.unlock();
+            break;
+          }
+
+          // remove earliest frame and loop to store another
+          removeEarliestFromQueue();
         }
       }
+      queue_lock.unlock();
 
       if (multithreaded && cache_info.interrupt) { // abort
         return;
@@ -2104,9 +2112,8 @@ void Clip::reset_cache(const long target_frame) {
             if (media_handling.frame->pts <= target_ts) {
               use_existing_frame = true;
               break;
-            } else {
-              seek_ts -= timebase_half_second;
             }
+            seek_ts -= timebase_half_second;
           } else {
             av_frame_unref(media_handling.frame);
             av_seek_frame(media_handling.formatCtx, ms->file_index, 0, AVSEEK_FLAG_BACKWARD);
@@ -2150,8 +2157,8 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
       // separate transition
       //            ca.append(new SetPointer((void**) &openingTransition()->secondary_clip, nullptr)); //FIXME:
       //FIXME: transition
-//      ca.append(new AddTransitionCommand(openingTransition()->secondary_clip.lock(), nullptr,
-//                                         openingTransition(), TA_CLOSING_TRANSITION, 0));
+      //      ca.append(new AddTransitionCommand(openingTransition()->secondary_clip.lock(), nullptr,
+      //                                         openingTransition(), TA_CLOSING_TRANSITION, 0));
     }
 
     if ( (closingTransition() != nullptr) &&
@@ -2160,7 +2167,7 @@ void Clip::move(ComboAction &ca, const long iin, const long iout,
       // separate transition
       //      ca.append(new SetPointer((void**) &closingTransition()->secondary_clip, nullptr)); //FIXME:
       //FIXME: transition
-//      ca.append(new AddTransitionCommand(shared_from_this(), nullptr, closingTransition(), TA_CLOSING_TRANSITION, 0));
+      //      ca.append(new AddTransitionCommand(shared_from_this(), nullptr, closingTransition(), TA_CLOSING_TRANSITION, 0));
     }
   }
 }
@@ -2223,12 +2230,12 @@ TransitionPtr Clip::loadTransition(QXmlStreamReader& stream)
 
 void Clip::linkClips(const QVector<ClipPtr>& linked_clips) const
 {
-  for (auto link : linked_clips) {
+  for (const auto& link : linked_clips) {
     if (link == nullptr) {
       qWarning() << "Clip instance is null";
       continue;
     }
-    for (auto other : linked_clips) {
+    for (const auto& other : linked_clips) {
       if (other == nullptr) {
         continue;
       }

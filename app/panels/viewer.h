@@ -51,7 +51,7 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     bool is_focused();
     bool is_main_sequence();
     void set_main_sequence();
-    void set_media(MediaPtr m);
+    void set_media(const MediaPtr& m);
     void reset();
     void compose();
     void set_playpause_icon(bool play);

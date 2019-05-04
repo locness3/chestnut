@@ -433,7 +433,6 @@ void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPt
 
 void Project::refresh()
 {
-  //TODO: using model, update tables
   for (const auto& item : model_->items()) {
     start_preview_generator(item, true);
   }
@@ -925,7 +924,7 @@ void Project::new_project()
   MainWindow::instance().setWindowModified(false);
 }
 
-void Project::load_project(bool autorecovery)
+void Project::load_project(const bool autorecovery)
 {
   new_project();
 
@@ -953,20 +952,7 @@ void Project::load_project(bool autorecovery)
 
   if (success) {
     if (autorecovery) {
-//      QString orig_filename = internal_proj_url;
-//      int insert_index = internal_proj_url.lastIndexOf(PROJ_FILE_EXT, -1, Qt::CaseInsensitive);
-//      if (insert_index == -1) insert_index = internal_proj_url.length();
-//      int counter = 1;
-//      while (QFileInfo::exists(orig_filename)) {
-//        orig_filename = internal_proj_url;
-//        QString recover_text = "recovered";
-//        if (counter > 1) {
-//          recover_text += " " + QString::number(counter);
-//        }
-//        orig_filename.insert(insert_index, " (" + recover_text + ")");
-//        counter++;
-//      }
-//      MainWindow::instance().updateTitle(orig_filename);
+      MainWindow::instance().updateTitle("untitled");
     } else {
       PanelManager::projectViewer().add_recent_project(project_url);
     }
@@ -991,7 +977,8 @@ void Project::load_project(bool autorecovery)
   }
 }
 
-void Project::save_project(bool autorecovery) {
+void Project::save_project(const bool autorecovery)
+{
   folder_id = 1;
   media_id = 1;
   sequence_id = 1;

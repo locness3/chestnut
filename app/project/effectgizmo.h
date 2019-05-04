@@ -42,10 +42,7 @@ class EffectGizmo
 {
 public:
     explicit EffectGizmo(const GizmoType type);
-    ~EffectGizmo();
 
-    EffectGizmo(const EffectGizmo& ) = delete;
-    EffectGizmo& operator=(const EffectGizmo&) = delete;
 
     QVector<QPoint> world_pos;
     QVector<QPoint> screen_pos;

@@ -348,7 +348,7 @@ void Viewer::cue_recording(long start, long end, int track)
   recording_start = start;
   recording_end = end;
   recording_track = track;
-  PanelManager::sequenceViewer().seek(recording_start); //FIXME:
+  PanelManager::sequenceViewer().seek(recording_start);
   cue_recording_internal = true;
   recording_flasher.start();
 }
@@ -778,7 +778,8 @@ SequencePtr Viewer::createFootageSequence(const MediaPtr& mda) const
   return sqn;
 }
 
-void Viewer::set_media(MediaPtr m) {
+void Viewer::set_media(const MediaPtr& m)
+{
   main_sequence = false;
   if (media != nullptr) {
     if (media == m) {
@@ -805,7 +806,8 @@ void Viewer::set_media(MediaPtr m) {
   set_sequence(false, seq);
 }
 
-void Viewer::reset() {
+void Viewer::reset()
+{
   //TODO:
 }
 

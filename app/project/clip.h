@@ -280,8 +280,6 @@ class Clip : public project::SequenceItem,
     } media_handling; //FIXME: the use of this lot should really be its own library/class
 
     // temporary variables
-    [[deprecated]]
-    int load_id{};
     bool undeletable;
     bool reached_end{};
     bool is_open{};

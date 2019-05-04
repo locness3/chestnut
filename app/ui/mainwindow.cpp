@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  *
@@ -485,7 +485,6 @@ void MainWindow::new_sequence()
 
 void MainWindow::zoom_in()
 {
-  // FIXME:
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().set_zoom(true);
@@ -500,7 +499,6 @@ void MainWindow::zoom_in()
 
 void MainWindow::zoom_out()
 {
-  //FIXME:
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().set_zoom(false);
@@ -601,7 +599,8 @@ void MainWindow::new_project()
   }
 }
 
-void MainWindow::autorecover_interval() {
+void MainWindow::autorecover_interval()
+{
   if (!e_rendering && isWindowModified()) {
     PanelManager::projectViewer().save_project(true);
     qInfo() << " Auto-recovery project saved";
@@ -1390,7 +1389,7 @@ void MainWindow::new_folder()
     PanelManager::projectViewer().icon_view->edit(PanelManager::projectViewer().sorter->mapFromSource(index));
     break;
   default:
-    //TODO:
+    qWarning() << "Unhandled Project View type";
     break;
   }//switch
 }

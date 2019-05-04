@@ -74,7 +74,7 @@ EffectKeyframe::EffectKeyframe(const EffectField* parent) : parent_(parent)
 bool EffectKeyframe::load(QXmlStreamReader& stream)
 {
   bool type_set = false;
-  for (auto attr : stream.attributes()) {
+  for (const auto& attr : stream.attributes()) {
     auto name = attr.name().toString().toLower();
     if (name == TYPE_TAG) {
       type = static_cast<KeyframeType>(attr.value().toInt());

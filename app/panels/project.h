@@ -91,8 +91,8 @@ public:
     QAbstractItemView* getCurrentView();
 
     void new_project();
-    void load_project(bool autorecovery);
-    void save_project(bool autorecovery);
+    void load_project(const bool autorecovery);
+    void save_project(const bool autorecovery);
 
     MediaPtr newFolder(const QString& name="");
     MediaPtr item_to_media(const QModelIndex& index);

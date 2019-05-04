@@ -502,7 +502,7 @@ void EffectControls::load_effects() {
         continue;
       }
       QVBoxLayout* layout;
-      if (c->timeline_info.isVideo()) {
+      if (c->type() == ClipType::VISUAL) {
         vcontainer->setVisible(true);
         layout = static_cast<QVBoxLayout*>(video_effect_area->layout());
       } else {
@@ -510,13 +510,13 @@ void EffectControls::load_effects() {
         layout = static_cast<QVBoxLayout*>(audio_effect_area->layout());
       }
       if (mode == TA_NO_TRANSITION) {
-        for (int j=0;j<c->effects.size();j++) {
-          open_effect(layout, c->effects.at(j));
+        for (const auto& eff : c->effects) {
+          open_effect(layout, eff);
         }
-      } else if (mode == TA_OPENING_TRANSITION && c->openingTransition() != nullptr) {
-        open_effect(layout, c->openingTransition());
-      } else if (mode == TA_CLOSING_TRANSITION && c->closingTransition() != nullptr) {
-        open_effect(layout, c->closingTransition());
+      } else if (mode == TA_OPENING_TRANSITION && c->getTransition(ClipTransitionType::OPENING) != nullptr) {
+        open_effect(layout, c->getTransition(ClipTransitionType::OPENING));
+      } else if (mode == TA_CLOSING_TRANSITION && c->getTransition(ClipTransitionType::CLOSING) != nullptr) {
+        open_effect(layout, c->getTransition(ClipTransitionType::CLOSING));
       }
     }//for
 

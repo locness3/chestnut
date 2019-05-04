@@ -52,12 +52,6 @@ public:
   EffectField(EffectRow* parent, const EffectFieldType t, const QString& i);
 
   EffectField() = delete;
-  EffectField(const EffectField&) = delete;
-  EffectField(const EffectField&&) = delete;
-  EffectField& operator=(const EffectField&) = delete;
-  EffectField& operator=(const EffectField&&) = delete;
-
-
 
   template<typename T>
   void setDefaultValue(const T val) {
