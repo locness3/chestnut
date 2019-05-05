@@ -718,7 +718,8 @@ void MainWindow::setup_menus() {
   edit_menu->addSeparator();
 
   edit_menu->addAction(tr("Add Default Transition"), this, SLOT(add_default_transition()), QKeySequence("Ctrl+Shift+D"))->setProperty("id", "deftransition");
-  edit_menu->addAction(tr("Link/Unlink"), &PanelManager::timeLine(), SLOT(toggle_links()), QKeySequence("Ctrl+L"))->setProperty("id", "linkunlink");
+  edit_menu->addAction(tr("Link"), &PanelManager::timeLine(), SLOT(linkClips()), QKeySequence("Ctrl+L"))->setProperty("id", "linkclips");
+  edit_menu->addAction(tr("Unlink"), &PanelManager::timeLine(), SLOT(unlinkClips()), QKeySequence("Ctrl+Shift+L"))->setProperty("id", "unlinkclips");
   edit_menu->addAction(tr("Enable/Disable"), this, SLOT(toggle_enable_clips()), QKeySequence("Shift+E"))->setProperty("id", "enabledisable");
   edit_menu->addAction(tr("Nest"), this, SLOT(nest()))->setProperty("id", "nest");
 

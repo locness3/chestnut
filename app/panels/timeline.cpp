@@ -1280,6 +1280,15 @@ void Timeline::split_at_playhead()
 
 }
 
+void Timeline::unlinkClips()
+{
+  clipLinkage(false);
+}
+void Timeline::linkClips()
+{
+  clipLinkage(true);
+}
+
 void Timeline::deselect_area(long in, long out, int track)
 {
   Q_ASSERT(sequence_ != nullptr);
@@ -1387,35 +1396,47 @@ void Timeline::setMarker() const
   }
 }
 
-void Timeline::toggle_links()
+void Timeline::clipLinkage(const bool link)
 {
   Q_ASSERT(sequence_ != nullptr);
 
-  auto command = new LinkCommand();
-  command->s = sequence_;
-  for (int i=0;i<sequence_->clips_.size();i++) {
-    ClipPtr c = sequence_->clips_.at(i);
-    if (c != nullptr && c->isSelected(true)) {
-      if (!command->clips.contains(i)) {
-        command->clips.append(i);
-      }
+  auto ca = new ComboAction();
 
-      if (!c->linkedClips().empty()) {
-        command->link = false; // prioritize unlinking
-
-        for (int j=0;j<c->linkedClips().size();j++) { // add links to the command
-          if (!command->clips.contains(c->linkedClips().at(j))) {
-            command->clips.append(c->linkedClips().at(j));
-          }
-        }
+  QVector<int32_t> links;
+  if (link) {
+    for (const auto& sel_clip : selectedClips()) {
+      if (sel_clip == nullptr) {
+        qWarning() << "Clip instance is null";
+        continue;
       }
+      links.append(sel_clip->id());
     }
+
+    for (const auto& sel_clip : selectedClips()) {
+      if (sel_clip == nullptr) {
+        qWarning() << "Clip instance is null";
+        continue;
+      }
+      links.append(sel_clip->id());
+    }
+
   }
-  if (!command->clips.empty()) {
-    e_undo_stack.push(command);
+
+  for (const auto& sel_clip : selectedClips()) {
+    if (sel_clip == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    QVector<int32_t> link_ids = link ? links : QVector<int32_t>();
+    auto cmd = new ClipLinkCommand(sel_clip, link_ids, link);
+    ca->append(cmd);
+  }
+
+  if (ca->size() > 0) {
+    e_undo_stack.push(ca);
     repaint_timeline();
   } else {
-    delete command;
+    delete ca;
   }
 }
 

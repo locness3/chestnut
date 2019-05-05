@@ -509,40 +509,26 @@ void AddClipsCommand::redo()
   sequence_->clips_ = sequence_->clips_ + clips_;
 }
 
-LinkCommand::LinkCommand()
-  : link(true),
+ClipLinkCommand::ClipLinkCommand(const ClipPtr& clp, const QVector<int>& links, const bool link)
+  : clip_(clp),
     old_project_changed(MainWindow::instance().isWindowModified())
 {
-
+  if (link) {
+    new_links_ = links;
+  }
+  old_links_ = clip_->linkedClips();
 }
 
-void LinkCommand::undo() {
-  for (int i=0;i<clips.size();i++) {
-    ClipPtr   c = s->clips_.at(clips.at(i));
-    if (link) {
-      c->clearLinks();
-    } else {
-      c->setLinkedClips(old_links.at(i));
-    }
-  }
+void ClipLinkCommand::undo()
+{
+  Q_ASSERT(clip_ != nullptr);
+  clip_->setLinkedClips(old_links_);
   MainWindow::instance().setWindowModified(old_project_changed);
 }
-
-void LinkCommand::redo() {
-  old_links.clear();
-  for (int i=0;i<clips.size();i++) {
-    ClipPtr c = s->clips_.at(clips.at(i));
-    if (link) {
-      for (int j=0;j<clips.size();j++) {
-        if (i != j) {
-          //          c->linked.append(clips.at(j)); //FIXME:
-        }
-      }
-    } else {
-      //      old_links.append(c->linked); //FIXME:
-      c->clearLinks();
-    }
-  }
+void ClipLinkCommand::redo()
+{
+  Q_ASSERT(clip_ != nullptr);
+  clip_->setLinkedClips(new_links_);
   MainWindow::instance().setWindowModified(true);
 }
 

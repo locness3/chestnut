@@ -272,17 +272,6 @@ private:
   bool done{};
 };
 
-//class AddClipCommand : public QUndoCommand {
-//public:
-//  AddClipCommand(SequencePtr  s, QVector<ClipPtr>& add);
-//  virtual void undo() override;
-//  virtual void redo() override;
-//private:
-//  SequencePtr seq;
-//  QVector<ClipPtr> clips;
-//  QVector<ClipPtr> undone_clips;
-//  bool old_project_changed;
-//};
 
 class AddClipsCommand : public QUndoCommand {
   public:
@@ -295,18 +284,18 @@ class AddClipsCommand : public QUndoCommand {
     bool old_project_changed_;
 };
 
-class LinkCommand : public QUndoCommand {
+class ClipLinkCommand : public QUndoCommand {
 public:
-  LinkCommand();
+  ClipLinkCommand(const ClipPtr& clp, const QVector<int>& links, const bool link);
   virtual void undo() override;
   virtual void redo() override;
-  SequencePtr s;
-  QVector<int> clips;
-  bool link;
 private:
-  QVector< QVector<int> > old_links;
+  ClipPtr clip_;
+  QVector<int> new_links_;
+  QVector<int> old_links_;
   bool old_project_changed;
 };
+
 
 class CheckboxCommand : public QUndoCommand {
 public:

@@ -241,8 +241,9 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void repaint_timeline();
     void toggle_show_all();
     void deselect();
-    void toggle_links();
     void split_at_playhead();
+    void unlinkClips();
+    void linkClips();
 
   private slots:
     void zoom_in();
@@ -285,6 +286,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     std::vector<Selection> selections();
     void pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const SequencePtr& seq);
     ClipPtr split_clip(ComboAction& ca, const ClipPtr& pre_clip, const long frame) const;
+    void clipLinkage(bool link);
 };
 
 #endif // TIMELINE_H
