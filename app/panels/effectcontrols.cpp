@@ -306,7 +306,7 @@ void EffectControls::open_effect(QVBoxLayout* const layout, const EffectPtr& e)
   }
   e->setupUi();
   CollapsibleWidget* container = e->container;
-  layout->addWidget(container); // FIXME: threading issue with QObject::setParent. container was created in LoadThread
+  layout->addWidget(container);
   connect(container, SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
 }
 

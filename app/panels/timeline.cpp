@@ -825,11 +825,14 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
         } else if (c->timeline_info.in < sel.in && c->timeline_info.out > sel.out) {
           // middle of clip is within deletion area
 
+          //FIXME: links lost if pasting is reason for entry into this
           // duplicate clip
-          ClipPtr post = nullptr; // FIXME: split_clip(ca, j, sel.in, sel.out);
+          ClipPtr post = split_clip(*ca, c, sel.in);
+          post_clips.append(post);
+          post = split_clip(*ca, post, sel.out);
+          post_clips.append(post);
 
           pre_clips.append(j);
-          post_clips.append(post);
         } else if (c->timeline_info.in < sel.in && c->timeline_info.out > sel.in) {
           // only out point is in deletion area
           move_clip(ca, c, c->timeline_info.in, sel.in, c->timeline_info.clip_in, c->timeline_info.track_);
@@ -1223,22 +1226,27 @@ void Timeline::ripple_to_in_point(bool in, bool ripple) {
   }
 }
 
-bool Timeline::split_all_clips_at_point(ComboAction* ca, long point)
+bool Timeline::split_all_clips_at_point(ComboAction* ca, const long point)
 {
   Q_ASSERT(sequence_ != nullptr);
+  // used on a paste-insert
+  QVector<int> split_clips;
+  QVector<ClipPtr> posts;
+  for (const auto& clp : sequence_->clips_) {
+    if (clp == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    if (!split_clips.contains(clp->id()) && clp->inRange(point)) {
+      // TODO: unsplit orig clip command
+      auto post = clp->splitAll(point);
+      split_clips = split_clips + clp->linkedClips();
+      posts.append(post);
+    }
+  }
 
-  bool split = false;
-  //FIXME: split
-//  for (int j=0;j<sequence_->clips_.size();j++) {
-//    ClipPtr c = sequence_->clips_.at(j);
-//    if (c != nullptr) {
-//      // always relinks
-//      if (split_clip_and_relink(ca, j, point, true)) {
-//        split = true;
-//      }
-//    }
-//  }
-  return split;
+  ca->append(new AddClipsCommand(sequence_, posts));
+  return !posts.empty();
 }
 
 void Timeline::split_at_playhead()
