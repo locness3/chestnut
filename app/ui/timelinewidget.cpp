@@ -51,6 +51,7 @@
 #include "dialogs/newsequencedialog.h"
 #include "ui/mainwindow.h"
 #include "ui/rectangleselect.h"
+#include "io/colorconversions.h"
 #include "debug.h"
 
 
@@ -2322,11 +2323,6 @@ void TimelineWidget::leaveEvent(QEvent*) {
   tooltip_timer.stop();
 }
 
-int color_brightness(const QColor& color) {
-  //FIXME: magic numbers
-  return qRound(0.2126*color.red() + 0.7152*color.green() + 0.0722*color.blue());
-}
-
 //TODO: logarithmic or linear option? Currently seems to be linear
 void draw_waveform(ClipPtr& clip, const FootageStreamPtr& ms, const long media_length, QPainter &p, const QRect& clip_rect,
                    const int waveform_start, const int waveform_limit, const double zoom)
@@ -2648,7 +2644,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
           if (text_rect.width() > MAX_TEXT_WIDTH && text_rect.right() > 0 && text_rect.left() < width()) {
             if (!clip->timeline_info.enabled) {
               painter.setPen(Qt::gray);
-            } else if (color_brightness(clip->timeline_info.color) > 160) {
+            } else if (io::color_conversion::rgbToLuma(clip->timeline_info.color.rgb()) > 160) {
               // set to black if color is bright
               painter.setPen(Qt::black);
             }
