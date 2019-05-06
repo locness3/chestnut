@@ -135,7 +135,7 @@ GraphEditor::GraphEditor(QWidget* parent)
 
   connect(view, SIGNAL(zoom_changed(double)), header, SLOT(update_zoom(double)));
   connect(view, SIGNAL(x_scroll_changed(int)), header, SLOT(set_scroll(int)));
-  connect(view, &GraphView::selection_changed, this, &GraphEditor::set_key_button_enabled); //FIXME:
+  connect(view, &GraphView::selection_changed, this, &GraphEditor::set_key_button_enabled);
 
   connect(linear_button, SIGNAL(clicked(bool)), this, SLOT(set_keyframe_type()));
   connect(bezier_button, SIGNAL(clicked(bool)), this, SLOT(set_keyframe_type()));

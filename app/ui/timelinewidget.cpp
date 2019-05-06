@@ -477,7 +477,7 @@ void insert_clips(ComboAction* ca) {
     }
   }
 
-  PanelManager::timeLine().split_cache.clear();
+  QVector<int> split_ids;
 
   for (int i=0;i<global::sequence->clips_.size();i++) {
     ClipPtr c = global::sequence->clips_.at(i);
@@ -491,8 +491,11 @@ void insert_clips(ComboAction* ca) {
         }
       }
       if (!found) {
-        if (c->timeline_info.in < earliest_new_point && c->timeline_info.out > earliest_new_point) {
-//          PanelManager::timeLine().split_clip_and_relink(ca, i, earliest_new_point, true); //FIXME:
+        if (!split_ids.contains(c->id()) && c->inRange(earliest_new_point)) {
+          auto posts = c->splitAll(earliest_new_point);
+          split_ids = split_ids + c->linkedClips();
+          // TODO: unsplit orig clip
+          ca->append(new AddClipsCommand(global::sequence, posts));
         }
 
         // determine if we should close the gap the old clips left behind
