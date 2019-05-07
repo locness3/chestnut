@@ -662,7 +662,10 @@ class SplitClipCommand : public QUndoCommand {
     long position_;
     QVector<ClipPtr> posts_;
     QMap<int, ClipPtr> mapped_posts_;
+    QMap<int, QPair<long,long>> mapped_transition_lengths_;
     bool old_project_changed;
+
+    void storeLengths(const int id, Clip& clp);
 };
 
 //class SetPointer : public QUndoCommand {

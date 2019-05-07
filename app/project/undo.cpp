@@ -1116,6 +1116,15 @@ void SplitClipCommand::undo()
     if (auto pre_l = pre_clip_->sequence->clip(pre_l_id)) {
       if (const auto& orig_clip = mapped_posts_[pre_l_id]) {
         pre_l->merge(*orig_clip);
+        // restore transition length(s)
+        if (mapped_transition_lengths_.contains(pre_l_id)) {
+          if (auto open_tran = pre_l->getTransition(ClipTransitionType::OPENING)) {
+            open_tran->set_length(mapped_transition_lengths_[pre_l_id].first);
+          }
+          if (auto close_tran = pre_l->getTransition(ClipTransitionType::CLOSING)) {
+            close_tran->set_length(mapped_transition_lengths_[pre_l_id].second);
+          }
+        }
       }
     }
   }
@@ -1129,6 +1138,7 @@ void SplitClipCommand::redo()
 
   //NOTE: the following could be achieve by modifying Clip::splitAll
   // split this clip
+  storeLengths(pre_clip_->id(), *pre_clip_);
   if (auto post = pre_clip_->split(position_)) {
     mapped_posts_[pre_clip_->id()] = post;
     pre_clip_->sequence->clips_.append(post);
@@ -1137,6 +1147,7 @@ void SplitClipCommand::redo()
   // Split linked clips
   for (auto link : pre_clip_->linkedClips()) {
     if (auto link_clip = pre_clip_->sequence->clip(link)) {
+      storeLengths(link, *link_clip);
       if (auto post = link_clip->split(position_)) {
         mapped_posts_[link] = post;
         pre_clip_->sequence->clips_.append(post);
@@ -1151,6 +1162,19 @@ void SplitClipCommand::redo()
     }
   }
 
+}
+
+
+void SplitClipCommand::storeLengths(const int id, Clip& clp)
+{
+  QPair<long,long> tran_lengths{0,0};
+  if (auto open_tran = clp.getTransition(ClipTransitionType::OPENING)) {
+    tran_lengths.first = open_tran->get_length();
+  }
+  if (auto close_tran = clp.getTransition(ClipTransitionType::CLOSING)) {
+    tran_lengths.second = close_tran->get_length();
+  }
+  mapped_transition_lengths_[id] = tran_lengths;
 }
 
 //SetPointer::SetPointer(void **pointer, void *data) :
