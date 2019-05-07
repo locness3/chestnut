@@ -70,11 +70,11 @@ void ClipTest::testCaseClipType()
   auto seq = std::make_shared<Sequence>();
   Clip clp(seq);
   clp.timeline_info.track_ = 100;
-  QVERIFY(clp.type() == ClipType::AUDIO);
+  QVERIFY(clp.mediaType() == ClipType::AUDIO);
   clp.timeline_info.track_ = -100;
-  QVERIFY(clp.type() == ClipType::VISUAL);
+  QVERIFY(clp.mediaType() == ClipType::VISUAL);
   clp.timeline_info.track_ = 0;
-  QVERIFY(clp.type() == ClipType::AUDIO);
+  QVERIFY(clp.mediaType() == ClipType::AUDIO);
 }
 
 void ClipTest::testCaseisSelected()
