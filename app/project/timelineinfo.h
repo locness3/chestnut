@@ -20,7 +20,7 @@ public:
   TimelineInfo() = default;
   ~TimelineInfo() override = default;
 
-  [[deprecated("Replaced by ClipType Clip::type()")]]
+  [[deprecated("Replaced by ClipType Clip::mediaType()")]]
   bool isVideo() const;
   TimelineInfo& operator=(const TimelineInfo& rhs);
   TimelineInfo& operator=(const TimelineInfo&&) = delete;

@@ -53,9 +53,7 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
       }
       for (const auto& seq_sel : seq->selections_) {
         bool add = true;
-        if ( (seq_clip->timeline_info.in >= seq_sel.in)
-             && (seq_clip->timeline_info.out <= seq_sel.out)
-             && (seq_clip->timeline_info.track_ == seq_sel.track)) {
+        if (seq_clip->isSelected(seq_sel)) {
           mode = TA_NO_TRANSITION;
         } else if (selection_contains_transition(seq_sel, seq_clip, TA_OPENING_TRANSITION)) {
           mode = TA_OPENING_TRANSITION;
@@ -68,9 +66,9 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
         if (!add) {
           continue;
         }
-        if (seq_clip->timeline_info.isVideo() && (vclip == -1)) {
+        if ( (seq_clip->mediaType() == ClipType::VISUAL) && (vclip == -1)) {
           vclip = seq_clip->id();
-        } else if (seq_clip->timeline_info.track_ >= 0 && (aclip == -1) ) {
+        } else if ( (seq_clip->timeline_info.track_ >= 0) && (aclip == -1) ) {
           aclip = seq_clip->id();
         } else {
           // TODO: Significance of -2?
