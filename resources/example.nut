@@ -1,106 +1,1504 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project>
     <version>1</version>
-
     <folders>
-        <folder id="1" parent="0">
-          <name>testy</name>
+        <folder id="3" parent="0">
+            <name>Samples</name>
+        </folder>
+        <folder id="16" parent="3">
+            <name>Ninja</name>
+        </folder>
+        <folder id="29" parent="3">
+            <name>ARRI</name>
         </folder>
     </folders>
-
-  <media>
-    <footage folder="0" id="1" using_inout="false" in="0" out="0">
-      <name>clipcanvas_14348_Avid_DNxHD.mov</name>
-      <url>/home/jon/Videos/clipcanvas_14348_Avid_DNxHD.mov</url>
-      <duration>8000000</duration>
-      <video id="0" infinite="false">
-        <width>1920</width>
-        <height>1080</height>
-        <framerate>25.0000000000</framerate>
-      </video>
-      <audio id="1">
-        <channels>2</channels>
-        <layout>0</layout>
-        <frequency>48000</frequency>
-      </audio>
-      <audio id="2">
-        <channels>5</channels>
-        <layout>0</layout>
-        <frequency>96000</frequency>
-      </audio>
-
-      <marker>
-        <name>hello,world</name>
-        <frame>70</frame>
-        <comment>spam</comment>
-        <duration>0</duration>
-        <color>4294967295</color>
-      </marker>
-    </footage>
-  </media>
-
-  <sequences>
-    <sequence id="1" folder="0" open="false">
-      <workarea using="true" enabled="true" in="0" out="0"/>
-      <name>Test Sequence</name>
-      <width>1920</width>
-      <height>1080</height>
-      <framerate>25.0000000000</framerate>
-      <frequency>48000</frequency>
-      <layout>2</layout>
-      <clip source="1" id="0">        
-        <timelineinfo>
-            <name>clipcanvas_14348_Avid_DNxHD</name>
-            <clipin>0</clipin>
-            <enabled>true</enabled>
-            <in>0</in>
-            <out>542</out>
-            <track>0</track>
-            <color>4286611648</color>
-            <autoscale>false</autoscale>
-            <speed>1</speed>
-            <maintainpitch>1</maintainpitch>
-            <reverse>0</reverse>
-            <stream>1</stream>
-        </timelineinfo>
-        
-        <opening_transition>
-            <name>crossdissolve</name>
-            <length>100</length>            
-        </opening_transition>     
-        <closing_transition>
-            <name></name>
-            <length>-1</length>
-        </closing_transition>   
-        
-        <links/>
-
-        <effect enabled="true" name="transform">
-            <row>
-                <name>Position</name>
-                <field>
-                    <name>posx</name>
-                    <value>720</value>
-                </field>
-                <field>
-                    <name>posy</name>
-                    <value>540</value>
-                </field>
-            </row>
-        </effect>
-      </clip>
-
-      <marker>
-        <name>123</name>
-        <frame>255</frame>
-        <comment>eggs</comment>
-        <duration>0</duration>
-        <color>4294967295</color>
-      </marker>
-
-      <!-- etc,etc,etc -->
-    </sequence>
-  </sequences>
+    <media>
+        <footage id="1" folder="0" using_inout="false" in="0" out="0">
+            <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+            <url>/home/jon/Videos/clipcanvas_14348_Avid_DNxHD.mov</url>
+            <duration>8000000</duration>
+            <video id="0" infinite="false">
+                <width>1920</width>
+                <height>1080</height>
+                <framerate>25</framerate>
+            </video>
+            <audio id="1">
+                <channels>2</channels>
+                <layout>0</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="4" folder="0" using_inout="false" in="0" out="0">
+            <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+            <url>/home/jon/Videos/samples/clipcanvas_14348_Avid_DNxHD.mov</url>
+            <duration>8000000</duration>
+            <video id="0" infinite="false">
+                <width>1920</width>
+                <height>1080</height>
+                <framerate>25</framerate>
+            </video>
+            <audio id="1">
+                <channels>2</channels>
+                <layout>0</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="5" folder="3" using_inout="false" in="0" out="0">
+            <name>clipcanvas_14348_PRORES_HQ.mov</name>
+            <url>/home/jon/Videos/samples/clipcanvas_14348_PRORES_HQ.mov</url>
+            <duration>8000000</duration>
+            <video id="0" infinite="false">
+                <width>1440</width>
+                <height>1080</height>
+                <framerate>25</framerate>
+            </video>
+            <audio id="1">
+                <channels>2</channels>
+                <layout>0</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="6" folder="16" using_inout="false" in="0" out="0">
+            <name>NINJA2_S001_S001_T001.MOV</name>
+            <url>/home/jon/Videos/samples/NINJA2_S001_S001_T001.MOV</url>
+            <duration>9100000</duration>
+            <video id="1" infinite="false">
+                <width>1920</width>
+                <height>1080</height>
+                <framerate>30</framerate>
+            </video>
+            <audio id="0">
+                <channels>4</channels>
+                <layout>0</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="7" folder="16" using_inout="false" in="0" out="0">
+            <name>NINJA2_S001_S001_T002.MOV</name>
+            <url>/home/jon/Videos/samples/NINJA2_S001_S001_T002.MOV</url>
+            <duration>11333333</duration>
+            <video id="1" infinite="false">
+                <width>1920</width>
+                <height>1080</height>
+                <framerate>30</framerate>
+            </video>
+            <audio id="0">
+                <channels>4</channels>
+                <layout>0</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="8" folder="29" using_inout="false" in="0" out="0">
+            <name>C001C001_140702_R3VJ.mov</name>
+            <url>/home/jon/Videos/samples/prores_arri_2k25p/C001C001_140702_R3VJ.mov</url>
+            <duration>10280000</duration>
+            <video id="0" infinite="false">
+                <width>1920</width>
+                <height>1080</height>
+                <framerate>25</framerate>
+            </video>
+            <audio id="1">
+                <channels>5</channels>
+                <layout>55</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="9" folder="29" using_inout="false" in="0" out="0">
+            <name>C001C002_140702_R3VJ.mov</name>
+            <url>/home/jon/Videos/samples/prores_arri_2k25p/C001C002_140702_R3VJ.mov</url>
+            <duration>10240000</duration>
+            <video id="0" infinite="false">
+                <width>1920</width>
+                <height>1080</height>
+                <framerate>25</framerate>
+            </video>
+            <audio id="1">
+                <channels>5</channels>
+                <layout>55</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="10" folder="29" using_inout="false" in="0" out="0">
+            <name>C001C003_140702_R3VJ.mov</name>
+            <url>/home/jon/Videos/samples/prores_arri_2k25p/C001C003_140702_R3VJ.mov</url>
+            <duration>10280000</duration>
+            <video id="0" infinite="false">
+                <width>1920</width>
+                <height>1080</height>
+                <framerate>25</framerate>
+            </video>
+            <audio id="1">
+                <channels>5</channels>
+                <layout>55</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="11" folder="29" using_inout="false" in="0" out="0">
+            <name>C001C004_140702_R3VJ.mov</name>
+            <url>/home/jon/Videos/samples/prores_arri_2k25p/C001C004_140702_R3VJ.mov</url>
+            <duration>10360000</duration>
+            <video id="0" infinite="false">
+                <width>2048</width>
+                <height>1152</height>
+                <framerate>25</framerate>
+            </video>
+            <audio id="1">
+                <channels>5</channels>
+                <layout>55</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="12" folder="29" using_inout="false" in="0" out="0">
+            <name>C001C005_140702_R3VJ.mov</name>
+            <url>/home/jon/Videos/samples/prores_arri_2k25p/C001C005_140702_R3VJ.mov</url>
+            <duration>10240000</duration>
+            <video id="0" infinite="false">
+                <width>2048</width>
+                <height>1152</height>
+                <framerate>25</framerate>
+            </video>
+            <audio id="1">
+                <channels>5</channels>
+                <layout>55</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+        <footage id="13" folder="29" using_inout="false" in="0" out="0">
+            <name>C001C006_140702_R3VJ.mov</name>
+            <url>/home/jon/Videos/samples/prores_arri_2k25p/C001C006_140702_R3VJ.mov</url>
+            <duration>10240000</duration>
+            <video id="0" infinite="false">
+                <width>2048</width>
+                <height>1152</height>
+                <framerate>25</framerate>
+            </video>
+            <audio id="1">
+                <channels>5</channels>
+                <layout>55</layout>
+                <frequency>48000</frequency>
+            </audio>
+        </footage>
+    </media>
+    <sequences>
+        <sequence id="2" folder="0" open="true">
+            <workarea using="false" enabled="true" in="0" out="0"/>
+            <name>Sequence 01</name>
+            <width>1920</width>
+            <height>1080</height>
+            <framerate>50</framerate>
+            <frequency>48000</frequency>
+            <layout>3</layout>
+            <clip source="1" id="0">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>0</in>
+                    <out>400</out>
+                    <track>0</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>1</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name>Exponential Fade</name>
+                    <length>30</length>
+                </opening_transition>
+                <closing_transition>
+                    <name>Exponential Fade</name>
+                    <length>30</length>
+                </closing_transition>
+                <links>
+                    <link>1</link>
+                </links>
+                <effect name="Volume" enabled="true">
+                    <row>
+                        <name>Volume</name>
+                        <field>
+                            <name>volume</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                </effect>
+                <effect name="Pan" enabled="true">
+                    <row>
+                        <name>Pan</name>
+                        <field>
+                            <name>pan</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="1">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>0</in>
+                    <out>400</out>
+                    <track>-1</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>0</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name>Cross Dissolve</name>
+                    <length>30</length>
+                </opening_transition>
+                <closing_transition>
+                    <name>Cross Dissolve</name>
+                    <length>30</length>
+                </closing_transition>
+                <links>
+                    <link>0</link>
+                </links>
+                <effect name="Transform" enabled="true">
+                    <row>
+                        <name>Position</name>
+                        <field>
+                            <name>posx</name>
+                            <value>1120</value>
+                        </field>
+                        <field>
+                            <name>posy</name>
+                            <value>540</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Scale</name>
+                        <field>
+                            <name>scalex</name>
+                            <value>100</value>
+                        </field>
+                        <field>
+                            <name>scaley</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Uniform Scale</name>
+                        <field>
+                            <name>uniformscale</name>
+                            <value>true</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Rotation</name>
+                        <field>
+                            <name>rotation</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Anchor Point</name>
+                        <field>
+                            <name>anchorx</name>
+                            <value>0</value>
+                        </field>
+                        <field>
+                            <name>anchory</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Opacity</name>
+                        <field>
+                            <name>opacity</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Blend Mode</name>
+                        <field>
+                            <name>blendmode</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="6">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>543</in>
+                    <out>684</out>
+                    <track>0</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>1</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name>Exponential Fade</name>
+                    <length>30</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>7</link>
+                </links>
+                <effect name="Volume" enabled="true">
+                    <row>
+                        <name>Volume</name>
+                        <field>
+                            <name>volume</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                </effect>
+                <effect name="Pan" enabled="true">
+                    <row>
+                        <name>Pan</name>
+                        <field>
+                            <name>pan</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="7">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>543</in>
+                    <out>684</out>
+                    <track>-1</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>0</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name>Cross Dissolve</name>
+                    <length>30</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>6</link>
+                </links>
+                <effect name="Transform" enabled="true">
+                    <row>
+                        <name>Position</name>
+                        <field>
+                            <name>posx</name>
+                            <value>0</value>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>30</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="1">
+                                <value>0</value>
+                                <frame>151</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="1">
+                                <value>0</value>
+                                <frame>260</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>395</frame>
+                                <prex>0</prex>
+                                <prey>0</prey>
+                                <postx>0</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                        </field>
+                        <field>
+                            <name>posy</name>
+                            <value>0</value>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>30</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>190</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>326</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>370</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Scale</name>
+                        <field>
+                            <name>scalex</name>
+                            <value>100</value>
+                        </field>
+                        <field>
+                            <name>scaley</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Uniform Scale</name>
+                        <field>
+                            <name>uniformscale</name>
+                            <value>true</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Rotation</name>
+                        <field>
+                            <name>rotation</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Anchor Point</name>
+                        <field>
+                            <name>anchorx</name>
+                            <value>0</value>
+                        </field>
+                        <field>
+                            <name>anchory</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Opacity</name>
+                        <field>
+                            <name>opacity</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Blend Mode</name>
+                        <field>
+                            <name>blendmode</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="12">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>799</in>
+                    <out>1199</out>
+                    <track>0</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>1</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name>Exponential Fade</name>
+                    <length>30</length>
+                </opening_transition>
+                <closing_transition>
+                    <name>Exponential Fade</name>
+                    <length>30</length>
+                </closing_transition>
+                <links>
+                    <link>13</link>
+                </links>
+                <effect name="Volume" enabled="true">
+                    <row>
+                        <name>Volume</name>
+                        <field>
+                            <name>volume</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                </effect>
+                <effect name="Pan" enabled="true">
+                    <row>
+                        <name>Pan</name>
+                        <field>
+                            <name>pan</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="13">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>799</in>
+                    <out>1199</out>
+                    <track>-1</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>0</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name>Cross Dissolve</name>
+                    <length>30</length>
+                </opening_transition>
+                <closing_transition>
+                    <name>Cross Dissolve</name>
+                    <length>30</length>
+                </closing_transition>
+                <links>
+                    <link>12</link>
+                </links>
+                <effect name="Transform" enabled="true">
+                    <row>
+                        <name>Position</name>
+                        <field>
+                            <name>posx</name>
+                            <value>960</value>
+                        </field>
+                        <field>
+                            <name>posy</name>
+                            <value>540</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Scale</name>
+                        <field>
+                            <name>scalex</name>
+                            <value>100</value>
+                        </field>
+                        <field>
+                            <name>scaley</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Uniform Scale</name>
+                        <field>
+                            <name>uniformscale</name>
+                            <value>true</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Rotation</name>
+                        <field>
+                            <name>rotation</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Anchor Point</name>
+                        <field>
+                            <name>anchorx</name>
+                            <value>0</value>
+                        </field>
+                        <field>
+                            <name>anchory</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Opacity</name>
+                        <field>
+                            <name>opacity</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Blend Mode</name>
+                        <field>
+                            <name>blendmode</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="16">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>1530</in>
+                    <out>1725</out>
+                    <track>0</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>1</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name>Exponential Fade</name>
+                    <length>30</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>17</link>
+                </links>
+                <effect name="Volume" enabled="true">
+                    <row>
+                        <name>Volume</name>
+                        <field>
+                            <name>volume</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                </effect>
+                <effect name="Pan" enabled="true">
+                    <row>
+                        <name>Pan</name>
+                        <field>
+                            <name>pan</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="17">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>1530</in>
+                    <out>1725</out>
+                    <track>-1</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>0</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name>Cross Dissolve</name>
+                    <length>30</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>16</link>
+                </links>
+                <effect name="Transform" enabled="true">
+                    <row>
+                        <name>Position</name>
+                        <field>
+                            <name>posx</name>
+                            <value>960</value>
+                        </field>
+                        <field>
+                            <name>posy</name>
+                            <value>540</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Scale</name>
+                        <field>
+                            <name>scalex</name>
+                            <value>100</value>
+                        </field>
+                        <field>
+                            <name>scaley</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Uniform Scale</name>
+                        <field>
+                            <name>uniformscale</name>
+                            <value>true</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Rotation</name>
+                        <field>
+                            <name>rotation</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Anchor Point</name>
+                        <field>
+                            <name>anchorx</name>
+                            <value>0</value>
+                        </field>
+                        <field>
+                            <name>anchory</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Opacity</name>
+                        <field>
+                            <name>opacity</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Blend Mode</name>
+                        <field>
+                            <name>blendmode</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="20">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>195</clipin>
+                    <enabled>true</enabled>
+                    <in>1762</in>
+                    <out>1937</out>
+                    <track>-3</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>0</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name></name>
+                    <length>-1</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>21</link>
+                </links>
+                <effect name="Transform" enabled="true">
+                    <row>
+                        <name>Position</name>
+                        <field>
+                            <name>posx</name>
+                            <value>0</value>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>177</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>266</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>319</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>677</value>
+                                <frame>312</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                        </field>
+                        <field>
+                            <name>posy</name>
+                            <value>0</value>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>177</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>266</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>319</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>489</value>
+                                <frame>312</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Scale</name>
+                        <field>
+                            <name>scalex</name>
+                            <value>100</value>
+                        </field>
+                        <field>
+                            <name>scaley</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Uniform Scale</name>
+                        <field>
+                            <name>uniformscale</name>
+                            <value>true</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Rotation</name>
+                        <field>
+                            <name>rotation</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Anchor Point</name>
+                        <field>
+                            <name>anchorx</name>
+                            <value>0</value>
+                        </field>
+                        <field>
+                            <name>anchory</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Opacity</name>
+                        <field>
+                            <name>opacity</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Blend Mode</name>
+                        <field>
+                            <name>blendmode</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="21">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>195</clipin>
+                    <enabled>true</enabled>
+                    <in>1762</in>
+                    <out>1937</out>
+                    <track>0</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>1</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name></name>
+                    <length>-1</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>20</link>
+                </links>
+                <effect name="Volume" enabled="true">
+                    <row>
+                        <name>Volume</name>
+                        <field>
+                            <name>volume</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                </effect>
+                <effect name="Pan" enabled="true">
+                    <row>
+                        <name>Pan</name>
+                        <field>
+                            <name>pan</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="22">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>370</clipin>
+                    <enabled>true</enabled>
+                    <in>1942</in>
+                    <out>1958</out>
+                    <track>-3</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>0</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name></name>
+                    <length>-1</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>23</link>
+                </links>
+                <effect name="Transform" enabled="true">
+                    <row>
+                        <name>Position</name>
+                        <field>
+                            <name>posx</name>
+                            <value>0</value>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>177</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>266</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>319</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                        </field>
+                        <field>
+                            <name>posy</name>
+                            <value>0</value>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>177</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>266</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>319</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Scale</name>
+                        <field>
+                            <name>scalex</name>
+                            <value>100</value>
+                        </field>
+                        <field>
+                            <name>scaley</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Uniform Scale</name>
+                        <field>
+                            <name>uniformscale</name>
+                            <value>true</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Rotation</name>
+                        <field>
+                            <name>rotation</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Anchor Point</name>
+                        <field>
+                            <name>anchorx</name>
+                            <value>0</value>
+                        </field>
+                        <field>
+                            <name>anchory</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Opacity</name>
+                        <field>
+                            <name>opacity</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Blend Mode</name>
+                        <field>
+                            <name>blendmode</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="23">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>370</clipin>
+                    <enabled>true</enabled>
+                    <in>1942</in>
+                    <out>1958</out>
+                    <track>0</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>1</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name></name>
+                    <length>-1</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>22</link>
+                </links>
+                <effect name="Volume" enabled="true">
+                    <row>
+                        <name>Volume</name>
+                        <field>
+                            <name>volume</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                </effect>
+                <effect name="Pan" enabled="true">
+                    <row>
+                        <name>Pan</name>
+                        <field>
+                            <name>pan</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="24">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>386</clipin>
+                    <enabled>true</enabled>
+                    <in>1958</in>
+                    <out>1972</out>
+                    <track>-4</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>0</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name></name>
+                    <length>-1</length>
+                </opening_transition>
+                <closing_transition>
+                    <name>Cross Dissolve</name>
+                    <length>5</length>
+                </closing_transition>
+                <links>
+                    <link>25</link>
+                </links>
+                <effect name="Transform" enabled="true">
+                    <row>
+                        <name>Position</name>
+                        <field>
+                            <name>posx</name>
+                            <value>0</value>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>177</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>266</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>319</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                        </field>
+                        <field>
+                            <name>posy</name>
+                            <value>0</value>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>177</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>266</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                            <keyframe type="0">
+                                <value>0</value>
+                                <frame>319</frame>
+                                <prex>-40</prex>
+                                <prey>0</prey>
+                                <postx>40</postx>
+                                <posty>0</posty>
+                            </keyframe>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Scale</name>
+                        <field>
+                            <name>scalex</name>
+                            <value>100</value>
+                        </field>
+                        <field>
+                            <name>scaley</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Uniform Scale</name>
+                        <field>
+                            <name>uniformscale</name>
+                            <value>true</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Rotation</name>
+                        <field>
+                            <name>rotation</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Anchor Point</name>
+                        <field>
+                            <name>anchorx</name>
+                            <value>0</value>
+                        </field>
+                        <field>
+                            <name>anchory</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Opacity</name>
+                        <field>
+                            <name>opacity</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Blend Mode</name>
+                        <field>
+                            <name>blendmode</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="1" id="25">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>386</clipin>
+                    <enabled>true</enabled>
+                    <in>1958</in>
+                    <out>1972</out>
+                    <track>1</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>1</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name></name>
+                    <length>-1</length>
+                </opening_transition>
+                <closing_transition>
+                    <name>Exponential Fade</name>
+                    <length>10</length>
+                </closing_transition>
+                <links>
+                    <link>24</link>
+                </links>
+                <effect name="Volume" enabled="true">
+                    <row>
+                        <name>Volume</name>
+                        <field>
+                            <name>volume</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                </effect>
+                <effect name="Pan" enabled="true">
+                    <row>
+                        <name>Pan</name>
+                        <field>
+                            <name>pan</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="4" id="26">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>454</in>
+                    <out>505</out>
+                    <track>0</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>1</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name></name>
+                    <length>-1</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>27</link>
+                </links>
+                <effect name="Volume" enabled="true">
+                    <row>
+                        <name>Volume</name>
+                        <field>
+                            <name>volume</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                </effect>
+                <effect name="Pan" enabled="true">
+                    <row>
+                        <name>Pan</name>
+                        <field>
+                            <name>pan</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <clip source="4" id="27">
+                <timelineinfo>
+                    <name>clipcanvas_14348_Avid_DNxHD.mov</name>
+                    <clipin>0</clipin>
+                    <enabled>true</enabled>
+                    <in>454</in>
+                    <out>505</out>
+                    <track>-1</track>
+                    <color>4286611648</color>
+                    <autoscale>false</autoscale>
+                    <speed>1</speed>
+                    <maintainpitch>0</maintainpitch>
+                    <reverse>0</reverse>
+                    <stream>0</stream>
+                </timelineinfo>
+                <opening_transition>
+                    <name></name>
+                    <length>-1</length>
+                </opening_transition>
+                <closing_transition>
+                    <name></name>
+                    <length>-1</length>
+                </closing_transition>
+                <links>
+                    <link>26</link>
+                </links>
+                <effect name="Transform" enabled="true">
+                    <row>
+                        <name>Position</name>
+                        <field>
+                            <name>posx</name>
+                            <value>960</value>
+                        </field>
+                        <field>
+                            <name>posy</name>
+                            <value>540</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Scale</name>
+                        <field>
+                            <name>scalex</name>
+                            <value>100</value>
+                        </field>
+                        <field>
+                            <name>scaley</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Uniform Scale</name>
+                        <field>
+                            <name>uniformscale</name>
+                            <value>true</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Rotation</name>
+                        <field>
+                            <name>rotation</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Anchor Point</name>
+                        <field>
+                            <name>anchorx</name>
+                            <value>0</value>
+                        </field>
+                        <field>
+                            <name>anchory</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Opacity</name>
+                        <field>
+                            <name>opacity</name>
+                            <value>100</value>
+                        </field>
+                    </row>
+                    <row>
+                        <name>Blend Mode</name>
+                        <field>
+                            <name>blendmode</name>
+                            <value>0</value>
+                        </field>
+                    </row>
+                </effect>
+            </clip>
+            <marker>
+                <name>Testy</name>
+                <frame>761</frame>
+                <comment></comment>
+                <duration>0</duration>
+                <color>4294967295</color>
+            </marker>
+        </sequence>
+    </sequences>
 </project>
-

@@ -59,8 +59,8 @@ bool Marker::load(QXmlStreamReader& stream)
 bool Marker::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement(START_ELEM);
-  stream.writeTextElement(ELEM_FRAME, QString::number(frame));
   stream.writeTextElement(ELEM_NAME, name);
+  stream.writeTextElement(ELEM_FRAME, QString::number(frame));
   stream.writeTextElement(ELEM_COMMENT, comment_);
   stream.writeTextElement(ELEM_DURATION, QString::number(duration_));
   stream.writeTextElement(ELEM_COLOR, QString::number(color_.rgb()));
