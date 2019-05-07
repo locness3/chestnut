@@ -652,6 +652,19 @@ private:
   bool old_project_changed;
 };
 
+class SplitClipCommand : public QUndoCommand {
+  public:
+    SplitClipCommand(ClipPtr clp, const long position);
+    virtual void undo() override;
+    virtual void redo() override;
+  private:
+    ClipPtr pre_clip_;
+    long position_;
+    QVector<ClipPtr> posts_;
+    QMap<int, ClipPtr> mapped_posts_;
+    bool old_project_changed;
+};
+
 //class SetPointer : public QUndoCommand {
 //public:
 //    SetPointer(void** pointer, void* data);

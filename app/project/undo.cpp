@@ -1097,6 +1097,62 @@ void RenameClipCommand::redo() {
   }
 }
 
+SplitClipCommand::SplitClipCommand(ClipPtr clp, const long position)
+  : pre_clip_(std::move(clp)),
+    position_(position)
+{
+
+}
+
+void SplitClipCommand::undo()
+{
+  Q_ASSERT(pre_clip_ != nullptr);
+  Q_ASSERT(pre_clip_->sequence != nullptr);
+  for (const auto& post_clip : mapped_posts_.values()) {
+    pre_clip_->sequence->deleteClip(post_clip->id());
+  }
+
+  for (auto pre_l_id : mapped_posts_.keys()) {
+    if (auto pre_l = pre_clip_->sequence->clip(pre_l_id)) {
+      if (const auto& orig_clip = mapped_posts_[pre_l_id]) {
+        pre_l->merge(*orig_clip);
+      }
+    }
+  }
+
+}
+
+void SplitClipCommand::redo()
+{
+  Q_ASSERT(pre_clip_ != nullptr);
+  Q_ASSERT(pre_clip_->sequence != nullptr);
+
+  //NOTE: the following could be achieve by modifying Clip::splitAll
+  // split this clip
+  if (auto post = pre_clip_->split(position_)) {
+    mapped_posts_[pre_clip_->id()] = post;
+    pre_clip_->sequence->clips_.append(post);
+  }
+
+  // Split linked clips
+  for (auto link : pre_clip_->linkedClips()) {
+    if (auto link_clip = pre_clip_->sequence->clip(link)) {
+      if (auto post = link_clip->split(position_)) {
+        mapped_posts_[link] = post;
+        pre_clip_->sequence->clips_.append(post);
+      }
+    }
+  }
+
+  // link new posts together
+  for (const auto& post_clip : mapped_posts_.values()) {
+    for (const auto& link_clip : mapped_posts_.values()) {
+      post_clip->addLinkedClip(*link_clip);
+    }
+  }
+
+}
+
 //SetPointer::SetPointer(void **pointer, void *data) :
 //  old_changed(MainWindow::instance().isWindowModified()),
 //  p(pointer),

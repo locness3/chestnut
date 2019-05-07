@@ -700,6 +700,32 @@ ClipPtr Clip::split(const long frame)
 }
 
 
+bool Clip::merge(const Clip& split_clip)
+{
+  // NOTE: only tested for "unsplit" use-case
+  // NOTE: if orig clip was split inside a transition, the orig transition length is lost
+  if (split_clip.timeline_info.media != timeline_info.media) {
+    qWarning() << "Not able to merge clip with differing source material";
+    return false;
+  }
+
+  if (split_clip.timeline_info.clip_in > timeline_info.clip_in) {
+    // appending
+    timeline_info.out = split_clip.timeline_info.out.load();
+    transition_.closing_ = split_clip.transition_.closing_;
+  } else if (split_clip.timeline_info.clip_in < timeline_info.clip_in) {
+    // prepending
+    timeline_info.clip_in = split_clip.timeline_info.clip_in.load();
+    transition_.opening_ = split_clip.transition_.opening_;
+  } else {
+    // trying to merge clip starting
+    return false;
+  }
+
+  return true;
+}
+
+
 QVector<ClipPtr> Clip::splitAll(const long frame)
 {
   QVector<ClipPtr> split_clips;

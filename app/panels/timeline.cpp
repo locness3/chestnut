@@ -941,7 +941,7 @@ void Timeline::relink_clips_using_ids(QVector<int>& old_clips, QVector<ClipPtr>&
     for (int j=0; j<oc->linkedClips().size(); j++) {
       for (int k=0;k<old_clips.size();k++) { // find clip with that ID
         if (oc->linkedClips().at(j) == old_clips.at(k)) {
-          //          new_clips.at(i)->linked.append(k); //FIXME:
+          //          new_clips.at(i)->linked.append(k); //FIXME: linking
         }
       }
     }
@@ -1232,21 +1232,21 @@ bool Timeline::split_all_clips_at_point(ComboAction* ca, const long point)
   // used on a paste-insert
   QVector<int> split_clips;
   QVector<ClipPtr> posts;
+  bool split = false;
   for (const auto& clp : sequence_->clips_) {
     if (clp == nullptr) {
       qWarning() << "Clip instance is null";
       continue;
     }
     if (!split_clips.contains(clp->id()) && clp->inRange(point)) {
-      // TODO: unsplit orig clip command
-      auto post = clp->splitAll(point);
+      ca->append(new SplitClipCommand(clp, point));
+      // prevent agains multiple splits of a clip
+      split_clips.append(clp->id());
       split_clips = split_clips + clp->linkedClips();
-      posts.append(post);
     }
   }
 
-  ca->append(new AddClipsCommand(sequence_, posts));
-  return !posts.empty();
+  return split;
 }
 
 void Timeline::split_at_playhead()

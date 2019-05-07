@@ -162,6 +162,12 @@ class Clip : public project::SequenceItem,
      */
     ClipPtr split(const long frame);
     /**
+     * @brief             Merge in a clip that was created in a split
+     * @param split_clip
+     * @return            true==split clip was merged to this clip
+     */
+    bool merge(const Clip& split_clip);
+    /**
      * @brief         Split this clip and it's linked clips, ensuring the splits are linked afterwards
      * @param frame   Sequence playhead
      * @return        A list of linked, split clips

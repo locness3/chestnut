@@ -492,10 +492,9 @@ void insert_clips(ComboAction* ca) {
       }
       if (!found) {
         if (!split_ids.contains(c->id()) && c->inRange(earliest_new_point)) {
-          auto posts = c->splitAll(earliest_new_point);
+          ca->append(new SplitClipCommand(c, earliest_new_point));
+          split_ids.append(c->id());
           split_ids = split_ids + c->linkedClips();
-          // TODO: unsplit orig clip
-          ca->append(new AddClipsCommand(global::sequence, posts));
         }
 
         // determine if we should close the gap the old clips left behind
@@ -2961,30 +2960,30 @@ bool TimelineWidget::splitClipEvent(const long frame, const QSet<int>& tracks)
 
   QSet<int> split_ids;
   QVector<ClipPtr> posts;
+  auto ca = new ComboAction();
 
-  QVector<ClipPtr> clips = global::sequence->clips(frame);
-  for (const auto& clp : clips) {
-    if ( (clp == nullptr)
-         || (tracks.find(clp->timeline_info.track_) == tracks.end())
-         || (split_ids.find(clp->id()) != split_ids.end()) ) {
-      // null, not to be split or already done (via a linked clip)
+  for (const auto& clp : global::sequence->clips(frame)) {
+    if (clp == nullptr) {
+      qWarning() << "Clip instance is null";
       continue;
     }
-    auto splits = clp->splitAll(frame);
-    // make sure clip and its linked aren't split again
-    split_ids.insert(clp->id());
-    for (auto l : splits) {
-      if (l == nullptr) {
-        continue;
-      }
-      split_ids.insert(l->id());
+    if (tracks.find(clp->timeline_info.track_) == tracks.end()) {
+      // clip not on required track
+      continue;
     }
-    posts = posts + splits;
+    if (split_ids.contains(clp->id())) {
+      // already split
+      continue;
+    }
+
+    ca->append(new SplitClipCommand(clp, frame));
+    split_ids.insert(clp->id());
+    for (auto l : clp->linkedClips()) {
+      split_ids.insert(l);
+    }
   }
 
-  if (!posts.empty()) {
-    auto ca = new ComboAction();
-    ca->append(new AddClipsCommand(global::sequence, posts));
+  if (ca->size() > 0) {
     e_undo_stack.push(ca);
     PanelManager::timeLine().repaint_timeline();
   }
