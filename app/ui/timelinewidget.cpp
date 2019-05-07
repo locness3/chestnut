@@ -448,7 +448,7 @@ void delete_area_under_ghosts(ComboAction* ca)
     sel.track = g.track;
     delete_areas.append(sel);
   }
-  PanelManager::timeLine().delete_areas_and_relink(ca, delete_areas);
+  PanelManager::timeLine().delete_areas(ca, delete_areas);
 }
 
 void insert_clips(ComboAction* ca) {
@@ -888,7 +888,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
               s.track = c->timeline_info.track_;
               QVector<Selection> areas;
               areas.append(s);
-              PanelManager::timeLine().delete_areas_and_relink(ca, areas);
+              PanelManager::timeLine().delete_areas(ca, areas);
             }
 
             QVector<ClipPtr> add;
@@ -1014,12 +1014,8 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
                 new_clips.append(c);
               }
             }
-            if (new_clips.size() > 0) {
-              PanelManager::timeLine().delete_areas_and_relink(ca, delete_areas);
-
-              // relink duplicated clips
-              PanelManager::timeLine().relink_clips_using_ids(old_clips, new_clips);
-
+            if (new_clips.empty()) {
+              PanelManager::timeLine().delete_areas(ca, delete_areas);
               ca->append(new AddClipsCommand(global::sequence, new_clips));
             }
           } else {
@@ -1047,7 +1043,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
                 s.track = g.track;
                 delete_areas.append(s);
               }
-              PanelManager::timeLine().delete_areas_and_relink(ca, delete_areas);
+              PanelManager::timeLine().delete_areas(ca, delete_areas);
               for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
                 const Ghost& g = PanelManager::timeLine().ghosts.at(i);
                 global::sequence->clips_.at(g.clip)->undeletable = false;
@@ -1187,7 +1183,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
               move_pre = true;
             }
 
-            PanelManager::timeLine().delete_areas_and_relink(ca, areas);
+            PanelManager::timeLine().delete_areas(ca, areas);
 
             if (move_post){
               const int64_t in_point = post->timeline_info.in.load();

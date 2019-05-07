@@ -111,8 +111,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     bool split_all_clips_at_point(ComboAction *ca, const long point);
     void clean_up_selections(QVector<Selection>& areas);
     void deselect_area(long in, long out, int track);
-    void delete_areas_and_relink(ComboAction *ca, QVector<Selection>& areas);
-    void relink_clips_using_ids(QVector<int>& old_clips, QVector<ClipPtr>& new_clips);
+    void delete_areas(ComboAction *ca, QVector<Selection>& areas);
     void update_sequence();
     void increase_track_height();
     void decrease_track_height();
@@ -192,7 +191,6 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     // splitting
     bool splitting;
     QSet<int> split_tracks;
-    QVector<int> split_cache;
 
     // importing
     bool importing;

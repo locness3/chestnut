@@ -703,7 +703,6 @@ ClipPtr Clip::split(const long frame)
 bool Clip::merge(const Clip& split_clip)
 {
   // NOTE: only tested for "unsplit" use-case
-  // NOTE: if orig clip was split inside a transition, the orig transition length is lost
   if (split_clip.timeline_info.media != timeline_info.media) {
     qWarning() << "Not able to merge clip with differing source material";
     return false;

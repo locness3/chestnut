@@ -607,7 +607,7 @@ void Timeline::delete_in_out(bool ripple) {
       areas.append(s);
     }
     ComboAction* ca = new ComboAction();
-    delete_areas_and_relink(ca, areas);
+    delete_areas(ca, areas);
     if (ripple) ripple_clips(ca, sequence_, sequence_->workarea_.in_, sequence_->workarea_.in_ - sequence_->workarea_.out_);
     ca->append(new SetTimelineInOutCommand(sequence_, false, 0, 0));
     e_undo_stack.push(ca);
@@ -622,7 +622,7 @@ void Timeline::delete_selection(QVector<Selection>& selections, bool ripple_dele
 
     auto ca = new ComboAction();
 
-    delete_areas_and_relink(ca, selections);
+    delete_areas(ca, selections);
 
     if (ripple_delete) {
       long ripple_point = selections.at(0).in;
@@ -736,17 +736,6 @@ void Timeline::snapping_clicked(bool checked) {
   snapping = checked;
 }
 
-
-bool Timeline::has_clip_been_split(int c) {
-  for (int i=0;i<split_cache.size();i++) {
-    if (split_cache.at(i) == c) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 void Timeline::clean_up_selections(QVector<Selection>& areas) {
   for (int i=0;i<areas.size();i++) {
     Selection& s = areas[i];
@@ -801,7 +790,7 @@ bool selection_contains_transition(const Selection& s, ClipPtr c, int type) {
               && (s.out == (c->timeline_info.out + closing->get_true_length()))));
 }
 
-void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& areas)
+void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
 {
   Q_ASSERT(sequence_ != nullptr);
   clean_up_selections(areas);
@@ -825,8 +814,10 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
         } else if (c->timeline_info.in < sel.in && c->timeline_info.out > sel.out) {
           // middle of clip is within deletion area
 
-          //FIXME: links lost if pasting is reason for entry into this
-          // duplicate clip
+          // FIXME: no method to undo this correctly
+//          ca->append(new SplitClipCommand(c, sel.in));
+//          ca->append(new SplitClipCommand(c, sel.out)); // the 2nd split should be performed on the result of the 1st
+
           ClipPtr post = split_clip(*ca, c, sel.in);
           post_clips.append(post);
           post = split_clip(*ca, post, sel.out);
@@ -865,7 +856,6 @@ void Timeline::delete_areas_and_relink(ComboAction* ca, QVector<Selection>& area
     }//for
   }//for
 
-  relink_clips_using_ids(pre_clips, post_clips);
   ca->append(new AddClipsCommand(sequence_, post_clips));
 }
 
@@ -930,30 +920,12 @@ void Timeline::copy(bool del)
   }
 }
 
-void Timeline::relink_clips_using_ids(QVector<int>& old_clips, QVector<ClipPtr>& new_clips)
-{
-  Q_ASSERT(sequence_ != nullptr);
-
-  // relink pasted clips
-  for (int i=0;i<old_clips.size();i++) {
-    // these indices should correspond
-    ClipPtr oc = sequence_->clips_.at(old_clips.at(i));
-    for (int j=0; j<oc->linkedClips().size(); j++) {
-      for (int k=0;k<old_clips.size();k++) { // find clip with that ID
-        if (oc->linkedClips().at(j) == old_clips.at(k)) {
-          //          new_clips.at(i)->linked.append(k); //FIXME: linking
-        }
-      }
-    }
-  }
-}
-
 void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const SequencePtr& seq)
 {
   auto ca = new ComboAction();
 
   // create copies and delete areas that we'll be pasting to
-  QVector<Selection> delete_areas;
+  QVector<Selection> del_areas;
   QVector<ClipPtr> pasted_clips;
   int64_t paste_start = LONG_MAX;
   int64_t paste_end = LONG_MIN;
@@ -989,7 +961,7 @@ void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const b
       s.in = cc->timeline_info.in;
       s.out = cc->timeline_info.out;
       s.track = c->timeline_info.track_;
-      delete_areas.append(s);
+      del_areas.append(s);
     }
   }//for
 
@@ -1003,12 +975,11 @@ void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const b
   }
 
   if (insert) {
-    split_cache.clear();
     // TODO: if clip is in the way, resize it ("split") and paste in place
     split_all_clips_at_point(ca, seq->playhead_);
     ripple_clips(ca, seq, paste_start, paste_end - paste_start);
   } else {
-    delete_areas_and_relink(ca, delete_areas);
+    delete_areas(ca, del_areas);
   }
 
   ca->append(new AddClipsCommand(seq, pasted_clips));
@@ -1053,7 +1024,7 @@ void Timeline::paste(bool insert)
       if (c != nullptr && c->isSelected(true)) {
         for (int j=0;j<e_clipboard.size();j++) {
           EffectPtr e = std::dynamic_pointer_cast<Effect>(e_clipboard.at(j));
-          if ((c->timeline_info.isVideo()) == (e->meta.subtype == EFFECT_TYPE_VIDEO)) {
+          if ((c->mediaType() == ClipType::VISUAL) == (e->meta.subtype == EFFECT_TYPE_VIDEO)) {
             int found = -1;
             if (ask_conflict) {
               replace = false;
@@ -1180,7 +1151,7 @@ void Timeline::ripple_to_in_point(bool in, bool ripple) {
           }
 
           // trim and move clips around the in point
-          delete_areas_and_relink(ca, areas);
+          delete_areas(ca, areas);
 
           if (ripple) ripple_clips(ca, sequence_, in_point, -1);
         } else {
@@ -1205,7 +1176,7 @@ void Timeline::ripple_to_in_point(bool in, bool ripple) {
         }
 
         // trim and move clips around the in point
-        delete_areas_and_relink(ca, areas);
+        delete_areas(ca, areas);
         if (ripple) ripple_clips(ca, sequence_, s.in, s.in - s.out);
       }
     }
@@ -1374,11 +1345,13 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
           return true;
         } else if (snap_to_point(c->timeline_info.out, l)) {
           return true;
-        } else if (c->openingTransition() != nullptr
-                   && snap_to_point(c->timeline_info.in + c->openingTransition()->get_true_length(), l)) {
+        } else if (c->getTransition(ClipTransitionType::OPENING) != nullptr
+                   && snap_to_point(c->timeline_info.in
+                                    + c->getTransition(ClipTransitionType::OPENING)->get_true_length(), l)) {
           return true;
-        } else if (c->closingTransition() != nullptr
-                   && snap_to_point(c->timeline_info.out - c->closingTransition()->get_true_length(), l)) {
+        } else if (c->getTransition(ClipTransitionType::CLOSING) != nullptr
+                   && snap_to_point(c->timeline_info.out
+                                    - c->getTransition(ClipTransitionType::CLOSING)->get_true_length(), l)) {
           return true;
         }
       }
