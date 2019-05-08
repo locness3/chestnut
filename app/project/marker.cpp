@@ -35,25 +35,36 @@ bool Marker::operator<(const Marker& rhs) const
 
 bool Marker::load(QXmlStreamReader& stream)
 {
+  bool name_read = false;
+  bool frame_read = false;
+  bool comment_read = false;
+  bool duration_read = false;
+  bool color_read = false;
+
   while (stream.readNextStartElement()) {
     auto elem_name = stream.name().toString().toLower();
     if (elem_name == ELEM_FRAME) {
       frame = stream.readElementText().toLong();
+      frame_read = true;
     } else if (elem_name == ELEM_NAME) {
       name = stream.readElementText();
+      name_read = true;
     } else if (elem_name == ELEM_COMMENT) {
       comment_ = stream.readElementText();
+      comment_read = true;
     } else if (elem_name == ELEM_DURATION) {
       duration_ = stream.readElementText().toLong();
+      duration_read = true;
     } else if (elem_name == ELEM_COLOR) {
       color_ = QColor(static_cast<QRgb>(stream.readElementText().toUInt()));
+      color_read = true;
     } else {
       qWarning() << "Unknown element" << elem_name;
       stream.skipCurrentElement();
     }
   }
 
-  return true;
+  return name_read && frame_read && comment_read && duration_read && color_read;
 }
 
 bool Marker::save(QXmlStreamWriter& stream) const

@@ -98,7 +98,6 @@
                 <xs:element ref="duration"/>
                 <xs:element ref="color"/>
             </xs:sequence>
-            <xs:attribute ref="id"/>
 		</xs:complexType>
 	</xs:element>
 

@@ -24,6 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    ../app/project/UnitTest/markertest.cpp \
     main.cpp \
     ../app/project/UnitTest/sequenceitemtest.cpp \
     ../app/project/UnitTest/sequencetest.cpp \
@@ -42,6 +43,7 @@ SOURCES += \
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 HEADERS += \
+    ../app/project/UnitTest/markertest.h \
     ../app/project/UnitTest/sequenceitemtest.h \
     ../app/project/UnitTest/sequencetest.h \
     ../app/project/UnitTest/mediatest.h \
