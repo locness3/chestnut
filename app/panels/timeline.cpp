@@ -206,10 +206,7 @@ void Timeline::nudgeClips(const int pos)
   }
 
   for (auto& sel : sequence_->selections_) {
-    //TODO: selection command?
-    //TODO:check limits
-    sel.in += pos;
-    sel.out += pos;
+    ca->append(new NudgeSelectionCommand(sel, pos));
   }
 
   if (ca->size() > 0) {

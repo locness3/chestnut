@@ -1305,7 +1305,8 @@ void RefreshClips::redo()
 
 NudgeClipCommand::NudgeClipCommand(ClipPtr clp, const int value)
   : clip_(std::move(clp)),
-    nudge_value_(value)
+    nudge_value_(value),
+    old_project_changed_(MainWindow::instance().isWindowModified())
 {
 
 }
@@ -1314,10 +1315,34 @@ void NudgeClipCommand::undo()
 {
   Q_ASSERT(clip_ != nullptr);
   clip_->nudge(-nudge_value_);
+  MainWindow::instance().setWindowModified(old_project_changed_);
 }
 
 void NudgeClipCommand::redo()
 {
   Q_ASSERT(clip_ != nullptr);
   clip_->nudge(nudge_value_);
+  MainWindow::instance().setWindowModified(true);
+}
+
+NudgeSelectionCommand::NudgeSelectionCommand(Selection& sel, const int val)
+  : selection_(sel),
+    nudge_value_(val),
+    old_project_changed_(MainWindow::instance().isWindowModified())
+{
+
+}
+
+void NudgeSelectionCommand::undo()
+{
+  selection_.in -= nudge_value_;
+  selection_.out -= nudge_value_;
+  MainWindow::instance().setWindowModified(old_project_changed_);
+}
+
+void NudgeSelectionCommand::redo()
+{
+  selection_.in += nudge_value_;
+  selection_.out += nudge_value_;
+  MainWindow::instance().setWindowModified(true);
 }

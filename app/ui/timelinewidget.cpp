@@ -780,7 +780,9 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
                 }
               }
 
-            if (tool != TimelineToolType::MENU) PanelManager::timeLine().moving_init = true;
+            if (tool != TimelineToolType::MENU) {
+              PanelManager::timeLine().moving_init = true;
+            }
           } else {
             // if "shift" is not down
             if (!shift) {
@@ -2148,8 +2150,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
       int max_track = INT_MIN;
       PanelManager::timeLine().transition_select = TA_NO_TRANSITION;
       for (int i=0;i<global::sequence->clips_.size();i++) {
-        ClipPtr c = global::sequence->clips_.at(i);
-        if (c != nullptr) {
+        if (ClipPtr c = global::sequence->clips_.at(i)) {
           min_track = qMin(min_track, c->timeline_info.track_.load());
           max_track = qMax(max_track, c->timeline_info.track_.load());
           if (c->timeline_info.track_ == mouse_track) {
