@@ -273,6 +273,10 @@ bool frame_rate_is_droppable(float rate) {
 }
 
 void Viewer::seek(long p) {
+  if (seq == nullptr) {
+      qWarning() << "Null Sequence instance";
+      return;
+  }
   pause();
   seq->playhead_ = p;
   bool update_fx = false;
