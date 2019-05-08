@@ -50,7 +50,7 @@ public:
   explicit Footage(const std::shared_ptr<Media>& parent);
 
   QString url;
-  int64_t length = 0;
+  int64_t length{0};
   QVector<project::FootageStreamPtr> video_tracks;
   QVector<project::FootageStreamPtr> audio_tracks;
 

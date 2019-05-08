@@ -1,5 +1,6 @@
 #include "footagetest.h"
 #include "project/footage.h"
+#include "project/media.h"
 
 FootageTest::FootageTest(QObject *parent) : QObject(parent)
 {
@@ -34,4 +35,29 @@ void FootageTest::testCaseUninitSave()
   QString output;
   QXmlStreamWriter stream(&output);
   QVERIFY(ftg.save(stream) == false);
+}
+
+void FootageTest::testCaseNullMediaSave()
+{
+  Footage ftg(nullptr);
+  ftg.valid = true;
+  QString output;
+  QXmlStreamWriter stream(&output);
+  QVERIFY(ftg.save(stream) == false);
+}
+
+void FootageTest::testCaseSave()
+{
+  // The top level in project-structure
+  auto root_mda = std::make_shared<Media>();
+  auto parent_mda = std::make_shared<Media>(root_mda);
+  Footage ftg(parent_mda);
+  ftg.valid = true;
+
+  QString output;
+  QXmlStreamWriter stream(&output);
+
+  QVERIFY(ftg.save(stream) == true);
+  QVERIFY(output.startsWith("<footage") == true);
+  QVERIFY(output.endsWith("</footage>") == true);
 }

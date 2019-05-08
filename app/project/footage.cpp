@@ -144,6 +144,10 @@ bool Footage::save(QXmlStreamWriter& stream) const
   }
   stream.writeStartElement("footage");
   if (auto par = parent_mda.lock()) {
+    if (par->parentItem() == nullptr) {
+      qCritical() << "Parent Media is unlinked";
+      return false;
+    }
     stream.writeAttribute("id", QString::number(par->id()));
     stream.writeAttribute("folder", QString::number(par->parentItem()->id()));
   } else {
