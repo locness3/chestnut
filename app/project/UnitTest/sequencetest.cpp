@@ -146,3 +146,32 @@ void SequenceTest::testCaseTracks()
   tracks = sqn->tracks(11);
   QVERIFY(tracks.empty() == true);
 }
+
+void SequenceTest::testCaseClips()
+{
+  auto sqn = std::make_shared<Sequence>();
+  auto clip1 = std::make_shared<Clip>(sqn);
+  clip1->timeline_info.track_ = 1;
+  clip1->timeline_info.in = 0;
+  clip1->timeline_info.out = 10;
+  auto clip2 = std::make_shared<Clip>(sqn);
+  clip2->timeline_info.track_ = 2;
+  clip2->timeline_info.in = 0;
+  clip2->timeline_info.out = 20;
+  sqn->clips_.append(clip1);
+  sqn->clips_.append(clip2);
+
+  // in range of both clips
+  auto clips = sqn->clips(5);
+  QVERIFY(clips.size() == 2);
+  QVERIFY(clips.contains(clip1) == true);
+  QVERIFY(clips.contains(clip2) == true);
+  // out of range of both clips
+  clips = sqn->clips(100);
+  QVERIFY(clips.empty() == true);
+  // in range of just clip2
+  clips = sqn->clips(11);
+  QVERIFY(clips.size() == 1);
+  QVERIFY(clips.contains(clip2) == true);
+
+}

@@ -25,6 +25,9 @@ private slots:
      * @brief Check correct tracks are returned from a populated sequence
      */
     void testCaseTracks();
+    /**
+     * @brief Check correct clips are returned at a timeline position
+     */
     void testCaseClips();
 };
 
