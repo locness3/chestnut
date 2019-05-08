@@ -21,6 +21,11 @@ private slots:
     void testCaseSetFrameRate();
     void testCaseSetFrequency_data();
     void testCaseSetFrequency();
+    /**
+     * @brief Check correct tracks are returned from a populated sequence
+     */
+    void testCaseTracks();
+    void testCaseClips();
 };
 
 #endif // SEQUENCETEST_H

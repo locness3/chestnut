@@ -29,17 +29,15 @@
 
 using project::ScanMethod;
 
-namespace {
-  const auto      RECURSION_LIMIT = 100;
-  const int       MAXIMUM_WIDTH              = 4096;
-  const int       MAXIMUM_HEIGHT             = 2160;
-  const int       MAXIMUM_FREQUENCY          = 192000;
-  const int       DEFAULT_WIDTH              = 1920;
-  const int       DEFAULT_HEIGHT             = 1080;
-  const double    DEFAULT_FRAMERATE          = 29.97;
-  const int       DEFAULT_AUDIO_FREQUENCY    = 48000;
-  const int       DEFAULT_LAYOUT             = AV_CH_LAYOUT_STEREO;
-}
+constexpr int       RECURSION_LIMIT            = 100;
+constexpr int       MAXIMUM_WIDTH              = 4096;
+constexpr int       MAXIMUM_HEIGHT             = 2160;
+constexpr int       MAXIMUM_FREQUENCY          = 192000;
+constexpr int       DEFAULT_WIDTH              = 1920;
+constexpr int       DEFAULT_HEIGHT             = 1080;
+constexpr double    DEFAULT_FRAMERATE          = 29.97;
+constexpr int       DEFAULT_AUDIO_FREQUENCY    = 48000;
+constexpr int       DEFAULT_LAYOUT             = AV_CH_LAYOUT_STEREO;
 
 
 Sequence::Sequence(const std::shared_ptr<Media>& parent) : parent_mda(parent)

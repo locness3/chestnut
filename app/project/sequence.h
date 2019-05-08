@@ -68,7 +68,7 @@ public:
     void setAudioLayout(const int32_t layout);
 
     /**
-     * @brief Obtain populate tracks at a position in the sequence
+     * @brief Obtain populated tracks at a position in the sequence
      * @param frame   Position
      * @return        Set of tracks
      */

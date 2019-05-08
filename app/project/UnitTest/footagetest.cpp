@@ -50,6 +50,7 @@ void FootageTest::testCaseSave()
 {
   // The top level in project-structure
   auto root_mda = std::make_shared<Media>();
+
   auto parent_mda = std::make_shared<Media>(root_mda);
   Footage ftg(parent_mda);
   ftg.valid = true;
