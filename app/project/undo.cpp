@@ -1223,7 +1223,7 @@ void RippleAction::redo() {
       ClipPtr   c = s->clips_.at(i);
       if (c != nullptr) {
         if (c->timeline_info.in >= point) {
-          move_clip(ca, c, length, length, 0, 0, true, true);
+          c->move(*ca, length, length, 0, 0, true, true);
         }
       }
     }

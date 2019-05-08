@@ -260,6 +260,9 @@ class Clip : public project::SequenceItem,
      */
     void relink(const QMap<int, int>& mapping);
     void setId(const int32_t id);
+    void move(ComboAction& ca, const long iin, const long iout,
+              const long iclip_in, const int itrack, const bool verify_transitions = true,
+              const bool relative = false);
 
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
@@ -376,12 +379,6 @@ class Clip : public project::SequenceItem,
      * @param target_frame
      */
     void reset_cache(const long target_frame);
-
-    // Comboaction::move_clip() or Clip::move()?
-    void move(ComboAction& ca, const long iin, const long iout,
-              const long iclip_in, const int itrack, const bool verify_transitions = true,
-              const bool relative = false);
-
     bool loadInEffect(QXmlStreamReader& stream);
     TransitionPtr loadTransition(QXmlStreamReader& stream);
     void linkClips(const QVector<ClipPtr>& linked_clips) const;

@@ -242,11 +242,11 @@ bool Clip::openWorker() {
     if ((media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_APNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_TIFF
-  #ifndef DISABLE_PSD
+     #ifndef DISABLE_PSD
          && media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PSD)
-  #else
+    #else
          )
-  #endif
+    #endif
         || !e_config.disable_multithreading_for_images) {
       av_dict_set(&media_handling.opts, "threads", "auto", 0);
     }
@@ -2183,30 +2183,32 @@ void Clip::reset_cache(const long target_frame) {
 }
 
 
-void Clip::move(ComboAction &ca, const long iin, const long iout,
-                const long iclip_in, const int itrack, const bool verify_transitions,
-                const bool relative)
+void Clip::move(ComboAction &ca,
+                const long iin, const long iout, const long iclip_in, const int itrack,
+                const bool verify_transitions, const bool relative)
 {
-  ca.append(new MoveClipAction(ClipPtr(shared_from_this()), iin, iout, iclip_in, itrack, relative));
+  // TODO: move the undo action of this class
+  ca.append(new MoveClipAction(shared_from_this(), iin, iout, iclip_in, itrack, relative));
 
-  if (verify_transitions) {
-    if ( (openingTransition() != nullptr) &&
-         (!openingTransition()->secondary_clip.expired()) &&
-         (openingTransition()->secondary_clip.lock()->timeline_info.out != iin) ) {
-      // separate transition
-      //            ca.append(new SetPointer((void**) &openingTransition()->secondary_clip, nullptr)); //FIXME:
-      //FIXME: transition
-      //      ca.append(new AddTransitionCommand(openingTransition()->secondary_clip.lock(), nullptr,
-      //                                         openingTransition(), TA_CLOSING_TRANSITION, 0));
+  if (!verify_transitions) {
+    return;
+  }
+
+  if ( transition_.opening_ != nullptr) {
+    if (auto secondary = transition_.opening_->secondary_clip.lock() ) {
+      if (secondary->timeline_info.out != iin) {
+        // separate transition
+        ca.append(new DeleteTransitionCommand(secondary, ClipTransitionType::OPENING));
+      }
     }
+  }
 
-    if ( (closingTransition() != nullptr) &&
-         (!closingTransition()->secondary_clip.expired()) &&
-         (closingTransition()->parent_clip->timeline_info.in != iout) ) {
-      // separate transition
-      //      ca.append(new SetPointer((void**) &closingTransition()->secondary_clip, nullptr)); //FIXME:
-      //FIXME: transition
-      //      ca.append(new AddTransitionCommand(shared_from_this(), nullptr, closingTransition(), TA_CLOSING_TRANSITION, 0));
+  if (transition_.closing_ != nullptr)  {
+    if (auto secondary = transition_.closing_->secondary_clip.lock() ){
+      if ((transition_.closing_->parent_clip != nullptr) && (transition_.closing_->parent_clip->timeline_info.in != iout)) {
+        // separate transition
+        ca.append(new DeleteTransitionCommand(shared_from_this(), ClipTransitionType::CLOSING));
+      }
     }
   }
 }

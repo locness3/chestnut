@@ -1063,7 +1063,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
               // step 3 - move clips
               ClipPtr c = global::sequence->clips_.at(g.clip);
               if (g.transition == nullptr) {
-                move_clip(ca, c, (g.in - g.old_in), (g.out - g.old_out), (g.clip_in - g.old_clip_in), (g.track - g.old_track), true, true);
+                c->move(*ca,(g.in - g.old_in), (g.out - g.old_out), (g.clip_in - g.old_clip_in), (g.track - g.old_track), true, true);
 
                 // adjust transitions if we need to
                 long new_clip_length = (g.out - g.in);
@@ -1101,16 +1101,16 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
 
                 long clip_length = c->length(); //FIXME: this is never used
 
-                if (!g.transition->secondary_clip.expired()) {
+                if (auto secondary = g.transition->secondary_clip.lock()) {
                   if (g.in != g.old_in && !g.trimming) {
                     long movement = g.in - g.old_in;
-                    move_clip(ca, g.transition->parent_clip, movement, 0, movement, 0, false, true);
-                    move_clip(ca, g.transition->secondary_clip.lock(), 0, movement, 0, 0, false, true);
+                    g.transition->parent_clip->move(*ca, movement, 0, movement, 0, false, true); //FIXME: ptr check
+                    secondary->move(*ca, 0, movement, 0, 0, false, true);
                   }
                 } else if (is_opening_transition) {
                   if (g.in != g.old_in) {
                     // if transition is going to make the clip bigger, make the clip bigger
-                    move_clip(ca, c, (g.in - g.old_in), 0, (g.clip_in - g.old_clip_in), 0, true, true);
+                    c->move(*ca, (g.in - g.old_in), 0, (g.clip_in - g.old_clip_in), 0, true, true);
                     clip_length -= (g.in - g.old_in);
                   }
 
@@ -1118,7 +1118,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
                 } else {
                   if (g.out != g.old_out) {
                     // if transition is going to make the clip bigger, make the clip bigger
-                    move_clip(ca, c, 0, (g.out - g.old_out), 0, 0, true, true);
+                    c->move(*ca, 0, (g.out - g.old_out), 0, 0, true, true);
                     clip_length += (g.out - g.old_out);
                   }
 
@@ -1189,12 +1189,12 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
 
             if (move_post){
               const int64_t in_point = post->timeline_info.in.load();
-              move_clip(ca, post, qMin(transition_start, in_point),
+              post->move(*ca, qMin(transition_start, in_point),
                         post->timeline_info.out, post->timeline_info.clip_in - (in_point - transition_start),
                         post->timeline_info.track_);
             }
             if (move_pre) {
-              move_clip(ca, pre, pre->timeline_info.in, qMax(transition_end, pre->timeline_info.out.load()),
+              pre->move(*ca, pre->timeline_info.in, qMax(transition_end, pre->timeline_info.out.load()),
                         pre->timeline_info.clip_in, pre->timeline_info.track_);
             }
           }

@@ -823,7 +823,7 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
           pre_clips.append(j);
         } else if (c->timeline_info.in < sel.in && c->timeline_info.out > sel.in) {
           // only out point is in deletion area
-          move_clip(ca, c, c->timeline_info.in, sel.in, c->timeline_info.clip_in, c->timeline_info.track_);
+          c->move(*ca, c->timeline_info.in, sel.in, c->timeline_info.clip_in, c->timeline_info.track_);
 
           if (auto closing = c->getTransition(ClipTransitionType::CLOSING)) {
             if (sel.in < c->timeline_info.out - closing->get_true_length()) {
@@ -836,7 +836,7 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
           }
         } else if (c->timeline_info.in < sel.out && c->timeline_info.out > sel.out) {
           // only in point is in deletion area
-          move_clip(ca, c, sel.out, c->timeline_info.out,
+          c->move(*ca, sel.out, c->timeline_info.out,
                     c->timeline_info.clip_in + sel.out - c->timeline_info.in,
                     c->timeline_info.track_);
 
@@ -1830,29 +1830,6 @@ std::vector<ClipPtr> Timeline::selectedClips()
   return clips;
 }
 
-
-void move_clip(ComboAction* ca, ClipPtr c, long iin, long iout, long iclip_in, int itrack, bool verify_transitions, bool relative) {
-  ca->append(new MoveClipAction(c, iin, iout, iclip_in, itrack, relative));
-
-  if (verify_transitions) {
-    if (c->openingTransition() != nullptr && !c->openingTransition()->secondary_clip.expired()
-        && c->openingTransition()->secondary_clip.lock()->timeline_info.out != iin) {
-      // separate transition
-      //            ca->append(new SetPointer(reinterpret_cast<void**>(&c->openingTransition()->secondary_clip), nullptr)); //FIXME: casting
-      //FIXME: transition
-      //      ca->append(new AddTransitionCommand(c->openingTransition()->secondary_clip.lock(), nullptr,
-      //                                          c->openingTransition(), TA_CLOSING_TRANSITION, 0));
-    }
-
-    if (c->closingTransition() != nullptr && !c->closingTransition()->secondary_clip.expired()
-        && c->closingTransition()->parent_clip->timeline_info.in != iout) {
-      // separate transition
-      //            ca->append(new SetPointer(reinterpret_cast<void**>(&c->closingTransition()->secondary_clip), nullptr)); //FIXME: casting
-      //FIXME: transition
-      //      ca->append(new AddTransitionCommand(c, nullptr, c->closingTransition(), TA_CLOSING_TRANSITION, 0));
-    }
-  }
-}
 
 void Timeline::set_tool() {
   auto button = static_cast<QPushButton*>(sender());

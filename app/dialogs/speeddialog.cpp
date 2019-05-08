@@ -331,7 +331,7 @@ void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, int64_t& e
   }
   ep = qMin(ep, c->timeline_info.out.load());
   lr = qMax(lr, proposed_out - c->timeline_info.out);
-  move_clip(ca, c, c->timeline_info.in, proposed_out, c->timeline_info.clip_in * multiplier, c->timeline_info.track_);
+  c->move(*ca, c->timeline_info.in, proposed_out, c->timeline_info.clip_in * multiplier, c->timeline_info.track_);
 
   c->refactorFrameRate(ca, multiplier, false);
 
@@ -361,9 +361,9 @@ void SpeedDialog::accept() {
       ca->append(new SetBool(&c->timeline_info.maintain_audio_pitch, maintain_pitch->isChecked()));
     }
 
-    if (reverse->checkState() != Qt::PartiallyChecked && c->timeline_info.reverse != reverse->isChecked()) {
-      long new_clip_in = (c->maximumLength() - (c->length() + c->timeline_info.clip_in));
-      move_clip(ca, c, c->timeline_info.in, c->timeline_info.out, new_clip_in, c->timeline_info.track_);
+    if ( (reverse->checkState() != Qt::PartiallyChecked) && (c->timeline_info.reverse != reverse->isChecked())) {
+      long new_clip_in = c->maximumLength() - c->length() + c->timeline_info.clip_in;
+      c->move(*ca, c->timeline_info.in, c->timeline_info.out, new_clip_in, c->timeline_info.track_);
       c->timeline_info.clip_in = new_clip_in;
       ca->append(new SetBool(&c->timeline_info.reverse, reverse->isChecked()));
     }

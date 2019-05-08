@@ -61,7 +61,6 @@ class FootageStream;
 int getScreenPointFromFrame(double zoom, long frame);
 long getFrameFromScreenPoint(double zoom, int x);
 bool selection_contains_transition(const Selection& s, ClipPtr c, int type);
-void move_clip(ComboAction *ca, ClipPtr c, long iin, long iout, long iclip_in, int itrack, bool verify_transitions = true, bool relative = false);
 void ripple_clips(ComboAction *ca, SequencePtr  s, long point, long length, const QVector<int>& ignore = QVector<int>());
 
 struct Ghost {
