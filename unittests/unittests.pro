@@ -24,6 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    ../app/project/UnitTest/markertest.cpp \
     main.cpp \
     ../app/project/UnitTest/sequenceitemtest.cpp \
     ../app/project/UnitTest/sequencetest.cpp \
@@ -35,12 +36,14 @@ SOURCES += \
     ../app/project/UnitTest/projectmodeltest.cpp \
     ../app/project/UnitTest/mediahandlertest.cpp \
     ../app/project/UnitTest/effecttest.cpp \
-    ../app/panels/unittest/histogramviewertest.cpp
+    ../app/panels/unittest/histogramviewertest.cpp \
+    ../app/project/UnitTest/effectkeyframetest.cpp
 
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 HEADERS += \
+    ../app/project/UnitTest/markertest.h \
     ../app/project/UnitTest/sequenceitemtest.h \
     ../app/project/UnitTest/sequencetest.h \
     ../app/project/UnitTest/mediatest.h \
@@ -51,7 +54,8 @@ HEADERS += \
     ../app/project/UnitTest/projectmodeltest.h \
     ../app/project/UnitTest/mediahandlertest.h \
     ../app/project/UnitTest/effecttest.h \
-    ../app/panels/unittest/histogramviewertest.h
+    ../app/panels/unittest/histogramviewertest.h \
+    ../app/project/UnitTest/effectkeyframetest.h
 
 INCLUDEPATH += ../app/
 

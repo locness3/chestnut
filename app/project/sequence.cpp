@@ -21,6 +21,7 @@
 
 #include <libavutil/channel_layout.h>
 
+#include "panels/panelmanager.h"
 #include "clip.h"
 #include "transition.h"
 
@@ -28,18 +29,21 @@
 
 using project::ScanMethod;
 
-namespace {
-  const auto      RECURSION_LIMIT = 100;
-  const int       MAXIMUM_WIDTH              = 4096;
-  const int       MAXIMUM_HEIGHT             = 2160;
-  const int       MAXIMUM_FREQUENCY          = 192000;
-  const int       DEFAULT_WIDTH              = 1920;
-  const int       DEFAULT_HEIGHT             = 1080;
-  const double    DEFAULT_FRAMERATE          = 29.97;
-  const int       DEFAULT_AUDIO_FREQUENCY    = 48000;
-  const int       DEFAULT_LAYOUT             = AV_CH_LAYOUT_STEREO;
-}
+constexpr int       RECURSION_LIMIT            = 100;
+constexpr int       MAXIMUM_WIDTH              = 4096;
+constexpr int       MAXIMUM_HEIGHT             = 2160;
+constexpr int       MAXIMUM_FREQUENCY          = 192000;
+constexpr int       DEFAULT_WIDTH              = 1920;
+constexpr int       DEFAULT_HEIGHT             = 1080;
+constexpr double    DEFAULT_FRAMERATE          = 29.97;
+constexpr int       DEFAULT_AUDIO_FREQUENCY    = 48000;
+constexpr int       DEFAULT_LAYOUT             = AV_CH_LAYOUT_STEREO;
 
+
+Sequence::Sequence(const std::shared_ptr<Media>& parent) : parent_mda(parent)
+{
+
+}
 
 
 Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName)
@@ -125,8 +129,7 @@ std::shared_ptr<Sequence> Sequence::copy()
     if (c == nullptr) {
       sqn->clips_[i] = nullptr;
     } else {
-      auto copy(c->copy(sqn));
-      copy->linked = c->linked;
+      auto copy(c->copyPreserveLinks(sqn));
       sqn->clips_[i] = copy;
     }
   }
@@ -146,39 +149,47 @@ int64_t Sequence::endFrame() const
 
 void Sequence::hardDeleteTransition(const ClipPtr& c, const int32_t type)
 {
-  auto transition_index = (type == TA_OPENING_TRANSITION) ? c->opening_transition : c->closing_transition;
-  if (transition_index < 0) {
-    return;
-  }
-  auto del = true;
 
-  auto transition_for_delete = transitions_.at(transition_index);
-  if (auto secondary = transition_for_delete->secondary_clip.lock()) {
-    for (const auto& comp : clips_) {
-      if ( (!comp) && (c != comp) ) {
-        continue;
-      }
-      if ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) ) {
-        if (type == TA_OPENING_TRANSITION) {
-          // convert to closing transition
-          transition_for_delete->parent_clip = secondary;
-        }
-
-        del = false;
-        secondary.reset();
-      }
-    }//for
-  }
-
-  if (del) {
-    transitions_[transition_index] = nullptr;
-  }
 
   if (type == TA_OPENING_TRANSITION) {
-    c->opening_transition = -1;
+    c->transition_.opening_ = nullptr;
   } else {
-    c->closing_transition = -1;
+    c->transition_.closing_ = nullptr;
   }
+//TODO: reassess
+//  auto tran = (type == TA_OPENING_TRANSITION) ? c->transition_.opening_ : c->transition_.closing_;
+//  if (tran == nullptr) {
+//    return;
+//  }
+//  auto del = true;
+
+//  auto transition_for_delete = transitions_.at(transition_index);
+//  if (auto secondary = transition_for_delete->secondary_clip.lock()) {
+//    for (const auto& comp : clips_) {
+//      if ( (!comp) && (c != comp) ) {
+//        continue;
+//      }
+//      if ( (c->opening_transition == transition_index) || (c->closing_transition == transition_index) ) {
+//        if (type == TA_OPENING_TRANSITION) {
+//          // convert to closing transition
+//          transition_for_delete->parent_clip = secondary;
+//        }
+
+//        del = false;
+//        secondary.reset();
+//      }
+//    }//for
+//  }
+
+//  if (del) {
+//    transitions_[transition_index] = nullptr;
+//  }
+
+//  if (type == TA_OPENING_TRANSITION) {
+//    c->opening_transition = -1;
+//  } else {
+//    c->closing_transition = -1;
+//  }
 }
 
 
@@ -254,6 +265,42 @@ void Sequence::setAudioLayout(const int32_t layout)
 }
 
 
+QSet<int> Sequence::tracks(const long frame) const
+{
+  QSet<int> pop_tracks;
+
+  for (const auto& c : clips_) {
+    if (c == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    if (c->inRange(frame)) {
+      pop_tracks.insert(c->timeline_info.track_);
+    }
+  }
+
+  return pop_tracks;
+}
+
+QVector<ClipPtr> Sequence::clips(const long frame) const
+{
+  QVector<ClipPtr> frame_clips;
+
+  for (const auto& c : clips_) {
+    if (c == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    if (c->inRange(frame)) {
+      frame_clips.append(c);
+    }
+  }
+  return frame_clips;
+}
+
+
+
+
 void Sequence::closeActiveClips(const int32_t depth)
 {
   if (depth > RECURSION_LIMIT) return;
@@ -271,6 +318,167 @@ void Sequence::closeActiveClips(const int32_t depth)
   }//for
 }
 
+
+ClipPtr Sequence::clip(const int32_t id)
+{
+  for (const auto& clp : clips_) {
+    if ( (clp != nullptr) && (clp->id() == id) ) {
+      return clp;
+    }
+  }
+  return nullptr;
+}
+
+
+void Sequence::deleteClip(const int32_t id)
+{
+  auto iter = std::find_if(clips_.begin(), clips_.end(), [id](const ClipPtr& clp) {return clp->id() == id;});
+  if (iter != clips_.end()) {
+    clips_.erase(iter);
+  }
+}
+
+bool Sequence::load(QXmlStreamReader& stream)
+{
+  for (const auto& attr : stream.attributes()) {
+    const auto name = attr.name().toString().toLower();
+    if (name == "id") {
+      if (auto mda  = parent_mda.lock()) {
+        save_id_ = attr.value().toInt();
+        mda->setId(save_id_);
+      }
+    } else if (name == "folder") {
+      const auto folder_id = attr.value().toInt();
+      if (folder_id > 0) {
+        auto folder = Project::model().findItemById(folder_id);
+        if (auto par = parent_mda.lock()) {
+          par->setParent(folder);
+        }
+      }
+    } else if (name == "open") {
+      bool is_open = attr.value().toString().toLower() == "true";
+      if (is_open) {
+        global::sequence = shared_from_this();
+      }
+    } else {
+      qWarning() << "Unhandled attribute" << name;
+    }
+  }
+
+  while (stream.readNextStartElement()) {
+    const auto name = stream.name().toString().toLower();
+    if (name == "workarea") {
+      if (!loadWorkArea(stream)) {
+        qCritical() << "Failed to load workarea";
+        return false;
+      }
+      stream.skipCurrentElement();
+    } else if (name == "name") {
+      setName(stream.readElementText());
+    } else if (name == "width") {
+      setWidth(stream.readElementText().toInt());
+    } else if (name == "height") {
+      setHeight(stream.readElementText().toInt());
+    } else if (name == "framerate") {
+      setFrameRate(stream.readElementText().toDouble());
+    } else if (name == "frequency") {
+      setAudioFrequency(stream.readElementText().toInt());
+    } else if (name == "layout") {
+      setAudioLayout(stream.readElementText().toInt());
+    } else if (name == "clip") {
+      auto clp = std::make_shared<Clip>(shared_from_this());
+      if (clp->load(stream)) {
+        clips_.append(clp);
+      } else {
+        qCritical() << "Failed to load clip";
+        return false;
+      }
+    } else if (name == "marker") {
+      auto mark = std::make_shared<Marker>();
+      if (mark->load(stream)) {
+        markers_.append(mark);
+      } else {
+        qCritical() << "Failed to read marker element";
+        return false;
+      }
+    } else {
+      qWarning() << "Unhandled element" << name;
+      stream.skipCurrentElement();
+    }
+  }//while
+  return true;
+}
+bool Sequence::save(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("sequence");
+  if (auto par = parent_mda.lock()) {
+    stream.writeAttribute("id", QString::number(par->id()));
+    stream.writeAttribute("folder", QString::number(par->parentItem()->id()));
+  } else {
+    qCritical() << "Null parent Media";
+    return false;
+  }
+  stream.writeAttribute("open", this == global::sequence.get() ? "true" : "false");
+
+  stream.writeStartElement("workarea");
+  stream.writeAttribute("using", workarea_.using_ ? "true" : "false");
+  stream.writeAttribute("enabled", workarea_.enabled_ ? "true" : "false");
+  stream.writeAttribute("in", QString::number(workarea_.in_));
+  stream.writeAttribute("out", QString::number(workarea_.out_));
+  stream.writeEndElement();
+
+  stream.writeTextElement("name", name_);
+  stream.writeTextElement("width", QString::number(width_));
+  stream.writeTextElement("height", QString::number(height_));
+  stream.writeTextElement("framerate", QString::number(frame_rate_, 'g', 10));
+  stream.writeTextElement("frequency", QString::number(audio_frequency_));
+  stream.writeTextElement("layout", QString::number(audio_layout_));
+
+  for (const auto& clp : clips_) {
+    if (clp == nullptr) {
+      qDebug() << "Null clip ptr";
+      continue;
+    }
+    if (!clp->save(stream)) {
+      qCritical() << "Failed to save clip";
+      return false;
+    }
+  }
+
+  for (const auto& mark : markers_) {
+    if (mark == nullptr) {
+      qDebug() << "Null marker ptr";
+      continue;
+    }
+    if (!mark->save(stream)) {
+      qCritical() << "Failed to save marker";
+      return false;
+    }
+  }
+
+  stream.writeEndElement();
+  return true;
+}
+
+
+bool Sequence::loadWorkArea(QXmlStreamReader& stream)
+{
+  for (const auto& attr : stream.attributes()) {
+    const auto name = attr.name().toString().toLower();
+    if (name == "using") {
+      workarea_.using_ = attr.value().toString() == "true";
+    } else if (name == "enabled") {
+      workarea_.enabled_ = attr.value().toString() == "true";
+    } else if (name == "in") {
+      workarea_.in_ = attr.value().toInt();
+    } else if (name == "out") {
+      workarea_.out_ = attr.value().toInt();
+    } else {
+      qWarning() << "Unhandled workarea attribute" << name;
+    }
+  }
+  return true;
+}
 
 std::pair<int64_t, int64_t> Sequence::trackLimits() const
 {

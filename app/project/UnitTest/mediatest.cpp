@@ -52,15 +52,15 @@ void MediaTest::testCaseSetAsFootage()
 
 void MediaTest::testCaseSetAsSequence()
 {
-  Media mda;
+  auto mda = std::make_shared<Media>();
   auto sqn = std::make_shared<Sequence>();
-  QVERIFY(mda.setSequence(sqn) == true);
-  QVERIFY(mda.setSequence(sqn) == false);
+  QVERIFY(mda->setSequence(sqn) == true);
+  QVERIFY(mda->setSequence(sqn) == false);
   sqn.reset();
-  QVERIFY(mda.setSequence(sqn) == false);
-  QVERIFY(mda.type() == MediaType::SEQUENCE);
-  QVERIFY(mda.object<Sequence>() != nullptr);
-  QVERIFY(mda.root_ == false);
+  QVERIFY(mda->setSequence(sqn) == false);
+  QVERIFY(mda->type() == MediaType::SEQUENCE);
+  QVERIFY(mda->object<Sequence>() != nullptr);
+  QVERIFY(mda->root_ == false);
 }
 
 
@@ -82,4 +82,19 @@ void MediaTest::testCaseClear()
   QVERIFY(mda.type() == MediaType::NONE);
   QVERIFY(mda.object<Footage>() == nullptr);
   QVERIFY(mda.root_ == true);
+}
+
+/**
+ * @brief Check that when its id is set Media::nextID is greater
+ */
+void MediaTest::testCaseSetId()
+{
+  int id_begin = Media::nextID;
+  Media mda;
+  QVERIFY(id_begin == mda.id());
+  QVERIFY(Media::nextID > id_begin);
+  int new_id = Media::nextID + 100; // 100 has no significance
+  mda.setId(new_id);
+  QVERIFY(Media::nextID > mda.id());
+
 }

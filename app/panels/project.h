@@ -66,10 +66,10 @@ public:
 
     static ProjectModel& model();
 
-    bool is_focused();
+    bool is_focused() const;
     void clear();
     MediaPtr new_sequence(ComboAction *ca, SequencePtr  s, bool open, MediaPtr parentItem);
-    QString get_next_sequence_name(QString start = 0);
+    QString get_next_sequence_name(QString start="");
     void process_file_list(QStringList& files, bool recursive = false, MediaPtr replace = nullptr, MediaPtr parent = nullptr);
     void replace_media(MediaPtr item, QString filename);
     MediaPtr get_selected_folder();
@@ -91,10 +91,10 @@ public:
     QAbstractItemView* getCurrentView();
 
     void new_project();
-    void load_project(bool autorecovery);
-    void save_project(bool autorecovery);
+    void load_project(const bool autorecovery);
+    void save_project(const bool autorecovery);
 
-    MediaPtr new_folder(const QString& name);
+    MediaPtr newFolder(const QString& name="");
     MediaPtr item_to_media(const QModelIndex& index);
 
     void save_recent_projects();
@@ -104,6 +104,12 @@ public:
 
     void start_preview_generator(MediaPtr item, const bool replacing);
     void get_all_media_from_table(QVector<MediaPtr> &items, QVector<MediaPtr> &list, const MediaType type = MediaType::NONE);
+
+    /**
+     * Redraw/setup viewer using the models items
+     */
+    void refresh();
+
 
     SourceTable* tree_view;
     SourceIconView* icon_view;
@@ -120,18 +126,19 @@ public slots:
     void replace_clip_media();
     void open_properties();
 private:
-    void save_folder(QXmlStreamWriter& stream, const MediaType type, bool set_ids_only, const QModelIndex &parent = QModelIndex());
     int folder_id;
     int media_id;
     int sequence_id;
-    void list_all_sequences_worker(QVector<MediaPtr> &list, MediaPtr parent); //TODO: recursive depth limit
-    QString get_file_name_from_path(const QString &path);
-    QString get_file_ext_from_path(const QString &path);
     QDir proj_dir;
     QWidget* icon_view_container;
     QPushButton* directory_up;
     QVector<MediaPtr> last_imported_media;
     static std::unique_ptr<ProjectModel> model_;
+
+    void list_all_sequences_worker(QVector<MediaPtr> &list, MediaPtr parent); //TODO: recursive depth limit
+    QString get_file_name_from_path(const QString &path) const;
+    QString get_file_ext_from_path(const QString &path) const;
+
 private slots:
     void update_view_type();
     void set_icon_view();

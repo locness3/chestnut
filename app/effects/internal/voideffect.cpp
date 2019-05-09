@@ -7,20 +7,14 @@
 #include "ui/collapsiblewidget.h"
 #include "debug.h"
 
-VoidEffect::VoidEffect(ClipPtr c, const QString& n) : Effect(c, nullptr) {
+VoidEffect::VoidEffect(ClipPtr c, const QString& n)
+  : Effect(c)
+{
   name_ = n;
-  QString display_name;
-  if (n.isEmpty()) {
-    display_name = tr("(unknown)");
-  } else {
-    display_name = n;
-  }
-  EffectRowPtr row = add_row(tr("Missing Effect"), false, false);
-  row->add_widget(new QLabel(display_name));
-  container->setText(display_name);
 }
 
-void VoidEffect::load(QXmlStreamReader &stream) {
+bool VoidEffect::load(QXmlStreamReader &stream)
+{
   QString tag = stream.name().toString();
   qint64 start_index = stream.characterOffset();
   qint64 end_index = start_index;
@@ -42,21 +36,44 @@ void VoidEffect::load(QXmlStreamReader &stream) {
       passage_get.close();
     }
   }
+  return false;
 }
 
-void VoidEffect::save(QXmlStreamWriter &stream) {
-  if (!name_.isEmpty()) {
-    stream.writeAttribute("name", name_);
-    stream.writeAttribute("enabled", QString::number(is_enabled()));
+bool VoidEffect::save(QXmlStreamWriter &stream) const
+{
+  // TODO:
+//  if (!name_.isEmpty()) {
+//    stream.writeAttribute("name", name_);
+//    stream.writeAttribute("enabled", QString::number(is_enabled()));
 
-    // force xml writer to expand <effect> tag, ignored when loading
-    stream.writeStartElement("void");
-    stream.writeEndElement();
+//    // force xml writer to expand <effect> tag, ignored when loading
+//    stream.writeStartElement("void");
+//    stream.writeEndElement();
 
-    if (!bytes.isEmpty()) {
-      // write stored data
-      QIODevice* device = stream.device();
-      device->write(bytes);
-    }
+//    if (!bytes.isEmpty()) {
+//      // write stored data
+//      QIODevice* device = stream.device();
+//      device->write(bytes);
+//    }
+//  }
+  return false;
+}
+
+void VoidEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
   }
+  Effect::setupUi();
+
+  QString display_name;
+  if (name_.isEmpty()) {
+    display_name = tr("(unknown)");
+  } else {
+    display_name = name_;
+  }
+  EffectRowPtr row = add_row(tr("Missing Effect"), false, false);
+  row->add_widget(new QLabel(display_name));
+  container->setText(display_name);
+
 }

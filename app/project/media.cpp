@@ -99,6 +99,17 @@ int32_t Media::id() const
   return id_;
 }
 
+
+void Media::setId(const int32_t id)
+{
+  // this doesn't take into account other Media's id being the same.
+  // however, this function is only meant to be used at load or "relink"
+  id_ = id;
+  if (Media::nextID <= id) {
+    Media::nextID = id + 1;
+  }
+}
+
 void Media::clearObject() 
 {
   type_ = MediaType::NONE;
@@ -120,6 +131,7 @@ bool Media::setFootage(const FootagePtr& ftg)
 bool Media::setSequence(const SequencePtr& sqn)
 {
   if ( (sqn != nullptr) && (sqn != object_) ) {
+    sqn->parent_mda = shared_from_this();
     setIcon(QIcon(SEQUENCE_ICON));
     type_ = MediaType::SEQUENCE;
     object_ = sqn;
@@ -247,7 +259,6 @@ void Media::updateTooltip(const QString& error)
       break;
     default:
       throw UnhandledMediaTypeException();
-      break;
   }//switch
 
 }
@@ -257,7 +268,7 @@ MediaType Media::type() const
   return type_;
 }
 
-const QString &Media::name() 
+const QString &Media::name()  const
 {
   switch (type_) {
     case MediaType::FOOTAGE:
@@ -282,7 +293,6 @@ void Media::setName(const QString &name)
       break;
     default:
       throw UnhandledMediaTypeException();
-      break;
   }//switch
 }
 
@@ -308,7 +318,6 @@ double Media::frameRate(const int32_t stream)
       break;
     default:
       throw UnhandledMediaTypeException();
-      break;
   }//switch
 
   return 0.0;
@@ -336,7 +345,6 @@ int32_t Media::samplingRate(const int32_t stream)
       break;
     default:
       throw UnhandledMediaTypeException();
-      break;
   }//switch
   return 0;
 }
@@ -459,4 +467,117 @@ void Media::removeChild(const int32_t index)
 {
   children_.removeAt(index);
 }
+
+
+void Media::resetNextId()
+{
+  Media::nextID = 0;
+}
+
+
+bool Media::load(QXmlStreamReader& stream)
+{
+  auto elem_name = stream.name();
+  if (elem_name == "folder") {
+    if (!loadAsFolder(stream)) {
+      return false;
+    }
+  } else if (elem_name == "sequence") {
+    if (!loadAsSequence(stream)) {
+      return false;
+    }
+  } else if (elem_name == "footage") {
+    if (!loadAsFootage(stream)) {
+      return false;
+    }
+  } else {
+    stream.skipCurrentElement();
+    qWarning() << "Unhandled element" << elem_name;
+  }
+
+  return true;
+}
+
+bool Media::save(QXmlStreamWriter& stream) const
+{
+  switch (type_) {
+    case MediaType::FOLDER:
+      return saveAsFolder(stream);
+    case MediaType::FOOTAGE:
+      [[fallthrough]];
+    case MediaType::SEQUENCE:
+      if (object_ != nullptr) {
+        return object_->save(stream);
+      }
+      break;
+    default:
+      qCritical() << "Unhandled media type";
+  }
+
+  return false;
+}
+
+
+bool Media::loadAsFolder(QXmlStreamReader& stream)
+{
+  for (const auto& attr : stream.attributes()) {
+    const auto attr_name = attr.name().toString().toLower();
+    if (attr_name == "id") {
+      auto id = attr.value().toInt();
+      setId(id);
+    } else if (attr_name == "parent") {
+      auto par_id = attr.value().toInt();
+      parent_ = Project::model().findItemById(par_id);
+    } else {
+      qWarning() << "Unknown attribute" << attr_name;
+    }
+  }
+
+  while (stream.readNextStartElement()) {
+    auto elem_name = stream.name().toString().toLower();
+    if (elem_name == "name") {
+      folder_name_ = stream.readElementText();
+    } else {
+      qWarning() << "Unknown element" << elem_name;
+    }
+  }
+  setFolder();
+  return true;
+}
+
+
+bool Media::loadAsSequence(QXmlStreamReader& stream)
+{
+  auto seq = std::make_shared<Sequence>(shared_from_this());
+  if (seq->load(stream)) {
+    setSequence(seq);
+    return true;
+  }
+  return false;
+}
+
+bool Media::loadAsFootage(QXmlStreamReader& stream)
+{
+  auto ftg = std::make_shared<Footage>(shared_from_this());
+  if (ftg->load(stream)) {
+    setFootage(ftg);
+    return true;
+  }
+  return false;
+}
+
+
+bool Media::saveAsFolder(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("folder");
+  stream.writeAttribute("id", QString::number(id_));
+  if (auto par = parent_.lock()) {
+    stream.writeAttribute("parent", QString::number(par->id()));
+  }
+  stream.writeTextElement("name", name());
+  stream.writeEndElement();
+  return true;
+}
+
+
 

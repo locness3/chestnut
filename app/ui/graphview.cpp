@@ -329,8 +329,11 @@ void GraphView::paintEvent(QPaintEvent *)
 
   // draw playhead
   p.setPen(Qt::red);
-  int playhead_x = get_screen_x(panels::PanelManager::sequenceViewer().getSequence()->playhead_ - visible_in);
-  p.drawLine(playhead_x, 0, playhead_x, height());
+
+  if (panels::PanelManager::sequenceViewer().getSequence() != nullptr) {
+    int playhead_x = get_screen_x(panels::PanelManager::sequenceViewer().getSequence()->playhead_ - visible_in);
+    p.drawLine(playhead_x, 0, playhead_x, height());
+  }
 
   if (rect_select) {
     draw_selection_rectangle(p, QRect(rect_select_x, rect_select_y, rect_select_w, rect_select_h));
@@ -768,9 +771,9 @@ void GraphView::set_row(EffectRow *r) {
     selected_keys_fields.clear();
     selected_keys_old_vals.clear();
     selected_keys_old_doubles.clear();
-    emit selection_changed(false, -1);
+    emit selection_changed(false, KeyframeType::UNKNOWN);
     row = r;
-    if (row != nullptr) {
+    if ( (row != nullptr) && (row->parent_effect != nullptr) && (row->parent_effect->parent_clip != nullptr)) {
       field_visibility.resize(row->fieldCount());
       field_visibility.fill(true);
       visible_in = row->parent_effect->parent_clip->timeline_info.in;
@@ -794,8 +797,9 @@ void GraphView::set_selected_keyframe_type(const KeyframeType type)
   }
 }
 
-void GraphView::set_field_visibility(int field, bool b) {
-  field_visibility[field] = b;
+void GraphView::set_field_visibility(int field, bool b)
+{
+  field_visibility.insert(field, b);
   update();
 }
 
@@ -877,5 +881,5 @@ void GraphView::selection_update()
 
   update();
 
-  emit selection_changed(!selected_keys.empty(), static_cast<int>(selected_key_type));
+  emit selection_changed(!selected_keys.empty(), selected_key_type);
 }

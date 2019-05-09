@@ -50,6 +50,7 @@ constexpr bool WAIT_ON_CLOSE = true;
 constexpr AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;
 constexpr int AUDIO_SAMPLES = 2048;
 constexpr int AUDIO_BUFFER_PADDING = 2048;
+int32_t Clip::next_id = 0;
 
 
 double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sample_rate) {
@@ -59,14 +60,13 @@ double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sam
 Clip::Clip(SequencePtr s) :
   SequenceItem(project::SequenceItemType::CLIP),
   sequence(std::move(s)),
-  opening_transition(-1),
-  closing_transition(-1),
   undeletable(false),
   replaced(false),
   ignore_reverse(false),
   use_existing_frame(false),
   filter_graph(nullptr),
-  fbo(nullptr)
+  fbo(nullptr),
+  id_(next_id++)
 {
   media_handling.pkt = av_packet_alloc();
   timeline_info.autoscale = e_config.autoscale_by_default;
@@ -74,55 +74,54 @@ Clip::Clip(SequencePtr s) :
 }
 
 
-Clip::~Clip() {
+Clip::~Clip()
+{
   if (is_open) {
     close(WAIT_ON_CLOSE);
   }
 
-  if (opening_transition != -1) {
-    sequence->hardDeleteTransition(shared_from_this(), TA_OPENING_TRANSITION);
-  }
-  if (closing_transition != -1) {
-    sequence->hardDeleteTransition(shared_from_this(), TA_CLOSING_TRANSITION);
-  }
-
-  effects.clear();
   av_packet_free(&media_handling.pkt);
 }
 
 
-ClipPtr Clip::copy(SequencePtr s) {
-  ClipPtr copyClip = std::make_shared<Clip>(s);
+ClipPtr Clip::copy(SequencePtr s)
+{
+  auto copy_clip = std::make_shared<Clip>(std::move(s));
 
-  copyClip->timeline_info.enabled = timeline_info.enabled;
-  copyClip->timeline_info.name = timeline_info.name;
-  copyClip->timeline_info.clip_in = timeline_info.clip_in.load();
-  copyClip->timeline_info.in = timeline_info.in.load();
-  copyClip->timeline_info.out = timeline_info.out.load();
-  copyClip->timeline_info.track_ = timeline_info.track_.load();
-  copyClip->timeline_info.color = timeline_info.color;
-  copyClip->timeline_info.media = timeline_info.media;
-  copyClip->timeline_info.media_stream = timeline_info.media_stream.load();
-  copyClip->timeline_info.autoscale = timeline_info.autoscale;
-  copyClip->timeline_info.speed = timeline_info.speed.load();
-  copyClip->timeline_info.maintain_audio_pitch = timeline_info.maintain_audio_pitch;
-  copyClip->timeline_info.reverse = timeline_info.reverse;
+  copy_clip->timeline_info = timeline_info;
 
   for (auto& eff : effects) {
-    copyClip->effects.append(eff->copy(copyClip));
+    if (eff == nullptr) {
+      qWarning() << "Null Effect instance";
+      continue;
+    }
+    copy_clip->effects.append(eff->copy(copy_clip));
   }
 
-  copyClip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
+  // leave id_ modification and linked population for callees
 
-  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
-    copyClip->opening_transition = openingTransition()->copy(copyClip, nullptr);
-  }
-  if (closingTransition() != nullptr && !closingTransition()->secondary_clip.expired()) {
-    copyClip->closing_transition = closingTransition()->copy(copyClip, nullptr);
-  }
-  copyClip->recalculateMaxLength();
+  copy_clip->timeline_info.cached_fr = (this->sequence == nullptr) ? timeline_info.cached_fr : this->sequence->frameRate();
 
-  return copyClip;
+  // copy transitions
+  if (auto trans = getTransition(ClipTransitionType::OPENING)) {
+    copy_clip->setTransition(trans->meta, ClipTransitionType::OPENING, trans->get_length());
+  }
+  if (auto trans = getTransition(ClipTransitionType::CLOSING)) {
+    copy_clip->setTransition(trans->meta, ClipTransitionType::CLOSING, trans->get_length());
+  }
+
+  copy_clip->recalculateMaxLength();
+
+  return copy_clip;
+}
+
+
+ClipPtr Clip::copyPreserveLinks(SequencePtr s)
+{
+  auto clp = copy(std::move(s));
+  clp->id_ = id_;
+  clp->linked = linked;
+  return clp;
 }
 
 bool Clip::isActive(const long playhead) {
@@ -147,7 +146,7 @@ bool Clip::isActive(const long playhead) {
 bool Clip::usesCacher() const
 {
   return (( (timeline_info.media == nullptr) && (timeline_info.track_ >= 0) )
-      || ( (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE)));
+          || ( (timeline_info.media != nullptr) && (timeline_info.media->type() == MediaType::FOOTAGE)));
 }
 
 /**
@@ -175,7 +174,7 @@ bool Clip::openWorker() {
     const char* const filename = ftg->url.toUtf8().data();
 
     FootageStreamPtr ms;
-    if (timeline_info.isVideo()) {
+    if (mediaType() == ClipType::VISUAL) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -202,13 +201,17 @@ bool Clip::openWorker() {
     if (errCode < 0) {
       char err[1024];
       av_strerror(errCode, err, 1024);
-       qCritical() << "Could not open" << filename << "-" << err;
+      qCritical() << "Could not open" << filename << "-" << err;
       return false;
     }
 
     av_dump_format(media_handling.formatCtx, 0, filename, 0);
 
     media_handling.stream = media_handling.formatCtx->streams[ms->file_index];
+    if ( (media_handling.stream == nullptr) || (media_handling.stream->codecpar == nullptr) ) {
+      qCritical() << "Stream Info instance(s) are null";
+      return false;
+    }
     media_handling.codec = avcodec_find_decoder(media_handling.stream->codecpar->codec_id);
     media_handling.codecCtx = avcodec_alloc_context3(media_handling.codec);
     avcodec_parameters_to_context(media_handling.codecCtx, media_handling.stream->codecpar);
@@ -239,11 +242,11 @@ bool Clip::openWorker() {
     if ((media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_APNG &&
          media_handling.stream->codecpar->codec_id != AV_CODEC_ID_TIFF
-#ifndef DISABLE_PSD
+     #ifndef DISABLE_PSD
          && media_handling.stream->codecpar->codec_id != AV_CODEC_ID_PSD)
-#else
+    #else
          )
-#endif
+    #endif
         || !e_config.disable_multithreading_for_images) {
       av_dict_set(&media_handling.opts, "threads", "auto", 0);
     }
@@ -468,7 +471,7 @@ bool Clip::open(const bool open_multithreaded) {
     multithreaded = open_multithreaded;
     if (multithreaded) {
       if (open_lock.tryLock()) {
-        this->start((timeline_info.isVideo()) ? QThread::HighPriority : QThread::TimeCriticalPriority);
+        this->start((mediaType() == ClipType::VISUAL) ? QThread::HighPriority : QThread::TimeCriticalPriority);
       }
     } else {
       finished_opening = false;
@@ -589,6 +592,185 @@ bool Clip::nudge(const int pos)
   return true;
 }
 
+
+bool Clip::setTransition(const EffectMeta& meta, const ClipTransitionType type, const long length)
+{
+  if (this->length() < 1) {
+    qWarning() << "Cannot set Transition for Clip of length 0";
+    return false;
+  }
+
+  switch (type) {
+    case ClipTransitionType::BOTH:
+      transition_.opening_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      transition_.closing_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      if ( (transition_.opening_ != nullptr) && (transition_.closing_ != nullptr) ) {
+        if ( (length * 2) > this->length()) {
+          // Fit transitions into clip length
+          transition_.opening_->set_length(length/2);
+          transition_.closing_->set_length(length/2);
+        } else {
+          transition_.opening_->set_length(length);
+          transition_.closing_->set_length(length);
+        }
+        return true;
+      }
+      break;
+    case ClipTransitionType::CLOSING:
+      transition_.closing_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      if (transition_.closing_ != nullptr) {
+        transition_.closing_->set_length(qMin(length, this->length()));
+        return true;
+      }
+      break;
+    case ClipTransitionType::OPENING:
+      transition_.opening_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      if (transition_.opening_ != nullptr) {
+        transition_.opening_->set_length(qMin(length, this->length()));
+        return true;
+      }
+      break;
+    default:
+      qWarning() << "Unhandled Transition type";
+      break;
+  }
+  return false;
+}
+
+
+void Clip::deleteTransition(const ClipTransitionType type)
+{
+  switch (type) {
+    case ClipTransitionType::BOTH:
+      transition_.opening_ = nullptr;
+      transition_.closing_ = nullptr;
+      break;
+    case ClipTransitionType::CLOSING:
+      transition_.closing_ = nullptr;
+      break;
+    case ClipTransitionType::OPENING:
+      transition_.opening_ = nullptr;
+      break;
+  }
+}
+
+
+TransitionPtr Clip::getTransition(const ClipTransitionType type)
+{
+  switch (type) {
+    case ClipTransitionType::OPENING:
+      return transition_.opening_;
+    case ClipTransitionType::CLOSING:
+      return transition_.closing_;
+    case ClipTransitionType::BOTH:
+      [[fallthrough]];
+    default:
+      break;
+  }
+  return nullptr;
+}
+
+
+ClipPtr Clip::split(const long frame)
+{
+  // check limits
+  if (frame <= timeline_info.in || frame >= timeline_info.out) {
+    qWarning() << "Unable to split. Out-of-range";
+    return nullptr;
+  }
+  // Create copy
+  auto post = copy(this->sequence);
+  // Adjust the in/out points
+  timeline_info.out = frame;
+  post->timeline_info.in = frame;
+  post->timeline_info.clip_in = timeline_info.clip_in + post->timeline_info.in - timeline_info.in;
+  // Adjust transitions
+  post->transition_.closing_ = transition_.closing_;
+  post->transition_.opening_ = nullptr;
+  transition_.closing_ = nullptr;
+
+  // ensure transition lengths within limits
+  if (transition_.opening_ != nullptr) {
+    transition_.opening_->set_length(qMin(transition_.opening_->get_length(), length()));
+  }
+  if (post->transition_.closing_ != nullptr) {
+    post->transition_.closing_->set_length(qMin(post->transition_.closing_->get_length(), post->length()));
+  }
+  return post;
+}
+
+
+bool Clip::merge(const Clip& split_clip)
+{
+  // NOTE: only tested for "unsplit" use-case
+  if (split_clip.timeline_info.media != timeline_info.media) {
+    qWarning() << "Not able to merge clip with differing source material";
+    return false;
+  }
+
+  if (split_clip.timeline_info.clip_in > timeline_info.clip_in) {
+    // appending
+    timeline_info.out = split_clip.timeline_info.out.load();
+    transition_.closing_ = split_clip.transition_.closing_;
+  } else if (split_clip.timeline_info.clip_in < timeline_info.clip_in) {
+    // prepending
+    timeline_info.clip_in = split_clip.timeline_info.clip_in.load();
+    transition_.opening_ = split_clip.transition_.opening_;
+  } else {
+    // trying to merge clip starting
+    return false;
+  }
+
+  return true;
+}
+
+
+QVector<ClipPtr> Clip::splitAll(const long frame)
+{
+  QVector<ClipPtr> split_clips;
+
+  // check limits
+  if (frame <= timeline_info.in || frame >= timeline_info.out) {
+    qWarning() << "Unable to split. Out-of-range";
+    return split_clips;
+  }
+
+  auto split_clip = split(frame);
+  if (split_clip == nullptr) {
+    qWarning() << "Clip not splitted";
+    return split_clips;
+  }
+
+  split_clips.append(split_clip);
+  for (auto l : linked) {
+    if (auto l_clip = sequence->clip(l)) {
+      if (l_clip == nullptr) {
+        qWarning() << "Linked Clip instance is null";
+        continue;
+      }
+      split_clip = l_clip->split(frame);
+      if (split_clip == nullptr) {
+        qWarning() << "Failed to split linked Clip";
+        continue;
+      }
+      split_clips.append(split_clip);
+    }
+  }
+
+  linkClips(split_clips);
+
+  return split_clips;
+}
+
+/**
+ * @brief The length in frames of the clip
+ * @return
+ */
+int64_t Clip::length() const
+{
+  return timeline_info.out - timeline_info.in + timeline_info.clip_in;
+}
+
 void Clip::reset()
 {
   audio_playback.just_reset = false;
@@ -630,9 +812,9 @@ void Clip::refresh()
   if (replaced && timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
     FootagePtr m = timeline_info.media->object<Footage>();
 
-    if (timeline_info.isVideo() && !m->video_tracks.empty())  {
+    if ((mediaType() == ClipType::VISUAL) && !m->video_tracks.empty())  {
       timeline_info.media_stream = m->video_tracks.front()->file_index;
-    } else if ( (timeline_info.track_ >= 0) && !m->audio_tracks.empty()) {
+    } else if ((mediaType() == ClipType::AUDIO) && !m->audio_tracks.empty()) {
       timeline_info.media_stream = m->audio_tracks.front()->file_index;
     }
   }
@@ -640,6 +822,10 @@ void Clip::refresh()
 
   // reinitializes all effects... just in case
   for (const auto& eff : effects) {
+    if (eff == nullptr) {
+      qCritical() << "Null effect ptr";
+      continue;
+    }
     eff->refresh();
   }
 
@@ -665,26 +851,28 @@ void Clip::removeEarliestFromQueue() {
   queue.removeAt(earliest_frame);
 }
 
-TransitionPtr Clip::openingTransition()
+TransitionPtr Clip::openingTransition() const
 {
-  if (opening_transition > -1) {
-    if (sequence == nullptr) {
-      return e_clipboard_transitions.at(opening_transition);
-    }
-    return sequence->transitions_.at(opening_transition);
-  }
-  return nullptr;
+  return transition_.opening_;
+  //  if (opening_transition > -1) {
+  //    if (sequence == nullptr) {
+  //      return e_clipboard_transitions.at(opening_transition);
+  //    }
+  //    return sequence->transitions_.at(opening_transition);
+  //  }
+  //  return nullptr;
 }
 
-TransitionPtr Clip::closingTransition()
+TransitionPtr Clip::closingTransition() const
 {
-  if (closing_transition > -1) {
-    if (sequence == nullptr) {
-      return e_clipboard_transitions.at(closing_transition);
-    }
-    return sequence->transitions_.at(closing_transition);
-  }
-  return nullptr;
+  return transition_.closing_;
+  //  if (closing_transition > -1) {
+  //    if (sequence == nullptr) {
+  //      return e_clipboard_transitions.at(closing_transition);
+  //    }
+  //    return sequence->transitions_.at(closing_transition);
+  //  }
+  //  return nullptr;
 }
 
 /**
@@ -697,7 +885,7 @@ void Clip::frame(const long playhead, bool& texture_failed)
     auto ftg = timeline_info.media->object<Footage>();
     if (!ftg) return;
     FootageStreamPtr ms;
-    if (timeline_info.isVideo()) {
+    if (mediaType() == ClipType::VISUAL) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -743,7 +931,7 @@ void Clip::frame(const long playhead, bool& texture_failed)
 
         int previous_frame_count = 0;
         if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
-          minimum_ts -= (second_pts * e_config.previous_queue_size);
+          minimum_ts -= qFloor(second_pts * e_config.previous_queue_size);
         }
 
         for (int i=0;i<queue.size();i++) {
@@ -824,8 +1012,8 @@ void Clip::frame(const long playhead, bool& texture_failed)
       uint8_t* data = target_frame->data[0];
       int frame_size;
 
-      for (int i=0;i<effects.size();i++) {
-        EffectPtr e = effects.at(i);
+      //      for (int i=0;i<effects.size();i++) {
+      for (const auto& e : effects) {
         if (e->hasCapability(Capability::IMAGE)) {
           if (!copied) {
             frame_size = target_frame->linesize[0]*target_frame->height;
@@ -878,43 +1066,230 @@ bool Clip::isSelected(const bool containing)
   }
 
   for (const auto& selection : sequence->selections_) {
-    //FIXME: christ almighty. copy-pasted in Timeline()
-    if ( (timeline_info.track_ == selection.track)
-         && ( ( (timeline_info.in >= selection.in) && (timeline_info.out <= selection.out) && containing)
-              || (!containing
-                  && !( (timeline_info.in < selection.in) && (timeline_info.out < selection.in) )
-                  && !( (timeline_info.in > selection.in) && (timeline_info.out > selection.in) )))) {
+    const auto same_track = timeline_info.track_ == selection.track;
+    const auto in_range = timeline_info.in >= selection.in && timeline_info.out <= selection.out;
+    if (same_track && in_range && containing) {
       return true;
     }
+    if (!same_track && !in_range && !containing) {
+      // i.e. "not selected"
+      return true;
+    }
+    // keep looking
   }
   return false;
 }
 
+
+bool Clip::isSelected(const Selection& sel) const
+{
+
+  return ( (sel.track == timeline_info.track_) &&
+           !( ( (timeline_info.in <= sel.in) && (timeline_info.out <= sel.in) )
+              || ( (timeline_info.in >= sel.out) && (timeline_info.out >= sel.out) ) ));
+}
+
+bool Clip::inRange(const long frame) const
+{
+  return ( (timeline_info.in < frame) && (timeline_info.out > frame) );
+}
+
+ClipType Clip::mediaType() const
+{
+  if (timeline_info.track_ >= 0) {
+    return ClipType::AUDIO;
+  }
+  return ClipType::VISUAL;
+}
+
+
+MediaPtr Clip::parentMedia()
+{
+  return timeline_info.media;
+}
+
+void Clip::addLinkedClip(const Clip& clp)
+{
+  if (clp.id_ != id_) {
+    linked.append(clp.id_);
+  }// else trying to link itself
+}
+
+void Clip::setLinkedClips(const QVector<int32_t>& links)
+{
+  linked = links;
+}
+
+const QVector<int32_t>& Clip::linkedClips() const
+{
+  return linked;
+}
+
+void Clip::clearLinks()
+{
+  linked.clear();
+}
+
+QSet<int> Clip::getLinkedTracks() const
+{
+  QSet<int> tracks;
+
+  for (auto link : linked) {
+    if (auto clp = global::sequence->clip(link)) { //FIXME: don't like that Sequence is required. use ClipPtr in linked
+      tracks.insert(clp->timeline_info.track_);
+    }
+  }
+
+  return tracks;
+}
+
+/**
+ * @brief           Update the linked clips using a mapping of old_id : new_clip
+ * @param mapping   Mapped ids and clips
+ */
+void Clip::relink(const QMap<int, int>& mapping)
+{
+  QVector<int> new_links;
+  for (auto link : linked) {
+    if (mapping.contains(link)) {
+      new_links.append(mapping.value(link));
+    } else {
+      qDebug() << "No new link for id:" << link;
+      new_links.append(link);
+    }
+  }
+  setLinkedClips(new_links);
+}
+
+bool Clip::load(QXmlStreamReader& stream)
+{
+  for (const auto& attr : stream.attributes()) {
+    const auto name = attr.name().toString().toLower();
+    if (name == "source") {
+      timeline_info.media = Project::model().findItemById(attr.value().toInt());
+    } else if (name == "id") {
+      setId(attr.value().toInt());
+    } else {
+      qWarning() << "Unhandled clip attribute" << name;
+    }
+  }
+
+  while (stream.readNextStartElement()) {
+    const auto name = stream.name().toString().toLower();
+    if (name == "opening_transition") {
+      transition_.opening_ = loadTransition(stream);
+      if (transition_.opening_) {
+        transition_.opening_->setupUi();
+      }
+    } else if (name == "closing_transition") {
+      transition_.closing_ = loadTransition(stream);
+      if (transition_.closing_) {
+        transition_.closing_->setupUi();
+      }
+    } else if (name == "timelineinfo") {
+      if (!timeline_info.load(stream)) {
+        qCritical() << "Failed to load TimelineInfo";
+        return false;
+      }
+    } else if (name == "links") {
+      while (stream.readNextStartElement()) {
+        if (stream.name().toString().toLower() == "link") {
+          linked.append(stream.readElementText().toInt());
+        } else {
+          stream.skipCurrentElement();
+          qWarning() << "Unhandled element" << stream.name();
+        }
+      }
+    } else if (name == "effect") {
+      if (!loadInEffect(stream)){
+        qCritical() << "Failed to load Effect";
+        return false;
+      }
+    } else {
+      stream.skipCurrentElement();
+      qWarning() << "Unhandled element" << name;
+    }
+  }
+
+  return true;
+}
+
+bool Clip::save(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("clip");
+  stream.writeAttribute("source", QString::number(timeline_info.media->id()));
+  stream.writeAttribute("id", QString::number(id_));
+
+
+  if (!timeline_info.save(stream)) {
+    qCritical() << "Failed to save timeline info";
+    return false;
+  }
+
+  stream.writeStartElement("opening_transition");
+  auto length = -1;
+  QString trans_name;
+  if (auto trans = openingTransition()) {
+    length = trans->get_length();
+    trans_name = trans->meta.name;
+  }
+  stream.writeTextElement("name", trans_name);
+  stream.writeTextElement("length", QString::number(length));
+  stream.writeEndElement();
+
+  stream.writeStartElement("closing_transition");
+  length = -1;
+  trans_name.clear();
+  if (auto trans = closingTransition()) {
+    length = trans->get_length();
+    trans_name = trans->meta.name;
+  }
+  stream.writeTextElement("name", trans_name);
+  stream.writeTextElement("length", QString::number(length));
+  stream.writeEndElement();
+
+  stream.writeStartElement("links");
+  for (const auto link : linked) {
+    stream.writeTextElement("link", QString::number(link));
+  }
+  stream.writeEndElement(); // links
+
+  for (const auto& eff : effects) {
+    if (!eff->save(stream)) {
+      qCritical() << "Failed to save effect";
+      return false;
+    }
+  }
+
+  stream.writeEndElement();
+  return true;
+}
+
 long Clip::clipInWithTransition()
 {
-  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
+  if (transition_.opening_ != nullptr && !transition_.opening_->secondary_clip.expired()) {
     // we must be the secondary clip, so return (timeline in - length)
-    return timeline_info.clip_in - openingTransition()->get_true_length();
+    return timeline_info.clip_in - transition_.opening_->get_true_length();
   }
   return timeline_info.clip_in;
 }
 
 long Clip::timelineInWithTransition()
 {
-  if (openingTransition() != nullptr && !openingTransition()->secondary_clip.expired()) {
+  if (transition_.opening_ != nullptr && !transition_.opening_->secondary_clip.expired()) {
     // we must be the secondary clip, so return (timeline in - length)
-    return timeline_info.in - openingTransition()->get_true_length();
+    return timeline_info.in - transition_.opening_->get_true_length();
   }
   return timeline_info.in;
 }
 
 long Clip::timelineOutWithTransition() {
-  if (closingTransition() != nullptr && !closingTransition()->secondary_clip.expired()) {
+  if (transition_.closing_ != nullptr && !transition_.closing_->secondary_clip.expired()) {
     // we must be the primary clip, so return (timeline out + length2)
-    return timeline_info.out + closingTransition()->get_true_length();
-  } else {
-    return timeline_info.out;
+    return timeline_info.out + transition_.closing_->get_true_length();
   }
+
+  return timeline_info.out;
 }
 
 // timeline functions
@@ -924,7 +1299,6 @@ long Clip::length()
 }
 
 double Clip::mediaFrameRate() {
-  Q_ASSERT(timeline_info.isVideo());
   if (timeline_info.media != nullptr) {
     double rate = timeline_info.media->frameRate(timeline_info.media_stream);
     if (!qIsNaN(rate)) {
@@ -1067,6 +1441,12 @@ int Clip::height() {
   return 0;
 }
 
+
+int32_t Clip::id() const
+{
+  return id_;
+}
+
 void Clip::refactorFrameRate(ComboAction* ca, double multiplier, bool change_timeline_points) {
   if (change_timeline_points) {
     if (ca != nullptr) {
@@ -1074,16 +1454,24 @@ void Clip::refactorFrameRate(ComboAction* ca, double multiplier, bool change_tim
            qRound(static_cast<double>(timeline_info.in) * multiplier),
            qRound(static_cast<double>(timeline_info.out) * multiplier),
            qRound(static_cast<double>(timeline_info.clip_in) * multiplier),
-           timeline_info.track_.load());
+           timeline_info.track_);
     }
   }
 
+  // rescale the length of transitions otherwise the could overlap each other or be longer than the clip
+  if (transition_.opening_ != nullptr) {
+    transition_.opening_->set_length(qRound(transition_.opening_->get_length() * multiplier));
+  }
+  if (transition_.closing_ != nullptr) {
+    transition_.closing_->set_length(qRound(transition_.closing_->get_length() * multiplier));
+  }
+
   // move keyframes
-  for (auto effectNow : effects) {
+  for (const auto& effectNow : effects) {
     if (!effectNow) {
       continue;
     }
-    for (auto effectRowNow : effectNow->getRows()) {
+    for (const auto& effectRowNow : effectNow->getRows()) {
       if (!effectRowNow) {
         continue;
       }
@@ -1113,16 +1501,15 @@ void Clip::run() {
       can_cache.wait(&lock);
       if (!cache_info.caching) {
         break;
-      } else {
-        while (true) {
-          cache_worker(cache_info.playhead, cache_info.reset, cache_info.scrubbing, cache_info.nests);
-          if (multithreaded && cache_info.interrupt && (timeline_info.isVideo()) ) {
-            cache_info.interrupt = false;
-          } else {
-            break;
-          }
-        }//while
       }
+      while (true) {
+        cache_worker(cache_info.playhead, cache_info.reset, cache_info.scrubbing, cache_info.nests);
+        if (multithreaded && cache_info.interrupt && (timeline_info.isVideo()) ) {
+          cache_info.interrupt = false;
+        } else {
+          break;
+        }
+      }//while
     }//while
 
     qWarning() << "caching thread stopped";
@@ -1142,34 +1529,33 @@ void Clip::apply_audio_effects(const double timecode_start, AVFrame* frame, cons
   // perform all audio effects
   const double timecode_end = timecode_start + bytes_to_seconds(nb_bytes, frame->channels, frame->sample_rate);
 
-  for (int j=0; j < effects.size();j++) {
-    EffectPtr e = effects.at(j);
-    if (e->is_enabled()) {
+  for (const auto& e : effects) {
+    if (e != nullptr && e->is_enabled()) {
       e->process_audio(timecode_start, timecode_end, frame->data[0], nb_bytes, 2);
     }
   }
-  if (openingTransition() != nullptr) {
+  if (transition_.opening_ != nullptr) {
     if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
       const double transition_start = (clipInWithTransition() / sequence->frameRate());
-      const double transition_end = (clipInWithTransition() + openingTransition()->get_length()) / sequence->frameRate();
+      const double transition_end = (clipInWithTransition() + transition_.opening_->get_length()) / sequence->frameRate();
       if (timecode_end < transition_end) {
         const double adjustment = transition_end - transition_start;
         const double adjusted_range_start = (timecode_start - transition_start) / adjustment;
         const double adjusted_range_end = (timecode_end - transition_start) / adjustment;
-        openingTransition()->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_OPENING_TRANSITION);
+        transition_.opening_->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_OPENING_TRANSITION);
       }
     }
   }
-  if (closingTransition() != nullptr) {
+  if (transition_.closing_ != nullptr) {
     if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
       const long length_with_transitions = timelineOutWithTransition() - timelineInWithTransition();
-      const double transition_start = (clipInWithTransition() + length_with_transitions - closingTransition()->get_length()) / sequence->frameRate();
+      const double transition_start = (clipInWithTransition() + length_with_transitions - transition_.closing_->get_length()) / sequence->frameRate();
       const double transition_end = (clipInWithTransition() + length_with_transitions) / sequence->frameRate();
       if (timecode_start > transition_start) {
         const double adjustment = transition_end - transition_start;
         const double adjusted_range_start = (timecode_start - transition_start) / adjustment;
         const double adjusted_range_end = (timecode_end - transition_start) / adjustment;
-        closingTransition()->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_CLOSING_TRANSITION);
+        transition_.closing_->process_audio(adjusted_range_start, adjusted_range_end, frame->data[0], nb_bytes, TA_CLOSING_TRANSITION);
       }
     }
   }
@@ -1220,24 +1606,26 @@ bool Clip::retrieve_next_frame(AVFrame* frame) {
     if (read_ret >= 0) {
       int send_ret = avcodec_send_packet(media_handling.codecCtx, media_handling.pkt);
       if (send_ret < 0) {
-        dout << "[ERROR] Failed to send packet to decoder." << send_ret;
+        qCritical() << "Failed to send packet to decoder." << send_ret;
         return send_ret;
       }
     } else {
       if (read_ret == AVERROR_EOF) {
         int send_ret = avcodec_send_packet(media_handling.codecCtx, nullptr);
         if (send_ret < 0) {
-          dout << "[ERROR] Failed to send packet to decoder." << send_ret;
+          qCritical() << "Failed to send packet to decoder." << send_ret;
           return send_ret;
         }
       } else {
-        dout << "[ERROR] Could not read frame." << read_ret;
+        qCritical() << "Could not read frame." << read_ret;
         return read_ret; // skips trying to find a frame at all
       }
     }
   }
   if (receive_ret < 0) {
-    if (receive_ret != AVERROR_EOF) dout << "[ERROR] Failed to receive packet from decoder." << receive_ret;
+    if (receive_ret != AVERROR_EOF) {
+      qCritical() << "Failed to receive packet from decoder." << receive_ret;
+    }
     result = receive_ret;
   }
 
@@ -1278,7 +1666,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
   long frame_skip = 0;
   double last_fr = sequence->frameRate();
   if (!nests.isEmpty()) {
-    for (auto nestedClip : nests) {
+    for (const auto& nestedClip : nests) {
       const auto offset = nestedClip->timelineInWithTransition() - nestedClip->clipInWithTransition();
       timeline_in = refactor_frame_number(timeline_in, last_fr,
                                           nestedClip->sequence->frameRate()) + offset;
@@ -1375,8 +1763,9 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
                 dout << "[ERROR] Could not pull from filtergraph";
                 reached_end = true;
                 break;
-              } else {
-                if (!timeline_info.reverse) break;
+              }
+              if (!timeline_info.reverse) {
+                break;
               }
             }
 
@@ -1511,41 +1900,42 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
     // mix audio into internal buffer
     if (av_frame->nb_samples == 0) {
       break;
-    } else {
-      // have audio data so write to audio_data_buffer
-      long buffer_timeline_out = get_buffer_offset_from_frame(sequence->frameRate(), timeline_out);
-      audio_write_lock.lock();
-
-      while (audio_playback.frame_sample_index < nb_bytes
-             && audio_playback.buffer_write < audio_ibuffer_read+(AUDIO_IBUFFER_SIZE>>1)
-             && audio_playback.buffer_write < buffer_timeline_out) {
-        int upper_byte_index = (audio_playback.buffer_write + 1) % AUDIO_IBUFFER_SIZE;
-        int lower_byte_index = (audio_playback.buffer_write) % AUDIO_IBUFFER_SIZE;
-        const qint16 old_sample = static_cast<qint16>( ((audio_ibuffer[upper_byte_index] & 0xFF) << 8)
-                                                 | (audio_ibuffer[lower_byte_index] & 0xFF));
-        const qint16 new_sample = static_cast<qint16>(((av_frame->data[0][audio_playback.frame_sample_index + 1] & 0xFF) << 8)
-            | (av_frame->data[0][audio_playback.frame_sample_index] & 0xFF));
-        const qint16 mixed_sample = mix_audio_sample(old_sample, new_sample);
-
-        audio_ibuffer[upper_byte_index] = static_cast<quint8>((mixed_sample >> 8) & 0xFF);
-        audio_ibuffer[lower_byte_index] = static_cast<quint8>(mixed_sample & 0xFF);
-
-        audio_playback.buffer_write += 2;
-        audio_playback.frame_sample_index += 2;
-      }//while
-      audio_write_lock.unlock();
-
-      if (scrubbing && (audio_thread != nullptr) ) {
-          audio_thread->notifyReceiver();
-      }
-
-      if (audio_playback.frame_sample_index == nb_bytes) {
-        audio_playback.frame_sample_index = -1;
-      } else {
-        // assume we have no more data to send
-        break;
-      }
     }
+
+    // have audio data so write to audio_data_buffer
+    long buffer_timeline_out = get_buffer_offset_from_frame(sequence->frameRate(), timeline_out);
+    audio_write_lock.lock();
+
+    while (audio_playback.frame_sample_index < nb_bytes
+           && audio_playback.buffer_write < audio_ibuffer_read+(AUDIO_IBUFFER_SIZE>>1)
+           && audio_playback.buffer_write < buffer_timeline_out) {
+      int upper_byte_index = (audio_playback.buffer_write + 1) % AUDIO_IBUFFER_SIZE;
+      int lower_byte_index = (audio_playback.buffer_write) % AUDIO_IBUFFER_SIZE;
+      const auto old_sample = static_cast<qint16>( ((audio_ibuffer[upper_byte_index] & 0xFF) << 8)
+                                                   | (audio_ibuffer[lower_byte_index] & 0xFF));
+      const auto new_sample = static_cast<qint16>(((av_frame->data[0][audio_playback.frame_sample_index + 1] & 0xFF) << 8)
+          | (av_frame->data[0][audio_playback.frame_sample_index] & 0xFF));
+      const qint16 mixed_sample = mix_audio_sample(old_sample, new_sample);
+
+      audio_ibuffer[upper_byte_index] = static_cast<quint8>((mixed_sample >> 8) & 0xFF);
+      audio_ibuffer[lower_byte_index] = static_cast<quint8>(mixed_sample & 0xFF);
+
+      audio_playback.buffer_write += 2;
+      audio_playback.frame_sample_index += 2;
+    }//while
+    audio_write_lock.unlock();
+
+    if (scrubbing && (audio_thread != nullptr) ) {
+      audio_thread->notifyReceiver();
+    }
+
+    if (audio_playback.frame_sample_index == nb_bytes) {
+      audio_playback.frame_sample_index = -1;
+    } else {
+      // assume we have no more data to send
+      break;
+    }
+
     if (reached_end) {
       av_frame->nb_samples = 0;
     }
@@ -1577,10 +1967,14 @@ void Clip::cache_video_worker(const long playhead) {
     ignore_reverse = false;
 
     int64_t smallest_pts = INT64_MAX;
-    if (reverse && queue.size() > 0) {
+    if (reverse && !queue.empty()) {
       int64_t quarter_sec = qRound64(av_q2d(av_inv_q(media_handling.stream->time_base))) >> 2;
-      for (int i=0;i<queue.size();i++) {
-        smallest_pts = qMin(smallest_pts, queue.at(i)->pts);
+      for (auto q : queue) {
+        if (q == nullptr) {
+          qWarning() << "AVFrame instance is null";
+          continue;
+        }
+        smallest_pts = qMin(smallest_pts, q->pts);
       }
       avcodec_flush_buffers(media_handling.codecCtx);
       reached_end = false;
@@ -1631,38 +2025,43 @@ void Clip::cache_video_worker(const long playhead) {
         }
         av_frame_free(&frame);
         break;
-      } else {
-        if (reverse && ((smallest_pts == target_pts && frame->pts >= smallest_pts) || (smallest_pts != target_pts && frame->pts > smallest_pts))) {
-          av_frame_free(&frame);
-          break;
-        } else {
-          // thread-safety while adding frame to the queue
-          queue_lock.lock();
-          queue.append(frame);
+      }
 
-          auto ftg = timeline_info.media->object<Footage>();
-          if (auto ms = ftg->video_stream_from_file_index(timeline_info.media_stream)) {
-            if (!ms->infinite_length && !reverse && queue.size() == limit) {
-              // see if we got the frame we needed (used for speed ups primarily)
-              bool found = false;
-              for (int i=0;i<queue.size();i++) {
-                if (queue.at(i)->pts >= target_pts) {
-                  found = true;
-                  break;
-                }
-              }
-              if (found) {
-                queue_lock.unlock();
-                break;
-              } else {
-                // remove earliest frame and loop to store another
-                removeEarliestFromQueue();
-              }
+      if (reverse && (( (smallest_pts == target_pts) && (frame->pts >= smallest_pts) )
+                      || ((smallest_pts != target_pts) && (frame->pts > smallest_pts)))) {
+        av_frame_free(&frame);
+        break;
+      }
+
+      // thread-safety while adding frame to the queue
+      queue_lock.lock();
+      queue.append(frame);
+
+      auto ftg = timeline_info.media->object<Footage>();
+      if (auto ms = ftg->video_stream_from_file_index(timeline_info.media_stream)) {
+        if (!ms->infinite_length && !reverse && queue.size() == limit) {
+          // see if we got the frame we needed (used for speed ups primarily)
+          bool found = false;
+          for (auto q : queue) {
+            if (q == nullptr) {
+              qWarning() << "AVFrame instance is null";
+              continue;
+            }
+            if (q->pts >= target_pts) {
+              found = true;
+              break;
             }
           }
-          queue_lock.unlock();
+          if (found) {
+            queue_lock.unlock();
+            break;
+          }
+
+          // remove earliest frame and loop to store another
+          removeEarliestFromQueue();
         }
       }
+      queue_lock.unlock();
 
       if (multithreaded && cache_info.interrupt) { // abort
         return;
@@ -1721,7 +2120,7 @@ void Clip::reset_cache(const long target_frame) {
     if (!ftg) return;
 
     FootageStreamPtr ms;
-    if (timeline_info.isVideo()) {
+    if (mediaType() == ClipType::VISUAL) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
@@ -1760,9 +2159,8 @@ void Clip::reset_cache(const long target_frame) {
             if (media_handling.frame->pts <= target_ts) {
               use_existing_frame = true;
               break;
-            } else {
-              seek_ts -= timebase_half_second;
             }
+            seek_ts -= timebase_half_second;
           } else {
             av_frame_unref(media_handling.frame);
             av_seek_frame(media_handling.formatCtx, ms->file_index, 0, AVSEEK_FLAG_BACKWARD);
@@ -1793,29 +2191,119 @@ void Clip::reset_cache(const long target_frame) {
 }
 
 
-void Clip::move(ComboAction &ca, const long iin, const long iout,
-                const long iclip_in, const int itrack, const bool verify_transitions,
-                const bool relative)
+void Clip::move(ComboAction &ca,
+                const long iin, const long iout, const long iclip_in, const int itrack,
+                const bool verify_transitions, const bool relative)
 {
-  ca.append(new MoveClipAction(ClipPtr(shared_from_this()), iin, iout, iclip_in, itrack, relative));
+  // TODO: move the undo action of this class
+  ca.append(new MoveClipAction(shared_from_this(), iin, iout, iclip_in, itrack, relative));
 
-  if (verify_transitions) {
-    if ( (openingTransition() != nullptr) &&
-         (!openingTransition()->secondary_clip.expired()) &&
-         (openingTransition()->secondary_clip.lock()->timeline_info.out != iin) ) {
-      // separate transition
-      //            ca.append(new SetPointer((void**) &openingTransition()->secondary_clip, nullptr)); //FIXME:
-      ca.append(new AddTransitionCommand(openingTransition()->secondary_clip.lock(), nullptr,
-                                         openingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
-    }
+  if (!verify_transitions) {
+    return;
+  }
 
-    if ( (closingTransition() != nullptr) &&
-         (!closingTransition()->secondary_clip.expired()) &&
-         (closingTransition()->parent_clip->timeline_info.in != iout) ) {
-      // separate transition
-      //      ca.append(new SetPointer((void**) &closingTransition()->secondary_clip, nullptr)); //FIXME:
-      ca.append(new AddTransitionCommand(ClipPtr(shared_from_this()), nullptr, closingTransition(), nullptr, TA_CLOSING_TRANSITION, 0));
+  if ( transition_.opening_ != nullptr) {
+    if (auto secondary = transition_.opening_->secondary_clip.lock() ) {
+      if (secondary->timeline_info.out != iin) {
+        // separate transition
+        ca.append(new DeleteTransitionCommand(secondary, ClipTransitionType::OPENING));
+      }
     }
+  }
+
+  if (transition_.closing_ != nullptr)  {
+    if (auto secondary = transition_.closing_->secondary_clip.lock() ){
+      if ((transition_.closing_->parent_clip != nullptr) && (transition_.closing_->parent_clip->timeline_info.in != iout)) {
+        // separate transition
+        ca.append(new DeleteTransitionCommand(shared_from_this(), ClipTransitionType::CLOSING));
+      }
+    }
+  }
+}
+
+
+bool Clip::loadInEffect(QXmlStreamReader& stream)
+{
+  QString eff_name;
+  bool eff_enabled = false;
+  for (const auto& attr : stream.attributes()) {
+    const auto name = attr.name().toString().toLower();
+    if (name == "name") {
+      eff_name = attr.value().toString().toLower();
+    } else if (name == "enabled") {
+      eff_enabled = attr.value() == "true";
+    } else {
+      qWarning() << "Unhandled attribute";
+    }
+  }
+  const EffectMeta meta = Effect::getRegisteredMeta(eff_name);
+  auto eff = create_effect(shared_from_this(), meta, true);
+  eff->set_enabled(eff_enabled);
+  if (!eff->load(stream)) {
+    qCritical() << "Failed to load clip effect";
+    return false;
+  }
+  eff->setupUi();
+  effects.append(eff);
+  return true;
+}
+
+
+TransitionPtr Clip::loadTransition(QXmlStreamReader& stream)
+{
+  QString tran_name;
+  int tran_length = 0;
+  while (stream.readNextStartElement()) {
+    const auto name = stream.name().toString().toLower();
+    if (name == "name") {
+      tran_name = stream.readElementText();
+    } else if (name == "length") {
+      tran_length = stream.readElementText().toInt();
+    } else {
+      qWarning() << "Unknown element" << name;
+      stream.skipCurrentElement();
+    }
+  }
+
+  if ( (tran_name.size() > 0) && (tran_length > 0) ) {
+    // both seemingly valid values loaded from file
+    auto meta = Effect::getRegisteredMeta(tran_name);
+    if (meta.type > -1) {
+      if (auto tran = get_transition_from_meta(shared_from_this(), nullptr, meta, true)) {
+        tran->set_length(tran_length);
+        return tran;
+      } else {
+        qWarning() << "Unabled to get transition from meta";
+      }
+    }
+    qWarning() << "Invalid Effect meta for Transition" << tran_name;
+  }
+  return nullptr;
+}
+
+
+void Clip::linkClips(const QVector<ClipPtr>& linked_clips) const
+{
+  for (const auto& link : linked_clips) {
+    if (link == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    for (const auto& other : linked_clips) {
+      if (other == nullptr) {
+        continue;
+      }
+      link->addLinkedClip(*other);
+    }
+  }
+}
+
+
+void Clip::setId(const int32_t id)
+{
+  id_ = id;
+  if (next_id <= id) {
+    next_id = id + 1;
   }
 }
 

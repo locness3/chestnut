@@ -25,12 +25,13 @@ constexpr int RANDOM_VAL_SIZE = 30;
 class ShakeEffect : public Effect {
     Q_OBJECT
   public:
-    ShakeEffect(ClipPtr  c, const EffectMeta* em);
+    ShakeEffect(ClipPtr c, const EffectMeta& em);
 
     ShakeEffect(const ShakeEffect& ) = delete;
     ShakeEffect& operator=(const ShakeEffect&) = delete;
 
     void process_coords(double timecode, GLTextureCoords& coords, int data) override;
+    virtual void setupUi() override;
 
     EffectField* intensity_val;
     EffectField* rotation_val;

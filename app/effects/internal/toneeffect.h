@@ -22,12 +22,14 @@
 
 class ToneEffect : public Effect {
   public:
-    ToneEffect(ClipPtr c, const EffectMeta* em);
+    ToneEffect(ClipPtr c, const EffectMeta& em);
 
     ToneEffect(const ToneEffect& ) = delete;
     ToneEffect& operator=(const ToneEffect&) = delete;
 
     void process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int channel_count) override;
+
+    virtual void setupUi() override;
 
     EffectField* type_val;
     EffectField* freq_val;

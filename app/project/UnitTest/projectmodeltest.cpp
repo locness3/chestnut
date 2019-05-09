@@ -36,3 +36,20 @@ void ProjectModelTest::testCaseAppendChildWithSequence()
   QVERIFY(model.appendChild(parnt, chld) == true);
   QVERIFY(model.project_items.size() == count + 1);
 }
+
+
+void ProjectModelTest::testCaseGetFolder()
+{
+  ProjectModel model;
+  QVERIFY(model.getFolder(1) == nullptr);
+}
+
+void ProjectModelTest::testCaseGetFolderPopulated()
+{
+  ProjectModel model;
+  auto mda = std::make_shared<Media>();
+  mda->setFolder();
+  model.add(mda);
+  QVERIFY(model.getFolder(1) == mda);
+  QVERIFY(model.getFolder(0) == nullptr);
+}

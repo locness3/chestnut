@@ -30,25 +30,10 @@
 
 #include "debug.h"
 
-ShakeEffect::ShakeEffect(ClipPtr c, const EffectMeta *em) : Effect(c, em)
+ShakeEffect::ShakeEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em)
 {
   setCapability(Capability::COORDS);
-  EffectRowPtr intensity_row = add_row(tr("Intensity"));
-  intensity_val = intensity_row->add_field(EffectFieldType::DOUBLE, "intensity");
-  intensity_val->set_double_minimum_value(0);
 
-  EffectRowPtr rotation_row = add_row(tr("Rotation"));
-  rotation_val = rotation_row->add_field(EffectFieldType::DOUBLE, "rotation");
-  rotation_val->set_double_minimum_value(0);
-
-  EffectRowPtr frequency_row = add_row(tr("Frequency"));
-  frequency_val = frequency_row->add_field(EffectFieldType::DOUBLE, "frequency");
-  frequency_val->set_double_minimum_value(0);
-
-  // set defaults
-  intensity_val->set_double_default_value(25);
-  rotation_val->set_double_default_value(10);
-  frequency_val->set_double_default_value(5);
 
   const auto limit = std::numeric_limits<int32_t>::max();
   for (int i=0;i<RANDOM_VAL_SIZE;i++) {
@@ -90,4 +75,29 @@ void ShakeEffect::process_coords(double timecode, GLTextureCoords& coords, int)
   coords.vertices_[2].y_ += yoff;
 
   glRotatef(rotoff, 0, 0, 1);
+}
+
+void ShakeEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+
+  EffectRowPtr intensity_row = add_row(tr("Intensity"));
+  intensity_val = intensity_row->add_field(EffectFieldType::DOUBLE, "intensity");
+  intensity_val->set_double_minimum_value(0);
+
+  EffectRowPtr rotation_row = add_row(tr("Rotation"));
+  rotation_val = rotation_row->add_field(EffectFieldType::DOUBLE, "rotation");
+  rotation_val->set_double_minimum_value(0);
+
+  EffectRowPtr frequency_row = add_row(tr("Frequency"));
+  frequency_val = frequency_row->add_field(EffectFieldType::DOUBLE, "frequency");
+  frequency_val->set_double_minimum_value(0);
+
+  // set defaults
+  intensity_val->set_double_default_value(25);
+  rotation_val->set_double_default_value(10);
+  frequency_val->set_double_default_value(5);
 }

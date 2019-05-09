@@ -51,20 +51,25 @@ extern "C" {
 
 using panels::PanelManager;
 
+constexpr double NTSC_24 = 23.976;
+constexpr double NTSC_30 = 29.97;
+constexpr double NTSC_60 = 59.94;
+
+constexpr int FRAMES_IN_ONE_MINUTE = 1798; // 1800 - 2
+constexpr int FRAMES_IN_TEN_MINUTES = 17978; // (FRAMES_IN_ONE_MINUTE * 10) - 2
+
+constexpr int RECORD_FLASHER_INTERVAL = 500;
+
+constexpr int MEDIA_WIDTH = 1980;
+constexpr int MEDIA_HEIGHT = 1080;
+constexpr int MEDIA_AUDIO_FREQUENCY = 48000;
+constexpr int MEDIA_FRAME_RATE = 30;
+
+constexpr const char* const PANEL_NAME = "Viewer";
+constexpr const char* const PANEL_TITLE_FORMAT = "%1: %2";
+
+
 namespace {
-  const int FRAMES_IN_ONE_MINUTE = 1798; // 1800 - 2
-  const int FRAMES_IN_TEN_MINUTES = 17978; // (FRAMES_IN_ONE_MINUTE * 10) - 2
-
-  const int RECORD_FLASHER_INTERVAL = 500;
-
-  const int MEDIA_WIDTH = 1980;
-  const int MEDIA_HEIGHT = 1080;
-  const int MEDIA_AUDIO_FREQUENCY = 48000;
-  const int MEDIA_FRAME_RATE = 30;
-
-  const char* const PANEL_NAME = "Viewer";
-  const char* const PANEL_TITLE_FORMAT = "%1: %2";
-
   const QColor PAUSE_COLOR(128,192,128); // RGB
 }
 
@@ -109,7 +114,6 @@ Viewer::Viewer(QWidget *parent) :
   update_end_timecode();
 }
 
-Viewer::~Viewer() {}
 
 bool Viewer::is_focused() {
   return headers->hasFocus()
@@ -202,9 +206,13 @@ long timecode_to_frame(const QString& s, int view, double frame_rate) {
   return f;
 }
 
-QString frame_to_timecode(long f, int view, double frame_rate) {
+QString frame_to_timecode(long frame, const int view, const double frame_rate)
+{
+  if (qFuzzyCompare(frame_rate, 0)) {
+    return "NaN";
+  }
   if (view == TIMECODE_FRAMES) {
-    return QString::number(f);
+    return QString::number(frame);
   }
 
   // return timecode
@@ -230,33 +238,33 @@ QString frame_to_timecode(long f, int view, double frame_rate) {
     int framesPerMinute = (round(frame_rate)*60)-  dropFrames; //Number of frames per minute is the round of the framerate * 60 minus the number of dropped frames
 
     //If framenumber is greater than 24 hrs, next operation will rollover clock
-    f = f % framesPer24Hours; //% is the modulus operator, which returns a remainder. a % b = the remainder of a/b
+    frame = frame % framesPer24Hours; //% is the modulus operator, which returns a remainder. a % b = the remainder of a/b
 
-    d = f / framesPer10Minutes; // \ means integer division, which is a/b without a remainder. Some languages you could use floor(a/b)
-    m = f % framesPer10Minutes;
+    d = frame / framesPer10Minutes; // \ means integer division, which is a/b without a remainder. Some languages you could use floor(a/b)
+    m = frame % framesPer10Minutes;
 
     //In the original post, the next line read m>1, which only worked for 29.97. Jean-Baptiste Mardelle correctly pointed out that m should be compared to dropFrames.
     if (m > dropFrames) {
-      f = f + (dropFrames*9*d) + dropFrames * ((m - dropFrames) / framesPerMinute);
+      frame = frame + (dropFrames*9*d) + dropFrames * ((m - dropFrames) / framesPerMinute);
     } else {
-      f = f + dropFrames*9*d;
+      frame = frame + dropFrames*9*d;
     }
 
     int frRound = qRound(frame_rate);
-    frames = f % frRound;
-    secs = (f / frRound) % 60;
-    mins = ((f / frRound) / 60) % 60;
-    hours = (((f / frRound) / 60) / 60);
+    frames = frame % frRound;
+    secs = (frame / frRound) % 60;
+    mins = ((frame / frRound) / 60) % 60;
+    hours = (((frame / frRound) / 60) / 60);
 
     token = ";";
   } else {
     // non-drop timecode
 
     int int_fps = qRound(frame_rate);
-    hours = f / (3600 * int_fps);
-    mins = f / (60*int_fps) % 60;
-    secs = f/int_fps % 60;
-    frames = f%int_fps;
+    hours = frame / (3600 * int_fps);
+    mins = frame / (60*int_fps) % 60;
+    secs = frame/int_fps % 60;
+    frames = frame%int_fps;
   }
   if (view == TIMECODE_MILLISECONDS) {
     return QString::number((hours*3600000)+(mins*60000)+(secs*1000)+qCeil(frames*1000/frame_rate));
@@ -268,14 +276,16 @@ QString frame_to_timecode(long f, int view, double frame_rate) {
                  );
 }
 
-bool frame_rate_is_droppable(float rate) {
-  return (qFuzzyCompare(rate, 23.976f) || qFuzzyCompare(rate, 29.97f) || qFuzzyCompare(rate, 59.94f));
+bool frame_rate_is_droppable(const double rate)
+{
+  return (qFuzzyCompare(rate, NTSC_24) || qFuzzyCompare(rate, NTSC_30) || qFuzzyCompare(rate, NTSC_60));
 }
 
-void Viewer::seek(long p) {
+void Viewer::seek(long p)
+{
   if (seq == nullptr) {
-      qWarning() << "Null Sequence instance";
-      return;
+    qDebug() << "No assigned sequence";
+    return;
   }
   pause();
   seq->playhead_ = p;
@@ -338,7 +348,7 @@ void Viewer::cue_recording(long start, long end, int track)
   recording_start = start;
   recording_end = end;
   recording_track = track;
-  PanelManager::sequenceViewer().seek(recording_start); //FIXME:
+  PanelManager::sequenceViewer().seek(recording_start);
   cue_recording_internal = true;
   recording_flasher.start();
 }
@@ -431,13 +441,13 @@ void Viewer::pause() {
       clp->timeline_info.clip_in = 0;
       clp->timeline_info.track_ = recording_track;
       clp->timeline_info.color = PAUSE_COLOR;
-      clp->timeline_info.name = mda->name();
+      clp->timeline_info.name_ = mda->name();
 
       ftg->ready_lock.unlock();
 
       QVector<ClipPtr> add_clips;
       add_clips.append(clp);
-      e_undo_stack.push(new AddClipCommand(seq, add_clips)); // add clip
+      e_undo_stack.push(new AddClipsCommand(seq, add_clips)); // add clip
     }
   }
 }
@@ -768,7 +778,8 @@ SequencePtr Viewer::createFootageSequence(const MediaPtr& mda) const
   return sqn;
 }
 
-void Viewer::set_media(MediaPtr m) {
+void Viewer::set_media(const MediaPtr& m)
+{
   main_sequence = false;
   if (media != nullptr) {
     if (media == m) {
@@ -795,7 +806,8 @@ void Viewer::set_media(MediaPtr m) {
   set_sequence(false, seq);
 }
 
-void Viewer::reset() {
+void Viewer::reset()
+{
   //TODO:
 }
 

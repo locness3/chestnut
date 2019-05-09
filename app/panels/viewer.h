@@ -37,9 +37,9 @@ class ResizableScrollBar;
 class ViewerContainer;
 class LabelSlider;
 
-bool frame_rate_is_droppable(float rate);
+bool frame_rate_is_droppable(const double rate);
 long timecode_to_frame(const QString& s, int view, double frame_rate);
-QString frame_to_timecode(long f, int view, double frame_rate);
+QString frame_to_timecode(long frame, const int view, const double frame_rate);
 
 class Viewer : public QDockWidget, public ui::MarkerDockWidget
 {
@@ -47,18 +47,11 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
 
   public:
     explicit Viewer(QWidget *parent = nullptr);
-    virtual ~Viewer();
-
-    Viewer() = delete;
-    Viewer(const Viewer&) = delete;
-    Viewer(const Viewer&&) = delete;
-    Viewer& operator=(const Viewer&) = delete;
-    Viewer& operator=(const Viewer&&) = delete;
 
     bool is_focused();
     bool is_main_sequence();
     void set_main_sequence();
-    void set_media(MediaPtr m);
+    void set_media(const MediaPtr& m);
     void reset();
     void compose();
     void set_playpause_icon(bool play);

@@ -33,30 +33,38 @@
 #include "panelmanager.h"
 #include "debug.h"
 
-GraphEditor::GraphEditor(QWidget* parent) : QDockWidget(parent), row(nullptr) {
+constexpr auto ROW_DESC_FMT = "%1::%2::%3";
+constexpr auto RECORD_ICON_RSC = ":/icons/record.png";
+constexpr auto WINDOW_TITLE = "Graph Editor";
+constexpr int WINDOW_WIDTH = 720;
+constexpr int WINDOW_HEIGHT = 480;
+
+GraphEditor::GraphEditor(QWidget* parent)
+  : QDockWidget(parent)
+{
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-  setWindowTitle(tr("Graph Editor"));
-  resize(720, 480);
+  setWindowTitle(tr(WINDOW_TITLE));
+  resize(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-  QWidget* main_widget = new QWidget();
+  auto* main_widget = new QWidget();
   setWidget(main_widget);
-  QVBoxLayout* layout = new QVBoxLayout();
+  auto* layout = new QVBoxLayout();
   main_widget->setLayout(layout);
 
-  QWidget* tool_widget = new QWidget();
+  auto* tool_widget = new QWidget();
   tool_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-  QHBoxLayout* tools = new QHBoxLayout();
+  auto* tools = new QHBoxLayout();
   tool_widget->setLayout(tools);
 
-  QWidget* left_tool_widget = new QWidget();
-  QHBoxLayout* left_tool_layout = new QHBoxLayout();
+  auto* left_tool_widget = new QWidget();
+  auto* left_tool_layout = new QHBoxLayout();
   left_tool_layout->setSpacing(0);
   left_tool_layout->setMargin(0);
   left_tool_widget->setLayout(left_tool_layout);
   tools->addWidget(left_tool_widget);
-  QWidget* center_tool_widget = new QWidget();
-  QHBoxLayout* center_tool_layout = new QHBoxLayout();
+  auto* center_tool_widget = new QWidget();
+  auto* center_tool_layout = new QHBoxLayout();
   center_tool_layout->setSpacing(0);
   center_tool_layout->setMargin(0);
   center_tool_widget->setLayout(center_tool_layout);
@@ -91,8 +99,8 @@ GraphEditor::GraphEditor(QWidget* parent) : QDockWidget(parent), row(nullptr) {
 
   layout->addWidget(tool_widget);
 
-  QWidget* central_widget = new QWidget();
-  QVBoxLayout* central_layout = new QVBoxLayout();
+  auto* central_widget = new QWidget();
+  auto* central_layout = new QVBoxLayout();
   central_widget->setLayout(central_layout);
   central_layout->setSpacing(0);
   central_layout->setMargin(0);
@@ -104,13 +112,13 @@ GraphEditor::GraphEditor(QWidget* parent) : QDockWidget(parent), row(nullptr) {
 
   layout->addWidget(central_widget);
 
-  QWidget* value_widget = new QWidget();
+  auto* value_widget = new QWidget();
   value_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-  QHBoxLayout* values = new QHBoxLayout();
+  auto* values = new QHBoxLayout();
   value_widget->setLayout(values);
   values->addStretch();
 
-  QWidget* central_value_widget = new QWidget();
+  auto* central_value_widget = new QWidget();
   value_layout = new QHBoxLayout();
   value_layout->setMargin(0);
   value_layout->addWidget(new QLabel("")); // a spacer so the layout doesn't jump
@@ -127,7 +135,7 @@ GraphEditor::GraphEditor(QWidget* parent) : QDockWidget(parent), row(nullptr) {
 
   connect(view, SIGNAL(zoom_changed(double)), header, SLOT(update_zoom(double)));
   connect(view, SIGNAL(x_scroll_changed(int)), header, SLOT(set_scroll(int)));
-  connect(view, SIGNAL(selection_changed(bool, int)), this, SLOT(set_key_button_enabled(bool, int))); //FIXME:
+  connect(view, &GraphView::selection_changed, this, &GraphEditor::set_key_button_enabled);
 
   connect(linear_button, SIGNAL(clicked(bool)), this, SLOT(set_keyframe_type()));
   connect(bezier_button, SIGNAL(clicked(bool)), this, SLOT(set_keyframe_type()));
@@ -152,7 +160,8 @@ void GraphEditor::update_panel() {
   }
 }
 
-void GraphEditor::set_row(EffectRow *r) {
+void GraphEditor::set_row(EffectRow *r)
+{
   for (int i=0;i<slider_proxies.size();i++) {
     delete slider_proxies.at(i);
     delete slider_proxy_buttons.at(i);
@@ -174,10 +183,10 @@ void GraphEditor::set_row(EffectRow *r) {
     for (int i=0;i<r->fieldCount();i++) {
       EffectField* field = r->field(i);
       if (field->type == EffectFieldType::DOUBLE) {
-        QPushButton* slider_button = new QPushButton();
+        auto* slider_button = new QPushButton();
         slider_button->setCheckable(true);
         slider_button->setChecked(true);
-        slider_button->setIcon(QIcon(":/icons/record.png"));
+        slider_button->setIcon(QIcon(RECORD_ICON_RSC));
         slider_button->setProperty("field", i);
         slider_button->setIconSize(QSize(8, 8));
         slider_button->setMaximumSize(QSize(12, 12));
@@ -185,31 +194,34 @@ void GraphEditor::set_row(EffectRow *r) {
         slider_proxy_buttons.append(slider_button);
         value_layout->addWidget(slider_button);
 
-        LabelSlider* slider = new LabelSlider();
+        auto* slider = new LabelSlider();
         slider->set_color(get_curve_color(i, r->fieldCount()).name());
         connect(slider, SIGNAL(valueChanged()), this, SLOT(passthrough_slider_value()));
         slider_proxies.append(slider);
         value_layout->addWidget(slider);
 
-        slider_proxy_sources.append(static_cast<LabelSlider*>(field->ui_element));
+        slider_proxy_sources.append(dynamic_cast<LabelSlider*>(field->ui_element));
 
         found_vals = true;
       }
     }
   }
 
-  if (found_vals) {
+  if (found_vals && (r != nullptr) && (r->parent_effect != nullptr) ) {
     row = r;
-    current_row_desc->setText(row->parent_effect->parent_clip->timeline_info.name
-                              + " :: " + row->parent_effect->meta->name + " :: " + row->get_name());
-    header->set_visible_in(r->parent_effect->parent_clip->timeline_info.in);
+    QString fmt(ROW_DESC_FMT);
+    const QString desc = fmt.arg(row->parent_effect->parent_clip->timeline_info.name_,
+                                 row->parent_effect->meta.name,
+                                 row->get_name());
+    current_row_desc->setText(desc);
+    header->set_visible_in(row->parent_effect->parent_clip->timeline_info.in);
 
     connect(keyframe_nav, SIGNAL(goto_previous_key()), row, SLOT(goto_previous_key()));
     connect(keyframe_nav, SIGNAL(toggle_key()), row, SLOT(toggle_key()));
     connect(keyframe_nav, SIGNAL(goto_next_key()), row, SLOT(goto_next_key()));
   } else {
     row = nullptr;
-    current_row_desc->setText(0);
+    current_row_desc->setText("");
   }
   view->set_row(row);
   update_panel();

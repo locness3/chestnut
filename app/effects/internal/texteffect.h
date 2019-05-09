@@ -27,11 +27,11 @@ class QOpenGLTexture;
 class TextEffect : public Effect {
     Q_OBJECT
   public:
-    TextEffect(ClipPtr c, const EffectMeta *em);
+    TextEffect(ClipPtr c, const EffectMeta& em);
 
     TextEffect(const TextEffect& ) = delete;
     TextEffect& operator=(const TextEffect&) = delete;
-    void redraw(double timecode) override;
+    virtual void setupUi() override;
 
     EffectField* text_val;
     EffectField* size_val;
@@ -50,6 +50,9 @@ class TextEffect : public Effect {
     EffectField* shadow_color;
     EffectField* shadow_softness;
     EffectField* shadow_opacity;
+
+  protected:
+    void redraw(double timecode) override;
   private slots:
     void outline_enable(bool);
     void shadow_enable(bool);

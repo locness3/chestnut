@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,13 +21,14 @@
 #include <QLabel>
 
 class ClickableLabel : public QLabel {
-	Q_OBJECT
-public:
-	ClickableLabel(QWidget * parent = nullptr, Qt::WindowFlags f = 0);
-	ClickableLabel(const QString & text, QWidget * parent = nullptr, Qt::WindowFlags f = 0);
-	void mousePressEvent(QMouseEvent *ev);
-signals:
-	void clicked();
+    Q_OBJECT
+  public:
+    ClickableLabel(QWidget * parent = nullptr, Qt::WindowFlags f = Qt::Widget);
+    ClickableLabel(const QString & text, QWidget * parent = nullptr, Qt::WindowFlags f = Qt::Widget);
+  protected:
+    void mousePressEvent(QMouseEvent *ev) override;
+  signals:
+    void clicked();
 };
 
 #endif // CLICKABLELABEL_H

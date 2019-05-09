@@ -21,8 +21,9 @@
 #include <QAbstractItemModel>
 
 #include "project/media.h"
+#include "project/ixmlstreamer.h"
 
-class ProjectModel : public QAbstractItemModel
+class ProjectModel : public QAbstractItemModel, public project::IXMLStreamer
 {
     Q_OBJECT
 public:
@@ -58,10 +59,27 @@ public:
     QModelIndex add(const MediaPtr& mda);
     MediaPtr get(const QModelIndex& idx);
     const MediaPtr get(const QModelIndex& idx) const;
+    MediaPtr getFolder(const int id);
 
+    /**
+     * Get all items held in model
+     * @return map of Media items
+     */
+    const QMap<int, MediaPtr>& items() const;
+
+    /**
+     *  Search the model for a Media instance by Id
+     * @param id Media's id
+     * @return media ptr or null
+     */
+    MediaPtr findItemById(const int id);
+
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 private:
     friend class ProjectModelTest;
     QMap<int, MediaPtr> project_items;
+
     /**
      * @brief insert Add object into managed map of objects
      * @param item    Object to manage
@@ -71,6 +89,11 @@ private:
 
     QModelIndex create_index(const int row, const int col, const MediaPtr& mda) const;
     QModelIndex create_index(const int row, const MediaPtr& mda) const;
+
+    bool saveFolders(QXmlStreamWriter& stream) const;
+    bool saveMedia(QXmlStreamWriter& stream) const;
+    bool saveSequences(QXmlStreamWriter& stream) const;
+    bool saveTypes(QXmlStreamWriter& stream, const MediaType mda_type) const;
 };
 
 #endif // PROJECTMODEL_H

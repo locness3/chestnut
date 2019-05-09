@@ -97,7 +97,8 @@ void PreviewGenerator::parse_media()
     gsl::span<AVStream*> streams(fmt_ctx->streams, fmt_ctx->nb_streams);
     for (int i=0; i < streams.size(); ++i) {
       AVStream* const stream = streams.at(i);
-      if (stream == nullptr) {
+      if ( (stream == nullptr) || (stream->codecpar == nullptr) ) {
+        qCritical() << "AV Stream instance(s) are null";
         continue;
       }
       // Find the decoder for the video stream
@@ -481,7 +482,6 @@ QString PreviewGenerator::get_waveform_path(const QString& hash, FootageStreamPt
 
 void PreviewGenerator::run()
 {
-  Q_ASSERT(!footage.expired());
   Q_ASSERT(media != nullptr);
 
   if (auto ftg = footage.lock()) {

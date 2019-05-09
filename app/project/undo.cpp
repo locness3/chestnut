@@ -42,6 +42,8 @@ QUndoStack e_undo_stack;
 
 using panels::PanelManager;
 
+//FIXME: far too much logic held in these actions
+
 ComboAction::~ComboAction()
 {
   for (auto cmd : commands){
@@ -138,78 +140,34 @@ void MoveClipAction::redo() {
   MainWindow::instance().setWindowModified(true);
 }
 
-DeleteClipAction::DeleteClipAction(SequencePtr  s, const int clip) :
-  seq(std::move(s)),
-  index(clip),
-  opening_transition(-1),
-  closing_transition(-1),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
 
+DeleteClipAction::DeleteClipAction(ClipPtr del_clip) : clip_(std::move(del_clip))
+{
 
+}
 
-void DeleteClipAction::undo() {
-  // restore ref to clip
-  seq->clips_[index] = ref;
-
-  // restore shared transitions
-  if (opening_transition > -1) {
-    seq->transitions_.at(opening_transition)->secondary_clip = seq->transitions_.at(opening_transition)->parent_clip;
-    seq->transitions_.at(opening_transition)->parent_clip = ref;
-    ref->opening_transition = opening_transition;
-    opening_transition = -1;
-  }
-  if (closing_transition > -1) {
-    seq->transitions_.at(closing_transition)->secondary_clip = ref;
-    ref->closing_transition = closing_transition;
-    closing_transition = -1;
+void DeleteClipAction::undo()
+{
+  if ( (clip_ != nullptr) && (clip_->sequence != nullptr) ) {
+    clip_->sequence->clips_.append(clip_);
+  } else {
+    qCritical() << "Null instance(s)";
   }
 
-  // restore links to this clip
-  for (int i=linkClipIndex.size()-1;i>=0;i--) {
-    seq->clips_.at(linkClipIndex.at(i))->linked.insert(linkLinkIndex.at(i), index);
-  }
-
-  ref = nullptr;
+  // TODO: restore links to this clip
 
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
-void DeleteClipAction::redo() {
-  // remove ref to clip
-  ref = seq->clips_.at(index);
-  ref->close(true);
-
-  seq->clips_[index] = nullptr;
-
-  // save shared transitions
-  if (ref->opening_transition > -1 && !ref->openingTransition()->secondary_clip.expired()) {
-    opening_transition = ref->opening_transition;
-    ref->openingTransition()->parent_clip = ref->openingTransition()->secondary_clip.lock();
-    ref->openingTransition()->secondary_clip.reset();
-    ref->opening_transition = -1;
-  }
-  if (ref->closing_transition > -1 && !ref->closingTransition()->secondary_clip.expired()) {
-    closing_transition = ref->closing_transition;
-    ref->closingTransition()->secondary_clip.reset();
-    ref->closing_transition = -1;
+void DeleteClipAction::redo()
+{
+  if ( (clip_ != nullptr) && (clip_->sequence != nullptr) ) {
+    clip_->sequence->deleteClip(clip_->id());
+  } else {
+    qCritical() << "Null instance(s)";
   }
 
-  // delete link to this clip
-  linkClipIndex.clear();
-  linkLinkIndex.clear();
-  for (int i=0;i<seq->clips_.size();i++) {
-    ClipPtr   c = seq->clips_.at(i);
-    if (c != nullptr) {
-      for (int j=0;j<c->linked.size();j++) {
-        if (c->linked.at(j) == index) {
-          linkClipIndex.append(i);
-          linkLinkIndex.append(j);
-          c->linked.removeAt(j);
-        }
-      }
-    }
-  }
+  // TODO: delete links to this clip
 
   MainWindow::instance().setWindowModified(true);
 }
@@ -274,18 +232,26 @@ void SetTimelineInOutCommand::redo() {
   MainWindow::instance().setWindowModified(true);
 }
 
-AddEffectCommand::AddEffectCommand(ClipPtr   c, EffectPtr e, const EffectMeta *m, const int insert_pos) :
-  clip(std::move(std::move(c))),
+AddEffectCommand::AddEffectCommand(ClipPtr   c, EffectPtr e, const EffectMeta& m, const int insert_pos) :
+  clip(std::move(c)),
   meta(m),
-  ref(std::move(std::move(e))),
+  ref(std::move(e)),
   pos(insert_pos),
   done(false),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
 
+
+AddEffectCommand::AddEffectCommand(ClipPtr c, EffectPtr e, const int insert_pos)
+  : clip(std::move(c)),
+    ref(std::move(e)),
+    pos(insert_pos)
+{
+
+}
+
 AddEffectCommand::~AddEffectCommand()
 {
-  meta = nullptr;
 }
 
 void AddEffectCommand::undo() {
@@ -312,58 +278,39 @@ void AddEffectCommand::redo() {
   MainWindow::instance().setWindowModified(true);
 }
 
-AddTransitionCommand::AddTransitionCommand(ClipPtr c, ClipPtr s, TransitionPtr copy, const EffectMeta *itransition, const int itype, const int ilength) :
-  clip(std::move(c)),
-  secondary(std::move(s)),
-  transition_to_copy(std::move(copy)),
-  transition(itransition),
-  type(itype),
-  length(ilength),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
 
-void AddTransitionCommand::undo() {
-  clip->sequence->hardDeleteTransition(clip, type);
-  if (secondary != nullptr) secondary->sequence->hardDeleteTransition(secondary, (type == TA_OPENING_TRANSITION) ? TA_CLOSING_TRANSITION : TA_OPENING_TRANSITION);
+AddTransitionCommand::AddTransitionCommand(ClipPtr parent,
+                                           ClipPtr secondary,
+                                           const EffectMeta& meta,
+                                           const ClipTransitionType type,
+                                           const int length)
+  : parent_(std::move(parent)),
+    secondary_(std::move(secondary)),
+    meta_(meta),
+    type_(type),
+    length_(length),
+    old_project_changed(MainWindow::instance().isWindowModified())
+{
 
-  if (type == TA_OPENING_TRANSITION) {
-    clip->opening_transition = old_ptransition;
-    if (secondary != nullptr) secondary->closing_transition = old_stransition;
-  } else {
-    clip->closing_transition = old_ptransition;
-    if (secondary != nullptr) secondary->opening_transition = old_stransition;
+}
+
+void AddTransitionCommand::undo()
+{
+  if (parent_ == nullptr) {
+    return;
   }
-
+  parent_->deleteTransition(type_);
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
-void AddTransitionCommand::redo() {
-  if (type == TA_OPENING_TRANSITION) {
-    old_ptransition = clip->opening_transition;
-    clip->opening_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
-    if (secondary != nullptr) {
-      old_stransition = secondary->closing_transition;
-      secondary->closing_transition = clip->opening_transition;
-    }
-    if (length > 0) {
-      clip->openingTransition()->set_length(length);
-    }
-  } else {
-    old_ptransition = clip->closing_transition;
-    clip->closing_transition = (transition_to_copy == nullptr) ? create_transition(clip, secondary, transition) : transition_to_copy->copy(clip, nullptr);
-    if (secondary != nullptr) {
-      old_stransition = secondary->opening_transition;
-      secondary->opening_transition = clip->closing_transition;
-    }
-    if (length > 0) {
-      clip->closingTransition()->set_length(length);
-    }
-  }
+void AddTransitionCommand::redo()
+{
+  parent_->setTransition(meta_, type_, length_);
   MainWindow::instance().setWindowModified(true);
 }
 
 ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const int itype, const long ilength) :
-  clip(std::move(std::move(c))),
+  clip(std::move(c)),
   type(itype),
   new_length(ilength),
   old_project_changed(MainWindow::instance().isWindowModified())
@@ -392,54 +339,78 @@ void ModifyTransitionCommand::redo()
   }
 }
 
-DeleteTransitionCommand::DeleteTransitionCommand(SequencePtr  s, const int transition_index) :
-  seq(std::move(s)),
-  index(transition_index),
-  transition(nullptr),
-  otc(nullptr),
-  ctc(nullptr),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
-
-
-
-void DeleteTransitionCommand::undo() {
-  seq->transitions_[index] = transition;
-
-  if (otc != nullptr) {
-    otc->opening_transition = index;
+DeleteTransitionCommand::DeleteTransitionCommand(ClipPtr clp, const ClipTransitionType type)
+  : clip_(std::move(clp)),
+    type_(type),
+    old_project_changed(MainWindow::instance().isWindowModified())
+{
+  if (clip_ != nullptr) {
+    // Hold values required to re-create transition(s) for the clip
+    switch (type_) {
+    case ClipTransitionType::OPENING:
+      populateOpening();
+      break;
+    case ClipTransitionType::CLOSING:
+      populateClosing();
+      break;
+    case ClipTransitionType::BOTH:
+      populateClosing();
+      populateOpening();
+      break;
+    }
   }
-  if (ctc != nullptr) {
-    ctc->closing_transition = index;
-  }
+}
 
-  transition = nullptr;
+void DeleteTransitionCommand::undo()
+{
+  if (clip_ != nullptr) {
+    switch (type_) {
+    case ClipTransitionType::OPENING:
+      clip_->setTransition(meta_.opening_, type_, lengths_.opening_);
+      break;
+    case ClipTransitionType::CLOSING:
+      clip_->setTransition(meta_.closing_, type_, lengths_.closing_);
+      break;
+    case ClipTransitionType::BOTH:
+      clip_->setTransition(meta_.opening_, ClipTransitionType::OPENING, lengths_.opening_);
+      clip_->setTransition(meta_.closing_, ClipTransitionType::CLOSING, lengths_.closing_);
+      break;
+    }
+  }
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
-void DeleteTransitionCommand::redo() {
-  for (const auto& c : seq->clips_) {
-    if (c != nullptr) {
-      if (c->opening_transition == index) {
-        otc = c;
-        c->opening_transition = -1;
-      }
-      if (c->closing_transition == index) {
-        ctc = c;
-        c->closing_transition = -1;
-      }
-    }
+void DeleteTransitionCommand::redo()
+{
+  if (clip_ != nullptr) {
+    clip_->deleteTransition(type_);
   }
-
-  transition = seq->transitions_.at(index);
-  seq->transitions_[index] = nullptr;
-
   MainWindow::instance().setWindowModified(true);
 }
 
+
+
+void DeleteTransitionCommand::populateOpening()
+{
+  if (auto trans = clip_->getTransition(ClipTransitionType::OPENING)) {
+    meta_.opening_ = trans->meta;
+    lengths_.opening_ = trans->get_length();
+    secondary_.opening_ = trans->secondary_clip;
+  }
+}
+
+void DeleteTransitionCommand::populateClosing()
+{
+  if (auto trans = clip_->getTransition(ClipTransitionType::CLOSING)) {
+    meta_.closing_ = trans->meta;
+    lengths_.closing_ = trans->get_length();
+    secondary_.closing_ = trans->secondary_clip;
+  }
+}
+
 NewSequenceCommand::NewSequenceCommand(MediaPtr s, MediaPtr iparent, const bool modified) :
-  seq_(std::move(std::move(s))),
-  parent_(std::move(std::move(iparent))),
+  seq_(std::move(s)),
+  parent_(std::move(iparent)),
   done_(false),
   old_project_changed_(modified)
 {
@@ -468,8 +439,8 @@ void NewSequenceCommand::redo()
 }
 
 AddMediaCommand::AddMediaCommand(MediaPtr iitem, MediaPtr iparent) :
-  item(std::move(std::move(iitem))),
-  parent(std::move(std::move(iparent))),
+  item(std::move(iitem)),
+  parent(std::move(iparent)),
   done(false),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
@@ -508,85 +479,56 @@ void DeleteMediaCommand::redo() {
   done = true;
 }
 
-AddClipCommand::AddClipCommand(SequencePtr  s, QVector<ClipPtr  >& add) :
-  seq(std::move(s)),
-  clips(add),
-  old_project_changed(MainWindow::instance().isWindowModified())
-{}
-
-
-void AddClipCommand::undo() {
-  PanelManager::fxControls().clear_effects(true);
-  for (int i=0;i<clips.size();i++) {
-    ClipPtr   c = seq->clips_.last();
-    PanelManager::timeLine().deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
-    undone_clips.prepend(c);
-    c->close(true);
-    seq->clips_.removeLast();
-  }
-  MainWindow::instance().setWindowModified(old_project_changed);
-}
-
-void AddClipCommand::redo() {
-  if (!undone_clips.empty()) {
-    for (const auto& u_clip : undone_clips) {
-      seq->clips_.append(u_clip);
-    }
-    undone_clips.clear();
-  } else {
-    const auto linkOffset = seq->clips_.size();
-    for (const auto& original : clips) {
-      ClipPtr copy = original->copy(seq);
-      copy->linked.resize(original->linked.size());
-      for (int j=0;j<original->linked.size();j++) {
-        copy->linked[j] = original->linked.at(j) + linkOffset;
-      }
-      if (original->opening_transition > -1) {
-        copy->opening_transition = original->openingTransition()->copy(copy, nullptr);
-      }
-      if (original->closing_transition > -1) {
-        copy->closing_transition = original->closingTransition()->copy(copy, nullptr);
-      }
-      seq->clips_.append(copy);
-    }
-  }
-  MainWindow::instance().setWindowModified(true);
-}
-
-LinkCommand::LinkCommand()
-  : link(true),
-    old_project_changed(MainWindow::instance().isWindowModified())
+AddClipsCommand::AddClipsCommand(SequencePtr seq, const QVector<ClipPtr>& clips)
+  : sequence_(std::move(seq)),
+    clips_(clips),
+    old_project_changed_(MainWindow::instance().isWindowModified())
 {
 
 }
 
-void LinkCommand::undo() {
-  for (int i=0;i<clips.size();i++) {
-    ClipPtr   c = s->clips_.at(clips.at(i));
-    if (link) {
-      c->linked.clear();
-    } else {
-      c->linked = old_links.at(i);
+void AddClipsCommand::undo()
+{
+  Q_ASSERT(sequence_ != nullptr);
+
+  for (const auto& undo_clip : clips_) {
+    if (undo_clip == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
     }
+    auto itor = std::find_if(sequence_->clips_.begin(), sequence_->clips_.end(), [&undo_clip] (const ClipPtr& clp) {
+      return (clp != nullptr) && (clp->id() == undo_clip->id());
+    });
+    sequence_->clips_.erase(itor);
   }
-  MainWindow::instance().setWindowModified(old_project_changed);
 }
 
-void LinkCommand::redo() {
-  old_links.clear();
-  for (int i=0;i<clips.size();i++) {
-    ClipPtr   c = s->clips_.at(clips.at(i));
-    if (link) {
-      for (int j=0;j<clips.size();j++) {
-        if (i != j) {
-          c->linked.append(clips.at(j));
-        }
-      }
-    } else {
-      old_links.append(c->linked);
-      c->linked.clear();
-    }
+void AddClipsCommand::redo()
+{
+  Q_ASSERT(sequence_ != nullptr);
+  sequence_->clips_ = sequence_->clips_ + clips_;
+}
+
+ClipLinkCommand::ClipLinkCommand(const ClipPtr& clp, const QVector<int>& links, const bool link)
+  : clip_(clp),
+    old_project_changed(MainWindow::instance().isWindowModified())
+{
+  if (link) {
+    new_links_ = links;
   }
+  old_links_ = clip_->linkedClips();
+}
+
+void ClipLinkCommand::undo()
+{
+  Q_ASSERT(clip_ != nullptr);
+  clip_->setLinkedClips(old_links_);
+  MainWindow::instance().setWindowModified(old_project_changed);
+}
+void ClipLinkCommand::redo()
+{
+  Q_ASSERT(clip_ != nullptr);
+  clip_->setLinkedClips(new_links_);
   MainWindow::instance().setWindowModified(true);
 }
 
@@ -614,14 +556,17 @@ void CheckboxCommand::redo() {
 }
 
 ReplaceMediaCommand::ReplaceMediaCommand(MediaPtr i, QString s) :
-  item(std::move(std::move(i))),
-  new_filename(std::move(std::move(s))),
+  item(std::move(i)),
+  new_filename(std::move(s)),
   old_project_changed(MainWindow::instance().isWindowModified())
 {
   old_filename = item->object<Footage>()->url;
 }
 
-void ReplaceMediaCommand::replace(QString& filename) {
+
+//FIXME: on replace video and audio stream info are not retrieved and not saved to xml
+void ReplaceMediaCommand::replace(QString& filename)
+{
   // close any clips currently using this media
   QVector<MediaPtr> all_sequences = PanelManager::projectViewer().list_all_project_sequences();
   for (const auto & all_sequence : all_sequences) {
@@ -654,8 +599,8 @@ void ReplaceMediaCommand::redo() {
 }
 
 ReplaceClipMediaCommand::ReplaceClipMediaCommand(MediaPtr a, MediaPtr b, const bool e) :
-  old_media(std::move(std::move(a))),
-  new_media(std::move(std::move(b))),
+  old_media(std::move(a)),
+  new_media(std::move(b)),
   preserve_clip_ins(e),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
@@ -842,7 +787,7 @@ void SetAutoscaleAction::redo()
 AddMarkerAction::AddMarkerAction(project::ProjectItemPtr item, const long t, QString n) :
   item_(std::move(item)),
   time(t),
-  name(std::move(std::move(n))),
+  name(std::move(n)),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
 
@@ -901,7 +846,7 @@ void MoveMarkerAction::redo() {
 }
 
 DeleteMarkerAction::DeleteMarkerAction(SequencePtr s) :
-  seq(std::move(std::move(s))),
+  seq(std::move(s)),
   sorted(false),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
@@ -969,7 +914,7 @@ void SetBool::redo() {
 }
 
 SetSelectionsCommand::SetSelectionsCommand(SequencePtr s) :
-  seq(std::move(std::move(s))),
+  seq(std::move(s)),
   done(true),
   old_project_changed(MainWindow::instance().isWindowModified())
 {}
@@ -1006,7 +951,7 @@ void SetEnableCommand::redo() {
 }
 
 EditSequenceCommand::EditSequenceCommand(MediaPtr i, const SequencePtr& s) :
-  item(std::move(std::move(i))),
+  item(std::move(i)),
   seq(s),
   old_project_changed(MainWindow::instance().isWindowModified()),
   old_name(s->name()),
@@ -1067,7 +1012,7 @@ void CloseAllClipsCommand::redo() {
 }
 
 UpdateFootageTooltip::UpdateFootageTooltip(MediaPtr i) :
-  item(std::move(std::move(i)))
+  item(std::move(i))
 {}
 
 void UpdateFootageTooltip::undo() {
@@ -1107,8 +1052,8 @@ void ResetEffectCommand::doCmd(const bool undo_cmd)
 {
   for (const auto& field_entry: fields_) {
     const auto&[field, before, after] = field_entry;
-    const auto val = undo_cmd ? before : after;
-    if (field != nullptr) {
+        const auto val = undo_cmd ? before : after;
+        if (field != nullptr) {
       field->set_current_data(val);
     }
   }
@@ -1152,6 +1097,86 @@ void RenameClipCommand::redo() {
   }
 }
 
+SplitClipCommand::SplitClipCommand(ClipPtr clp, const long position)
+  : pre_clip_(std::move(clp)),
+    position_(position)
+{
+
+}
+
+void SplitClipCommand::undo()
+{
+  Q_ASSERT(pre_clip_ != nullptr);
+  Q_ASSERT(pre_clip_->sequence != nullptr);
+  for (const auto& post_clip : mapped_posts_.values()) {
+    pre_clip_->sequence->deleteClip(post_clip->id());
+  }
+
+  for (auto pre_l_id : mapped_posts_.keys()) {
+    if (auto pre_l = pre_clip_->sequence->clip(pre_l_id)) {
+      if (const auto& orig_clip = mapped_posts_[pre_l_id]) {
+        pre_l->merge(*orig_clip);
+        // restore transition length(s)
+        if (mapped_transition_lengths_.contains(pre_l_id)) {
+          if (auto open_tran = pre_l->getTransition(ClipTransitionType::OPENING)) {
+            open_tran->set_length(mapped_transition_lengths_[pre_l_id].first);
+          }
+          if (auto close_tran = pre_l->getTransition(ClipTransitionType::CLOSING)) {
+            close_tran->set_length(mapped_transition_lengths_[pre_l_id].second);
+          }
+        }
+      }
+    }
+  }
+
+}
+
+void SplitClipCommand::redo()
+{
+  Q_ASSERT(pre_clip_ != nullptr);
+  Q_ASSERT(pre_clip_->sequence != nullptr);
+
+  //NOTE: the following could be achieve by modifying Clip::splitAll
+  // split this clip
+  storeLengths(pre_clip_->id(), *pre_clip_);
+  if (auto post = pre_clip_->split(position_)) {
+    mapped_posts_[pre_clip_->id()] = post;
+    pre_clip_->sequence->clips_.append(post);
+  }
+
+  // Split linked clips
+  for (auto link : pre_clip_->linkedClips()) {
+    if (auto link_clip = pre_clip_->sequence->clip(link)) {
+      storeLengths(link, *link_clip);
+      if (auto post = link_clip->split(position_)) {
+        mapped_posts_[link] = post;
+        pre_clip_->sequence->clips_.append(post);
+      }
+    }
+  }
+
+  // link new posts together
+  for (const auto& post_clip : mapped_posts_.values()) {
+    for (const auto& link_clip : mapped_posts_.values()) {
+      post_clip->addLinkedClip(*link_clip);
+    }
+  }
+
+}
+
+
+void SplitClipCommand::storeLengths(const int id, Clip& clp)
+{
+  QPair<long,long> tran_lengths{0,0};
+  if (auto open_tran = clp.getTransition(ClipTransitionType::OPENING)) {
+    tran_lengths.first = open_tran->get_length();
+  }
+  if (auto close_tran = clp.getTransition(ClipTransitionType::CLOSING)) {
+    tran_lengths.second = close_tran->get_length();
+  }
+  mapped_transition_lengths_[id] = tran_lengths;
+}
+
 //SetPointer::SetPointer(void **pointer, void *data) :
 //  old_changed(MainWindow::instance().isWindowModified()),
 //  p(pointer),
@@ -1180,7 +1205,7 @@ void ReloadEffectsCommand::redo() {
 }
 
 RippleAction::RippleAction(SequencePtr is, const long ipoint, const long ilength, QVector<int> iignore) :
-  s(std::move(std::move(is))),
+  s(std::move(is)),
   point(ipoint),
   length(ilength),
   ignore(std::move(iignore))
@@ -1198,7 +1223,7 @@ void RippleAction::redo() {
       ClipPtr   c = s->clips_.at(i);
       if (c != nullptr) {
         if (c->timeline_info.in >= point) {
-          move_clip(ca, c, length, length, 0, 0, true, true);
+          c->move(*ca, length, length, 0, 0, true, true);
         }
       }
     }
@@ -1256,7 +1281,7 @@ void SetKeyframing::redo() {
 }
 
 RefreshClips::RefreshClips(MediaPtr m) :
-  media(std::move(std::move(m)))
+  media(std::move(m))
 {}
 
 void RefreshClips::undo() {
@@ -1280,7 +1305,8 @@ void RefreshClips::redo()
 
 NudgeClipCommand::NudgeClipCommand(ClipPtr clp, const int value)
   : clip_(std::move(clp)),
-    nudge_value_(value)
+    nudge_value_(value),
+    old_project_changed_(MainWindow::instance().isWindowModified())
 {
 
 }
@@ -1289,10 +1315,34 @@ void NudgeClipCommand::undo()
 {
   Q_ASSERT(clip_ != nullptr);
   clip_->nudge(-nudge_value_);
+  MainWindow::instance().setWindowModified(old_project_changed_);
 }
 
 void NudgeClipCommand::redo()
 {
   Q_ASSERT(clip_ != nullptr);
   clip_->nudge(nudge_value_);
+  MainWindow::instance().setWindowModified(true);
+}
+
+NudgeSelectionCommand::NudgeSelectionCommand(Selection& sel, const int val)
+  : selection_(sel),
+    nudge_value_(val),
+    old_project_changed_(MainWindow::instance().isWindowModified())
+{
+
+}
+
+void NudgeSelectionCommand::undo()
+{
+  selection_.in -= nudge_value_;
+  selection_.out -= nudge_value_;
+  MainWindow::instance().setWindowModified(old_project_changed_);
+}
+
+void NudgeSelectionCommand::redo()
+{
+  selection_.in += nudge_value_;
+  selection_.out += nudge_value_;
+  MainWindow::instance().setWindowModified(true);
 }

@@ -28,6 +28,8 @@
 #include "io/UnitTest/configtest.h"
 #include "project/UnitTest/mediahandlertest.h"
 #include "project/UnitTest/effecttest.h"
+#include "project/UnitTest/effectkeyframetest.h"
+#include "project/UnitTest/markertest.h"
 #include "panels/unittest/histogramviewertest.h"
 
 namespace
@@ -59,6 +61,8 @@ int main(int argc, char** argv)
   status |= runTest<ProjectModelTest>();
   status |= runTest<MediaHandlerTest>();
   status |= runTest<EffectTest>();
+  status |= runTest<EffectKeyframeTest>();
+  status |= runTest<MarkerTest>();
   status |= runTest<panels::HistogramViewerTest>();
   return status;
 }

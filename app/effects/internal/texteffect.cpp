@@ -43,10 +43,23 @@
 constexpr auto VERT_PATH = "common.vert";
 constexpr auto FRAG_PATH = "dropshadow.frag";
 
-TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
+TextEffect::TextEffect(ClipPtr c, const EffectMeta& em) :
   Effect(c, em)
 {
   setCapability(Capability::SUPERIMPOSE);
+
+
+  glsl_.vert_ = VERT_PATH;
+  glsl_.frag_ = FRAG_PATH;
+}
+
+void TextEffect::setupUi()
+{
+  if (ui_setup) {
+    return;
+  }
+  Effect::setupUi();
+
   text_val = add_row(tr("Text"))->add_field(EffectFieldType::STRING, "text", 2);
   QTextEdit* text_widget = static_cast<QTextEdit*>(text_val->ui_element);
   text_widget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -113,9 +126,6 @@ TextEffect::TextEffect(ClipPtr c, const EffectMeta* em) :
 
   connect(shadow_bool, SIGNAL(toggled(bool)), this, SLOT(shadow_enable(bool)));
   connect(outline_bool, SIGNAL(toggled(bool)), this, SLOT(outline_enable(bool)));
-
-  glsl_.vert_ = VERT_PATH;
-  glsl_.frag_ = FRAG_PATH;
 }
 
 void TextEffect::redraw(double timecode) {

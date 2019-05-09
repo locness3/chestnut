@@ -53,8 +53,6 @@ SOURCES += \
     dialogs/mediapropertiesdialog.cpp \
     io/crc32.cpp \
     project/projectmodel.cpp \
-    io/loadthread.cpp \
-    dialogs/loaddialog.cpp \
     debug.cpp \
     io/path.cpp \
     effects/internal/linearfadetransition.cpp \
@@ -160,8 +158,6 @@ HEADERS += \
     dialogs/mediapropertiesdialog.h \
     io/crc32.h \
     project/projectmodel.h \
-    io/loadthread.h \
-    dialogs/loaddialog.h \
     debug.h \
     io/path.h \
     effects/internal/transformeffect.h \

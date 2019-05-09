@@ -34,3 +34,13 @@ const QString& ProjectItem::name() const
 {
   return name_;
 }
+
+bool ProjectItem::load(QXmlStreamReader& stream)
+{
+  return false;
+}
+
+bool ProjectItem::save(QXmlStreamWriter& stream) const
+{
+  return false;
+}

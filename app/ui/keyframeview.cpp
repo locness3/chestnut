@@ -40,10 +40,12 @@ using panels::PanelManager;
 
 long KeyframeView::adjust_row_keyframe(EffectRowPtr row, long time)
 {
-  //FIXME: the use of ptrs
+  Q_ASSERT(row != nullptr);
+  Q_ASSERT(row->parent_effect != nullptr);
   return time
       - row->parent_effect->parent_clip->timeline_info.clip_in
-      + (row->parent_effect->parent_clip->timeline_info.in - visible_in);
+      + row->parent_effect->parent_clip->timeline_info.in
+      - visible_in;
 }
 
 KeyframeView::KeyframeView(QWidget *parent) :
@@ -101,8 +103,9 @@ void KeyframeView::menu_set_key_type(QAction* a)
   }
 }
 
-void KeyframeView::paintEvent(QPaintEvent*) {
-  QPainter p(this);
+void KeyframeView::paintEvent(QPaintEvent*)
+{
+  QPainter painter(this);
 
   rowY.clear();
   rows.clear();
@@ -111,16 +114,21 @@ void KeyframeView::paintEvent(QPaintEvent*) {
     visible_in = LONG_MAX;
     visible_out = 0;
 
-    for (int j=0;j<PanelManager::fxControls().selected_clips.size();j++) {
-      ClipPtr c = global::sequence->clips_.at(PanelManager::fxControls().selected_clips.at(j));
-      visible_in = qMin(visible_in, c->timeline_info.in.load());
-      visible_out = qMax(visible_out, c->timeline_info.out.load());
+    for (auto clip_id : PanelManager::fxControls().selected_clips) {
+      if (ClipPtr c = global::sequence->clip(clip_id)) {
+        visible_in = qMin(visible_in, c->timeline_info.in.load());
+        visible_out = qMax(visible_out, c->timeline_info.out.load());
+      }
     }
 
-    for (int j=0;j<PanelManager::fxControls().selected_clips.size();j++) {
-      ClipPtr c = global::sequence->clips_.at(PanelManager::fxControls().selected_clips.at(j));
-      for (int i=0; i < c->effects.size(); i++) {
-        EffectPtr e = c->effects.at(i);
+    for (auto clip_id : PanelManager::fxControls().selected_clips) {
+      ClipPtr c = global::sequence->clip(clip_id);
+      for (const auto& e : c->effects) {
+        if (e == nullptr) {
+          qCritical() << "Null effect ptr";
+          continue;
+        }
+
         if (e->container->is_expanded()) {
           for (int rowIdx=0; rowIdx<e->row_count(); ++rowIdx) {
             EffectRowPtr row = e->row(rowIdx);
@@ -133,6 +141,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
                 + mapFrom(&PanelManager::fxControls(),
                           contents->mapTo(&PanelManager::fxControls(),
                                           contents->pos())).y() - e->container->title_bar->height()/* - y_scroll*/;
+
             for (int l=0;l<row->fieldCount();l++) {
               EffectField* f = row->field(l);
               for (int k=0;k<f->keyframes.size();k++) {
@@ -144,7 +153,7 @@ void KeyframeView::paintEvent(QPaintEvent*) {
                   int appearances = 0;
                   for (int m=0;m<row->fieldCount();m++) {
                     EffectField* compf = row->field(m);
-                    for (int n=0;n<compf->keyframes.size();n++) {
+                    for (int n=0;n<compf->keyframes.size();n++) { //FIXME: the 6th nested for loop!
                       if (f->keyframes.at(k).time == compf->keyframes.at(n).time) {
                         appearances++;
                       }
@@ -153,50 +162,46 @@ void KeyframeView::paintEvent(QPaintEvent*) {
 
                   if (appearances != row->fieldCount()) {
                     QColor cc = get_curve_color(l, row->fieldCount());
-                    draw_keyframe(p, f->keyframes.at(k).type,
+                    draw_keyframe(painter, f->keyframes.at(k).type,
                                   getScreenPointFromFrame(PanelManager::fxControls().zoom, keyframe_frame) - x_scroll,
                                   keyframe_y, keyframe_selected, cc.red(), cc.green(), cc.blue());
                   } else {
-                    draw_keyframe(p, f->keyframes.at(k).type,
+                    draw_keyframe(painter, f->keyframes.at(k).type,
                                   getScreenPointFromFrame(PanelManager::fxControls().zoom, keyframe_frame) - x_scroll,
                                   keyframe_y, keyframe_selected);
                   }
 
                   key_times.append(f->keyframes.at(k).time);
                 }
-              }
-            }
+              }//for
+            }//for
 
             rows.append(row);
             rowY.append(keyframe_y);
           }
         }
-      }
-    }
+      }//for
+    }//for
 
     int max_width = getScreenPointFromFrame(PanelManager::fxControls().zoom, visible_out - visible_in);
     if (max_width < width()) {
-      p.fillRect(QRect(max_width, 0, width(), height()), QColor(0, 0, 0, 64));
+      painter.fillRect(QRect(max_width, 0, width(), height()), QColor(0, 0, 0, 64));
     }
     PanelManager::fxControls().horizontalScrollBar->setMaximum(qMax(max_width - width(), 0));
     header->set_visible_in(visible_in);
 
     int playhead_x = getScreenPointFromFrame(PanelManager::fxControls().zoom, global::sequence->playhead_-visible_in) - x_scroll;
     if (dragging && PanelManager::timeLine().snapped) {
-      p.setPen(Qt::white);
+      painter.setPen(Qt::white);
     } else {
-      p.setPen(Qt::red);
+      painter.setPen(Qt::red);
     }
-    p.drawLine(playhead_x, 0, playhead_x, height());
+    painter.drawLine(playhead_x, 0, playhead_x, height());
   }
 
   if (select_rect) {
-    draw_selection_rectangle(p, QRect(rect_select_x, rect_select_y, rect_select_w, rect_select_h));
+    draw_selection_rectangle(painter, QRect(rect_select_x, rect_select_y, rect_select_w, rect_select_h));
   }
-
-  /*if (mouseover && mouseover_row < rowY.size()) {
-    draw_keyframe(p, getScreenPointFromFrame(panel_effect_controls->zoom, mouseover_frame - visible_in), rowY.at(mouseover_row), true);
-  }*/
 }
 
 bool KeyframeView::keyframeIsSelected(EffectField* field, int keyframe) {
@@ -258,14 +263,21 @@ void KeyframeView::mousePressEvent(QMouseEvent *event) {
   for (int i=0;i<rowY.size();i++) {
     if (mouse_y > rowY.at(i) - KEYFRAME_SIZE-KEYFRAME_SIZE && mouse_y < rowY.at(i)+KEYFRAME_SIZE+KEYFRAME_SIZE) {
       EffectRowPtr row = rows.at(i);
-
       row->focus_row();
+
+      if (row->parent_effect == nullptr) {
+        qWarning() << "Null parent Effect for Row";
+        continue;
+      }
 
       for (int k=0;k<row->fieldCount();k++) {
         EffectField* f = row->field(k);
         for (int j=0;j<f->keyframes.size();j++) {
-          long eval_keyframe_time = f->keyframes.at(j).time-row->parent_effect->parent_clip->timeline_info.clip_in
-              + (row->parent_effect->parent_clip->timeline_info.in - visible_in);
+          long eval_keyframe_time = f->keyframes.at(j).time
+              - row->parent_effect->parent_clip->timeline_info.clip_in
+              + row->parent_effect->parent_clip->timeline_info.in
+              - visible_in;
+
           if (eval_keyframe_time >= frame_min && eval_keyframe_time <= frame_max) {
             long eval_frame_diff = qAbs(eval_keyframe_time - drag_frame_start);
             if (keyframe_index == -1 || eval_frame_diff < frame_diff) {
@@ -357,7 +369,7 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
       long min_frame = qMin(frame_start, frame_end)-KEYFRAME_SIZE;
       long max_frame = qMax(frame_start, frame_end)+KEYFRAME_SIZE;
 
-      for (int i=0;i<rowY.size();i++) {
+      for (int i=0;i<rowY.size(); ++i) {
         if (rowY.at(i) >= min_row && rowY.at(i) <= max_row) {
           EffectRowPtr row = rows.at(i);
           for (int k=0;k<row->fieldCount();k++) {
@@ -383,7 +395,15 @@ void KeyframeView::mouseMoveEvent(QMouseEvent* event) {
       if (PanelManager::timeLine().snapping) {
         for (int i=0;i<selected_keyframes.size();i++) {
           EffectField* field = selected_fields.at(i);
-          ClipPtr c = field->parent_row->parent_effect->parent_clip;
+          if ( (field == nullptr)
+               || (field->parent_row == nullptr)
+               || (field->parent_row->parent_effect == nullptr)
+               || (field->parent_row->parent_effect->parent_clip == nullptr) ) {
+            qWarning() << "Null instance(s)";
+            continue;
+          }
+
+          const ClipPtr& c = field->parent_row->parent_effect->parent_clip;
           long key_time = old_key_vals.at(i) + frame_diff - c->timeline_info.clip_in + c->timeline_info.in;
           long key_eval = key_time;
           if (PanelManager::timeLine().snap_to_point(global::sequence->playhead_, &key_eval)) {

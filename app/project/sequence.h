@@ -36,10 +36,11 @@ using SequencePtr = std::shared_ptr<Sequence>;
 using SequenceUPtr = std::unique_ptr<Sequence>;
 using SequenceWPtr = std::weak_ptr<Sequence>;
 
-class Sequence : public project::ProjectItem {
+class Sequence : public std::enable_shared_from_this<Sequence>, public project::ProjectItem {
 public:
 
     Sequence() = default;
+    explicit Sequence(const std::shared_ptr<Media>& parent);
     Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName);
 
     std::shared_ptr<Sequence> copy();
@@ -66,11 +67,29 @@ public:
      */
     void setAudioLayout(const int32_t layout);
 
+    /**
+     * @brief Obtain populated tracks at a position in the sequence
+     * @param frame   Position
+     * @return        Set of tracks
+     */
+    QSet<int> tracks(const long frame) const;
+    /**
+     * @brief         Obtain all clips at a position in the sequence
+     * @param frame   Position
+     * @return        list of clips
+     */
+    QVector<ClipPtr> clips(const long frame) const;
+
     void closeActiveClips(const int32_t depth=0);
+    ClipPtr clip(const int32_t id);
+    void deleteClip(const int32_t id);
+
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 
     QVector<Selection> selections_;
     QVector<ClipPtr> clips_;
-    int32_t save_id_ = 0;
+    int32_t save_id_ = 0; //FIXME: fudge
     struct {
         bool using_ = false;
         bool enabled_ = true;
@@ -81,6 +100,7 @@ public:
     QVector<TransitionPtr> transitions_;
     int64_t playhead_ = 0;
     bool wrapper_sequence_ = false;
+    std::weak_ptr<Media> parent_mda{};
 
 private:
     friend class SequenceTest;
@@ -89,6 +109,8 @@ private:
     double frame_rate_ = -0.0;
     int32_t audio_frequency_ = -1;
     int32_t audio_layout_ = -1;
+
+    bool loadWorkArea(QXmlStreamReader& stream);
 };
 
 namespace global {

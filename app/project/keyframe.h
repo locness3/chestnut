@@ -19,6 +19,7 @@
 #define KEYFRAME_H
 
 #include <QVariant>
+#include "project/ixmlstreamer.h"
 
 enum class KeyframeType{
   LINEAR = 0,
@@ -30,12 +31,14 @@ enum class KeyframeType{
 
 class EffectField;
 
-class EffectKeyframe {
+
+class EffectKeyframe : public project::IXMLStreamer {
   public:
     EffectKeyframe() = default;
+    explicit EffectKeyframe(const EffectField* const parent);
 
-    long time;
-    KeyframeType type;
+    long time{-1};
+    KeyframeType type{KeyframeType::UNKNOWN};
     QVariant data;
 
     // only for bezier type
@@ -43,6 +46,11 @@ class EffectKeyframe {
     double pre_handle_y = 0;
     double post_handle_x = 40;
     double post_handle_y = 0;
+
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
+private:
+    const EffectField* parent_; //TODO: remove this
 };
 
 void delete_keyframes(QVector<EffectField*>& selected_key_fields, QVector<int> &selected_keys);

@@ -64,33 +64,60 @@ constexpr auto SYSTEM_EFFECT_PATH = "../share/chestnut/effects";
 constexpr auto LOCAL_EFFECT_PATH = "effects";
 
 bool shaders_are_enabled = true;
-QVector<EffectMeta> effects;
+
+
+QMap<QString, EffectMeta> Effect::registered;
+int EffectMeta::nextId = 0;
 
 using panels::PanelManager;
 
-EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
+EffectPtr create_effect(ClipPtr c, const EffectMeta& em, const bool setup)
 {
-  if (!em->filename.isEmpty()) {
+  EffectPtr eff;
+  if (!em.filename.isEmpty()) {
     // load effect from file
-    return std::make_shared<Effect>(c, em);
-  }
-  if (em->internal >= 0 && em->internal < EFFECT_INTERNAL_COUNT) {
+    eff = std::make_shared<Effect>(c, em);
+  } else if (em.internal >= 0 && em.internal < EFFECT_INTERNAL_COUNT) {
     // must be an internal effect
-    switch (em->internal) {
-      case EFFECT_INTERNAL_TRANSFORM: return std::make_shared<TransformEffect>(c, em);
-      case EFFECT_INTERNAL_TEXT: return std::make_shared<TextEffect>(c, em);
-      case EFFECT_INTERNAL_TIMECODE: return std::make_shared<TimecodeEffect>(c, em);
-      case EFFECT_INTERNAL_SOLID: return std::make_shared<SolidEffect>(c, em);
-      case EFFECT_INTERNAL_NOISE: return std::make_shared<AudioNoiseEffect>(c, em);
-      case EFFECT_INTERNAL_VOLUME: return std::make_shared<VolumeEffect>(c, em);
-      case EFFECT_INTERNAL_PAN: return std::make_shared<PanEffect>(c, em);
-      case EFFECT_INTERNAL_TONE: return std::make_shared<ToneEffect>(c, em);
-      case EFFECT_INTERNAL_SHAKE: return std::make_shared<ShakeEffect>(c, em);
-      case EFFECT_INTERNAL_CORNERPIN: return std::make_shared<CornerPinEffect>(c, em);
-      case EFFECT_INTERNAL_FILLLEFTRIGHT: return std::make_shared<FillLeftRightEffect>(c, em);
-      case EFFECT_INTERNAL_TEMPORAL: return std::make_shared<TemporalSmoothEffect>(c, em);
+    switch (em.internal) {
+      case EFFECT_INTERNAL_TRANSFORM:
+        eff = std::make_shared<TransformEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_TEXT:
+        eff = std::make_shared<TextEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_TIMECODE:
+        eff = std::make_shared<TimecodeEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_SOLID:
+        eff = std::make_shared<SolidEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_NOISE:
+        eff = std::make_shared<AudioNoiseEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_VOLUME:
+        eff = std::make_shared<VolumeEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_PAN:
+        eff = std::make_shared<PanEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_TONE:
+        eff = std::make_shared<ToneEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_SHAKE:
+        eff = std::make_shared<ShakeEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_CORNERPIN:
+        eff = std::make_shared<CornerPinEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_FILLLEFTRIGHT:
+        eff = std::make_shared<FillLeftRightEffect>(c, em);
+        break;
+      case EFFECT_INTERNAL_TEMPORAL:
+        eff = std::make_shared<TemporalSmoothEffect>(c, em);
+        break;
       default:
-        qWarning() << "Unknown Effect Type" << em->internal;
+        qWarning() << "Unknown Effect Type" << em.internal;
         break;
     }//switch
   } else {
@@ -98,24 +125,31 @@ EffectPtr create_effect(ClipPtr c, const EffectMeta* em)
     QMessageBox::critical(&MainWindow::instance(),
                           QCoreApplication::translate("Effect", "Invalid effect"),
                           QCoreApplication::translate("Effect", "No candidate for effect '%1'. This effect may be corrupt. "
-                                                                "Try reinstalling it for Chestnut.").arg(em->name));
+                                                                "Try reinstalling it for Chestnut.").arg(em.name));
   }
-  return nullptr;
+  if ( (eff != nullptr) && setup) {
+    eff->setupUi();
+  }
+  return eff;
 }
 
-const EffectMeta* get_internal_meta(const int internal_id, const int type)
+EffectMeta get_internal_meta(const int internal_id, const int type)
 {
-  for (const auto& eff : effects) {
+  EffectMeta meta;
+  for (const auto& eff : Effect::getRegisteredMetas()) {
     if ( (eff.internal == internal_id) && (eff.type == type) ) {
-      return &eff;
+      meta = eff;
     }
   }
-  return nullptr;
+  return meta;
 }
 
+//FIXME: do something cleaner
 void load_internal_effects()
 {
-  if (!shaders_are_enabled) qWarning() << "Shaders are disabled, some effects may be nonfunctional";
+  if (!shaders_are_enabled) {
+    qWarning() << "Shaders are disabled, some effects may be nonfunctional";
+  }
 
   EffectMeta em;
 
@@ -125,55 +159,55 @@ void load_internal_effects()
 
   em.name = "Volume";
   em.internal = EFFECT_INTERNAL_VOLUME;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Pan";
   em.internal = EFFECT_INTERNAL_PAN;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Tone";
   em.internal = EFFECT_INTERNAL_TONE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Noise";
   em.internal = EFFECT_INTERNAL_NOISE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Fill Left/Right";
   em.internal = EFFECT_INTERNAL_FILLLEFTRIGHT;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.subtype = EFFECT_TYPE_VIDEO;
 
   em.name = "Transform";
   em.category = "Distort";
   em.internal = EFFECT_INTERNAL_TRANSFORM;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Corner Pin";
   em.internal = EFFECT_INTERNAL_CORNERPIN;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Shake";
   em.internal = EFFECT_INTERNAL_SHAKE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Temporal Smooth";
   em.internal = EFFECT_INTERNAL_TEMPORAL;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Text";
   em.category = "Render";
   em.internal = EFFECT_INTERNAL_TEXT;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Timecode";
   em.internal = EFFECT_INTERNAL_TIMECODE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Solid";
   em.internal = EFFECT_INTERNAL_SOLID;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   // internal transitions
   em.type = EFFECT_TYPE_TRANSITION;
@@ -181,21 +215,21 @@ void load_internal_effects()
 
   em.name = "Cross Dissolve";
   em.internal = TRANSITION_INTERNAL_CROSSDISSOLVE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.subtype = EFFECT_TYPE_AUDIO;
 
   em.name = "Linear Fade";
   em.internal = TRANSITION_INTERNAL_LINEARFADE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Exponential Fade";
   em.internal = TRANSITION_INTERNAL_EXPONENTIALFADE;
-  effects.append(em);
+  Effect::registerMeta(em);
 
   em.name = "Logarithmic Fade";
   em.internal = TRANSITION_INTERNAL_LOGARITHMICFADE;
-  effects.append(em);
+  Effect::registerMeta(em);
 }
 
 QList<QString> get_effects_paths()
@@ -212,8 +246,7 @@ QList<QString> get_effects_paths()
 
 bool addEffect(QXmlStreamReader& reader,
                const QString& file_name,
-               const QString& effects_path,
-               QVector<EffectMeta>& effect_list)
+               const QString& effects_path)
 {
   QString effect_name = "";
   QString effect_cat = "";
@@ -223,6 +256,8 @@ bool addEffect(QXmlStreamReader& reader,
       effect_name = attrib.value().toString();
     } else if (attrib.name() == "category") {
       effect_cat = attrib.value().toString();
+    } else {
+      qWarning() << "Unhandled attribute" << attrib.name();
     }
   }
   if (!effect_name.isEmpty()) {
@@ -233,7 +268,7 @@ bool addEffect(QXmlStreamReader& reader,
     em.category = effect_cat;
     em.filename = file_name;
     em.path = effects_path;
-    effect_list.push_back(em);
+    Effect::registerMeta(em);
     return true;
   }
 
@@ -241,9 +276,10 @@ bool addEffect(QXmlStreamReader& reader,
 
 }
 
-void load_shader_effects(QVector<EffectMeta>& effect_list)
+//TODO:
+void load_shader_effects()
 {
-  for (auto& effects_path : get_effects_paths()){
+  for (const auto& effects_path : get_effects_paths()) {
     const QDir effects_dir(effects_path);
     if (!effects_dir.exists()) {
       qWarning() << "Effects directory does not exist, " << effects_dir.absolutePath();
@@ -260,7 +296,7 @@ void load_shader_effects(QVector<EffectMeta>& effect_list)
       QXmlStreamReader reader(&file);
       while (!reader.atEnd()) {
         if (reader.name() == "effect") {
-          if (!addEffect(reader, file.fileName(), effects_path, effect_list)) {
+          if (!addEffect(reader, file.fileName(), effects_path)) {
             qCritical() << "Invalid effect found in" << entry;
           }
           break;
@@ -280,7 +316,7 @@ void init_effects()
   auto lmb = []() {
     qInfo() << "Initializing effects...";
     load_internal_effects();
-    load_shader_effects(effects);
+    load_shader_effects();
     qInfo() << "Finished initializing effects";
   };
   std::thread t(lmb);
@@ -289,30 +325,48 @@ void init_effects()
   PanelManager::fxControls().effects_loaded.unlock();
 }
 
-
-Effect::Effect(ClipPtr c, const EffectMeta *em) :
-  SequenceItem(project::SequenceItemType::CLIP),
-  parent_clip(std::move(c)),
-  meta(em),
-  container(new CollapsibleWidget()),
-  is_open_(false),
-  bound_(false)
+EffectMeta::EffectMeta() : id (nextId++)
 {
-  // set up base UI
-  connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
-  connect(container->reset_button_, &QPushButton::clicked, this, &Effect::reset);
-  ui = new QWidget();
-  ui_layout = new QGridLayout();
-  ui_layout->setSpacing(4);
-  ui->setLayout(ui_layout);
-  container->setContents(ui);
 
-  connect(container->title_bar, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu(const QPoint&)));
+}
 
-  if (em != nullptr) {
-    // set up UI from effect file
-    setupControlWidget(*em);
+
+bool EffectMeta::operator==(const EffectMeta& rhs) const
+{
+  return rhs.id == id;
+}
+
+void Effect::registerMeta(const EffectMeta& meta)
+{
+  Effect::registered.insert(meta.name.toLower(), meta);
+}
+
+
+EffectMeta Effect::getRegisteredMeta(const QString& name)
+{
+  EffectMeta meta;
+  if (Effect::registered.count(name.toLower()) > 0)  {
+    return Effect::registered.value(name.toLower());
   }
+  return meta;
+}
+
+const QMap<QString, EffectMeta>& Effect::getRegisteredMetas()
+{
+  return Effect::registered;
+}
+
+Effect::Effect(ClipPtr c)
+  : SequenceItem(project::SequenceItemType::CLIP),
+    parent_clip(std::move(c))
+{
+}
+
+Effect::Effect(ClipPtr c, const EffectMeta& em) :
+  Effect(c)
+{
+  meta = em;
+
 }
 
 bool Effect::hasCapability(const Capability flag) const
@@ -334,7 +388,7 @@ void Effect::clearCapability(const Capability flag)
 
 void Effect::copy_field_keyframes(const std::shared_ptr<Effect>& e)
 {
-  for (int i=0;i<rows.size();i++) {
+  for (int i=0; i<rows.size(); ++i) {
     EffectRowPtr row(rows.at(i));
     EffectRowPtr copy_row(e->rows.at(i));
     copy_row->setKeyframing(row->isKeyframing());
@@ -360,6 +414,17 @@ EffectRowPtr Effect::add_row(const QString& name, bool savable, bool keyframable
 EffectRowPtr Effect::row(const int i)
 {
   return rows.at(i);
+}
+
+
+EffectRowPtr Effect::row(const QString& name)
+{
+  for (auto row : rows) {
+    if (row != nullptr && (row->name.toLower() == name.toLower()) ) {
+      return row;
+    }
+  }
+  return nullptr;
 }
 
 
@@ -408,7 +473,7 @@ void Effect::field_changed()
 
 void Effect::show_context_menu(const QPoint& pos)
 {
-  if (meta->type == EFFECT_TYPE_EFFECT) {
+  if (meta.type == EFFECT_TYPE_EFFECT) {
     QMenu menu(&MainWindow::instance());
 
     int index = get_index_in_clip();
@@ -501,7 +566,7 @@ int Effect::get_index_in_clip()
   return -1;
 }
 
-bool Effect::is_enabled()
+bool Effect::is_enabled() const
 {
   if ( (container != nullptr) && (container->enabled_check != nullptr) ) {
     return container->enabled_check->isChecked();
@@ -551,99 +616,36 @@ QString save_data_to_string(const EffectFieldType type, const QVariant& data)
   return QString();
 }
 
-void Effect::load(QXmlStreamReader& stream)
+bool Effect::load(QXmlStreamReader& stream)
 {
-  int row_count = 0;
-
-  const auto tag = stream.name().toString();
-
-  while (!stream.atEnd() && !((stream.name() == tag) && stream.isEndElement())) {
-    stream.readNext();
-    if (stream.name() == "row" && stream.isStartElement()) {
-      if (row_count < rows.size()) {
-        EffectRowPtr row(rows.at(row_count));
-        int field_count = 0;
-
-        while (!stream.atEnd() && !(stream.name() == "row" && stream.isEndElement())) {
-          stream.readNext();
-
-          if ((stream.name() != "field") || !stream.isStartElement()) {
-            continue;
+  // may need to store the cfg and then use it on setupUI
+  while (stream.readNextStartElement()) {
+    auto name = stream.name().toString().toLower();
+    if (name == "row") {
+      EffectRowPtr eff_row;
+      while (stream.readNextStartElement()) {
+        name = stream.name().toString().toLower();
+        if (name == "name") {
+          auto row_name = stream.readElementText();
+          eff_row = row(row_name);
+          if (eff_row == nullptr) {
+            qWarning() << "No row found for this effect. name=" << row_name;
+            stream.skipCurrentElement();
           }
-
-          // read field
-          if (field_count < row->fieldCount()) {
-            // match field using ID
-            int field_number = field_count;
-            for (const auto& attr : stream.attributes()) {
-              if (attr.name() != "id") {
-                continue;
-              }
-              for (auto l=0; l<row->fieldCount(); ++l) {
-                if (row->field(l)->id == attr.value()) {
-                  field_number = l;
-                  qInfo() << "Found field by ID";
-                  break;
-                }
-              }
-              break;
-            }//for
-
-            auto field = row->field(field_number);
-
-            // get current field value
-            for (const auto& attr: stream.attributes()) {
-              if (attr.name() == "value") {
-                field->set_current_data(load_data_from_string(field->type, attr.value().toString()));
-                break;
-              }
-            }
-
-            while (!stream.atEnd() && !(stream.name() == "field" && stream.isEndElement())) {
-              stream.readNext();
-              if (stream.name() != "key" || !stream.isStartElement()) {
-                continue;
-              }
-
-              // read keyframes
-              row->setKeyframing(true);
-
-              EffectKeyframe key;
-              for (const auto& attr: stream.attributes()) {
-                if (attr.name() == "value") {
-                  key.data = load_data_from_string(field->type, attr.value().toString());
-                } else if (attr.name() == "frame") {
-                  key.time = attr.value().toLong();
-                } else if (attr.name() == "type") {
-                  key.type = static_cast<KeyframeType>(attr.value().toInt());
-                } else if (attr.name() == "prehx") {
-                  key.pre_handle_x = attr.value().toDouble();
-                } else if (attr.name() == "prehy") {
-                  key.pre_handle_y = attr.value().toDouble();
-                } else if (attr.name() == "posthx") {
-                  key.post_handle_x = attr.value().toDouble();
-                } else if (attr.name() == "posthy") {
-                  key.post_handle_y = attr.value().toDouble();
-                }
-              }
-              field->keyframes.append(key);
-            }
-          } else {
-            qCritical() << "Too many fields for effect" << id << "row" << row_count << ". Project might be corrupt. (Got"
-                        << field_count << ", expected <" << row->fieldCount()-1 << ")";
-          }
-          field_count++;
-        } //while
-
-      } else {
-        qCritical() << "Too many rows for effect" << id << ". Project might be corrupt. (Got" << row_count
-                    << ", expected <" << rows.size()-1 << ")";
+        } else if (name == "field" && eff_row != nullptr) {
+          eff_row->load(stream);
+        }
+        else {
+          qWarning() << "Unhandled Element" << name;
+          stream.skipCurrentElement();
+        }
       }
-      row_count++;
-    } else if (stream.isStartElement()) {
-      custom_load(stream);
+    } else {
+      qCritical() << "Unhandled element" << name;
+      return false;
     }
   }
+  return true;
 }
 
 void Effect::custom_load(QXmlStreamReader& /*stream*/)
@@ -651,36 +653,18 @@ void Effect::custom_load(QXmlStreamReader& /*stream*/)
   // Does nothing
 }
 
-void Effect::save(QXmlStreamWriter& stream)
+bool Effect::save(QXmlStreamWriter& stream) const
 {
-  stream.writeAttribute("name", meta->name);
-  stream.writeAttribute("enabled", QString::number(is_enabled()));
+  stream.writeStartElement("effect");
+
+  stream.writeAttribute("name", meta.name);
+  stream.writeAttribute("enabled", is_enabled() ? "true" : "false");
 
   for (const auto& row : rows) {
-    if (!row->savable) {
-      continue;
-    }
-    stream.writeStartElement("row"); // row
-    for (int j=0;j<row->fieldCount();j++) {
-      EffectField* field = row->field(j);
-      stream.writeStartElement("field"); // field
-      stream.writeAttribute("id", field->id);
-      stream.writeAttribute("value", save_data_to_string(field->type, field->get_current_data()));
-      for (const auto& key : field->keyframes) {
-        stream.writeStartElement("key");
-        stream.writeAttribute("value", save_data_to_string(field->type, key.data));
-        stream.writeAttribute("frame", QString::number(key.time));
-        stream.writeAttribute("type", QString::number(static_cast<int>(key.type)));
-        stream.writeAttribute("prehx", QString::number(key.pre_handle_x));
-        stream.writeAttribute("prehy", QString::number(key.pre_handle_y));
-        stream.writeAttribute("posthx", QString::number(key.post_handle_x));
-        stream.writeAttribute("posthy", QString::number(key.post_handle_y));
-        stream.writeEndElement(); // key
-      }
-      stream.writeEndElement(); // field
-    }
-    stream.writeEndElement(); // row
+    row->save(stream);
   }
+  stream.writeEndElement(); //effect
+  return true;
 }
 
 bool Effect::is_open() {
@@ -689,17 +673,18 @@ bool Effect::is_open() {
 
 void Effect::validate_meta_path()
 {
-  if (!meta->path.isEmpty() || (glsl_.vert_.isEmpty() && glsl_.frag_.isEmpty())) return;
+  if (!meta.path.isEmpty() || (glsl_.vert_.isEmpty() && glsl_.frag_.isEmpty())) return;
   QList<QString> effects_paths = get_effects_paths();
   const QString& test_fn = glsl_.vert_.isEmpty() ? glsl_.frag_ : glsl_.vert_;
   for (const auto& effects_path : effects_paths) {
     if (QFileInfo::exists(effects_path + "/" + test_fn)) {
-      for (int j=0;j<effects.size();j++) {
-        if (&effects.at(j) == meta) {
-          effects[j].path = effects_path;
-          return;
-        }
-      }
+      //FIXME:
+//      for (int j=0;j<effects.size();j++) {
+//        if (effects.at(j) == meta) {
+//          effects[j].path = effects_path;
+//          return;
+//        }
+//      }
       return;
     }
   }
@@ -718,7 +703,7 @@ void Effect::open()
     validate_meta_path();
     bool glsl_compiled = true;
     if (!glsl_.vert_.isEmpty()) {
-      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Vertex, meta->path + "/" + glsl_.vert_)) {
+      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Vertex, meta.path + "/" + glsl_.vert_)) {
         qInfo() << "Vertex shader added successfully";
       } else {
         glsl_compiled = false;
@@ -726,7 +711,7 @@ void Effect::open()
       }
     }
     if (!glsl_.frag_.isEmpty()) {
-      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Fragment, meta->path + "/" + glsl_.frag_)) {
+      if (glsl_.program_->addShaderFromSourceFile(QOpenGLShader::Fragment, meta.path + "/" + glsl_.frag_)) {
         qInfo() << "Fragment shader added successfully";
       } else {
         glsl_compiled = false;
@@ -792,6 +777,7 @@ void Effect::process_image(const double, gsl::span<uint8_t>& /*data*/)
 EffectPtr Effect::copy(ClipPtr c)
 {
   EffectPtr copy_effect = create_effect(std::move(c), meta);
+  copy_effect->setupUi();
   copy_effect->set_enabled(is_enabled());
   copy_field_keyframes(copy_effect);
   return copy_effect;
@@ -939,6 +925,39 @@ void Effect::gizmo_world_to_screen()
 
 bool Effect::are_gizmos_enabled() const {
   return (!gizmos.empty());
+}
+
+
+void Effect::setupUi()
+{
+  if (ui_setup) {
+    // Don't re-init UI
+    return;
+  }
+  ui_setup = true;
+  container = new CollapsibleWidget();
+  // set up base UI
+  connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
+  connect(container->reset_button_, &QPushButton::clicked, this, &Effect::reset);
+  ui = new QWidget();
+  ui_layout = new QGridLayout();
+  ui_layout->setSpacing(4);
+  ui->setLayout(ui_layout);
+  container->setContents(ui);
+
+  connect(container->title_bar, SIGNAL(customContextMenuRequested(const QPoint&)),
+          this, SLOT(show_context_menu(const QPoint&)));
+
+  if (meta.type >= 0) {
+    // set up UI from effect file
+    setupControlWidget(meta);
+    if (meta.internal < 0) {
+      // shader effect. no extra ui setup
+    }
+  } else {
+    qWarning() << "Unable to set up control widget for unknown type";
+  }
+
 }
 
 void Effect::redraw(double)
@@ -1148,7 +1167,7 @@ void Effect::setupControlWidget(const EffectMeta& em)
                 // get field type
                 auto [fieldType, attrId] = getFieldType(attributes);
 
-                    if (attrId.isEmpty()) {
+                if (attrId.isEmpty()) {
                   qCritical() << "Couldn't load field from" << em.filename << "- ID cannot be empty.";
                 } else if (fieldType != EffectFieldType::UNKNOWN) {
                   auto field = row->add_field(fieldType, attrId);

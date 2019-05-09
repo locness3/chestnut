@@ -19,14 +19,13 @@
 
 #include "debug.h"
 
-CubeTransition::CubeTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Transition(c, s, em)
+CubeTransition::CubeTransition(ClipPtr c, ClipPtr s, const EffectMeta& em) : Transition(c, s, em)
 {
   setCapability(Capability::COORDS);
 }
 
 void CubeTransition::process_coords(double, GLTextureCoords& coords, int)
 {
-
   coords.vertices_[0].z_ = 1;
   coords.vertices_[3].z_ = 1;
 }

@@ -6,7 +6,7 @@ namespace  {
 
 using fx::DipToColourTransition;
 
-DipToColourTransition::DipToColourTransition(ClipPtr c, ClipPtr s, const EffectMeta* em) : Transition(c, s, em)
+DipToColourTransition::DipToColourTransition(ClipPtr c, ClipPtr s, const EffectMeta& em) : Transition(c, s, em)
 {
 
 }

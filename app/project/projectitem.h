@@ -30,7 +30,7 @@ class Footage;
 
 namespace project {
 
-class ProjectItem {
+class ProjectItem : public IXMLStreamer {
 public:
   ProjectItem() = default;
   explicit ProjectItem(const QString& itemName);
@@ -40,6 +40,9 @@ public:
 
   void setName(const QString& val);
   const QString& name() const;
+
+  virtual bool load(QXmlStreamReader& stream) override;
+  virtual bool save(QXmlStreamWriter& stream) const override;
 
   QVector<MarkerPtr> markers_{};
 private:

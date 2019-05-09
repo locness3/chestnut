@@ -1,4 +1,4 @@
-/* 
+/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  *
@@ -23,6 +23,7 @@
 
 #include "io/previewgenerator.h"
 #include "project/clip.h"
+#include "panels/project.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -30,7 +31,12 @@ extern "C" {
 
 using project::FootageStreamPtr;
 
-Footage::Footage()
+Footage::Footage() : Footage(nullptr)
+{
+
+}
+
+Footage::Footage(const std::shared_ptr<Media>& parent) : parent_mda(parent)
 {
   ready_lock.lock();
 }
@@ -54,18 +60,59 @@ bool Footage::isImage() const
 
 bool Footage::load(QXmlStreamReader& stream)
 {
-  for (int j=0;j<stream.attributes().size();j++) {
-    const QXmlStreamAttribute& attr = stream.attributes().at(j);
-    if (attr.name() == "id") {
+  // attributes
+  for (const auto& attr : stream.attributes()) {
+    auto name = attr.name().toString().toLower();
+    if (name == "folder") {
+      folder_ = attr.value().toInt(); // Media::parent.id
+      if (auto par = parent_mda.lock()) {
+        auto folder = Project::model().findItemById(folder_);
+        par->setParent(folder);
+      }
+    } else if (name == "id") {
       save_id = attr.value().toInt();
-    } else if (attr.name() == "folder") {
-      folder_ = attr.value().toInt();
-    } else if (attr.name() == "name") {
-      setName(attr.value().toString());
-    } else if (attr.name() == "url") {
-      url = attr.value().toString();
-      // FIXME: always use absolute paths when saving
+      if (auto par = parent_mda.lock()) {
+        par->setId(save_id);
+      }
+    } else if (name == "using_inout") {
+      using_inout = attr.value().toString() == "true";
+    } else if (name == "in") {
+      in = attr.value().toLong();
+    } else if (name == "out") {
+      out = attr.value().toLong();
+    } else {
+      qWarning() << "Unknown attribute" << name;
+    }
+  }
 
+  //elements
+  while (stream.readNextStartElement()) {
+    auto elem_name = stream.name().toString().toLower();
+    if ( (elem_name == "video") || (elem_name == "audio") ) {
+      auto ms = std::make_shared<project::FootageStream>();
+      ms->load(stream);
+      if (elem_name == "video") {
+        video_tracks.append(ms);
+      } else {
+        audio_tracks.append(ms);
+      }
+    } else if (elem_name == "name") {
+      setName(stream.readElementText());
+    } else if (elem_name == "url") {
+      url = stream.readElementText();
+    } else if (elem_name == "duration") {
+      length = stream.readElementText().toLong();
+    } else if (elem_name == "marker"){
+      auto mrkr = std::make_shared<Marker>();
+      mrkr->load(stream);
+      markers_.append(mrkr);
+    } else {
+      qWarning() << "Unhandled element" << elem_name;
+      stream.skipCurrentElement();
+    }
+  }
+
+  //TODO: check what this does
 //      if (!QFileInfo::exists(url)) { // if path is not absolute
 //        QString proj_dir_test = proj_dir.absoluteFilePath(url);
 //        QString internal_proj_dir_test = internal_proj_dir.absoluteFilePath(url);
@@ -86,36 +133,6 @@ bool Footage::load(QXmlStreamReader& stream)
 //      } else {
 //        qInfo() << "Matched" << attr.value().toString() << "with absolute path";
 //      }
-    } else if (attr.name() == "duration") {
-      length = attr.value().toLongLong();
-    } else if (attr.name() == "using_inout") {
-      using_inout = (attr.value() == "1");
-    } else if (attr.name() == "in") {
-      in = attr.value().toLong();
-    } else if (attr.name() == "out") {
-      out = attr.value().toLong();
-    } else if (attr.name() == "speed") {
-      speed = attr.value().toDouble();
-    } else {
-      qInfo() << "Unhandled attribute" << attr.name();
-    }
-  }
-
-
-  while (stream.readNextStartElement()) {
-    QStringRef str_name = stream.name();
-    if (str_name == "video" || str_name == "audio") {
-      // these are superflous elements as the streams get populated via libav, again
-      stream.skipCurrentElement();
-    } else if (str_name == "marker"){
-      auto mrkr = std::make_shared<Marker>();
-      mrkr->load(stream);
-      markers_.append(mrkr);
-    } else {
-      stream.skipCurrentElement();
-    }
-  }
-
   return true;
 }
 
@@ -126,15 +143,24 @@ bool Footage::save(QXmlStreamWriter& stream) const
     return false;
   }
   stream.writeStartElement("footage");
-  stream.writeAttribute("id", QString::number(save_id));
-  stream.writeAttribute("folder", QString::number(folder_));
-  stream.writeAttribute("name", name());
-  stream.writeAttribute("url", QDir(url).absolutePath());
-  stream.writeAttribute("duration", QString::number(length));
-  stream.writeAttribute("using_inout", QString::number(using_inout));
+  if (auto par = parent_mda.lock()) {
+    if (par->parentItem() == nullptr) {
+      qCritical() << "Parent Media is unlinked";
+      return false;
+    }
+    stream.writeAttribute("id", QString::number(par->id()));
+    stream.writeAttribute("folder", QString::number(par->parentItem()->id()));
+  } else {
+    qCritical() << "Null Media parent";
+    return false;
+  }
+  stream.writeAttribute("using_inout", using_inout ? "true" : "false");
   stream.writeAttribute("in", QString::number(in));
   stream.writeAttribute("out", QString::number(out));
-  stream.writeAttribute("speed", QString::number(speed));
+
+  stream.writeTextElement("name", name_);
+  stream.writeTextElement("url", QDir(url).absolutePath());
+  stream.writeTextElement("duration", QString::number(length));
 
   for (const auto& ms : video_tracks) {
     if (!ms) continue;

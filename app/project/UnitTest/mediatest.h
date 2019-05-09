@@ -37,6 +37,10 @@ private slots:
      * @brief Clearing of media sets it to none-type and the stored object is empty/null/invalid
      */
     void testCaseClear();
+    /**
+     * @brief Check that when its id is set Media::nextID is greater
+     */
+    void testCaseSetId();
 };
 
 #endif // MEDIATEST_H

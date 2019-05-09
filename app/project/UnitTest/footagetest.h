@@ -13,9 +13,18 @@ class FootageTest : public QObject
   private slots:
     void testCaseIsImage();
     /**
-     * Check an uninit footage does not save
+     * @brief Check an uninit footage does not save
      */
     void testCaseUninitSave();
+    /**
+     * @brief Test save when parent media is null
+     */
+    void testCaseNullMediaSave();
+    /**
+     * @brief Test sunny-day scenario save
+     */
+    void testCaseSave();
+
 };
 
 #endif // FOOTAGETEST_H

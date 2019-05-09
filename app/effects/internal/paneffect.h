@@ -22,13 +22,16 @@
 
 class PanEffect : public Effect {
   public:
-    PanEffect(ClipPtr c, const EffectMeta* em);
+    PanEffect(ClipPtr c, const EffectMeta& em);
 
     PanEffect(const PanEffect& ) = delete;
     PanEffect& operator=(const PanEffect&) = delete;
 
     void process_audio(double timecode_start, double timecode_end,
                        quint8* samples, int nb_bytes, int channel_count) override;
+
+
+    virtual void setupUi() override;
 
     EffectField* pan_val;
 };

@@ -26,94 +26,101 @@
 
 #include "ui/labelslider.h"
 #include "project/keyframe.h"
+#include "project/ixmlstreamer.h"
 
 class EffectRow;
 class ComboAction;
 
 enum class EffectFieldType {
-    DOUBLE = 0,
-    COLOR = 1,
-    STRING = 2,
-    BOOL = 3,
-    COMBO = 4,
-    FONT = 5,
-    FILE_T = 6,
-    UNKNOWN
+  DOUBLE = 0,
+  COLOR = 1,
+  STRING = 2,
+  BOOL = 3,
+  COMBO = 4,
+  FONT = 5,
+  FILE_T = 6,
+  UNKNOWN
 };
 
-class EffectField : public QObject {
-    Q_OBJECT
+
+QString fieldTypeValueToString(const EffectFieldType type, const QVariant& value);
+
+class EffectField : public QObject, public project::IXMLStreamer  {
+  Q_OBJECT
 public:
-    EffectField(EffectRow* parent, const EffectFieldType t, const QString& i);
+  explicit EffectField(EffectRow* parent);
+  EffectField(EffectRow* parent, const EffectFieldType t, const QString& i);
 
-    EffectField() = delete;
-    EffectField(const EffectField&) = delete;
-    EffectField(const EffectField&&) = delete;
-    EffectField& operator=(const EffectField&) = delete;
-    EffectField& operator=(const EffectField&&) = delete;
+  EffectField() = delete;
 
-    EffectRow* parent_row;
-    EffectFieldType type;
-    QString id;
+  template<typename T>
+  void setDefaultValue(const T val) {
+    default_data_.setValue(val);
+  }
 
-    template<typename T>
-    void setDefaultValue(const T val) {
-      default_data_.setValue(val);
-    }
+  QVariant get_previous_data();
+  QVariant get_current_data() const;
+  double frameToTimecode(const long frame);
+  long timecodeToFrame(double timecode);
+  void set_current_data(const QVariant&);
+  void get_keyframe_data(double timecode, int& before, int& after, double& d);
+  QVariant validate_keyframe_data(double timecode, bool async = false);
 
-    QVariant get_previous_data();
-    QVariant get_current_data();
-    double frameToTimecode(const long frame);
-    long timecodeToFrame(double timecode);
-    void set_current_data(const QVariant&);
-    void get_keyframe_data(double timecode, int& before, int& after, double& d);
-    QVariant validate_keyframe_data(double timecode, bool async = false);
+  double get_double_value(double timecode, bool async = false);
+  void set_double_value(double v);
+  void set_double_default_value(double v);
+  void set_double_minimum_value(double v);
+  void set_double_maximum_value(double v);
+  void set_double_step_value(const double v);
 
-    double get_double_value(double timecode, bool async = false);
-    void set_double_value(double v);
-    void set_double_default_value(double v);
-    void set_double_minimum_value(double v);
-    void set_double_maximum_value(double v);
-    void set_double_step_value(const double v);
+  QString get_string_value(double timecode, bool async = false);
+  void set_string_value(const QString &s);
 
-    QString get_string_value(double timecode, bool async = false);
-    void set_string_value(const QString &s);
+  void add_combo_item(const QString& name, const QVariant &data);
+  int get_combo_index(double timecode, bool async = false);
+  QVariant get_combo_data(double timecode);
+  QString get_combo_string(double timecode);
+  void set_combo_index(int index);
+  void set_combo_string(const QString& s);
 
-    void add_combo_item(const QString& name, const QVariant &data);
-    int get_combo_index(double timecode, bool async = false);
-    QVariant get_combo_data(double timecode);
-    QString get_combo_string(double timecode);
-    void set_combo_index(int index);
-    void set_combo_string(const QString& s);
+  bool get_bool_value(double timecode, bool async = false);
+  void set_bool_value(bool b);
 
-    bool get_bool_value(double timecode, bool async = false);
-    void set_bool_value(bool b);
+  QString get_font_name(double timecode, bool async = false);
+  void set_font_name(const QString& s);
 
-    QString get_font_name(double timecode, bool async = false);
-    void set_font_name(const QString& s);
+  QColor get_color_value(double timecode, bool async = false);
+  void set_color_value(const QColor& color);
 
-    QColor get_color_value(double timecode, bool async = false);
-    void set_color_value(const QColor& color);
+  QString get_filename(double timecode, bool async = false);
+  void set_filename(const QString& s);
 
-    QString get_filename(double timecode, bool async = false);
-    void set_filename(const QString& s);
+  QWidget* get_ui_element();
+  void set_enabled(bool e);
 
-    QWidget* get_ui_element();
-    void set_enabled(bool e);
-    QVector<EffectKeyframe> keyframes;
-    QWidget* ui_element = nullptr;
+  void make_key_from_change(ComboAction* ca);
+  const QVariant& getDefaultData() const;
 
-    void make_key_from_change(ComboAction* ca);
-    const QVariant& getDefaultData() const;
+  void setValue(const QVariant& value);
+
+  virtual bool load(QXmlStreamReader& stream) override;
+  virtual bool save(QXmlStreamWriter& stream) const override;
+
+
+  EffectRow* parent_row;
+  EffectFieldType type{EffectFieldType::UNKNOWN};
+  QString id{};
+  QVector<EffectKeyframe> keyframes;
+  QWidget* ui_element = nullptr;
 public slots:
-    void ui_element_change();
+  void ui_element_change();
 private:
-    bool hasKeyframes();
-    QVariant default_data_;
+  bool hasKeyframes();
+  QVariant default_data_{};
 signals:
-    void changed();
-    void toggled(bool);
-    void clicked();
+  void changed();
+  void toggled(bool);
+  void clicked();
 
 };
 

@@ -28,7 +28,8 @@ class SolidEffect : public Effect {
     Q_OBJECT
   public:
     SolidEffect() = delete;
-    SolidEffect(ClipPtr c, const EffectMeta *em);
+    SolidEffect(ClipPtr c, const EffectMeta& em);
+    virtual void setupUi() override;
   protected:
     void redraw(double timecode) override;
   private slots:

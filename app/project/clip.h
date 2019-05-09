@@ -55,13 +55,29 @@ using ClipPtr = std::shared_ptr<Clip>;
 using ClipUPtr = std::unique_ptr<Clip>;
 using ClipWPtr = std::weak_ptr<Clip>;
 
-class Clip : public project::SequenceItem,  public std::enable_shared_from_this<Clip>, protected QThread
+enum class ClipTransitionType {
+  OPENING,
+  CLOSING,
+  BOTH
+};
+
+enum class ClipType {
+  AUDIO,
+  VISUAL,
+  UNKNOWN
+};
+
+class Clip : public project::SequenceItem,
+    public std::enable_shared_from_this<Clip>,
+    public project::IXMLStreamer,
+    protected QThread
 {
   public:
 
     explicit Clip(SequencePtr s);
     virtual ~Clip() override;
     ClipPtr copy(SequencePtr s);
+    ClipPtr copyPreserveLinks(SequencePtr s);
 
     Clip() = delete;
     Clip(const Clip&) = delete;
@@ -119,7 +135,50 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
      * @return true==clips position nudged
      */
     bool nudge(const int pos);
+    /**
+     * @brief         Set the transition effect(s) to the clip if none already
+     * @param meta    Information about the Transition effect
+     * @param type    opening, closing or both transitions
+     * @param length  Length of the transition in frames
+     * @return  bool==success
+     */
+    bool setTransition(const EffectMeta& meta, const ClipTransitionType type, const long length);
+    /**
+     * @brief Delete the Clip's transition(s)
+     * @param type  opening, closing or both transitions
+     */
+    void deleteTransition(const ClipTransitionType type);
+    /**
+     * @brief Obtain this clip transition
+     * @param type  Only 1 transition type i.e. opening or closing
+     * @return ptr or null
+     */
+    TransitionPtr getTransition(const ClipTransitionType type);
+    /**
+     * @brief Split this clip at a sequence frame.
+     * If possible to split, a new clip starting after the split is returned and the current clip is modified.
+     * @param frame   Sequence playhead
+     * @return  The Clip after the split or nullptr
+     */
+    ClipPtr split(const long frame);
+    /**
+     * @brief             Merge in a clip that was created in a split
+     * @param split_clip
+     * @return            true==split clip was merged to this clip
+     */
+    bool merge(const Clip& split_clip);
+    /**
+     * @brief         Split this clip and it's linked clips, ensuring the splits are linked afterwards
+     * @param frame   Sequence playhead
+     * @return        A list of linked, split clips
+     */
+    QVector<ClipPtr> splitAll(const long frame);
 
+    /**
+     * @brief The length in frames of the clip
+     * @return
+     */
+    int64_t length() const;
 
     void resetAudio();
     void reset();
@@ -133,6 +192,7 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
     void recalculateMaxLength();
     int width();
     int height();
+    int32_t id() const;
     void refactorFrameRate(ComboAction* ca, double multiplier, bool change_timeline_points);
 
     // queue functions
@@ -140,8 +200,10 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
     void removeEarliestFromQueue();
 
 
-    TransitionPtr openingTransition();
-    TransitionPtr closingTransition();
+    [[deprecated("Use Clip::getTransition")]]
+    TransitionPtr openingTransition() const;
+    [[deprecated("Use Clip::getTransition")]]
+    TransitionPtr closingTransition() const;
 
     /**
      * @brief set frame cache to a position
@@ -160,6 +222,50 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
      * @return true==is selected
      */
     bool isSelected(const bool containing);
+    /**
+     * @brief     Identify if this clip is contained by a selection area
+     * @param sel The area selected
+     * @return    true==clip is selected
+     */
+    bool isSelected(const Selection& sel) const;
+    /**
+     * @brief Identify if clip is populated at frame position (irregardless of track)
+     * @param frame position
+     * @return true if clip in range
+     */
+    bool inRange(const long frame) const; //TODO: think of a better name
+    /**
+     * @brief Obtain this clip type
+     * @return
+     */
+    ClipType mediaType() const;
+    /**
+     * @brief Obtain the Media parent
+     * @return MediaPtr or null
+     */
+    MediaPtr parentMedia();
+
+    void addLinkedClip(const Clip& clp);
+    void setLinkedClips(const QVector<int32_t>& links);
+    const QVector<int32_t>& linkedClips() const;
+    void clearLinks();
+    /**
+     * @brief Get tracks of linked clips
+     * @return set of timeline tracks
+     */
+    QSet<int> getLinkedTracks() const;
+    /**
+     * @brief           Update the linked clips using a mapping of old_id : new_clip
+     * @param mapping   Mapped ids and clips
+     */
+    void relink(const QMap<int, int>& mapping);
+    void setId(const int32_t id);
+    void move(ComboAction& ca, const long iin, const long iout,
+              const long iclip_in, const int itrack, const bool verify_transitions = true,
+              const bool relative = false);
+
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 
     //FIXME: all the class members
     SequencePtr sequence;
@@ -169,9 +275,6 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
 
     // other variables (should be deep copied/duplicated in copy())
     QList<EffectPtr> effects;
-    QVector<int> linked;
-    int opening_transition;
-    int closing_transition;
 
     // media handling
     struct {
@@ -183,10 +286,9 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
         AVFrame* frame = nullptr;
         AVDictionary* opts = nullptr;
         long calculated_length = -1;
-    } media_handling;
+    } media_handling; //FIXME: the use of this lot should really be its own library/class
 
     // temporary variables
-    int load_id{};
     bool undeletable;
     bool reached_end{};
     bool is_open{};
@@ -225,9 +327,14 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
         long target_frame = -1;
     } audio_playback;
 
+    struct {
+        TransitionPtr opening_{nullptr};
+        TransitionPtr closing_{nullptr};
+    } transition_;
 
   protected:
     virtual void run() override;
+    static int32_t next_id;
   private:
     friend class ClipTest;
     struct {
@@ -243,6 +350,9 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
 
     std::atomic_bool finished_opening{false};
     bool pkt_written{};
+    int32_t id_{-1};
+    //TODO: link to ptrs
+    QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
 
     void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 
@@ -269,11 +379,10 @@ class Clip : public project::SequenceItem,  public std::enable_shared_from_this<
      * @param target_frame
      */
     void reset_cache(const long target_frame);
+    bool loadInEffect(QXmlStreamReader& stream);
+    TransitionPtr loadTransition(QXmlStreamReader& stream);
+    void linkClips(const QVector<ClipPtr>& linked_clips) const;
 
-    // Comboaction::move_clip() or Clip::move()?
-    void move(ComboAction& ca, const long iin, const long iout,
-              const long iclip_in, const int itrack, const bool verify_transitions = true,
-              const bool relative = false);
 
 
 };

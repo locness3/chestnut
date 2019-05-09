@@ -37,6 +37,7 @@
 #include "effectgizmo.h"
 #include "project/sequenceitem.h"
 #include "gsl/span"
+#include "project/ixmlstreamer.h"
 
 class CollapsibleWidget;
 class QLabel;
@@ -56,23 +57,29 @@ using EffectPtr = std::shared_ptr<Effect>;
 using EffectWPtr = std::weak_ptr<Effect>;
 using EffectUPtr = std::unique_ptr<Effect>;
 
-struct EffectMeta {
-    QString name;
-    QString category;
-    QString filename;
-    QString path;
-    int internal;
-    int type;
-    int subtype;
+class EffectMeta { //TODO: address types
+  public:
+    EffectMeta();
+    bool operator==(const EffectMeta& rhs) const;
+    QString name{};
+    QString category{};
+    QString filename{};
+    QString path{};
+    int internal{-1};
+    int type{-1}; //FIXME: get rid of the use of type>-1 for validity checking
+    int subtype{-1};
+    int id;
+
+  private:
+    static int nextId;
 };
 
 extern bool shaders_are_enabled;
-extern QVector<EffectMeta> effects;
 
 double log_volume(const double linear);
 void init_effects();
-std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta *em);
-const EffectMeta* get_internal_meta(const int internal_id, const int type);
+std::shared_ptr<Effect> create_effect(ClipPtr c, const EffectMeta& em, const bool setup=true);
+EffectMeta get_internal_meta(const int internal_id, const int type);
 
 constexpr int EFFECT_TYPE_INVALID = 0;
 constexpr int EFFECT_TYPE_VIDEO = 1;
@@ -99,6 +106,8 @@ constexpr int EFFECT_INTERNAL_CORNERPIN = 12;
 constexpr int EFFECT_INTERNAL_TEMPORAL = 13;
 constexpr int EFFECT_INTERNAL_COUNT = 14;
 
+
+
 enum class Capability {
   SHADER = 0,
   COORDS,
@@ -110,9 +119,9 @@ enum class Capability {
 
 template <typename T>
 struct CartesianCoordinate {
-  T x_;
-  T y_;
-  T z_;
+    T x_;
+    T y_;
+    T z_;
 };
 
 
@@ -125,16 +134,22 @@ struct GLTextureCoords {
 qint16 mix_audio_sample(const qint16 a, const qint16 b);
 
 
-class Effect : public QObject, public project::SequenceItem {
+class Effect : public QObject,  public std::enable_shared_from_this<Effect>, public project::SequenceItem, public project::IXMLStreamer {
     Q_OBJECT
-public:
-    Effect(ClipPtr c, const EffectMeta* em);
+  public:
+    static void registerMeta(const EffectMeta& meta);
+    static EffectMeta getRegisteredMeta(const QString& name);
+    static const QMap<QString, EffectMeta>& getRegisteredMetas();
+
+    explicit Effect(ClipPtr c);
+    Effect(ClipPtr c, const EffectMeta& em);
     Effect() = delete;
 
     bool hasCapability(const Capability flag) const;
 
     EffectRowPtr add_row(const QString &name_, bool savable = true, bool keyframable = true);
     EffectRowPtr row(const int i);
+    EffectRowPtr row(const QString& name);
     const QVector<EffectRowPtr>& getRows() const;
 
     int row_count();
@@ -147,7 +162,7 @@ public:
     const EffectGizmoPtr& gizmo(const int index);
     int gizmo_count() const;
 
-    bool is_enabled();
+    bool is_enabled() const;
     void set_enabled(const bool b);
 
     virtual void refresh();
@@ -155,9 +170,9 @@ public:
     std::shared_ptr<Effect> copy(ClipPtr c);
     void copy_field_keyframes(const std::shared_ptr<Effect>& e);
 
-    virtual void load(QXmlStreamReader& stream);
     virtual void custom_load(QXmlStreamReader& stream);
-    virtual void save(QXmlStreamWriter& stream);
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 
     // glsl handling
     bool is_open();
@@ -179,12 +194,13 @@ public:
     void gizmo_world_to_screen();
     bool are_gizmos_enabled() const;
 
+    virtual void setupUi();
 
     ClipPtr parent_clip; //TODO: make weak
-    const EffectMeta* meta;
-    int id = -1;
-    QString name_;
-    CollapsibleWidget* container = nullptr;
+    EffectMeta meta{};
+    int id{-1};
+    QString name_{};
+    CollapsibleWidget* container{nullptr};
     // glsl effect
     struct {
         QString vert_{};
@@ -198,16 +214,19 @@ public:
         QImage img_{};
         std::unique_ptr<QOpenGLTexture> texture_{};
     } superimpose_{};
+    bool ui_setup{false};
 
-public slots:
+
+
+  public slots:
     void field_changed();
-private slots:
+  private slots:
     void show_context_menu(const QPoint&);
     void delete_self();
     void move_up();
     void move_down();
     void reset();
-protected:
+  protected:
     // superimpose functions
     virtual void redraw(double timecode);
     /**
@@ -242,8 +261,9 @@ protected:
     QWidget* ui;
     QVector<QVariant> cachedValues;
     std::set<Capability> capabilities_;
-    bool is_open_;
-    bool bound_;
+    bool is_open_{false};
+    bool bound_{false};
+    static QMap<QString, EffectMeta> registered;
 
     bool valueHasChanged(const double timecode);
     int get_index_in_clip();
@@ -258,6 +278,7 @@ protected:
     void setupFileWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
     std::tuple<EffectFieldType, QString> getFieldType(const QXmlStreamAttributes& attributes) const;
     void extractShaderDetails(const QXmlStreamAttributes& attributes);
+
 };
 
 

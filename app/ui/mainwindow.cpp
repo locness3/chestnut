@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
  *
@@ -74,17 +74,18 @@ constexpr auto DEFAULT_CSS = "QPushButton::checked { background: rgb(25, 25, 25)
 constexpr double FULLSCREEN_RATIO = 4.0/3.0;
 constexpr double SIXTEENBYNINE_RATIO = 16.0/9.0;
 
-constexpr auto PROJECT_FILE_FILTER("Project File (*.ove)");
+constexpr const char* const PROJ_FILE_EXT = ".nut";
+constexpr auto PROJECT_FILE_FILTER("Project File (*.nut)");
+constexpr auto AUTORECOVERY_FILE_PATTERN("autorecovery.nut.*");
+constexpr auto FILE_AUTORECOVERY("autorecovery.nut");
 
 constexpr auto APP_STYLE("Fusion");
 
-constexpr auto AUTORECOVERY_FILE_PATTERN("autorecovery.ove.*");
 
 constexpr auto DIR_LAYOUT("/layout");
 constexpr auto DIR_PREVIEWS("/previews");
 constexpr auto DIR_RECENTS("/recents");
 constexpr auto FILE_CONFIG("config.xml");
-constexpr auto FILE_AUTORECOVERY("autorecovery.ove");
 
 constexpr qint64 MONTH_IN_SECONDS = 2592000000;
 constexpr qint64 WEEK_IN_SECONDS = 604800000;
@@ -484,7 +485,6 @@ void MainWindow::new_sequence()
 
 void MainWindow::zoom_in()
 {
-  // FIXME:
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().set_zoom(true);
@@ -499,7 +499,6 @@ void MainWindow::zoom_in()
 
 void MainWindow::zoom_out()
 {
-  //FIXME:
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine()) {
     PanelManager::timeLine().set_zoom(false);
@@ -600,7 +599,8 @@ void MainWindow::new_project()
   }
 }
 
-void MainWindow::autorecover_interval() {
+void MainWindow::autorecover_interval()
+{
   if (!e_rendering && isWindowModified()) {
     PanelManager::projectViewer().save_project(true);
     qInfo() << " Auto-recovery project saved";
@@ -610,8 +610,8 @@ void MainWindow::autorecover_interval() {
 bool MainWindow::save_project_as() {
   QString fn = QFileDialog::getSaveFileName(this, tr("Save Project As..."), "", PROJECT_FILE_FILTER);
   if (!fn.isEmpty()) {
-    if (!fn.endsWith(".ove", Qt::CaseInsensitive)) {
-      fn += ".ove";
+    if (!fn.endsWith(PROJ_FILE_EXT, Qt::CaseInsensitive)) {
+      fn += PROJ_FILE_EXT;
     }
     updateTitle(fn);
     PanelManager::projectViewer().save_project(false);
@@ -718,7 +718,8 @@ void MainWindow::setup_menus() {
   edit_menu->addSeparator();
 
   edit_menu->addAction(tr("Add Default Transition"), this, SLOT(add_default_transition()), QKeySequence("Ctrl+Shift+D"))->setProperty("id", "deftransition");
-  edit_menu->addAction(tr("Link/Unlink"), &PanelManager::timeLine(), SLOT(toggle_links()), QKeySequence("Ctrl+L"))->setProperty("id", "linkunlink");
+  edit_menu->addAction(tr("Link"), &PanelManager::timeLine(), SLOT(linkClips()), QKeySequence("Ctrl+L"))->setProperty("id", "linkclips");
+  edit_menu->addAction(tr("Unlink"), &PanelManager::timeLine(), SLOT(unlinkClips()), QKeySequence("Ctrl+Shift+L"))->setProperty("id", "unlinkclips");
   edit_menu->addAction(tr("Enable/Disable"), this, SLOT(toggle_enable_clips()), QKeySequence("Shift+E"))->setProperty("id", "enabledisable");
   edit_menu->addAction(tr("Nest"), this, SLOT(nest()))->setProperty("id", "nest");
 
@@ -1377,7 +1378,7 @@ void MainWindow::add_default_transition()
 
 void MainWindow::new_folder()
 {
-  MediaPtr m = PanelManager::projectViewer().new_folder(tr("New Folder"));
+  MediaPtr m = PanelManager::projectViewer().newFolder(tr("New Folder"));
   e_undo_stack.push(new AddMediaCommand(m, PanelManager::projectViewer().get_selected_folder()));
 
   QModelIndex index = Project::model().add(m);
@@ -1389,7 +1390,7 @@ void MainWindow::new_folder()
     PanelManager::projectViewer().icon_view->edit(PanelManager::projectViewer().sorter->mapFromSource(index));
     break;
   default:
-    //TODO:
+    qWarning() << "Unhandled Project View type";
     break;
   }//switch
 }
@@ -1634,23 +1635,21 @@ void MainWindow::nest()
   if (global::sequence == nullptr) {
     return;
   }
-  QVector<int> selected_clips;
+  QVector<ClipPtr> selected_clips;
   int64_t earliest_point = LONG_MAX;
 
   // get selected clips
-  for (int i=0;i<global::sequence->clips_.size();i++) {
-    ClipPtr  c = global::sequence->clips_.at(i);
-    if (c != nullptr && c->isSelected(true)) {
-      selected_clips.append(i);
-      earliest_point = qMin(c->timeline_info.in.load(), earliest_point);
+  for (const auto& seq_clip : global::sequence->clips_) {
+    if (seq_clip != nullptr && seq_clip->isSelected(true)) {
+      selected_clips.append(seq_clip);
+      earliest_point = qMin(seq_clip->timeline_info.in.load(), earliest_point);
     }
   }
 
   // nest them
   if (!selected_clips.isEmpty()) {
-    ComboAction* ca = new ComboAction();
-
-    SequencePtr s = std::make_shared<Sequence>();
+    auto ca = new ComboAction();
+    auto s = std::make_shared<Sequence>();
 
     // create "nest" sequence
     s->setName(PanelManager::projectViewer().get_next_sequence_name(tr("Nested Sequence")));
@@ -1661,12 +1660,12 @@ void MainWindow::nest()
     s->setAudioLayout(global::sequence->audioLayout());
 
     // copy all selected clips to the nest
-    for (int i=0;i<selected_clips.size();i++) {
+    for (const auto& sel_clip : selected_clips) {
       // delete clip from old sequence
-      ca->append(new DeleteClipAction(global::sequence, selected_clips.at(i)));
+      ca->append(new DeleteClipAction(sel_clip));
 
       // copy to new
-      ClipPtr  copy = global::sequence->clips_.at(selected_clips.at(i))->copy(s);
+      ClipPtr copy = sel_clip->copy(s);
       copy->timeline_info.in -= earliest_point;
       copy->timeline_info.out -= earliest_point;
       s->clips_.append(copy);

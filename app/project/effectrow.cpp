@@ -32,41 +32,24 @@
 
 using panels::PanelManager;
 
-EffectRow::EffectRow(Effect* parent, const bool save, QGridLayout& uilayout,
-                     const QString& n, const int row, const bool keyframable) :
-  parent_effect(parent),
-  savable(save),
-  keyframing(false),
-  ui(uilayout),
-  name(n),
-  ui_row(row),
-  just_made_unsafe_keyframe(false)
+
+
+EffectRow::EffectRow(Effect* parent_eff, const bool save, QGridLayout& uilayout,
+                     const QString& n, const int row, const bool keyframable)
+  : QObject(parent_eff),
+    parent_effect(parent_eff),
+    label(new ClickableLabel(n + ":")),
+    saveable(save),
+    name(n),
+    ui(uilayout),
+    ui_row(row),
+    keyframable_(keyframable)
 {
-  label = new ClickableLabel(name + ":");
-
-  ui.addWidget(label, row, 0);
-
-  column_count = 1;
-
-  keyframe_nav = nullptr;
-  if (parent_effect->meta != nullptr
-      && parent_effect->meta->type != EFFECT_TYPE_TRANSITION
-      && keyframable) {
-    connect(label, SIGNAL(clicked()), this, SLOT(focus_row()));
-
-    keyframe_nav = new KeyframeNavigator();
-    connect(keyframe_nav, SIGNAL(goto_previous_key()), this, SLOT(goto_previous_key()));
-    connect(keyframe_nav, SIGNAL(toggle_key()), this, SLOT(toggle_key()));
-    connect(keyframe_nav, SIGNAL(goto_next_key()), this, SLOT(goto_next_key()));
-    connect(keyframe_nav, SIGNAL(keyframe_enabled_changed(bool)), this, SLOT(set_keyframe_enabled(bool)));
-    connect(keyframe_nav, SIGNAL(clicked()), this, SLOT(focus_row()));
-    ui.addWidget(keyframe_nav, row, 6);
-  }
+  setupUi();
 }
 
 EffectRow::~EffectRow()
 {
-  parent_effect = nullptr;
   label = nullptr;
 }
 
@@ -74,13 +57,60 @@ bool EffectRow::isKeyframing() {
   return keyframing;
 }
 
-void EffectRow::setKeyframing(bool b) {
-  if (parent_effect->meta->type != EFFECT_TYPE_TRANSITION) {
+void EffectRow::setKeyframing(bool b)
+{
+  Q_ASSERT(parent_effect != nullptr);
+  if (parent_effect->meta.type  != EFFECT_TYPE_TRANSITION) {
     keyframing = b;
     if (keyframe_nav != nullptr) {
       keyframe_nav->enable_keyframes(b);
     }
   }
+}
+
+
+bool EffectRow::load(QXmlStreamReader& stream)
+{
+  EffectField* eff_fld = nullptr;
+  while (stream.readNextStartElement()) {
+    auto elem_name = stream.name().toString().toLower();
+    if (elem_name == "name") {
+      auto fld_name = stream.readElementText();
+      eff_fld = field(fld_name);
+      if (eff_fld == nullptr) {
+        qWarning() << "No EffectRow Field found" << fld_name;
+      }
+    } else if ( (elem_name == "value") && (eff_fld != nullptr) ) {
+      auto val = stream.readElementText();
+      eff_fld->setValue(val);
+    } else if ( (elem_name == "keyframe") && (eff_fld != nullptr) ) {
+      //TODO:
+      EffectKeyframe kf;
+      kf.load(stream);
+      eff_fld->keyframes.append(kf);
+      setKeyframing(true);
+
+    }
+    else {
+      qWarning() << "Unknown Row Element" << elem_name;
+      stream.skipCurrentElement();
+    }
+  }
+  return true;
+}
+bool EffectRow::save(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("row");
+  stream.writeTextElement("name", name);
+
+  for (const auto& field : fields) {
+    if (!field->save(stream)) {
+      qCritical() << "Failed to save EffectField";
+      return false;
+    }
+  }
+  stream.writeEndElement();
+  return true;
 }
 
 void EffectRow::set_keyframe_enabled(bool enabled) {
@@ -114,9 +144,10 @@ void EffectRow::set_keyframe_enabled(bool enabled) {
 
 void EffectRow::goto_previous_key()
 {
+  Q_ASSERT(parent_effect != nullptr);
   long key = LONG_MIN;
-  ClipPtr c = parent_effect->parent_clip;
-  for (int i=0;i<fieldCount();i++) {
+  const ClipPtr& c = parent_effect->parent_clip;
+  for (int i=0; i < fieldCount(); ++i) {
     EffectField* f = field(i);
     for (const auto& kf : f->keyframes) {
       long comp = kf.time - c->timeline_info.clip_in + c->timeline_info.in;
@@ -130,13 +161,22 @@ void EffectRow::goto_previous_key()
   }
 }
 
-void EffectRow::toggle_key() {
+void EffectRow::toggle_key()
+{
+  Q_ASSERT(parent_effect != nullptr);
   QVector<EffectField*> key_fields;
   QVector<int> key_field_index;
   ClipPtr c = parent_effect->parent_clip;
-  for (int j=0;j<fieldCount();j++) {
-    EffectField* f = field(j);
-    for (int i=0;i<f->keyframes.size();i++) {
+  if (c == nullptr) {
+    qCritical() << "Null Clip instance";
+    return;
+  }
+  for (const auto f : fields) {
+    if (f == nullptr) {
+      qWarning() << "Null Effect field insance";
+      continue;
+    }
+    for (int i=0; i < f->keyframes.size();i++) {
       long comp = c->timeline_info.in - c->timeline_info.clip_in + f->keyframes.at(i).time;
       if (comp == global::sequence->playhead_) {
         key_fields.append(f);
@@ -160,10 +200,19 @@ void EffectRow::toggle_key() {
 
 void EffectRow::goto_next_key()
 {
+  Q_ASSERT(parent_effect != nullptr);
   long key = LONG_MAX;
+
   ClipPtr c = parent_effect->parent_clip;
-  for (int i=0;i<fieldCount();i++) {
-    EffectField* f = field(i);
+  if (c == nullptr) {
+    qCritical() << "Null Clip instance";
+    return;
+  }
+  for (const auto f : fields) {
+    if (f == nullptr) {
+      qWarning() << "Null Effect field insance";
+      continue;
+    }
     for (const auto& kf : f->keyframes) {
       const long comp = kf.time - c->timeline_info.clip_in + c->timeline_info.in;
       if (comp > global::sequence->playhead_) {
@@ -181,9 +230,12 @@ void EffectRow::focus_row()
   panels::PanelManager::graphEditor().set_row(this);
 }
 
-EffectField* EffectRow::add_field(const EffectFieldType type, const QString& id, int colspan) {
+EffectField* EffectRow::add_field(const EffectFieldType type, const QString& id, int colspan)
+{
+  Q_ASSERT(parent_effect != nullptr);
+
   auto field = new EffectField(this, type, id);
-  if (parent_effect->meta->type != EFFECT_TYPE_TRANSITION) {
+  if (parent_effect->meta.type  != EFFECT_TYPE_TRANSITION) {
     connect(field, SIGNAL(clicked()), this, SLOT(focus_row()));
   }
   fields.append(field);
@@ -194,7 +246,8 @@ EffectField* EffectRow::add_field(const EffectFieldType type, const QString& id,
   return field;
 }
 
-void EffectRow::add_widget(QWidget* w) {
+void EffectRow::add_widget(QWidget* w)
+{
   ui.addWidget(w, ui_row, column_count);
   column_count++;
 }
@@ -207,8 +260,6 @@ void EffectRow::set_keyframe_now(ComboAction* ca)
       + parent_effect->parent_clip->timeline_info.clip_in;
 
   if (!just_made_unsafe_keyframe) {
-    EffectKeyframe key;
-    key.time = time;
 
     unsafe_keys.resize(fieldCount());
     unsafe_old_data.resize(fieldCount());
@@ -216,6 +267,8 @@ void EffectRow::set_keyframe_now(ComboAction* ca)
 
     for (int i=0;i<fieldCount();i++) {
       EffectField* f = field(i);
+      EffectKeyframe key(f);
+      key.time = time;
 
       int exist_key = -1;
       int closest_key = 0;
@@ -318,6 +371,17 @@ EffectField* EffectRow::field(const int index) {
 }
 
 
+EffectField* EffectRow::field(const QString& name)
+{
+  for (auto fld : fields) {
+    if ( (fld != nullptr) && (fld->id == name) ) {
+      return fld;
+    }
+  }
+  return nullptr;
+}
+
+
 const QVector<EffectField*>& EffectRow::getFields() const
 {
   return fields;
@@ -326,3 +390,27 @@ const QVector<EffectField*>& EffectRow::getFields() const
 int EffectRow::fieldCount() {
   return fields.size();
 }
+
+void EffectRow::setupUi()
+{
+  ui.addWidget(label, ui_row, 0);
+
+  if ( (parent_effect != nullptr)
+       && (parent_effect->meta.type >= 0)
+       && (parent_effect->meta.type != EFFECT_TYPE_TRANSITION)
+       && keyframable_) {
+
+    connect(label, SIGNAL(clicked()), this, SLOT(focus_row()));
+
+    keyframe_nav = new KeyframeNavigator();
+    connect(keyframe_nav, SIGNAL(goto_previous_key()), this, SLOT(goto_previous_key()));
+    connect(keyframe_nav, SIGNAL(toggle_key()), this, SLOT(toggle_key()));
+    connect(keyframe_nav, SIGNAL(goto_next_key()), this, SLOT(goto_next_key()));
+    connect(keyframe_nav, SIGNAL(keyframe_enabled_changed(bool)), this, SLOT(set_keyframe_enabled(bool)));
+    connect(keyframe_nav, SIGNAL(clicked()), this, SLOT(focus_row()));
+    ui.addWidget(keyframe_nav, ui_row, 6);
+
+    qDebug() << "Setup of valid, keyframable effect";
+  }
+}
+

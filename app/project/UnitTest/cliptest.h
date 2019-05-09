@@ -27,6 +27,34 @@ class ClipTest : public QObject
       * @brief Test that the Clip's media is open
       */
      void testCaseMediaOpen();
+
+     void testCaseClipType();
+
+     void testCaseisSelected();
+
+     void testCaseaddLinkedClip();
+
+     void testCaseRelink();
+
+     void testCaseClearLinks();
+
+     void testCaseSetTransition();
+
+     void testCaseSplit();
+
+     void testCaseSplitWithClosingTransition();
+
+     void testCaseSplitWithOpeningTransition();
+
+     void testCaseSplitWithBothTransitions();
+
+     void testCaseDeleteTransition();
+
+     void testCaseNudge();
+
+     void testCaseInRange();
+
+     void testCaseIsSelectedBySelection();
 };
 
 #endif // CLIPTEST_H

@@ -30,6 +30,7 @@
 #include "project/selection.h"
 #include "project/sequence.h"
 #include "project/media.h"
+#include "project/effect.h"
 
 constexpr int TRACK_DEFAULT_HEIGHT = 40;
 
@@ -52,7 +53,6 @@ class Transition;
 class TimelineHeader;
 class ResizableScrollBar;
 class AudioMonitor;
-struct EffectMeta;
 
 class Clip;
 class Footage;
@@ -61,7 +61,6 @@ class FootageStream;
 int getScreenPointFromFrame(double zoom, long frame);
 long getFrameFromScreenPoint(double zoom, int x);
 bool selection_contains_transition(const Selection& s, ClipPtr c, int type);
-void move_clip(ComboAction *ca, ClipPtr c, long iin, long iout, long iclip_in, int itrack, bool verify_transitions = true, bool relative = false);
 void ripple_clips(ComboAction *ca, SequencePtr  s, long point, long length, const QVector<int>& ignore = QVector<int>());
 
 struct Ghost {
@@ -103,19 +102,15 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     Timeline& operator=(const Timeline&) = delete;
     Timeline& operator=(const Timeline&&) = delete;
 
+    bool setSequence(const SequencePtr& seq);
     bool focused();
     void set_zoom(bool in);
     void copy(bool del);
     void paste(bool insert);
-    ClipPtr split_clip(ComboAction* ca, int p, long frame);
-    ClipPtr split_clip(ComboAction* ca, int p, long frame, long post_in);
-    bool split_selection(ComboAction* ca);
-    bool split_all_clips_at_point(ComboAction *ca, long point);
-    bool split_clip_and_relink(ComboAction* ca, int clip, long frame, bool relink);
+    bool split_all_clips_at_point(ComboAction *ca, const long point);
     void clean_up_selections(QVector<Selection>& areas);
     void deselect_area(long in, long out, int track);
-    void delete_areas_and_relink(ComboAction *ca, QVector<Selection>& areas);
-    void relink_clips_using_ids(QVector<int>& old_clips, QVector<ClipPtr>& new_clips);
+    void delete_areas(ComboAction *ca, QVector<Selection>& areas);
     void update_sequence();
     void increase_track_height();
     void decrease_track_height();
@@ -194,8 +189,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
 
     // splitting
     bool splitting;
-    QVector<int> split_tracks;
-    QVector<int> split_cache;
+    QSet<int> split_tracks;
 
     // importing
     bool importing;
@@ -211,7 +205,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     int transition_tool_pre_clip;
     int transition_tool_post_clip;
     int transition_tool_type{};
-    const EffectMeta* transition_tool_meta{};
+    EffectMeta transition_tool_meta{};
     int transition_tool_side{};
 
     // hand tool variables
@@ -244,8 +238,9 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void repaint_timeline();
     void toggle_show_all();
     void deselect();
-    void toggle_links();
     void split_at_playhead();
+    void unlinkClips();
+    void linkClips();
 
   private slots:
     void zoom_in();
@@ -261,18 +256,9 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void set_tool();
 
   private:
-    void set_zoom_value(double v);
     QVector<QPushButton*> tool_buttons;
-    void decheck_tool_buttons(QObject* sender);
-    void set_tool(int tool);
     long last_frame;
     int scroll;
-    void set_sb_max();
-
-    void setup_ui();
-
-    std::vector<ClipPtr> selectedClips();
-    std::vector<Selection> selections();
 
     int default_track_height;
 
@@ -286,6 +272,18 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     QPushButton* zoomOutButton{};
     QPushButton* recordButton{};
     QPushButton* addButton{};
+    SequencePtr sequence_{};
+
+    void set_zoom_value(double v);
+    void decheck_tool_buttons(QObject* sender);
+    void set_tool(int tool);
+    void set_sb_max();
+    void setup_ui();
+    std::vector<ClipPtr> selectedClips();
+    std::vector<Selection> selections();
+    void pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const SequencePtr& seq);
+    ClipPtr split_clip(ComboAction& ca, const ClipPtr& pre_clip, const long frame) const;
+    void clipLinkage(const bool link);
 };
 
 #endif // TIMELINE_H

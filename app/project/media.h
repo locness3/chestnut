@@ -26,6 +26,7 @@
 #include "project/projectitem.h"
 #include "project/sequence.h"
 #include "project/footage.h"
+#include "project/ixmlstreamer.h"
 
 
 enum class MediaType {
@@ -53,7 +54,7 @@ using MediaPtr = std::shared_ptr<Media>;
 using MediaWPtr = std::weak_ptr<Media>;
 
 
-class Media : public std::enable_shared_from_this<Media>
+class Media : public std::enable_shared_from_this<Media>, public project::IXMLStreamer
 {
 public:
     Media();
@@ -68,6 +69,7 @@ public:
      * @return id
      */
     int32_t id() const;
+    void setId(const int32_t id);
     void clearObject();
     bool setFootage(const FootagePtr& ftg);
     bool setSequence(const SequencePtr& sqn);
@@ -76,7 +78,7 @@ public:
     void setParent(const MediaWPtr& p);
     void updateTooltip(const QString& error = nullptr);
     MediaType type() const;
-    const QString& name();
+    const QString& name() const;
     void setName(const QString& n);
 
     double frameRate(const int32_t stream = -1);
@@ -92,9 +94,13 @@ public:
     int32_t row();
     MediaPtr parentItem();
     void removeChild(const int32_t index);
+    /**
+     * @brief Reset the ID parameter used for auto-generation of Media ids
+     */
+    static void resetNextId();
 
-    int32_t temp_id = 0;
-    int32_t temp_id2 = 0;
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
 
 protected:
     static int32_t nextID;
@@ -112,6 +118,11 @@ private:
     QIcon icon_;
     int32_t id_;
 
+    bool loadAsFolder(QXmlStreamReader& stream);
+    bool loadAsSequence(QXmlStreamReader& stream);
+    bool loadAsFootage(QXmlStreamReader& stream);
+
+    bool saveAsFolder(QXmlStreamWriter& stream) const;
 };
 
 #endif // MEDIA_H

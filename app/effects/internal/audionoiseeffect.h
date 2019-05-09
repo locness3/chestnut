@@ -23,13 +23,15 @@
 
 class AudioNoiseEffect : public Effect {
 public:
-    AudioNoiseEffect(ClipPtr c, const EffectMeta* em);
+    AudioNoiseEffect(ClipPtr c, const EffectMeta& em);
 
     AudioNoiseEffect(const AudioNoiseEffect& ) = delete;
     AudioNoiseEffect& operator=(const AudioNoiseEffect&) = delete;
 
     virtual void process_audio(double timecode_start, double timecode_end,
                                quint8* samples, int nb_bytes, int channel_count) override;
+
+    virtual void setupUi() override;
 
     EffectField* amount_val;
     EffectField* mix_val;

@@ -34,26 +34,28 @@ constexpr int TRANSITION_INTERNAL_LOGARITHMICFADE = 3;
 constexpr int TRANSITION_INTERNAL_CUBE = 4;
 constexpr int TRANSITION_INTERNAL_COUNT = 5;
 
-int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em, long length = -1);
-
+int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em, long length = -1);
+TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em, const bool setup = true);
 
 
 class Transition : public Effect {
     Q_OBJECT
   public:
-    Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta* em);
+    Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em);
 
-    int copy(const ClipPtr& c, const ClipPtr& s);
+//    int copy(const ClipPtr& c, const ClipPtr& s);
     void set_length(const long value);
     long get_true_length() const;
     long get_length() const;
 
-    ClipWPtr secondary_clip;
+    virtual void setupUi() override;
+
+    ClipWPtr secondary_clip; // Presumably the clip (of the same track) which the transition is spread over
   private slots:
     void set_length_from_slider();
   private:
     long length; // used only for transitions
-    EffectField* length_field;
+    EffectField* length_field{nullptr};
 };
 
 

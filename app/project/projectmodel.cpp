@@ -23,6 +23,7 @@
 #include "debug.h"
 
 constexpr int DEFAULT_COLUMN = 0;
+constexpr int FILE_VERSION = 1;
 
 using panels::PanelManager;
 
@@ -109,6 +110,56 @@ QModelIndex ProjectModel::create_index(const int row, const int col, const Media
 QModelIndex ProjectModel::create_index(const int row, const MediaPtr& mda) const
 {
   return create_index(row, DEFAULT_COLUMN, mda);
+}
+
+
+bool ProjectModel::saveFolders(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("folders");
+  if (!saveTypes(stream, MediaType::FOLDER)) {
+    return false;
+  }
+  stream.writeEndElement(); //folders
+  return true;
+}
+
+
+bool ProjectModel::saveMedia(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("media");
+  if (!saveTypes(stream, MediaType::FOOTAGE)) {
+    return false;
+  }
+  stream.writeEndElement(); //media
+  return true;
+}
+
+bool ProjectModel::saveSequences(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("sequences");
+  if (!saveTypes(stream, MediaType::SEQUENCE)) {
+    return false;
+  }
+  stream.writeEndElement(); //sequences
+  return true;
+}
+
+
+bool ProjectModel::saveTypes(QXmlStreamWriter& stream, const MediaType mda_type) const
+{
+  for (const auto& item : project_items) {
+    if (item == nullptr) {
+      qCritical() << "Null Media ptr";
+      continue;
+    }
+    if (item->type() == mda_type) {
+      if (!item->save(stream)) {
+        qCritical() << "Failed to save media type" << static_cast<int>(mda_type);
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 QModelIndex ProjectModel::parent(const QModelIndex &index) const
@@ -221,13 +272,91 @@ const MediaPtr ProjectModel::get(const QModelIndex& idx) const
   return project_items.value(idx.internalId());
 }
 
+
+MediaPtr ProjectModel::getFolder(const int id)
+{
+  for (const auto& item : project_items) {
+    if ( item && item->parentItem()
+         && (item->type() == MediaType::FOLDER) && (item->parentItem()->id() == id) ) {
+      return item;
+    }
+  }
+  return nullptr;
+}
+
+
+const QMap<int, MediaPtr>& ProjectModel::items() const
+{
+  return project_items;
+}
+
+
+MediaPtr ProjectModel::findItemById(const int id)
+{
+  if (project_items.count(id) > 0) {
+    return project_items.value(id);
+  }
+  return nullptr;
+}
+
+bool ProjectModel::load(QXmlStreamReader& stream)
+{
+  // items must be loaded in sequence :
+  // 1. folders 2. footage 3. sequences
+  // otherwise linking (parent<->child) won't work
+  QStringRef elem_name;
+  while (stream.readNextStartElement()) {
+    elem_name = stream.name();
+    if (elem_name == "version") {
+      auto text = stream.readElementText();
+      auto version = text.toInt();
+      if (version > FILE_VERSION) {
+        qCritical() << "Unsupported project file version" << version;
+        return false;
+      }
+    } else if ( (elem_name == "folders") || (elem_name == "media") || (elem_name == "sequences") ) {
+      while (stream.readNextStartElement()) {
+        auto mda = std::make_shared<Media>(nullptr);
+        if (!mda->load(stream)) {
+          return false;
+        }
+        appendChild(mda->parentItem(), mda);
+      }
+    } else {
+      stream.skipCurrentElement();
+      qWarning() << "Unhandled element" << elem_name;
+    }
+  }
+  return true;
+}
+
+bool ProjectModel::save(QXmlStreamWriter& stream) const
+{
+  stream.writeStartElement("project");
+  stream.writeTextElement("version", QString::number(FILE_VERSION));
+
+  //TODO: if saving is slow, pass a copy of project_items to each function which whittles it down
+  if (!saveFolders(stream)) {
+    return false;
+  }
+  if (!saveMedia(stream)) {
+    return false;
+  }
+  if (!saveSequences(stream)) {
+    return false;
+  }
+
+  stream.writeEndElement(); //project
+  return true;
+}
+
 bool ProjectModel::appendChild(MediaPtr parent, const MediaPtr& child)
 {
   if (project_items.empty()) {
     return false;
   }
   if (parent == nullptr) {
-    parent = project_items.first();
+    parent = root();
   }
   auto item = parent == project_items.first() ? QModelIndex() : create_index(parent->row(), parent);
   beginInsertRows(item,

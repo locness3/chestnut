@@ -4,6 +4,9 @@
 #include <memory>
 #include <QString>
 
+class Clip;
+class Effect;
+
 namespace project {
     enum class SequenceItemType {
         CLIP = 0,
@@ -28,8 +31,8 @@ namespace project {
         SequenceItemType type() const;
 
     private:
-        friend class Clip;
-        friend class Effect;
+        friend class ::Clip;
+        friend class ::Effect;
         QString name_;
         SequenceItemType type_;
 
