@@ -27,7 +27,7 @@ class RenderThread : public QThread {
     GLuint texColorBuffer;
     EffectPtr gizmos;
     void paint();
-    void start_render(QOpenGLContext* share, SequenceWPtr s, const bool grab=false);
+    void start_render(QOpenGLContext* share, SequenceWPtr s, const bool grab=false, GLvoid *pixel_buffer=nullptr);
     bool did_texture_fail();
     void cancel();
   protected:
@@ -57,6 +57,7 @@ class RenderThread : public QThread {
     bool running;
     bool frame_grabbing_{};
     std::atomic_bool draw_clipped_{false};
+    GLvoid* pix_buf_{nullptr};
 };
 
 #endif // RENDERTHREAD_H
