@@ -335,7 +335,7 @@ bool ExportThread::setUpContext(RenderThread& rt, Viewer& vwr)
 
 void ExportThread::setDownContext(RenderThread& rt, Viewer& vwr) const
 {
-  if (vwr.viewer_widget == nullptr || vwr.viewer_widget->context() == nullptr) {
+  if ( (vwr.viewer_widget == nullptr) || (vwr.viewer_widget->context() == nullptr)) {
     return;
   }
 
@@ -352,7 +352,6 @@ void ExportThread::run()
     qCritical() << "No render thread available";
     return;
   }
-
 
   continue_encode_ = setUpContext(*renderer, PanelManager::sequenceViewer());
   continue_encode_ = continue_encode_ && setupContainer();
@@ -391,36 +390,40 @@ void ExportThread::run()
     if (video_params.enabled) {
       do {
         // TODO optimize by rendering the next frame while encoding the last
-        renderer->start_render(nullptr, global::sequence);
+        renderer->start_render(nullptr, global::sequence, false, video_frame->data[0]);
         waitCond.wait(&mutex);
-        if (!continue_encode_) break;
+        if (!continue_encode_){
+          break;
+        }
       } while (renderer->did_texture_fail());
-      if (!continue_encode_) break;
+      if (!continue_encode_) {
+        break;
+      }
     }
 
     // encode last frame while rendering next frame
-    double timecode_secs = (double) (global::sequence->playhead_ - start_frame) / global::sequence->frameRate();
+    double timecode_secs = static_cast<double> (global::sequence->playhead_ - start_frame) / global::sequence->frameRate();
     if (video_params.enabled) {
       // change pixel format
       sws_scale(sws_ctx, video_frame->data, video_frame->linesize, 0, video_frame->height, sws_frame->data, sws_frame->linesize);
       sws_frame->pts = qRound(timecode_secs/av_q2d(video_stream->time_base));
 
       // send to encoder
-      if (!encode(fmt_ctx, vcodec_ctx, sws_frame, &video_pkt, video_stream, false)) continue_encode_ = false;
+      continue_encode_ = encode(fmt_ctx, vcodec_ctx, sws_frame, &video_pkt, video_stream, false);
     }
     if (audio_params.enabled) {
       // do we need to encode more audio samples?
-      while (continue_encode_ && file_audio_samples <= (timecode_secs * audio_params.sampling_rate)) {
+      while (continue_encode_ && (file_audio_samples <= (timecode_secs * audio_params.sampling_rate))) {
         // copy samples from audio buffer to AVFrame
         int adjusted_read = audio_ibuffer_read % AUDIO_IBUFFER_SIZE;
         int copylen = qMin(aframe_bytes, AUDIO_IBUFFER_SIZE - adjusted_read);
-        memcpy(audio_frame->data[0], audio_ibuffer + adjusted_read, copylen);
-        memset(audio_ibuffer + adjusted_read, 0, copylen);
+        memcpy(audio_frame->data[0], audio_ibuffer + adjusted_read, static_cast<size_t>(copylen));
+        memset(audio_ibuffer + adjusted_read, 0, static_cast<size_t>(copylen));
         audio_ibuffer_read += copylen;
 
         if (copylen < aframe_bytes) {
           // copy remainder
-          int remainder_len = aframe_bytes-copylen;
+          auto remainder_len = static_cast<size_t>(aframe_bytes - copylen);
           memcpy(audio_frame->data[0] + copylen, audio_ibuffer, remainder_len);
           memset(audio_ibuffer, 0, remainder_len);
           audio_ibuffer_read += remainder_len;
@@ -431,14 +434,14 @@ void ExportThread::run()
         swr_frame->pts = file_audio_samples;
 
         // send to encoder
-        if (!encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true)) continue_encode_ = false;
+        continue_encode_ = encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true);
 
         file_audio_samples += swr_frame->nb_samples;
       }
     }
 
     // encoding stats
-    frame_time = (QDateTime::currentMSecsSinceEpoch()-start_time);
+    frame_time = (QDateTime::currentMSecsSinceEpoch() - start_time);
     total_time += frame_time;
     remaining_frames = (end_frame - global::sequence->playhead_);
     avg_time = (total_time / frame_count);
@@ -473,9 +476,7 @@ void ExportThread::run()
         break;
       }
       swr_frame->pts = file_audio_samples;
-      if (!encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true)) {
-        continue_encode_ = false;
-      }
+      continue_encode_ = encode(fmt_ctx, acodec_ctx, swr_frame, &audio_pkt, audio_stream, true);
       file_audio_samples += swr_frame->nb_samples;
     } while (swr_frame->nb_samples > 0);
   }

@@ -118,6 +118,7 @@ void RenderThread::paint()
         // texture failed, try again
         queued = true;
       } else {
+        // used when saving a frame as a picture
         QImage img(tex_width, tex_height, QImage::Format_RGBA8888);
         ctx->functions()->glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer);
         glReadPixels(0, 0, tex_width, tex_height, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
@@ -125,7 +126,14 @@ void RenderThread::paint()
         emit frameGrabbed(img);
         frame_grabbing_ = false;
       }
+    } else if (pix_buf_ != nullptr) {
+      // used on exporting sequence
+      ctx->functions()->glBindFramebuffer(GL_READ_FRAMEBUFFER, frameBuffer);
+      glReadPixels(0, 0, tex_width, tex_height, GL_RGBA, GL_UNSIGNED_BYTE, pix_buf_);
+      ctx->functions()->glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+      pix_buf_ = nullptr;
     }
+
 
     glDisable(GL_DEPTH);
     glDisable(GL_BLEND);
@@ -133,14 +141,14 @@ void RenderThread::paint()
   }
 }
 
-void RenderThread::start_render(QOpenGLContext *share, SequenceWPtr s, const bool grab)
+void RenderThread::start_render(QOpenGLContext *share, SequenceWPtr s, const bool grab, GLvoid* pixel_buffer)
 {
   seq = std::move(s);
 
   // stall any dependent actions
   texture_failed = true;
 
-  if (share != nullptr && (ctx == nullptr || ctx->shareContext() != share_ctx)) {
+  if ( (share != nullptr) && ( (ctx == nullptr) || (ctx->shareContext() != share_ctx) )) {
     share_ctx = share;
     delete_ctx();
     ctx = new QOpenGLContext();
@@ -151,6 +159,7 @@ void RenderThread::start_render(QOpenGLContext *share, SequenceWPtr s, const boo
   }
 
   frame_grabbing_ = grab;
+  pix_buf_ = pixel_buffer;
 
   queued = true;
   waitCond.wakeAll();
