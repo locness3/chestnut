@@ -80,6 +80,9 @@ constexpr int THROBBER_LIMIT          = 20;
 constexpr int THROBBER_SIZE           = 50;
 constexpr int MIN_WIDTH = 320;
 
+constexpr auto VIDEO_FMT_FILTER = "*.avi *.m4v *.mkv *.mov *.mp4 *.ogv *.webm *.wmv";
+constexpr auto AUDIO_FMT_FILTER = "*.aac *.aif *.alac *.flac *.m4a *.mp3 *.ogg *.wav *.wma";
+
 #ifdef QT_NO_DEBUG
 constexpr bool XML_SAVE_FORMATTING = false;
 #else
@@ -846,8 +849,15 @@ bool Project::reveal_media(MediaPtr media, QModelIndex parent) {
   return false;
 }
 
-void Project::import_dialog() {
-  QFileDialog fd(this, tr("Import media..."), "", tr("All Files") + " (*)");
+void Project::import_dialog()
+{
+  QString formats = tr("Video") + "(" + VIDEO_FMT_FILTER + QString(VIDEO_FMT_FILTER).toUpper() + ")";
+  formats += ";;" + tr("Audio") + "(" + AUDIO_FMT_FILTER + QString(AUDIO_FMT_FILTER).toUpper() + ")";
+  formats += ";;" + tr("All Files") + "(*)";
+  QFileDialog fd(this,
+                 tr("Import media..."),
+                 "",
+                formats);
   fd.setFileMode(QFileDialog::ExistingFiles);
 
   if (fd.exec()) {
