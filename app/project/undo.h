@@ -745,14 +745,4 @@ private:
   bool old_project_changed_;
 };
 
-class NudgeClipCommand: public QUndoCommand {
-  public:
-    NudgeClipCommand(ClipPtr clp, const int val);
-    virtual void undo() override;
-    virtual void redo() override;
-  private:
-    ClipPtr clip_;
-    int nudge_value_;
-};
-
 #endif // UNDO_H
