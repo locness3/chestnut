@@ -1458,6 +1458,14 @@ void Clip::refactorFrameRate(ComboAction* ca, double multiplier, bool change_tim
     }
   }
 
+  // rescale the length of transitions otherwise the could overlap each other or be longer than the clip
+  if (transition_.opening_ != nullptr) {
+    transition_.opening_->set_length(qRound(transition_.opening_->get_length() * multiplier));
+  }
+  if (transition_.closing_ != nullptr) {
+    transition_.closing_->set_length(qRound(transition_.closing_->get_length() * multiplier));
+  }
+
   // move keyframes
   for (const auto& effectNow : effects) {
     if (!effectNow) {
@@ -2112,7 +2120,7 @@ void Clip::reset_cache(const long target_frame) {
     if (!ftg) return;
 
     FootageStreamPtr ms;
-    if (timeline_info.isVideo()) {
+    if (mediaType() == ClipType::VISUAL) {
       ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
