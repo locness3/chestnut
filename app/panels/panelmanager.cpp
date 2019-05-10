@@ -106,6 +106,7 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
       if (aclip >= 0) {
         selected_clips.append(aclip);
       }
+
       if (vclip >= 0 && aclip >= 0) {
         bool found = false;
         ClipPtr vclip_ref = seq->clip(vclip);
@@ -136,8 +137,8 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
 
   if (controls.multiple != multiple || !same) {
     controls.multiple = multiple;
-    controls.set_clips(selected_clips, mode);
   }
+  controls.set_clips(selected_clips, mode);
 }
 
 
