@@ -508,6 +508,7 @@ void Effect::delete_self()
 
 void Effect::move_up()
 {
+  //FIXME: not visually working
   auto command = new MoveEffectCommand();
   command->clip = parent_clip;
   command->from = get_index_in_clip();
@@ -518,6 +519,7 @@ void Effect::move_up()
 
 void Effect::move_down()
 {
+  //FIXME: not visually working
   auto command = new MoveEffectCommand();
   command->clip = parent_clip;
   command->from = get_index_in_clip();
