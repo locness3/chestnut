@@ -71,12 +71,12 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
       }
       for (const auto& seq_sel : seq->selections_) {
         bool add = true;
-        if (seq_clip->isSelected(seq_sel)) {
-          mode = TA_NO_TRANSITION;
-        } else if (selection_contains_transition(seq_sel, seq_clip, TA_OPENING_TRANSITION)) {
+        if (selection_contains_transition(seq_sel, seq_clip, TA_OPENING_TRANSITION)) {
           mode = TA_OPENING_TRANSITION;
         } else if (selection_contains_transition(seq_sel, seq_clip, TA_CLOSING_TRANSITION)) {
-          mode = TA_CLOSING_TRANSITION;
+          mode = TA_CLOSING_TRANSITION;          
+        } else  if (seq_clip->isSelected(seq_sel)) {
+          mode = TA_NO_TRANSITION;
         } else {
           add = false;
         }
@@ -106,6 +106,7 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
       if (aclip >= 0) {
         selected_clips.append(aclip);
       }
+
       if (vclip >= 0 && aclip >= 0) {
         bool found = false;
         ClipPtr vclip_ref = seq->clip(vclip);
@@ -136,8 +137,8 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
 
   if (controls.multiple != multiple || !same) {
     controls.multiple = multiple;
-    controls.set_clips(selected_clips, mode);
   }
+  controls.set_clips(selected_clips, mode);
 }
 
 
