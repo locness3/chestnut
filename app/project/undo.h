@@ -42,7 +42,7 @@ class Transition;
 class EffectGizmo;
 
 class Footage;
-struct EffectMeta;
+class EffectMeta;
 
 
 extern QUndoStack e_undo_stack;
@@ -205,8 +205,8 @@ private:
     EffectMeta closing_{};
   } meta_;
   struct {
-    int opening_;
-    int closing_;
+    long opening_;
+    long closing_;
   } lengths_;
   bool old_project_changed;
   void populateOpening();
@@ -597,7 +597,7 @@ public:
 
 class UpdateFootageTooltip : public QUndoCommand {
 public:
-  UpdateFootageTooltip(MediaPtr i);
+  explicit UpdateFootageTooltip(MediaPtr i);
   virtual void undo() override;
   virtual void redo() override;
 private:

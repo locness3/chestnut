@@ -357,6 +357,9 @@ DeleteTransitionCommand::DeleteTransitionCommand(ClipPtr clp, const ClipTransiti
       populateClosing();
       populateOpening();
       break;
+    default:
+        qWarning() << "Unhandled Clip transition type" << static_cast<int>(type_);
+        break;
     }
   }
 }
@@ -374,6 +377,9 @@ void DeleteTransitionCommand::undo()
     case ClipTransitionType::BOTH:
       clip_->setTransition(meta_.opening_, ClipTransitionType::OPENING, lengths_.opening_);
       clip_->setTransition(meta_.closing_, ClipTransitionType::CLOSING, lengths_.closing_);
+      break;
+    default:
+      qWarning() << "Unhandled Clip transition type" << static_cast<int>(type_);
       break;
     }
   }
