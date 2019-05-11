@@ -36,6 +36,8 @@ using SequencePtr = std::shared_ptr<Sequence>;
 using SequenceUPtr = std::unique_ptr<Sequence>;
 using SequenceWPtr = std::weak_ptr<Sequence>;
 
+Q_DECLARE_METATYPE(SequencePtr)
+
 class Sequence : public std::enable_shared_from_this<Sequence>, public project::ProjectItem {
 public:
 

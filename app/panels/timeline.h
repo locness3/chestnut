@@ -255,6 +255,9 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void resize_move(double d);
     void set_tool();
 
+  signals:
+    void newSequenceLoaded(const SequencePtr& new_sequence);
+
   private:
     QVector<QPushButton*> tool_buttons;
     long last_frame;
