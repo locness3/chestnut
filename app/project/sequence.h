@@ -95,6 +95,12 @@ public:
      * @return              true==track is enabled
      */
     bool trackEnabled(const int track_number) const;
+    /**
+     * @brief               Identify if the track is locked editing in the timeline
+     * @param track_number
+     * @return              true==track is locked
+     */
+    bool trackLocked(const int track_number) const;
 
     /**
      * @brief         Obtain all clips at a position in the sequence
@@ -104,13 +110,32 @@ public:
     QVector<ClipPtr> clips(const long frame) const;
 
     void closeActiveClips(const int32_t depth=0);
+    /**
+     * @brief     Obtain a clip from this sequence
+     * @param id  Clip id
+     * @return    Clip instance or null
+     */
     ClipPtr clip(const int32_t id);
+    /**
+     * @brief     Remove a clip from this sequence
+     * @param id  Clip id
+     */
     void deleteClip(const int32_t id);
 
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 
+    /**
+     * @brief         Lock a track to prevent editing (via the timeline) of contained clips until unlocked
+     * @param number  The track number
+     * @param lock    true==lock
+     */
     void lockTrack(const int number, const bool lock);
+    /**
+     * @brief         Enable/disable a track (for the timeline and sequence viewer)
+     * @param number  The track number
+     * @param enable  true==enable
+     */
     void enableTrack(const int number, const bool enable);
 
     QVector<Selection> selections_;

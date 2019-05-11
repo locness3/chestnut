@@ -309,6 +309,15 @@ bool Sequence::trackEnabled(const int track_number) const
   return true;
 }
 
+
+bool Sequence::trackLocked(const int track_number) const
+{
+  if (tracks_.contains(track_number)) {
+    return tracks_[track_number].locked;
+  }
+  return false;
+}
+
 QVector<ClipPtr> Sequence::clips(const long frame) const
 {
   QVector<ClipPtr> frame_clips;

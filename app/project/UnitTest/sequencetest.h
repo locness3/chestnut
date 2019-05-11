@@ -29,6 +29,16 @@ private slots:
      * @brief Check correct clips are returned at a timeline position
      */
     void testCaseClips();
+
+    void testCaseTrackCount();
+
+    void testCaseTrackLocked();
+
+    void testCaseTrackEnabled();
+
+    void testCaseLockTrack();
+
+    void testCaseEnableTrack();
 };
 
 #endif // SEQUENCETEST_H

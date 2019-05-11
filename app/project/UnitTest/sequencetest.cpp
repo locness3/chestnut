@@ -173,5 +173,75 @@ void SequenceTest::testCaseClips()
   clips = sqn->clips(11);
   QVERIFY(clips.size() == 1);
   QVERIFY(clips.contains(clip2) == true);
+}
 
+
+void SequenceTest::testCaseTrackCount()
+{
+  auto sqn = std::make_shared<Sequence>();
+
+  // by default 0 video tracks
+  QVERIFY(sqn->trackCount(true) == 0);
+  // by default 0 audio tracks
+  QVERIFY(sqn->trackCount(true) == 0);
+
+  //negative numbers are video tracks
+  auto clip1 = std::make_shared<Clip>(sqn);
+  clip1->timeline_info.track_ = 0;
+  sqn->clips_.append(clip1);
+  auto clip2 = std::make_shared<Clip>(sqn);
+  clip2->timeline_info.track_ = 1;
+  sqn->clips_.append(clip2);
+  auto clip3 = std::make_shared<Clip>(sqn);
+  clip3->timeline_info.track_ = -1;
+  sqn->clips_.append(clip3);
+
+  QVERIFY(sqn->trackCount(true) == 1);
+  QVERIFY(sqn->trackCount(false) == 2);
+
+}
+
+void SequenceTest::testCaseTrackLocked()
+{
+  Sequence sqn;
+
+  // By default, a track isn't locked
+  QVERIFY(sqn.trackLocked(0) == false);
+
+  sqn.lockTrack(1, true);
+  QVERIFY(sqn.trackLocked(1) == true);
+  sqn.lockTrack(1, false);
+  QVERIFY(sqn.trackLocked(1) == false);
+}
+
+void SequenceTest::testCaseTrackEnabled()
+{
+  Sequence sqn;
+
+  // By default, a track is enabled
+  QVERIFY(sqn.trackEnabled(0) == true);
+
+  sqn.enableTrack(1, true);
+  QVERIFY(sqn.trackEnabled(1) == true);
+  sqn.enableTrack(1, false);
+  QVERIFY(sqn.trackEnabled(1) == false);
+}
+
+
+void SequenceTest::testCaseLockTrack()
+{
+  Sequence sqn;
+  sqn.lockTrack(0, true);
+  QVERIFY(sqn.trackLocked(0) == true);
+  sqn.lockTrack(0, false);
+  QVERIFY(sqn.trackLocked(0) == false);
+}
+
+void SequenceTest::testCaseEnableTrack()
+{
+  Sequence sqn;
+  sqn.enableTrack(0, true);
+  QVERIFY(sqn.trackEnabled(0) == true);
+  sqn.enableTrack(0, false);
+  QVERIFY(sqn.trackEnabled(0) == false);
 }
