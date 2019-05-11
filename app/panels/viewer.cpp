@@ -188,9 +188,9 @@ long timecode_to_frame(const QString& s, int view, double frame_rate) {
     int d;
     int m;
 
-    int dropFrames = round(frame_rate * .066666); //Number of frames to drop on the minute marks is the nearest integer to 6% of the framerate
-    int framesPer10Minutes = round(frame_rate * 60 * 10); //Number of frames per ten minutes
-    int framesPerMinute = (round(frame_rate)*60)-  dropFrames; //Number of frames per minute is the round of the framerate * 60 minus the number of dropped frames
+    int dropFrames = qRound(frame_rate * .066666); //Number of frames to drop on the minute marks is the nearest integer to 6% of the framerate
+    int framesPer10Minutes = qRound(frame_rate * 60 * 10); //Number of frames per ten minutes
+    int framesPerMinute = (qRound(frame_rate)*60)-  dropFrames; //Number of frames per minute is the round of the framerate * 60 minus the number of dropped frames
 
     d = f / framesPer10Minutes;
     f -= dropFrames*9*d;
@@ -220,7 +220,7 @@ QString frame_to_timecode(long frame, const int view, const double frame_rate)
   int mins = 0;
   int secs = 0;
   int frames = 0;
-  QString token = ":";
+  auto token = ':';
 
   if ((view == TIMECODE_DROP || view == TIMECODE_MILLISECONDS) && frame_rate_is_droppable(frame_rate)) {
     //CONVERT A FRAME NUMBER TO DROP FRAME TIMECODE
@@ -231,11 +231,11 @@ QString frame_to_timecode(long frame, const int view, const double frame_rate)
     int d;
     int m;
 
-    int dropFrames = round(frame_rate * .066666); //Number of frames to drop on the minute marks is the nearest integer to 6% of the framerate
-    int framesPerHour = round(frame_rate*60*60); //Number of frqRound64ames in an hour
+    int dropFrames = qRound(frame_rate * .066666); //Number of frames to drop on the minute marks is the nearest integer to 6% of the framerate
+    int framesPerHour = qRound(frame_rate*60*60); //Number of frqRound64ames in an hour
     int framesPer24Hours = framesPerHour*24; //Number of frames in a day - timecode rolls over after 24 hours
-    int framesPer10Minutes = round(frame_rate * 60 * 10); //Number of frames per ten minutes
-    int framesPerMinute = (round(frame_rate)*60)-  dropFrames; //Number of frames per minute is the round of the framerate * 60 minus the number of dropped frames
+    int framesPer10Minutes = qRound(frame_rate * 60 * 10); //Number of frames per ten minutes
+    int framesPerMinute = (qRound(frame_rate)*60)-  dropFrames; //Number of frames per minute is the round of the framerate * 60 minus the number of dropped frames
 
     //If framenumber is greater than 24 hrs, next operation will rollover clock
     frame = frame % framesPer24Hours; //% is the modulus operator, which returns a remainder. a % b = the remainder of a/b
@@ -256,7 +256,7 @@ QString frame_to_timecode(long frame, const int view, const double frame_rate)
     mins = ((frame / frRound) / 60) % 60;
     hours = (((frame / frRound) / 60) / 60);
 
-    token = ";";
+    token = ';';
   } else {
     // non-drop timecode
 

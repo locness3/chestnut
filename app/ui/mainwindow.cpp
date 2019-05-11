@@ -302,6 +302,7 @@ void MainWindow::initialise()
   setup_layout(false);
 
   init_audio();
+  QObject::connect(&PanelManager::timeLine(), &Timeline::newSequenceLoaded, this, &MainWindow::sequenceLoaded);
 }
 
 MainWindow& MainWindow::instance(QWidget* parent, const QString& an)
@@ -1175,6 +1176,29 @@ void MainWindow::load_with_launch()
 void MainWindow::show_action_search() {
   ActionSearch as(this);
   as.exec();
+}
+
+
+void MainWindow::sequenceLoaded(const SequencePtr& new_sequence)
+{
+  Q_ASSERT(drop_frame_action != nullptr);
+  Q_ASSERT(nondrop_frame_action != nullptr);
+
+  if (new_sequence == nullptr) {
+    qWarning() << "Sequence instance is null";
+    return;
+  }
+
+  // ensure "drop-frame" action isn't selected or enabled if not possible
+  auto droppable = frame_rate_is_droppable(new_sequence->frameRate());
+  if (!droppable && drop_frame_action->isChecked()) {
+    drop_frame_action->setChecked(false);
+    e_config.timecode_view = TIMECODE_NONDROP;
+    nondrop_frame_action->setChecked(true);
+  }
+  drop_frame_action->setEnabled(droppable);
+
+  // TODO: enable all the actions now that a sequence is in the timeline
 }
 
 void MainWindow::reset_layout()

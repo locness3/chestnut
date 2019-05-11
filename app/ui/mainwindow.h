@@ -20,6 +20,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include "project/sequence.h"
 
 
 class MainWindow : public QMainWindow {
@@ -156,6 +157,8 @@ class MainWindow : public QMainWindow {
     void load_with_launch();
 
     void show_action_search();
+
+    void sequenceLoaded(const SequencePtr& new_sequence);
 
   private:
     friend class MainWindowTest;

@@ -98,6 +98,8 @@ Timeline::Timeline(QWidget *parent) :
   last_frame(0),
   scroll(0)
 {
+  qRegisterMetaType<SequencePtr>();
+
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   setup_ui();
@@ -134,6 +136,7 @@ bool Timeline::setSequence(const SequencePtr& seq)
 {
   if (seq != sequence_) {
     sequence_ = seq;
+    emit newSequenceLoaded(sequence_);
     return true;
   }
   return false;
