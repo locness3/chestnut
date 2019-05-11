@@ -149,56 +149,62 @@ GLuint compose_sequence(Viewer* viewer,
 
   for (auto clp : lcl_seq->clips_) {
     // if clip starts within one second and/or hasn't finished yet
-    if (clp != nullptr) {
-      if ((clp->timeline_info.isVideo()) == video) {
-        auto clip_is_active = false;
+    if (clp == nullptr) {
+      qWarning() << "Clip instance is null";
+    }
 
-        if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
-          auto ftg = clp->timeline_info.media->object<Footage>();
-          if (ftg->valid && !( (clp->timeline_info.track_ >= 0) && !is_audio_device_set())) {
-            if (ftg->ready) {
-              const auto found = ftg->has_stream_from_file_index(clp->timeline_info.media_stream);
+    if (!seq->trackEnabled(clp->timeline_info.track_)) {
+      continue;
+    }
 
-              if (found && clp->isActive(playhead)) {
-                // if thread is already working, we don't want to touch this,
-                // but we also don't want to hang the UI thread
-                clp->open(!rendering);
-                clip_is_active = true;
-                if (clp->timeline_info.track_ >= 0) {
-                  audio_track_count++;
-                }
-              } else if (clp->is_open) {
-                clp->close(false);
+    if ((clp->mediaType() == ClipType::VISUAL) == video) {
+      auto clip_is_active = false;
+
+      if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
+        auto ftg = clp->timeline_info.media->object<Footage>();
+        if (ftg->valid && !( (clp->timeline_info.track_ >= 0) && !is_audio_device_set())) {
+          if (ftg->ready) {
+            const auto found = ftg->has_stream_from_file_index(clp->timeline_info.media_stream);
+
+            if (found && clp->isActive(playhead)) {
+              // if thread is already working, we don't want to touch this,
+              // but we also don't want to hang the UI thread
+              clp->open(!rendering);
+              clip_is_active = true;
+              if (clp->timeline_info.track_ >= 0) {
+                audio_track_count++;
               }
-            } else {
-              qWarning() << "Media '" + ftg->name() + "' was not ready, retrying...";
-              texture_failed = true;
+            } else if (clp->is_open) {
+              clp->close(false);
             }
-          }
-        } else {
-          if (clp->isActive(playhead)) {
-            clp->open(!rendering);
-            clip_is_active = true;
-          } else if (clp->is_open) {
-            clp->close(false);
+          } else {
+            qWarning() << "Media '" + ftg->name() + "' was not ready, retrying...";
+            texture_failed = true;
           }
         }
-        if (clip_is_active) {
-          bool added = false;
-          for (int j=0; j<current_clips.size(); ++j) {
-            if (!current_clips.at(j)){
-              qDebug() << "Clip is Null";
-              continue;
-            }
-            if (current_clips.at(j)->timeline_info.track_ < clp->timeline_info.track_) {
-              current_clips.insert(j, clp);
-              added = true;
-              break;
-            }
+      } else {
+        if (clp->isActive(playhead)) {
+          clp->open(!rendering);
+          clip_is_active = true;
+        } else if (clp->is_open) {
+          clp->close(false);
+        }
+      }
+      if (clip_is_active) {
+        bool added = false;
+        for (int j=0; j<current_clips.size(); ++j) {
+          if (!current_clips.at(j)){
+            qDebug() << "Clip is Null";
+            continue;
           }
-          if (!added) {
-            current_clips.append(clp);
+          if (current_clips.at(j)->timeline_info.track_ < clp->timeline_info.track_) {
+            current_clips.insert(j, clp);
+            added = true;
+            break;
           }
+        }
+        if (!added) {
+          current_clips.append(clp);
         }
       }
     }
@@ -220,7 +226,7 @@ GLuint compose_sequence(Viewer* viewer,
       qWarning() << "Tried to display clip" << i << "but it's closed";
       texture_failed = true;
     } else {
-      if (clp->timeline_info.isVideo()) {
+      if (clp->mediaType() == ClipType::VISUAL) {
         ctx->functions()->GL_DEFAULT_BLEND;
         glColor4f(1.0, 1.0, 1.0, 1.0);
 
@@ -426,16 +432,16 @@ GLuint compose_sequence(Viewer* viewer,
                 const auto vertexBRY = float_lerp(coords.vertices_[3].y_, coords.vertices_[2].y_, next_col_prog);
 
                 glTexCoord2f(float_lerp(coords.texture_[0].x_, coords.texture_[1].x_, col_prog),
-                             float_lerp(coords.texture_[0].y_, coords.texture_[3].y_, row_prog)); // top left
+                    float_lerp(coords.texture_[0].y_, coords.texture_[3].y_, row_prog)); // top left
                 glVertex2f(float_lerp(vertexTLX, vertexTRX, col_prog), float_lerp(vertexTLY, vertexBLY, row_prog)); // top left
                 glTexCoord2f(float_lerp(coords.texture_[0].x_, coords.texture_[1].x_, next_col_prog),
-                             float_lerp(coords.texture_[1].y_, coords.texture_[2].y_, row_prog)); // top right
+                    float_lerp(coords.texture_[1].y_, coords.texture_[2].y_, row_prog)); // top right
                 glVertex2f(float_lerp(vertexTLX, vertexTRX, next_col_prog), float_lerp(vertexTRY, vertexBRY, row_prog)); // top right
                 glTexCoord2f(float_lerp(coords.texture_[3].x_, coords.texture_[2].x_, next_col_prog),
-                             float_lerp(coords.texture_[1].y_, coords.texture_[2].y_, next_row_prog)); // bottom right
+                    float_lerp(coords.texture_[1].y_, coords.texture_[2].y_, next_row_prog)); // bottom right
                 glVertex2f(float_lerp(vertexBLX, vertexBRX, next_col_prog), float_lerp(vertexTRY, vertexBRY, next_row_prog)); // bottom right
                 glTexCoord2f(float_lerp(coords.texture_[3].x_, coords.texture_[2].x_, col_prog),
-                             float_lerp(coords.texture_[0].y_, coords.texture_[3].y_, next_row_prog)); // bottom left
+                    float_lerp(coords.texture_[0].y_, coords.texture_[3].y_, next_row_prog)); // bottom left
                 glVertex2f(float_lerp(vertexBLX, vertexBRX, col_prog), float_lerp(vertexTLY, vertexBLY, next_row_prog)); // bottom left
               }//for
             }//for

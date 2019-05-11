@@ -2490,7 +2490,9 @@ void TimelineWidget::paintEvent(QPaintEvent*)
           if (actual_clip_rect.bottom() > height()) {
             actual_clip_rect.setBottom(height());
           }
-          painter.fillRect(actual_clip_rect, (clip->timeline_info.enabled) ? clip->timeline_info.color : DISABLED_CLIP_COLOR);
+
+          const auto clip_enabled = clip->timeline_info.enabled && global::sequence->trackEnabled(clip->timeline_info.track_);
+          painter.fillRect(actual_clip_rect, (clip_enabled) ? clip->timeline_info.color : DISABLED_CLIP_COLOR);
 
           int thumb_x = clip_rect.x() + 1;
 

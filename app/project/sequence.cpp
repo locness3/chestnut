@@ -300,6 +300,15 @@ int Sequence::trackCount(const bool video) const
   return tracks.size();
 }
 
+
+bool Sequence::trackEnabled(const int track_number) const
+{
+  if (tracks_.contains(track_number)) {
+    return tracks_[track_number].enabled;
+  }
+  return true;
+}
+
 QVector<ClipPtr> Sequence::clips(const long frame) const
 {
   QVector<ClipPtr> frame_clips;
@@ -524,7 +533,7 @@ std::pair<int64_t, int64_t> Sequence::trackLimits() const
     if (clp == nullptr) {
       continue;
     }
-    if ( (clp->timeline_info.isVideo()) && (clp->timeline_info.track_ < video_limit) ) { // video clip
+    if ( (clp->mediaType() == ClipType::VISUAL) && (clp->timeline_info.track_ < video_limit) ) { // video clip
       video_limit = clp->timeline_info.track_;
     } else if (clp->timeline_info.track_ > audio_limit) {
       audio_limit = clp->timeline_info.track_;

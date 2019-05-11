@@ -1904,10 +1904,13 @@ void Timeline::trackEnabled(const bool enabled, const int track_number)
 {
   Q_ASSERT(sequence_ != nullptr);
   sequence_->enableTrack(track_number, enabled);
+  repaint_timeline();
+  PanelManager::sequenceViewer().update_viewer();
 }
 
 void Timeline::trackLocked(const bool locked, const int track_number)
 {
   Q_ASSERT(sequence_ != nullptr);
   sequence_->lockTrack(track_number, locked);
+  repaint_timeline();
 }

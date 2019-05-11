@@ -89,6 +89,12 @@ public:
      * @return        track count
      */
     int trackCount(const bool video) const;
+    /**
+     * @brief               Identify if the track is enabled (for viewing and rendering)
+     * @param track_number
+     * @return              true==track is enabled
+     */
+    bool trackEnabled(const int track_number) const;
 
     /**
      * @brief         Obtain all clips at a position in the sequence
