@@ -662,6 +662,9 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
     PanelManager::timeLine().selection_offset = 0;
   }
 
+  // TODO: check clip under cursor's linked clips' track
+  const bool track_locked = global::sequence->trackLocked(PanelManager::timeLine().cursor_track);
+
   if (PanelManager::timeLine().creating) {
     mousePressCreatingEvent(PanelManager::timeLine());
   } else {
@@ -678,6 +681,10 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
         [[fallthrough]];
       case TimelineToolType::MENU:
       {
+        if (track_locked) {
+          break;
+        }
+
         if (track_resizing && tool != TimelineToolType::MENU) {
           track_resize_mouse_cache = event->pos().y();
           PanelManager::timeLine().moving_init = true;
@@ -802,11 +809,19 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
         PanelManager::timeLine().drag_y_start = pos.y();
         break;
       case TimelineToolType::EDIT:
-        if (e_config.edit_tool_also_seeks) PanelManager::sequenceViewer().seek(PanelManager::timeLine().drag_frame_start);
+        if (track_locked) {
+          break;
+        }
+        if (e_config.edit_tool_also_seeks) {
+          PanelManager::sequenceViewer().seek(PanelManager::timeLine().drag_frame_start);
+        }
         PanelManager::timeLine().selecting = true;
         break;
       case TimelineToolType::RAZOR:
       {
+        if (track_locked) {
+          break;
+        }
         PanelManager::timeLine().splitting = true;
         PanelManager::timeLine().split_tracks.insert(PanelManager::timeLine().drag_track_start);
         PanelManager::refreshPanels(false);
@@ -814,6 +829,9 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
         break;
       case TimelineToolType::TRANSITION:
       {
+        if (track_locked) {
+          break;
+        }
         if (PanelManager::timeLine().transition_tool_pre_clip > -1) {
           PanelManager::timeLine().transition_tool_init = true;
         }
