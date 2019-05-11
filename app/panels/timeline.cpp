@@ -50,6 +50,7 @@
 #include "ui/resizablescrollbar.h"
 #include "ui/audiomonitor.h"
 #include "ui/mainwindow.h"
+#include "ui/Forms/timelinetrackarea.h"
 #include "debug.h"
 
 
@@ -469,16 +470,31 @@ void Timeline::add_transition()
   PanelManager::refreshPanels(true);
 }
 
-int Timeline::calculate_track_height(int track, int value) {
+int Timeline::calculate_track_height(int track, int value)
+{
+  Q_ASSERT(sequence_ != nullptr);
+  //FIXME: every time the mouse moves close to the scroll area limit (horizontally) a new track is added
+  //FIXME: this is forever called when the mouse is moved over the timeline area
   int index = (track < 0) ? qAbs(track + 1) : track;
-  QVector<int>& vector = (track < 0) ? video_track_heights : audio_track_heights;
-  while (vector.size() < index+1) {
-    vector.append(default_track_height); //FIXME: infinite loop experienced here
+  const bool video_track = track < 0;
+  QVector<int>& heights = video_track ? video_track_heights : audio_track_heights;
+  TimelineTrackArea* area = video_track ? video_track_area_ : audio_track_area_;
+  int track_count = sequence_->trackCount(video_track);
+
+  while ( heights.size() < index+1 ) {
+    heights.append(default_track_height);
+    if (area != nullptr && (index < track_count)) {
+      area->addTrack(index, QString("Track:") + QString::number(index));
+    }
   }
+
+
   if (value > -1) {
-    vector[index] = value;
+    heights[index] = value;
   }
-  return vector.at(index);
+
+  area->setHeights(heights);
+  return heights.at(index);
 }
 
 void Timeline::update_sequence() {
@@ -1440,11 +1456,15 @@ void Timeline::increase_track_height() {
 void Timeline::decrease_track_height() {
   for (int i=0;i<video_track_heights.size();i++) {
     video_track_heights[i] -= TRACK_HEIGHT_INCREMENT;
-    if (video_track_heights[i] < TRACK_MIN_HEIGHT) video_track_heights[i] = TRACK_MIN_HEIGHT;
+    if (video_track_heights[i] < TRACK_MIN_HEIGHT) {
+      video_track_heights[i] = TRACK_MIN_HEIGHT;
+    }
   }
   for (int i=0;i<audio_track_heights.size();i++) {
     audio_track_heights[i] -= TRACK_HEIGHT_INCREMENT;
-    if (audio_track_heights[i] < TRACK_MIN_HEIGHT) audio_track_heights[i] = TRACK_MIN_HEIGHT;
+    if (audio_track_heights[i] < TRACK_MIN_HEIGHT) {
+      audio_track_heights[i] = TRACK_MIN_HEIGHT;
+    }
   }
   repaint_timeline();
 }
@@ -1594,17 +1614,18 @@ void Timeline::set_sb_max() {
   headers->set_scrollbar_max(horizontalScrollBar, sequence_->endFrame(), editAreas->width() - getScreenPointFromFrame(zoom, 200));
 }
 
-void Timeline::setup_ui() {
-  QWidget* dockWidgetContents = new QWidget();
+void Timeline::setup_ui()
+{
+  auto dockWidgetContents = new QWidget();
 
-  QHBoxLayout* horizontalLayout = new QHBoxLayout(dockWidgetContents);
+  auto horizontalLayout = new QHBoxLayout(dockWidgetContents);
   horizontalLayout->setSpacing(0);
   horizontalLayout->setContentsMargins(0, 0, 0, 0);
 
-  QWidget* tool_buttons_widget = new QWidget(dockWidgetContents);
+  auto tool_buttons_widget = new QWidget(dockWidgetContents);
   tool_buttons_widget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
 
-  QVBoxLayout* tool_buttons_layout = new QVBoxLayout(tool_buttons_widget);
+  auto tool_buttons_layout = new QVBoxLayout(tool_buttons_widget);
   tool_buttons_layout->setSpacing(4);
   tool_buttons_layout->setContentsMargins(0, 0, 0, 0);
 
@@ -1753,25 +1774,41 @@ void Timeline::setup_ui() {
   sizePolicy2.setVerticalStretch(0);
   sizePolicy2.setHeightForWidth(timeline_area->sizePolicy().hasHeightForWidth());
   timeline_area->setSizePolicy(sizePolicy2);
-  QVBoxLayout* timeline_area_layout = new QVBoxLayout(timeline_area);
+  auto timeline_area_layout = new QVBoxLayout(timeline_area);
   timeline_area_layout->setSpacing(0);
   timeline_area_layout->setContentsMargins(0, 0, 0, 0);
-  headers = new TimelineHeader(timeline_area);
 
-  timeline_area_layout->addWidget(headers);
+  auto header_layout = new QHBoxLayout();
+  header_layout->setSpacing(0);
+  header_layout->setContentsMargins(0, 0, 0, 0);
+  timeline_area_layout->addLayout(header_layout);
+
+  header_track_area_ = new TimelineTrackArea(timeline_area);
+  header_track_area_->type_ = TimelineTrackType::NONE;
+  header_layout->addWidget(header_track_area_);
+  headers = new TimelineHeader(timeline_area);
+  header_layout->addWidget(headers);
+  header_track_area_->setMaximumHeight(headers->height());
+
 
   editAreas = new QWidget(timeline_area);
-  QHBoxLayout* editAreaLayout = new QHBoxLayout(editAreas);
+  auto editAreaLayout = new QHBoxLayout(editAreas);
   editAreaLayout->setSpacing(0);
   editAreaLayout->setContentsMargins(0, 0, 0, 0);
-  QSplitter* splitter = new QSplitter(editAreas);
+  auto splitter = new QSplitter(editAreas);
   splitter->setOrientation(Qt::Vertical);
-  QWidget* videoContainer = new QWidget(splitter);
-  QHBoxLayout* videoContainerLayout = new QHBoxLayout(videoContainer);
+  auto videoContainer = new QWidget(splitter);
+  auto videoContainerLayout = new QHBoxLayout(videoContainer);
   videoContainerLayout->setSpacing(0);
   videoContainerLayout->setContentsMargins(0, 0, 0, 0);
   video_area = new TimelineWidget(videoContainer);
   video_area->setFocusPolicy(Qt::ClickFocus);
+
+  video_track_area_ = new TimelineTrackArea(video_area);
+  video_track_area_->type_ = TimelineTrackType::VISUAL;
+  QObject::connect(video_track_area_, &TimelineTrackArea::trackLocked, this, &Timeline::trackLocked);
+  QObject::connect(video_track_area_, &TimelineTrackArea::trackEnabled, this, &Timeline::trackEnabled);
+  videoContainerLayout->addWidget(video_track_area_);
 
   videoContainerLayout->addWidget(video_area);
 
@@ -1785,12 +1822,17 @@ void Timeline::setup_ui() {
 
   splitter->addWidget(videoContainer);
 
-  QWidget* audioContainer = new QWidget(splitter);
-  QHBoxLayout* audioContainerLayout = new QHBoxLayout(audioContainer);
+  auto audioContainer = new QWidget(splitter);
+  auto audioContainerLayout = new QHBoxLayout(audioContainer);
   audioContainerLayout->setSpacing(0);
   audioContainerLayout->setContentsMargins(0, 0, 0, 0);
   audio_area = new TimelineWidget(audioContainer);
   audio_area->setFocusPolicy(Qt::ClickFocus);
+  audio_track_area_ = new TimelineTrackArea(audio_area);
+  audio_track_area_->type_ = TimelineTrackType::AUDIO;
+  QObject::connect(audio_track_area_, &TimelineTrackArea::trackLocked, this, &Timeline::trackLocked);
+  QObject::connect(audio_track_area_, &TimelineTrackArea::trackEnabled, this, &Timeline::trackEnabled);
+  audioContainerLayout->addWidget(audio_track_area_);
 
   audioContainerLayout->addWidget(audio_area);
 
@@ -1856,4 +1898,16 @@ void Timeline::set_tool() {
     default:
       timeline_area->setCursor(Qt::ArrowCursor);
   }
+}
+
+void Timeline::trackEnabled(const bool enabled, const int track_number)
+{
+  Q_ASSERT(sequence_ != nullptr);
+  sequence_->enableTrack(track_number, enabled);
+}
+
+void Timeline::trackLocked(const bool locked, const int track_number)
+{
+  Q_ASSERT(sequence_ != nullptr);
+  sequence_->lockTrack(track_number, locked);
 }

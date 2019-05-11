@@ -19,6 +19,7 @@
 #define SEQUENCE_H
 
 #include <QVector>
+#include <QMap>
 #include <memory>
 
 #include "project/marker.h"
@@ -37,6 +38,12 @@ using SequenceUPtr = std::unique_ptr<Sequence>;
 using SequenceWPtr = std::weak_ptr<Sequence>;
 
 Q_DECLARE_METATYPE(SequencePtr)
+
+
+struct Track {
+    bool enabled{true};
+    bool locked{false};
+};
 
 class Sequence : public std::enable_shared_from_this<Sequence>, public project::ProjectItem {
 public:
@@ -75,6 +82,14 @@ public:
      * @return        Set of tracks
      */
     QSet<int> tracks(const long frame) const;
+
+    /**
+     * @brief         Obtain the populated track count in the sequence
+     * @param video   true==video tracks, false==audio tracks
+     * @return        track count
+     */
+    int trackCount(const bool video) const;
+
     /**
      * @brief         Obtain all clips at a position in the sequence
      * @param frame   Position
@@ -88,6 +103,9 @@ public:
 
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
+
+    void lockTrack(const int number, const bool lock);
+    void enableTrack(const int number, const bool enable);
 
     QVector<Selection> selections_;
     QVector<ClipPtr> clips_;
@@ -111,6 +129,7 @@ private:
     double frame_rate_ = -0.0;
     int32_t audio_frequency_ = -1;
     int32_t audio_layout_ = -1;
+    QMap<int, Track> tracks_;
 
     bool loadWorkArea(QXmlStreamReader& stream);
 };

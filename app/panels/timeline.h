@@ -31,6 +31,7 @@
 #include "project/sequence.h"
 #include "project/media.h"
 #include "project/effect.h"
+#include "ui/Forms/timelinetrackarea.h"
 
 constexpr int TRACK_DEFAULT_HEIGHT = 40;
 
@@ -140,6 +141,17 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     bool snap_to_timeline(long* l, bool use_playhead, bool use_markers, bool use_workarea);
     virtual void setMarker() const override;
 
+    void update_effect_controls();
+
+    int get_track_height_size(bool video);
+    int calculate_track_height(int track, int height);
+
+    void delete_selection(QVector<Selection> &selections, bool ripple);
+    void select_all();
+
+    void scroll_to_frame(long frame);
+    void select_from_playhead();
+
     // shared information
     TimelineToolType tool;
     long cursor_frame;
@@ -148,14 +160,11 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     bool zoom_just_changed;
     long drag_frame_start{};
     int drag_track_start{};
-    void update_effect_controls();
     bool showing_all;
     double old_zoom{};
 
     QVector<int> video_track_heights;
     QVector<int> audio_track_heights;
-    int get_track_height_size(bool video);
-    int calculate_track_height(int track, int height);
 
     // snapping
     bool snapping;
@@ -165,8 +174,6 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     // selecting functions
     bool selecting;
     int selection_offset{};
-    void delete_selection(QVector<Selection> &selections, bool ripple);
-    void select_all();
     bool rect_select_init;
     bool rect_select_proc;
     int rect_select_x{};
@@ -229,9 +236,6 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     QPushButton* toolTransitionButton{};
     QPushButton* snappingButton{};
 
-    void scroll_to_frame(long frame);
-    void select_from_playhead();
-
   protected:
     void resizeEvent(QResizeEvent *event) override;
   public slots:
@@ -254,6 +258,8 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void transition_menu_select(QAction*);
     void resize_move(double d);
     void set_tool();
+    void trackEnabled(const bool enabled, const int track_number);
+    void trackLocked(const bool locked, const int track_number);
 
   signals:
     void newSequenceLoaded(const SequencePtr& new_sequence);
@@ -276,6 +282,11 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     QPushButton* recordButton{};
     QPushButton* addButton{};
     SequencePtr sequence_{};
+
+    TimelineTrackArea* header_track_area_{nullptr};
+    TimelineTrackArea* video_track_area_{nullptr};
+    TimelineTrackArea* audio_track_area_{nullptr};
+
 
     void set_zoom_value(double v);
     void decheck_tool_buttons(QObject* sender);

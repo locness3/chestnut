@@ -282,6 +282,24 @@ QSet<int> Sequence::tracks(const long frame) const
   return pop_tracks;
 }
 
+
+int Sequence::trackCount(const bool video) const
+{
+  QSet<int> tracks;
+
+  for (const auto& c : clips_) {
+    if (c == nullptr) {
+      qWarning() << "Clip instance is null";
+      continue;
+    }
+    if (video == (c->mediaType() == ClipType::VISUAL)) {
+      tracks.insert(c->timeline_info.track_);
+    }
+  }
+
+  return tracks.size();
+}
+
 QVector<ClipPtr> Sequence::clips(const long frame) const
 {
   QVector<ClipPtr> frame_clips;
@@ -458,6 +476,23 @@ bool Sequence::save(QXmlStreamWriter& stream) const
 
   stream.writeEndElement();
   return true;
+}
+
+
+void Sequence::lockTrack(const int number, const bool lock)
+{
+  if (!tracks_.contains(number)) {
+    tracks_.insert(number, Track());
+  }
+  tracks_[number].locked = lock;
+}
+
+void Sequence::enableTrack(const int number, const bool enable)
+{
+  if (!tracks_.contains(number)) {
+    tracks_.insert(number, Track());
+  }
+  tracks_[number].enabled = enable;
 }
 
 

@@ -66,6 +66,7 @@ constexpr int TOOLTIP_INTERVAL = 500;
 namespace {
   const QColor MOUSE_RELEASE_COLOR(192, 192, 64);
   const QColor TRANSITION_COLOR(255, 0, 0, 16);
+  const QColor DISABLED_CLIP_COLOR(96, 96, 96);
 }
 
 TimelineWidget::TimelineWidget(QWidget *parent): QWidget(parent)
@@ -270,7 +271,7 @@ void TimelineWidget::rename_clip() {
                                       selected_clips.at(0)->name()
                                       );
     if (!s.isEmpty()) {
-      RenameClipCommand* rcc = new RenameClipCommand();
+      auto rcc = new RenameClipCommand();
       rcc->new_name = s;
       rcc->clips = selected_clips;
       e_undo_stack.push(rcc);
@@ -861,7 +862,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
     bool ctrl = (event->modifiers() & Qt::ControlModifier);
 
     if (event->button() == Qt::LeftButton) {
-      ComboAction* ca = new ComboAction();
+      auto ca = new ComboAction();
       bool push_undo = false;
 
       if (PanelManager::timeLine().creating) {
@@ -1868,7 +1869,9 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
         } else {
           new_height -= diff;
         }
-        if (new_height < TRACK_MIN_HEIGHT) new_height = TRACK_MIN_HEIGHT;
+        if (new_height < TRACK_MIN_HEIGHT) {
+          new_height = TRACK_MIN_HEIGHT;
+        }
         PanelManager::timeLine().calculate_track_height(track_target, new_height);
         update();
       } else if (PanelManager::timeLine().moving_proc) {
@@ -2063,7 +2066,9 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
       if (PanelManager::timeLine().rect_select_proc) {
         PanelManager::timeLine().rect_select_w = event->pos().x() - PanelManager::timeLine().rect_select_x;
         PanelManager::timeLine().rect_select_h = event->pos().y() - PanelManager::timeLine().rect_select_y;
-        if (bottom_align) PanelManager::timeLine().rect_select_h -= height();
+        if (bottom_align) {
+          PanelManager::timeLine().rect_select_h -= height();
+        }
 
         long frame_start = PanelManager::timeLine().getTimelineFrameFromScreenPoint(PanelManager::timeLine().rect_select_x);
         long frame_end = PanelManager::timeLine().getTimelineFrameFromScreenPoint(event->pos().x());
@@ -2071,7 +2076,9 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
         long frame_max = qMax(frame_start, frame_end);
 
         int rsy = PanelManager::timeLine().rect_select_y;
-        if (bottom_align) rsy += height();
+        if (bottom_align) {
+          rsy += height();
+        }
         int track_start = getTrackFromScreenPoint(rsy);
         int track_end = getTrackFromScreenPoint(event->pos().y());
         int track_min = qMin(track_start, track_end);
@@ -2483,7 +2490,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
           if (actual_clip_rect.bottom() > height()) {
             actual_clip_rect.setBottom(height());
           }
-          painter.fillRect(actual_clip_rect, (clip->timeline_info.enabled) ? clip->timeline_info.color : QColor(96, 96, 96));
+          painter.fillRect(actual_clip_rect, (clip->timeline_info.enabled) ? clip->timeline_info.color : DISABLED_CLIP_COLOR);
 
           int thumb_x = clip_rect.x() + 1;
 
