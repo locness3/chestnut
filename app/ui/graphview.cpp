@@ -504,81 +504,96 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
       update();
     } else {
       switch (current_handle) {
-      case BEZIER_HANDLE_NONE:
-        for (int i=0;i<selected_keys.size();i++) {
-          row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].time = qRound(selected_keys_old_vals.at(i) + (double(event->pos().x() - start_x)/zoom));
-          if (event->modifiers() & Qt::ShiftModifier) {
-            row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = selected_keys_old_doubles.at(i);
-          } else {
-            row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = qRound(selected_keys_old_doubles.at(i) + (double(start_y - event->pos().y())/zoom));
+        case BEZIER_HANDLE_NONE:
+          for (int i=0;i<selected_keys.size();i++) {
+            row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].time = qRound(selected_keys_old_vals.at(i) + (double(event->pos().x() - start_x)/zoom));
+            if (event->modifiers() & Qt::ShiftModifier) {
+              row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = selected_keys_old_doubles.at(i);
+            } else {
+              row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = qRound(selected_keys_old_doubles.at(i) + (double(start_y - event->pos().y())/zoom));
+            }
           }
-        }
-        moved_keys = true;
-        PanelManager::refreshPanels(false);
-        break;
-      case BEZIER_HANDLE_PRE:
-          [[fallthrough]];
-      case BEZIER_HANDLE_POST:
-      {
-        double new_pre_handle_x = old_pre_handle_x;
-        double new_pre_handle_y = old_pre_handle_y;
-        double new_post_handle_x = old_post_handle_x;
-        double new_post_handle_y = old_post_handle_y;
-
-        double x_diff = double(event->pos().x() - start_x)/zoom;
-        double y_diff = double(start_y - event->pos().y())/zoom;
-
-        if (current_handle == BEZIER_HANDLE_PRE) {
-          new_pre_handle_x += x_diff;
-          if (!(event->modifiers() & Qt::ShiftModifier)) {
-            new_pre_handle_y += y_diff;
-          }
-          if (!(event->modifiers() & Qt::ControlModifier)) {
-            new_post_handle_x = -new_pre_handle_x;
-            new_post_handle_y = -new_pre_handle_y;
-          }
-        } else {
-          new_post_handle_x += x_diff;
-          if (!(event->modifiers() & Qt::ShiftModifier)) {
-            new_post_handle_y += y_diff;
-          }
-
-          if (!(event->modifiers() & Qt::ControlModifier)) {
-            new_pre_handle_x = -new_post_handle_x;
-            new_pre_handle_y = -new_post_handle_y;
-          }
-        }
-
-        if (EffectField* field = row->field(handle_field)) {
-          EffectKeyframe& key = field->keyframes[handle_index];
-          // Ensure values are valid i.e. pre-handles are neg, post-handles are positive
-          // Ensure the resultant handle doesn't end up obscured by the keyframe (the circle)
-
-          // pres
-          key.pre_handle_x = qMin(new_pre_handle_x, 0.0);
-          if (hypot(key.pre_handle_x, new_pre_handle_y) > KEYFRAME_SIZE) {
-            key.pre_handle_y = new_pre_handle_y;
-          } else {
-            key.pre_handle_y = -KEYFRAME_SIZE;
-          }
-          // posts
-          key.post_handle_x = qMax(new_post_handle_x, 0.0);
-          if (hypot(key.post_handle_x, new_post_handle_y) > KEYFRAME_SIZE) {
-            key.post_handle_y = new_post_handle_y;
-          } else {
-            key.post_handle_y = KEYFRAME_SIZE;
-          }
-
           moved_keys = true;
-        } else {
-          qWarning() << "EffectField instance is null";
+          PanelManager::refreshPanels(false);
+          break;
+        case BEZIER_HANDLE_PRE:
+          [[fallthrough]];
+        case BEZIER_HANDLE_POST:
+        {
+          EffectKeyframe tmp_key;
+          tmp_key.type = KeyframeType::BEZIER;
+          tmp_key.pre_handle_x = old_pre_handle_x;
+          tmp_key.pre_handle_y = old_pre_handle_y;
+          tmp_key.post_handle_x = old_post_handle_x;
+          tmp_key.post_handle_y = old_post_handle_y;
+
+          double x_diff = double(event->pos().x() - start_x)/zoom;
+          double y_diff = double(start_y - event->pos().y())/zoom;
+
+          if (current_handle == BEZIER_HANDLE_PRE) {
+            tmp_key.pre_handle_x += x_diff;
+            if (!(event->modifiers() & Qt::ShiftModifier)) {
+              tmp_key.pre_handle_y += y_diff;
+            }
+            if (!(event->modifiers() & Qt::ControlModifier)) {
+              tmp_key.post_handle_x = -tmp_key.pre_handle_x;
+              tmp_key.post_handle_y = -tmp_key.pre_handle_y;
+            }
+          } else {
+            tmp_key.post_handle_x += x_diff;
+            if (!(event->modifiers() & Qt::ShiftModifier)) {
+              tmp_key.post_handle_y += y_diff;
+            }
+
+            if (!(event->modifiers() & Qt::ControlModifier)) {
+              tmp_key.pre_handle_x = -tmp_key.post_handle_x;
+              tmp_key.pre_handle_y = -tmp_key.post_handle_y;
+            }
+          }
+
+          if (EffectField* field = row->field(handle_field)) {
+            EffectKeyframe& key = field->keyframes[handle_index];
+            tmp_key.time = key.time;
+            // Ensure values are valid i.e. pre-handles are neg, post-handles are positive
+            // Ensure the resultant handle doesn't end up obscured by the keyframe (the circle)
+
+            //TODO: validate the curve that would be generated is valid
+            // i.e. pre-x coordinates are >= the previous keyframe value
+            //  post-x coordinates are <= the next keyframe value
+
+            // pres
+            tmp_key.pre_handle_x = qMin(tmp_key.pre_handle_x, 0.0);
+            if (hypot(tmp_key.pre_handle_x, tmp_key.pre_handle_y) < KEYFRAME_SIZE) {
+              tmp_key.pre_handle_y = -KEYFRAME_SIZE;
+            }
+            // posts
+            tmp_key.post_handle_x = qMax(tmp_key.post_handle_x, 0.0);
+            if (hypot(tmp_key.post_handle_x, tmp_key.post_handle_y) < KEYFRAME_SIZE) {
+              tmp_key.post_handle_y = KEYFRAME_SIZE;
+            }
+
+
+            // the keyframes aren't ordered by clip position
+            EffectKeyframe pre_key = field->previousKey(key.time);
+            EffectKeyframe post_key = field->nextKey(key.time);
+            if (valid_bezier_path(tmp_key, pre_key, post_key)) {
+              key.pre_handle_x = tmp_key.pre_handle_x;
+              key.pre_handle_y = tmp_key.pre_handle_y;
+              key.post_handle_x = tmp_key.post_handle_x;
+              key.post_handle_y = tmp_key.post_handle_y;
+            }
+
+
+            moved_keys = true;
+          } else {
+            qWarning() << "EffectField instance is null";
+          }
+          PanelManager::refreshPanels(false);
         }
-        PanelManager::refreshPanels(false);
-      }
-        break;
-      default:
-        qWarning() << "Unhandled bezier handle" << current_handle;
-        break;
+          break;
+        default:
+          qWarning() << "Unhandled bezier handle" << current_handle;
+          break;
       }//switch
     }
   } else if (row != nullptr) {
@@ -724,27 +739,27 @@ void GraphView::mouseReleaseEvent(QMouseEvent *)
   } else if (moved_keys && !selected_keys.empty()) {
     auto ca = new ComboAction();
     switch (current_handle) {
-    case BEZIER_HANDLE_NONE:
-      for (int i=0;i<selected_keys.size();i++) {
-        EffectKeyframe& key = row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)];
-        ca->append(new SetValCommand<long>(key.time, selected_keys_old_vals.at(i), key.time));
-        ca->append(new SetQVariant(&key.data, selected_keys_old_doubles.at(i), key.data));
+      case BEZIER_HANDLE_NONE:
+        for (int i=0;i<selected_keys.size();i++) {
+          EffectKeyframe& key = row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)];
+          ca->append(new SetValCommand<long>(key.time, selected_keys_old_vals.at(i), key.time));
+          ca->append(new SetQVariant(&key.data, selected_keys_old_doubles.at(i), key.data));
+        }
+        break;
+      case BEZIER_HANDLE_PRE:
+        [[fallthrough]];
+      case BEZIER_HANDLE_POST:
+      {
+        EffectKeyframe& key = row->field(handle_field)->keyframes[handle_index];
+        ca->append(new SetValCommand<double>(key.pre_handle_x, old_pre_handle_x, key.pre_handle_x));
+        ca->append(new SetValCommand<double>(key.pre_handle_y, old_pre_handle_y, key.pre_handle_y));
+        ca->append(new SetValCommand<double>(key.post_handle_x, old_post_handle_x, key.post_handle_x));
+        ca->append(new SetValCommand<double>(key.post_handle_y, old_post_handle_y, key.post_handle_y));
       }
-      break;
-    case BEZIER_HANDLE_PRE:
-      [[fallthrough]];
-    case BEZIER_HANDLE_POST:
-    {
-      EffectKeyframe& key = row->field(handle_field)->keyframes[handle_index];
-      ca->append(new SetValCommand<double>(key.pre_handle_x, old_pre_handle_x, key.pre_handle_x));
-      ca->append(new SetValCommand<double>(key.pre_handle_y, old_pre_handle_y, key.pre_handle_y));
-      ca->append(new SetValCommand<double>(key.post_handle_x, old_post_handle_x, key.post_handle_x));
-      ca->append(new SetValCommand<double>(key.post_handle_y, old_post_handle_y, key.post_handle_y));
-    }
-      break;
-    default:
-      qWarning() << "Unhandled bezier handle" << current_handle;
-      break;
+        break;
+      default:
+        qWarning() << "Unhandled bezier handle" << current_handle;
+        break;
     }
     e_undo_stack.push(ca);
   }

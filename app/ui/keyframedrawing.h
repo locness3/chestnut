@@ -25,6 +25,7 @@
 constexpr int KEYFRAME_SIZE = 6;
 constexpr int KEYFRAME_COLOR = 160;
 
+bool valid_bezier_path(const EffectKeyframe& current_key, const EffectKeyframe& prev_key, const EffectKeyframe& next_key);
 
 void draw_keyframe(QPainter &p, const KeyframeType type, const int x, const int y, const bool darker,
                    const int r = KEYFRAME_COLOR, const int g = KEYFRAME_COLOR, const int b = KEYFRAME_COLOR);
