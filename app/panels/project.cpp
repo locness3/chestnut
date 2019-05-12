@@ -33,6 +33,7 @@
 #include <QVBoxLayout>
 #include <QMenu>
 #include <memory>
+#include <QStandardPaths>
 
 #include "project/footage.h"
 #include "panels/panelmanager.h"
@@ -82,6 +83,7 @@ constexpr int MIN_WIDTH = 320;
 
 constexpr auto VIDEO_FMT_FILTER = "*.avi *.m4v *.mkv *.mov *.mp4 *.mts *.ogv *.webm *.wmv";
 constexpr auto AUDIO_FMT_FILTER = "*.aac *.aif *.alac *.flac *.m4a *.mp3 *.ogg *.wav *.wma";
+constexpr auto TMP_SAVE_FILENAME = "tmpsave.nut";
 
 #ifdef QT_NO_DEBUG
 constexpr bool XML_SAVE_FORMATTING = false;
@@ -993,23 +995,45 @@ void Project::save_project(const bool autorecovery)
   media_id = 1;
   sequence_id = 1;
 
-  QFile file(autorecovery ? autorecovery_filename : project_url);
-  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+  // save to a temporary file first
+  QString tmp_path = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+  if (tmp_path.size() < 1) {
+    qCritical() << "Unable to write temporary files";
+    return;
+  }
+
+  QFile o_file; //(TMP_SAVE_FILENAME);
+  QDir::setCurrent(tmp_path);
+  o_file.setFileName(TMP_SAVE_FILENAME);
+  if (!o_file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
     qCritical() << "Could not open file";
     return;
   }
 
-  QXmlStreamWriter stream(&file);
+  bool save_success = true;
+
+  QXmlStreamWriter stream(&o_file);
   stream.setAutoFormatting(XML_SAVE_FORMATTING);
   stream.writeStartDocument(); // doc
 
   if (!PanelManager::projectViewer().model().save(stream)) {
-    qWarning() << "Failed to save project file:" << file.fileName();
+    // by saving to a temporary, the original project file is untouched
+    save_success = false;
+    qWarning() << "Failed to save project file:" << o_file.fileName();
   }
 
   stream.writeEndDocument(); // doc
 
-  file.close();
+  o_file.close();
+
+  if (save_success) {
+    // move temp to desired location
+    QString final_path = autorecovery ? autorecovery_filename : project_url;
+    QDir().remove(final_path);
+    if (!QDir().rename(o_file.fileName(), final_path)) {
+      qCritical() << "Failed to save project";
+    }
+  }
 
   if (!autorecovery) {
     add_recent_project(project_url);
