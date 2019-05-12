@@ -31,6 +31,8 @@ enum class KeyframeType{
 
 class EffectField;
 
+constexpr int DEFAULT_HANDLE_LENGTH = 40;
+
 
 class EffectKeyframe : public project::IXMLStreamer {
   public:
@@ -42,9 +44,9 @@ class EffectKeyframe : public project::IXMLStreamer {
     QVariant data;
 
     // only for bezier type
-    double pre_handle_x = -40;
+    double pre_handle_x = -DEFAULT_HANDLE_LENGTH;
     double pre_handle_y = 0;
-    double post_handle_x = 40;
+    double post_handle_x = DEFAULT_HANDLE_LENGTH;
     double post_handle_y = 0;
 
     virtual bool load(QXmlStreamReader& stream) override;

@@ -22,6 +22,7 @@
 #include <QtMath>
 #include <QMenu>
 #include <cfloat>
+#include <cmath>
 
 #include "panels/panelmanager.h"
 #include "project/sequence.h"
@@ -43,6 +44,7 @@ constexpr int BEZIER_LINE_SIZE = 2;
 constexpr int BEZIER_HANDLE_NONE = 1;
 constexpr int BEZIER_HANDLE_PRE = 2;
 constexpr int BEZIER_HANDLE_POST = 3;
+constexpr double BEZIER_HANDLE_LENGTH_MIN = 1.0;
 
 using panels::PanelManager;
 
@@ -515,6 +517,7 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
         PanelManager::refreshPanels(false);
         break;
       case BEZIER_HANDLE_PRE:
+          [[fallthrough]];
       case BEZIER_HANDLE_POST:
       {
         double new_pre_handle_x = old_pre_handle_x;
@@ -527,27 +530,49 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
 
         if (current_handle == BEZIER_HANDLE_PRE) {
           new_pre_handle_x += x_diff;
-          if (!(event->modifiers() & Qt::ShiftModifier)) new_pre_handle_y += y_diff;
+          if (!(event->modifiers() & Qt::ShiftModifier)) {
+            new_pre_handle_y += y_diff;
+          }
           if (!(event->modifiers() & Qt::ControlModifier)) {
             new_post_handle_x = -new_pre_handle_x;
             new_post_handle_y = -new_pre_handle_y;
           }
         } else {
           new_post_handle_x += x_diff;
-          if (!(event->modifiers() & Qt::ShiftModifier)) new_post_handle_y += y_diff;
+          if (!(event->modifiers() & Qt::ShiftModifier)) {
+            new_post_handle_y += y_diff;
+          }
+
           if (!(event->modifiers() & Qt::ControlModifier)) {
             new_pre_handle_x = -new_post_handle_x;
             new_pre_handle_y = -new_post_handle_y;
           }
         }
 
-        EffectKeyframe& key = row->field(handle_field)->keyframes[handle_index];
-        key.pre_handle_x = new_pre_handle_x;
-        key.pre_handle_y = new_pre_handle_y;
-        key.post_handle_x = new_post_handle_x;
-        key.post_handle_y = new_post_handle_y;
+        if (EffectField* field = row->field(handle_field)) {
+          EffectKeyframe& key = field->keyframes[handle_index];
+          // Ensure values are valid i.e. pre-handles are neg, post-handles are positive
+          // Ensure the resultant handle doesn't end up obscured by the keyframe (the circle)
 
-        moved_keys = true;
+          // pres
+          key.pre_handle_x = qMin(new_pre_handle_x, 0.0);
+          if (hypot(key.pre_handle_x, new_pre_handle_y) > KEYFRAME_SIZE) {
+            key.pre_handle_y = new_pre_handle_y;
+          } else {
+            key.pre_handle_y = -KEYFRAME_SIZE;
+          }
+          // posts
+          key.post_handle_x = qMax(new_post_handle_x, 0.0);
+          if (hypot(key.post_handle_x, new_post_handle_y) > KEYFRAME_SIZE) {
+            key.post_handle_y = new_post_handle_y;
+          } else {
+            key.post_handle_y = KEYFRAME_SIZE;
+          }
+
+          moved_keys = true;
+        } else {
+          qWarning() << "EffectField instance is null";
+        }
         PanelManager::refreshPanels(false);
       }
         break;
@@ -593,11 +618,14 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
           break;
         }
       }
-    }
+    }//for
 
     if (!hovering_key) {
       for (int i=0;i<row->fieldCount();i++) {
         EffectField* f = row->field(i);
+        if ( (f == nullptr) || f->keyframes.empty()) {
+          continue;
+        }
         if (field_visibility.at(i)) {
           QVector<int> sorted_keys = sort_keys_from_field(f);
 
@@ -605,7 +633,6 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
             int y_comp = get_screen_y(f->keyframes.at(sorted_keys.first()).data.toDouble());
             if (event->pos().y() >= y_comp-BEZIER_LINE_SIZE
                 && event->pos().y() <= y_comp+BEZIER_LINE_SIZE) {
-              //						dout << "make an EARLY key on field" << i;
               click_add = true;
               click_add_type = f->keyframes.at(sorted_keys.first()).type;
             }
@@ -613,7 +640,6 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
             int y_comp = get_screen_y(f->keyframes.at(sorted_keys.last()).data.toDouble());
             if (event->pos().y() >= y_comp-BEZIER_LINE_SIZE
                 && event->pos().y() <= y_comp+BEZIER_LINE_SIZE) {
-              //						dout << "make an LATE key on field" << i;
               click_add = true;
               click_add_type = f->keyframes.at(sorted_keys.last()).type;
             }
@@ -631,13 +657,15 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
 
               if (event->pos().x() >= last_key_x
                   && event->pos().x() <= key_x) {
-                QRect mouse_rect(event->pos().x()-BEZIER_LINE_SIZE, event->pos().y()-BEZIER_LINE_SIZE, BEZIER_LINE_SIZE+BEZIER_LINE_SIZE, BEZIER_LINE_SIZE+BEZIER_LINE_SIZE);
+                QRect mouse_rect(event->pos().x()-BEZIER_LINE_SIZE,
+                                 event->pos().y()-BEZIER_LINE_SIZE,
+                                 BEZIER_LINE_SIZE+BEZIER_LINE_SIZE,
+                                 BEZIER_LINE_SIZE+BEZIER_LINE_SIZE);
                 // NOTE: FILTHY copy/paste from paintEvent
                 if (last_key.type == KeyframeType::HOLD) {
                   // hold
                   if (event->pos().y() >= last_key_y-BEZIER_LINE_SIZE
                       && event->pos().y() <= last_key_y+BEZIER_LINE_SIZE) {
-                    //									dout << "make an HOLD key on field" << i << "after key" << j;
                     click_add = true;
                   }
                 } else if (last_key.type == KeyframeType::BEZIER || key.type == KeyframeType::BEZIER) {
@@ -664,7 +692,6 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
                           );
                   }
                   if (bezier_path.intersects(mouse_rect)) {
-                    //									dout << "make an BEZIER key on field" << i << "after key" << j;
                     click_add = true;
                   }
                 } else {
@@ -673,7 +700,6 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
                   linear_path.moveTo(last_key_x, last_key_y);
                   linear_path.lineTo(key_x, key_y);
                   if (linear_path.intersects(mouse_rect)) {
-                    //									dout << "make an LINEAR key on field" << i << "after key" << j;
                     click_add = true;
                   }
                 }
