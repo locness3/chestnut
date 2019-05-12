@@ -102,16 +102,16 @@ bool EffectKeyframe::load(QXmlStreamReader& stream)
     } else if (name == TIME_TAG) {
       time = stream.readElementText().toInt();
     } else if (name == PRE_HANDLE_X_TAG) {
-      pre_handle_x = stream.readElementText().toInt();
+      pre_handle_x = stream.readElementText().toDouble();
       pre_x_set = true;
     } else if (name == PRE_HANDLE_Y_TAG) {
-      pre_handle_y = stream.readElementText().toInt();
+      pre_handle_y = stream.readElementText().toDouble();
       pre_y_set = true;
     } else if (name == POST_HANDLE_X_TAG) {
-      post_handle_x = stream.readElementText().toInt();
+      post_handle_x = stream.readElementText().toDouble();
       post_x_set = true;
     } else if (name == POST_HANDLE_Y_TAG) {
-      post_handle_y = stream.readElementText().toInt();
+      post_handle_y = stream.readElementText().toDouble();
       post_y_set = true;
     } else {
       qWarning() << "Unhandled Element" << name;
