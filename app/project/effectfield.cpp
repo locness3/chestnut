@@ -442,6 +442,33 @@ bool EffectField::save(QXmlStreamWriter& stream) const
   return true;
 }
 
+EffectKeyframe EffectField::previousKey(const long position) const
+{
+  EffectKeyframe key;
+
+  for (auto field_key : keyframes) {
+    if ( (field_key.time < position) && (field_key.time > key.time) ) {
+      key = field_key;
+    }
+  }
+
+  return key;
+}
+
+EffectKeyframe EffectField::nextKey(const long position) const
+{
+  EffectKeyframe key;
+  key.time = LONG_MAX;
+
+  for (auto field_key : keyframes) {
+    if ( (field_key.time > position) && (field_key.time < key.time) ) {
+      key = field_key;
+    }
+  }
+
+  return key;
+}
+
 QWidget* EffectField::get_ui_element() {
   return ui_element;
 }

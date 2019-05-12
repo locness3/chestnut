@@ -22,6 +22,35 @@
 constexpr int KEYFRAME_POINT_COUNT = 4;
 constexpr double DARKER_KEYFRAME_MODIFIER = 0.625;
 
+
+bool valid_bezier_path(const EffectKeyframe& current_key, const EffectKeyframe& prev_key, const EffectKeyframe& next_key)
+{
+  bool valid = true;
+  if (current_key.type != KeyframeType::BEZIER) {
+    qWarning() << "Keyframe for bezier path checking is not of a bezier type";
+    return false;
+  }
+
+  if (prev_key.type != KeyframeType::UNKNOWN) {
+    //check handles don't overlap
+    double check_val = prev_key.time;
+    if (prev_key.type == KeyframeType::BEZIER) {
+      check_val += prev_key.post_handle_x;
+    }
+    valid &= (current_key.pre_handle_x + current_key.time) > check_val;
+  }
+
+  if (next_key.type != KeyframeType::UNKNOWN) {
+    // check handles don't overlap
+    double check_val = next_key.time;
+    if (next_key.type == KeyframeType::BEZIER) {
+      check_val += next_key.pre_handle_x;
+    }
+    valid &= (current_key.post_handle_x + current_key.time) < check_val;
+  }
+  return valid;
+}
+
 void draw_keyframe(QPainter &p, const KeyframeType type, int x, int y, bool darker, int r, int g, int b) {
   if (darker) {
     r *= DARKER_KEYFRAME_MODIFIER;

@@ -106,6 +106,19 @@ public:
   virtual bool load(QXmlStreamReader& stream) override;
   virtual bool save(QXmlStreamWriter& stream) const override;
 
+  /**
+   * @brief           Obtain a keyframe before a position
+   * @param position  Position in a clip
+   * @return          keyframe, check type for validity
+   */
+  EffectKeyframe previousKey(const long position) const;
+  /**
+   * @brief           Obtain a keyframe after a position
+   * @param position  Position in a clip
+   * @return          keyframe, check type for validity
+   */
+  EffectKeyframe nextKey(const long position) const;
+
 
   EffectRow* parent_row;
   EffectFieldType type{EffectFieldType::UNKNOWN};
