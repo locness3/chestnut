@@ -593,7 +593,10 @@ bool Clip::nudge(const int pos)
 }
 
 
-bool Clip::setTransition(const EffectMeta& meta, const ClipTransitionType type, const long length)
+bool Clip::setTransition(const EffectMeta& meta,
+                         const ClipTransitionType type,
+                         const long length,
+                         const ClipPtr& secondary)
 {
   if (this->length() < 1) {
     qWarning() << "Cannot set Transition for Clip of length 0";
@@ -617,14 +620,14 @@ bool Clip::setTransition(const EffectMeta& meta, const ClipTransitionType type, 
       }
       break;
     case ClipTransitionType::CLOSING:
-      transition_.closing_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      transition_.closing_ = get_transition_from_meta(shared_from_this(), secondary, meta, true);
       if (transition_.closing_ != nullptr) {
         transition_.closing_->set_length(qMin(length, this->length()));
         return true;
       }
       break;
     case ClipTransitionType::OPENING:
-      transition_.opening_ = get_transition_from_meta(shared_from_this(), nullptr, meta, true);
+      transition_.opening_ = get_transition_from_meta(shared_from_this(), secondary, meta, true);
       if (transition_.opening_ != nullptr) {
         transition_.opening_->set_length(qMin(length, this->length()));
         return true;
@@ -1229,23 +1232,33 @@ bool Clip::save(QXmlStreamWriter& stream) const
   stream.writeStartElement("opening_transition");
   auto length = -1;
   QString trans_name;
+  int secondary_id = -1;
   if (auto trans = openingTransition()) {
-    length = trans->get_length();
+    length = trans->get_true_length();
     trans_name = trans->meta.name;
+    if (auto scnd = trans->secondaryClip()) {
+      secondary_id = scnd->id();
+    }
   }
   stream.writeTextElement("name", trans_name);
   stream.writeTextElement("length", QString::number(length));
+  stream.writeTextElement("secondary_clip", QString::number(secondary_id));
   stream.writeEndElement();
 
   stream.writeStartElement("closing_transition");
   length = -1;
   trans_name.clear();
+  secondary_id = -1;
   if (auto trans = closingTransition()) {
-    length = trans->get_length();
+    length = trans->get_true_length();
     trans_name = trans->meta.name;
+    if (auto scnd = trans->secondaryClip()) {
+      secondary_id = scnd->id();
+    }
   }
   stream.writeTextElement("name", trans_name);
   stream.writeTextElement("length", QString::number(length));
+  stream.writeTextElement("secondary_clip", QString::number(secondary_id));
   stream.writeEndElement();
 
   stream.writeStartElement("links");
@@ -1265,9 +1278,15 @@ bool Clip::save(QXmlStreamWriter& stream) const
   return true;
 }
 
+
+void Clip::verifyTransitions(ComboAction &ca)
+{
+  verifyTransitions(ca, timeline_info.in, timeline_info.out, timeline_info.track_);
+}
+
 long Clip::clipInWithTransition()
 {
-  if (transition_.opening_ != nullptr && !transition_.opening_->secondary_clip.expired()) {
+  if ( (transition_.opening_ != nullptr) && (transition_.opening_->secondaryClip() != nullptr) ) {
     // we must be the secondary clip, so return (timeline in - length)
     return timeline_info.clip_in - transition_.opening_->get_true_length();
   }
@@ -1276,7 +1295,7 @@ long Clip::clipInWithTransition()
 
 long Clip::timelineInWithTransition()
 {
-  if (transition_.opening_ != nullptr && !transition_.opening_->secondary_clip.expired()) {
+  if ( (transition_.opening_ != nullptr) && (transition_.opening_->secondaryClip() != nullptr) ) {
     // we must be the secondary clip, so return (timeline in - length)
     return timeline_info.in - transition_.opening_->get_true_length();
   }
@@ -1284,7 +1303,7 @@ long Clip::timelineInWithTransition()
 }
 
 long Clip::timelineOutWithTransition() {
-  if (transition_.closing_ != nullptr && !transition_.closing_->secondary_clip.expired()) {
+  if ( (transition_.closing_ != nullptr) && (transition_.closing_->secondaryClip() != nullptr) ) {
     // we must be the primary clip, so return (timeline out + length2)
     return timeline_info.out + transition_.closing_->get_true_length();
   }
@@ -2202,23 +2221,11 @@ void Clip::move(ComboAction &ca,
     return;
   }
 
-  if ( transition_.opening_ != nullptr) {
-    if (auto secondary = transition_.opening_->secondary_clip.lock() ) {
-      if (secondary->timeline_info.out != iin) {
-        // separate transition
-        ca.append(new DeleteTransitionCommand(secondary, ClipTransitionType::OPENING));
-      }
-    }
-  }
+  const int64_t new_in = relative ? iin + timeline_info.in : iin;
+  const int32_t new_track = relative ? itrack + timeline_info.track_ : itrack;
+  const int64_t new_out = relative ? iout + timeline_info.out : iout;
 
-  if (transition_.closing_ != nullptr)  {
-    if (auto secondary = transition_.closing_->secondary_clip.lock() ){
-      if ((transition_.closing_->parent_clip != nullptr) && (transition_.closing_->parent_clip->timeline_info.in != iout)) {
-        // separate transition
-        ca.append(new DeleteTransitionCommand(shared_from_this(), ClipTransitionType::CLOSING));
-      }
-    }
-  }
+  verifyTransitions(ca, new_in, new_out, new_track);
 }
 
 
@@ -2253,12 +2260,15 @@ TransitionPtr Clip::loadTransition(QXmlStreamReader& stream)
 {
   QString tran_name;
   int tran_length = 0;
+  int secondary_id = -1;
   while (stream.readNextStartElement()) {
     const auto name = stream.name().toString().toLower();
     if (name == "name") {
       tran_name = stream.readElementText();
     } else if (name == "length") {
       tran_length = stream.readElementText().toInt();
+    } else if (name == "secondary_clip") {
+      secondary_id = stream.readElementText().toInt();
     } else {
       qWarning() << "Unknown element" << name;
       stream.skipCurrentElement();
@@ -2271,6 +2281,7 @@ TransitionPtr Clip::loadTransition(QXmlStreamReader& stream)
     if (meta.type > -1) {
       if (auto tran = get_transition_from_meta(shared_from_this(), nullptr, meta, true)) {
         tran->set_length(tran_length);
+        tran->setSecondaryLoadId(secondary_id);
         return tran;
       } else {
         qWarning() << "Unabled to get transition from meta";
@@ -2304,6 +2315,33 @@ void Clip::setId(const int32_t id)
   id_ = id;
   if (next_id <= id) {
     next_id = id + 1;
+  }
+}
+
+
+void Clip::verifyTransitions(ComboAction &ca, const int64_t new_in, const int64_t new_out, const int32_t new_track)
+{
+  // if there is an opening transition with a secondary, and this clip is separating from the secondary clip,
+  // delete both transitions
+
+  if ( transition_.opening_ != nullptr) {
+    if (auto secondary = transition_.opening_->secondaryClip()) {
+      if ( (secondary->timeline_info.out != new_in) || (secondary->timeline_info.track_ != new_track) ) {
+        // delete transitions
+        ca.append(new DeleteTransitionCommand(shared_from_this(), ClipTransitionType::OPENING));
+        ca.append(new DeleteTransitionCommand(secondary, ClipTransitionType::CLOSING));
+      }
+    }
+  }
+
+  if (transition_.closing_ != nullptr)  {
+    if (auto secondary = transition_.closing_->secondaryClip()) {
+      if ( (secondary->timeline_info.in != new_out) || (secondary->timeline_info.track_ != new_track) )  {
+        // delete transitions
+        ca.append(new DeleteTransitionCommand(shared_from_this(), ClipTransitionType::CLOSING));
+        ca.append(new DeleteTransitionCommand(secondary, ClipTransitionType::OPENING));
+      }
+    }
   }
 }
 

@@ -25,6 +25,7 @@
 
 #include "project/sequence.h"
 #include "project/media.h"
+#include "project/undo.h"
 
 constexpr int GHOST_THICKNESS = 2;
 constexpr int CLIP_TEXT_PADDING = 3;
@@ -123,6 +124,9 @@ class TimelineWidget : public QWidget {
 
     void mousePressCreatingEvent(Timeline& time_line);
 
+    bool applyTransition(ComboAction* ca);
+
+    
 public slots:
     void setScroll(int);
 

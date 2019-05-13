@@ -34,9 +34,13 @@ constexpr int TRANSITION_INTERNAL_LOGARITHMICFADE = 3;
 constexpr int TRANSITION_INTERNAL_CUBE = 4;
 constexpr int TRANSITION_INTERNAL_COUNT = 5;
 
+
+using TransitionPtr = std::shared_ptr<Transition>;
+using TransitionWPtr = std::weak_ptr<Transition>;
+
+
 int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em, long length = -1);
 TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em, const bool setup = true);
-
 
 class Transition : public Effect {
     Q_OBJECT
@@ -48,14 +52,19 @@ class Transition : public Effect {
     long get_true_length() const;
     long get_length() const;
 
+    void setSecondaryLoadId(const int id);
+
     virtual void setupUi() override;
 
-    ClipWPtr secondary_clip; // Presumably the clip (of the same track) which the transition is spread over
+    ClipPtr secondaryClip();
+
   private slots:
     void set_length_from_slider();
   private:
     long length; // used only for transitions
     EffectField* length_field{nullptr};
+    ClipWPtr secondary_clip; // Presumably the clip (of the same track) which the transition is spread over
+    int secondary_load_id;
 };
 
 

@@ -64,7 +64,7 @@ bool selection_contains_transition(const Selection& s, ClipPtr c, int type);
 void ripple_clips(ComboAction *ca, SequencePtr  s, long point, long length, const QVector<int>& ignore = QVector<int>());
 
 struct Ghost {
-    int clip = 0;
+    ClipWPtr clip_;
     long in = 0;
     long out = 0;
     int track = 0;
@@ -86,7 +86,7 @@ struct Ghost {
     bool trimming = false;
 
     // transition trimming
-    TransitionPtr transition = nullptr;
+    TransitionWPtr transition;
 };
 
 //FIXME: far too many methods and members
@@ -183,7 +183,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     bool move_insert;
 
     // trimming
-    int trim_target;
+    int trim_target; //FIXME: a clip
     bool trim_in_point;
     int transition_select{};
 
@@ -202,8 +202,8 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     // transition variables
     bool transition_tool_init;
     bool transition_tool_proc;
-    int transition_tool_pre_clip;
-    int transition_tool_post_clip;
+    ClipPtr transition_tool_pre_clip{nullptr};
+    ClipPtr transition_tool_post_clip{nullptr};
     int transition_tool_type{};
     EffectMeta transition_tool_meta{};
     int transition_tool_side{};

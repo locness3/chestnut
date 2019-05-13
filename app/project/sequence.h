@@ -24,17 +24,21 @@
 #include "project/marker.h"
 #include "project/selection.h"
 #include "project/projectitem.h"
+
 //FIXME: this is used EVERYWHERE. This has to be water-tight and heavily tested.
 
 class Clip;
-class Transition;
 class Media;
-typedef std::shared_ptr<Clip> ClipPtr;
-typedef std::shared_ptr<Transition> TransitionPtr;
+class Transition;
+
+using ClipPtr = std::shared_ptr<Clip>;
+using TransitionPtr = std::shared_ptr<Transition>;
+using TransitionWPtr = std::weak_ptr<Transition>;
 
 using SequencePtr = std::shared_ptr<Sequence>;
 using SequenceUPtr = std::unique_ptr<Sequence>;
 using SequenceWPtr = std::weak_ptr<Sequence>;
+
 
 Q_DECLARE_METATYPE(SequencePtr)
 

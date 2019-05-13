@@ -69,6 +69,12 @@ long Transition::get_length() const {
   return length;
 }
 
+
+void Transition::setSecondaryLoadId(const int id)
+{
+  secondary_load_id = id;
+}
+
 void Transition::setupUi()
 {
   if (ui_setup) {
@@ -84,6 +90,21 @@ void Transition::setupUi()
   length_ui_ele->set_display_type(SliderType::FRAMENUMBER);
   length_ui_ele->set_frame_rate(parent_clip->sequence == nullptr
                                 ? parent_clip->timeline_info.cached_fr : parent_clip->sequence->frameRate());
+}
+
+
+ClipPtr Transition::secondaryClip()
+{
+  if (auto s_clip = secondary_clip.lock()) {
+    return s_clip;
+  }
+  if ( (Effect::parent_clip != nullptr)
+       && (Effect::parent_clip->sequence != nullptr)
+       && (secondary_load_id >= 0) ) {
+    // use the id at file load
+    return Effect::parent_clip->sequence->clip(secondary_load_id);
+  }
+  return nullptr;
 }
 
 void Transition::set_length_from_slider()
