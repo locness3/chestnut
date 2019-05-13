@@ -167,6 +167,7 @@
         <xs:sequence>
             <xs:element name="name" type="xs:string"/>
             <xs:element name="length" type="xs:integer"/>
+            <xs:element name="secondary_clip" type="xs:integer"/>
         </xs:sequence>
     </xs:complexType>
 

@@ -92,8 +92,6 @@ Timeline::Timeline(QWidget *parent) :
   creating(false),
   transition_tool_init(false),
   transition_tool_proc(false),
-  transition_tool_pre_clip(-1),
-  transition_tool_post_clip(-1),
   hand_moving(false),
   block_repaints(false),
   last_frame(0),
@@ -298,12 +296,12 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
     }
 
     Ghost g;
-    g.clip = -1;
+    g.clip_.reset();
     g.trimming = false;
     g.old_clip_in = g.clip_in = default_clip_in;
     g.media = mda;
     g.in = entry;
-    g.transition = nullptr;
+    g.transition.reset();
 
     switch (mda->type()) {
       case MediaType::FOOTAGE:
@@ -799,16 +797,16 @@ bool selection_contains_transition(const Selection& s, ClipPtr c, int type) {
     auto opening = c->getTransition(ClipTransitionType::OPENING);
     return (opening != nullptr)
         && s.out == (c->timeline_info.in + opening->get_true_length())
-        && ((opening->secondary_clip.expired() && (s.in == c->timeline_info.in))
-            || (!opening->secondary_clip.expired()
+        && (( (opening->secondaryClip() == nullptr) && (s.in == c->timeline_info.in) )
+            || ( (opening->secondaryClip() != nullptr)
                 && (s.in == (c->timeline_info.in - opening->get_true_length()))));
   }
 
   auto closing = c->getTransition(ClipTransitionType::CLOSING);
   return (closing != nullptr)
       && (s.in == (c->timeline_info.out - closing->get_true_length()))
-      && ((closing->secondary_clip.expired() && (s.out == c->timeline_info.out))
-          || (!closing->secondary_clip.expired()
+      && ( ((closing->secondaryClip() == nullptr) && (s.out == c->timeline_info.out))
+          || ( (closing->secondaryClip() != nullptr)
               && (s.out == (c->timeline_info.out + closing->get_true_length()))));
 }
 

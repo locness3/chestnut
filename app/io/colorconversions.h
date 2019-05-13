@@ -21,6 +21,8 @@
 
 #include <QRgb>
 
+//FIXME: remove all of this
+
 constexpr double LUMA_RED_COEFF = 0.2126;
 constexpr double LUMA_GREEN_COEFF = 0.7152;
 constexpr double LUMA_BLUE_COEFF = 0.0722;

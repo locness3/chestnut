@@ -72,55 +72,55 @@ class Clip : public project::SequenceItem,
     public project::IXMLStreamer,
     protected QThread
 {
-  public:
+public:
 
-    explicit Clip(SequencePtr s);
-    virtual ~Clip() override;
-    ClipPtr copy(SequencePtr s);
-    ClipPtr copyPreserveLinks(SequencePtr s);
+  explicit Clip(SequencePtr s);
+  virtual ~Clip() override;
+  ClipPtr copy(SequencePtr s);
+  ClipPtr copyPreserveLinks(SequencePtr s);
 
-    Clip() = delete;
-    Clip(const Clip&) = delete;
-    Clip(const Clip&&) = delete;
-    Clip& operator=(const Clip&) = delete;
-    Clip& operator=(const Clip&&) = delete;
+  Clip() = delete;
+  Clip(const Clip&) = delete;
+  Clip(const Clip&&) = delete;
+  Clip& operator=(const Clip&) = delete;
+  Clip& operator=(const Clip&&) = delete;
 
-    bool isActive(const long playhead);
-    /**
+  bool isActive(const long playhead);
+  /**
      * @brief Identify if the clip is being cached
      * @return true==caching used
      */
-    bool usesCacher() const;
-    /**
+  bool usesCacher() const;
+  /**
      * @brief open_worker
      * @return true==success
      */
-    bool openWorker();
-    /**
+  bool openWorker();
+  /**
      * @brief Free resources made via libav
      */
-    void closeWorker();
-    /**
+  void closeWorker();
+  /**
      * @brief Open clip and allocate necessary resources
      * @param open_multithreaded
      * @return true==success
      */
-    bool open(const bool open_multithreaded);
-    /**
+  bool open(const bool open_multithreaded);
+  /**
      * @brief mediaOpen
      * @return  true==clip's media has been opened
      */
-    bool mediaOpen() const;
-    /**
+  bool mediaOpen() const;
+  /**
      * @brief Close this clip and free up resources
      * @param wait  Wait on cache?
      */
-    void close(const bool wait);
-    /**
+  void close(const bool wait);
+  /**
      * @brief Close this clip and free up resources whilst waiting
      */
-    void closeWithWait();
-    /**
+  void closeWithWait();
+  /**
      * @brief Cache the clip at a certain point
      * @param playhead
      * @param reset
@@ -128,261 +128,272 @@ class Clip : public project::SequenceItem,
      * @param nests
      * @return  true==cached
      */
-    bool cache(const long playhead, const bool do_reset, const bool scrubbing, QVector<ClipPtr>& nests);
-    /**
+  bool cache(const long playhead, const bool do_reset, const bool scrubbing, QVector<ClipPtr>& nests);
+  /**
      * @brief Nudge the clip
      * @param pos The amount + direction to nudge the clip
      * @return true==clips position nudged
      */
-    bool nudge(const int pos);
-    /**
+  bool nudge(const int pos);
+  /**
      * @brief         Set the transition effect(s) to the clip if none already
      * @param meta    Information about the Transition effect
      * @param type    opening, closing or both transitions
      * @param length  Length of the transition in frames
      * @return  bool==success
      */
-    bool setTransition(const EffectMeta& meta, const ClipTransitionType type, const long length);
-    /**
+  bool setTransition(const EffectMeta& meta,
+                     const ClipTransitionType type,
+                     const long length,
+                     const ClipPtr& secondary=nullptr);
+  /**
      * @brief Delete the Clip's transition(s)
      * @param type  opening, closing or both transitions
      */
-    void deleteTransition(const ClipTransitionType type);
-    /**
+  void deleteTransition(const ClipTransitionType type);
+  /**
      * @brief Obtain this clip transition
      * @param type  Only 1 transition type i.e. opening or closing
      * @return ptr or null
      */
-    TransitionPtr getTransition(const ClipTransitionType type);
-    /**
+  TransitionPtr getTransition(const ClipTransitionType type);
+  /**
      * @brief Split this clip at a sequence frame.
      * If possible to split, a new clip starting after the split is returned and the current clip is modified.
      * @param frame   Sequence playhead
      * @return  The Clip after the split or nullptr
      */
-    ClipPtr split(const long frame);
-    /**
+  ClipPtr split(const long frame);
+  /**
      * @brief             Merge in a clip that was created in a split
      * @param split_clip
      * @return            true==split clip was merged to this clip
      */
-    bool merge(const Clip& split_clip);
-    /**
+  bool merge(const Clip& split_clip);
+  /**
      * @brief         Split this clip and it's linked clips, ensuring the splits are linked afterwards
      * @param frame   Sequence playhead
      * @return        A list of linked, split clips
      */
-    QVector<ClipPtr> splitAll(const long frame);
+  QVector<ClipPtr> splitAll(const long frame);
 
-    /**
+  /**
      * @brief The length in frames of the clip
      * @return
      */
-    int64_t length() const;
+  int64_t length() const;
 
-    void resetAudio();
-    void reset();
-    void refresh();
-    long clipInWithTransition();
-    long timelineInWithTransition();
-    long timelineOutWithTransition();
-    long length();
-    double mediaFrameRate();
-    long maximumLength();
-    void recalculateMaxLength();
-    int width();
-    int height();
-    int32_t id() const;
-    void refactorFrameRate(ComboAction* ca, double multiplier, bool change_timeline_points);
+  void resetAudio();
+  void reset();
+  void refresh();
+  long clipInWithTransition();
+  long timelineInWithTransition();
+  long timelineOutWithTransition();
+  long length();
+  double mediaFrameRate();
+  long maximumLength();
+  void recalculateMaxLength();
+  int width();
+  int height();
+  int32_t id() const;
+  void refactorFrameRate(ComboAction* ca, double multiplier, bool change_timeline_points);
 
-    // queue functions
-    void clearQueue();
-    void removeEarliestFromQueue();
+  // queue functions
+  void clearQueue();
+  void removeEarliestFromQueue();
 
 
-    [[deprecated("Use Clip::getTransition")]]
-    TransitionPtr openingTransition() const;
-    [[deprecated("Use Clip::getTransition")]]
-    TransitionPtr closingTransition() const;
+  [[deprecated("Use Clip::getTransition")]]
+  TransitionPtr openingTransition() const;
+  [[deprecated("Use Clip::getTransition")]]
+  TransitionPtr closingTransition() const;
 
-    /**
+  /**
      * @brief set frame cache to a position
      * @param playhead
      */
-    void frame(const long playhead, bool& texture_failed);
-    /**
+  void frame(const long playhead, bool& texture_failed);
+  /**
      * @brief get_timecode
      * @param playhead
      * @return
      */
-    double timecode(const long playhead);
-    /**
+  double timecode(const long playhead);
+  /**
      * @brief Identify if this clip is selected in the project's current sequence
      * @param containing
      * @return true==is selected
      */
-    bool isSelected(const bool containing);
-    /**
+  bool isSelected(const bool containing);
+  /**
      * @brief     Identify if this clip is contained by a selection area
      * @param sel The area selected
      * @return    true==clip is selected
      */
-    bool isSelected(const Selection& sel) const;
-    /**
+  bool isSelected(const Selection& sel) const;
+  /**
      * @brief Identify if clip is populated at frame position (irregardless of track)
      * @param frame position
      * @return true if clip in range
      */
-    bool inRange(const long frame) const; //TODO: think of a better name
-    /**
+  bool inRange(const long frame) const; //TODO: think of a better name
+  /**
      * @brief Obtain this clip type
      * @return
      */
-    ClipType mediaType() const;
-    /**
+  ClipType mediaType() const;
+  /**
      * @brief Obtain the Media parent
      * @return MediaPtr or null
      */
-    MediaPtr parentMedia();
+  MediaPtr parentMedia();
 
-    void addLinkedClip(const Clip& clp);
-    void setLinkedClips(const QVector<int32_t>& links);
-    const QVector<int32_t>& linkedClips() const;
-    void clearLinks();
-    /**
+  void addLinkedClip(const Clip& clp);
+  void setLinkedClips(const QVector<int32_t>& links);
+  const QVector<int32_t>& linkedClips() const;
+  void clearLinks();
+  /**
      * @brief Get tracks of linked clips
      * @return set of timeline tracks
      */
-    QSet<int> getLinkedTracks() const;
-    /**
+  QSet<int> getLinkedTracks() const;
+  /**
      * @brief           Update the linked clips using a mapping of old_id : new_clip
      * @param mapping   Mapped ids and clips
      */
-    void relink(const QMap<int, int>& mapping);
-    void setId(const int32_t id);
-    void move(ComboAction& ca, const long iin, const long iout,
-              const long iclip_in, const int itrack, const bool verify_transitions = true,
-              const bool relative = false);
+  void relink(const QMap<int, int>& mapping);
+  void setId(const int32_t id);
+  void move(ComboAction& ca, const long iin, const long iout,
+            const long iclip_in, const int itrack, const bool verify_transitions = true,
+            const bool relative = false);
 
-    virtual bool load(QXmlStreamReader& stream) override;
-    virtual bool save(QXmlStreamWriter& stream) const override;
+  virtual bool load(QXmlStreamReader& stream) override;
+  virtual bool save(QXmlStreamWriter& stream) const override;
 
-    //FIXME: all the class members
-    SequencePtr sequence;
+  /**
+     * @brief     Verify the transitions are valid with its secondary clip
+     * @param ca  For undo actions
+     */
+  void verifyTransitions(ComboAction &ca);
 
-    // timeline variables (should be copied in copy())
-    project::TimelineInfo timeline_info;
+  //FIXME: all the class members
+  SequencePtr sequence;
 
-    // other variables (should be deep copied/duplicated in copy())
-    QList<EffectPtr> effects;
+  // timeline variables (should be copied in copy())
+  project::TimelineInfo timeline_info;
 
-    // media handling
-    struct {
-        AVFormatContext* formatCtx = nullptr;
-        AVStream* stream = nullptr;
-        AVCodec* codec = nullptr;
-        AVCodecContext* codecCtx = nullptr;
-        AVPacket* pkt = nullptr;
-        AVFrame* frame = nullptr;
-        AVDictionary* opts = nullptr;
-        long calculated_length = -1;
-    } media_handling; //FIXME: the use of this lot should really be its own library/class
+  // other variables (should be deep copied/duplicated in copy())
+  QList<EffectPtr> effects;
 
-    // temporary variables
-    bool undeletable;
-    bool reached_end{};
-    bool is_open{};
-    bool replaced;
-    std::atomic_bool ignore_reverse{false};
-    int pix_fmt{};
+  // media handling
+  struct {
+    AVFormatContext* formatCtx = nullptr;
+    AVStream* stream = nullptr;
+    AVCodec* codec = nullptr;
+    AVCodecContext* codecCtx = nullptr;
+    AVPacket* pkt = nullptr;
+    AVFrame* frame = nullptr;
+    AVDictionary* opts = nullptr;
+    long calculated_length = -1;
+  } media_handling; //FIXME: the use of this lot should really be its own library/class
 
-    // caching functions
-    bool use_existing_frame;
-    bool multithreaded{};
-    QWaitCondition can_cache;
-    int max_queue_size{};
-    QVector<AVFrame*> queue;
-    QMutex queue_lock;
-    QMutex lock;
-    QMutex open_lock;
-    int64_t last_invalid_ts{};
+  // temporary variables
+  bool undeletable;
+  bool reached_end{};
+  bool is_open{};
+  bool replaced;
+  std::atomic_bool ignore_reverse{false};
+  int pix_fmt{};
 
-    // converters/filters
-    AVFilterGraph* filter_graph;
-    AVFilterContext* buffersink_ctx{};
-    AVFilterContext* buffersrc_ctx{};
+  // caching functions
+  bool use_existing_frame;
+  bool multithreaded{};
+  QWaitCondition can_cache;
+  int max_queue_size{};
+  QVector<AVFrame*> queue;
+  QMutex queue_lock;
+  QMutex lock;
+  QMutex open_lock;
+  int64_t last_invalid_ts{};
 
-    // video playback variables
-    QOpenGLFramebufferObject** fbo;
-    std::unique_ptr<QOpenGLTexture> texture = nullptr;
-    long texture_frame{};
+  // converters/filters
+  AVFilterGraph* filter_graph;
+  AVFilterContext* buffersink_ctx{};
+  AVFilterContext* buffersrc_ctx{};
 
-    struct AudioPlaybackInfo {
-        // audio playback variables
-        int64_t reverse_target = 0;
-        int frame_sample_index = -1;
-        int buffer_write = -1;
-        bool reset = false;
-        bool just_reset = false;
-        long target_frame = -1;
-    } audio_playback;
+  // video playback variables
+  QOpenGLFramebufferObject** fbo;
+  std::unique_ptr<QOpenGLTexture> texture = nullptr;
+  long texture_frame{};
 
-    struct {
-        TransitionPtr opening_{nullptr};
-        TransitionPtr closing_{nullptr};
-    } transition_;
+  struct AudioPlaybackInfo {
+    // audio playback variables
+    int64_t reverse_target = 0;
+    int frame_sample_index = -1;
+    int buffer_write = -1;
+    bool reset = false;
+    bool just_reset = false;
+    long target_frame = -1;
+  } audio_playback;
 
-  protected:
-    virtual void run() override;
-    static int32_t next_id;
-  private:
-    friend class ClipTest;
-    struct {
-        bool caching = false;
-        // must be set before caching
-        long playhead = 0;
-        bool reset = false;
-        bool scrubbing = false;
-        bool interrupt = false;
-        QVector<ClipPtr> nests = QVector<ClipPtr>();
-    } cache_info;
+  struct {
+    TransitionPtr opening_{nullptr};
+    TransitionPtr closing_{nullptr};
+  } transition_;
 
 
-    std::atomic_bool finished_opening{false};
-    bool pkt_written{};
-    int32_t id_{-1};
-    //TODO: link to ptrs
-    QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
-
-    void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
-
-    long playhead_to_frame(const long playhead);
-    int64_t playhead_to_timestamp(const long playhead);
-    bool retrieve_next_frame(AVFrame* frame);
-    double playhead_to_seconds(const long playhead);
-    int64_t seconds_to_timestamp(const double seconds);
-
-    void cache_audio_worker(const bool scrubbing, QVector<ClipPtr>& nests);
-    void cache_video_worker(const long playhead);
+protected:
+  virtual void run() override;
+  static int32_t next_id;
+private:
+  friend class ClipTest;
+  struct {
+    bool caching = false;
+    // must be set before caching
+    long playhead = 0;
+    bool reset = false;
+    bool scrubbing = false;
+    bool interrupt = false;
+    QVector<ClipPtr> nests = QVector<ClipPtr>();
+  } cache_info;
 
 
-    /**
+  std::atomic_bool finished_opening{false};
+  bool pkt_written{};
+  int32_t id_{-1};
+  //TODO: link to ptrs
+  QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
+
+  void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
+
+  long playhead_to_frame(const long playhead);
+  int64_t playhead_to_timestamp(const long playhead);
+  bool retrieve_next_frame(AVFrame* frame);
+  double playhead_to_seconds(const long playhead);
+  int64_t seconds_to_timestamp(const double seconds);
+
+  void cache_audio_worker(const bool scrubbing, QVector<ClipPtr>& nests);
+  void cache_video_worker(const long playhead);
+
+
+  /**
      * @brief To set up the caching thread?
      * @param playhead
      * @param reset
      * @param scrubbing
      * @param nests
      */
-    void cache_worker(const long playhead, const bool reset, const bool scrubbing, QVector<ClipPtr>& nests);
-    /**
+  void cache_worker(const long playhead, const bool reset, const bool scrubbing, QVector<ClipPtr>& nests);
+  /**
      * @brief reset_cache
      * @param target_frame
      */
-    void reset_cache(const long target_frame);
-    bool loadInEffect(QXmlStreamReader& stream);
-    TransitionPtr loadTransition(QXmlStreamReader& stream);
-    void linkClips(const QVector<ClipPtr>& linked_clips) const;
+  void reset_cache(const long target_frame);
+  bool loadInEffect(QXmlStreamReader& stream);
+  TransitionPtr loadTransition(QXmlStreamReader& stream);
+  void linkClips(const QVector<ClipPtr>& linked_clips) const;
 
+  void verifyTransitions(ComboAction &ca, const int64_t new_in, const int64_t new_out, const int32_t new_track);
 
 
 };

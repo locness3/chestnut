@@ -55,6 +55,19 @@ class ClipTest : public QObject
      void testCaseInRange();
 
      void testCaseIsSelectedBySelection();
+
+     /**
+      * @brief test when 2 clips are side by side with a shared transition
+      */
+     void testCaseVerifyTransitionSideBySide();
+     /**
+      * @brief test when 2 clips that were side by side with a shared transition and have now moved apart along the timeline
+      */
+     void testCaseVerifyTransitionMovedTime();
+     /**
+      * @brief test when 2 clips that were side by side with a shared transition and have now moved tracks
+      */
+     void testCaseVerifyTransitionMovedTrack();
 };
 
 #endif // CLIPTEST_H

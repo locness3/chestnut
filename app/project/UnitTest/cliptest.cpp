@@ -1,6 +1,7 @@
 #include "cliptest.h"
 #include "project/clip.h"
 #include "project/transition.h"
+#include "project/undo.h"
 
 
 ClipTest::ClipTest()
@@ -344,7 +345,84 @@ void ClipTest::testCaseIsSelectedBySelection()
   // selecting an unenabled clip //TODO: what should be the behaviour???
   clp.timeline_info.enabled = false;
   QVERIFY(clp.isSelected(sel) == true);
+}
 
 
+void ClipTest::testCaseVerifyTransitionSideBySide()
+{
+  ComboAction ca;
+
+  auto seq = std::make_shared<Sequence>();
+  auto clp = std::make_shared<Clip>(seq);
+  auto sec_clp = std::make_shared<Clip>(seq);
+  EffectMeta meta;
+  meta.type = TRANSITION_INTERNAL_CROSSDISSOLVE;
+  meta.internal = 0;
+  auto out_tran = std::make_shared<Transition>(clp, sec_clp, meta);
+  auto in_tran = std::make_shared<Transition>(sec_clp, clp, meta);
+
+  clp->timeline_info.out = 100;
+  clp->timeline_info.track_ = 1;
+  clp->transition_.closing_ = out_tran;
+  sec_clp->timeline_info.in = 100;
+  sec_clp->timeline_info.track_ = 1;
+  sec_clp->transition_.opening_ = in_tran;
+
+  clp->verifyTransitions(ca);
+  sec_clp->verifyTransitions(ca);
+  QVERIFY(ca.size() == 0);
+}
+
+void ClipTest::testCaseVerifyTransitionMovedTime()
+{
+  ComboAction ca;
+
+  auto seq = std::make_shared<Sequence>();
+  auto clp = std::make_shared<Clip>(seq);
+  auto sec_clp = std::make_shared<Clip>(seq);
+  EffectMeta meta;
+  meta.type = TRANSITION_INTERNAL_CROSSDISSOLVE;
+  meta.internal = 0;
+  auto out_tran = std::make_shared<Transition>(clp, sec_clp, meta);
+  auto in_tran = std::make_shared<Transition>(sec_clp, clp, meta);
+
+  clp->timeline_info.out = 100;
+  clp->timeline_info.track_ = 1;
+  clp->transition_.closing_ = out_tran;
+  sec_clp->timeline_info.in = 101;
+  sec_clp->timeline_info.track_ = 1;
+  sec_clp->transition_.opening_ = in_tran;
+
+  clp->verifyTransitions(ca);
+  QVERIFY(ca.size() == 2);
+  sec_clp->verifyTransitions(ca);
+  QVERIFY(ca.size() == 4);
+}
+
+
+void ClipTest::testCaseVerifyTransitionMovedTrack()
+{
+  ComboAction ca;
+
+  auto seq = std::make_shared<Sequence>();
+  auto clp = std::make_shared<Clip>(seq);
+  auto sec_clp = std::make_shared<Clip>(seq);
+  EffectMeta meta;
+  meta.type = TRANSITION_INTERNAL_CROSSDISSOLVE;
+  meta.internal = 0;
+  auto out_tran = std::make_shared<Transition>(clp, sec_clp, meta);
+  auto in_tran = std::make_shared<Transition>(sec_clp, clp, meta);
+
+  clp->timeline_info.out = 100;
+  clp->timeline_info.track_ = 1;
+  clp->transition_.closing_ = out_tran;
+  sec_clp->timeline_info.in = 100;
+  sec_clp->timeline_info.track_ = 0;
+  sec_clp->transition_.opening_ = in_tran;
+
+  clp->verifyTransitions(ca);
+  QVERIFY(ca.size() == 2);
+  sec_clp->verifyTransitions(ca);
+  QVERIFY(ca.size() == 4);
 }
 

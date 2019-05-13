@@ -26,12 +26,10 @@ CrossDissolveTransition::CrossDissolveTransition(ClipPtr c, ClipPtr s, const Eff
 
 void CrossDissolveTransition::process_coords(double progress, GLTextureCoords&, int data)
 {
-  if (!(data == TA_CLOSING_TRANSITION && !secondary_clip.expired())) {
-    float color[4];
-    glGetFloatv(GL_CURRENT_COLOR, color);
-    if (data == TA_CLOSING_TRANSITION) {
-      progress = 1.0 - progress;
-    }
-    glColor4f(1.0, 1.0, 1.0, color[3]*progress);
+  float color[4];
+  glGetFloatv(GL_CURRENT_COLOR, color);
+  if (data == TA_CLOSING_TRANSITION) {
+    progress = 1.0 - progress;
   }
+  glColor4f(1.0, 1.0, 1.0, color[3] * static_cast<GLfloat>(progress));
 }
