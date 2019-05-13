@@ -49,14 +49,15 @@ uint8_t average(const int ix, const VectorSpanBytes& data)
 uint8_t median(const int ix, const VectorSpanBytes& data)
 {
   const auto sz = data.size();
-  gsl::span<uint8_t> vals;
   auto lim = sz > 10 ? 10 : sz;
+  QVector<uint8_t> vals(lim);
+
   for (auto i = 0; i < lim; ++i) {
     vals[i] = data[i].at(ix);
   }
   std::sort(vals.begin(), vals.end());
   uint8_t val;
-  if (sz % 2 == 0) {
+  if ( (sz % 2) == 0) {
     // sum pixels "around" the middle and avg
     uint16_t tmp = vals.at(sz/2);
     tmp += vals.at(lround(static_cast<double>(sz)/2));
