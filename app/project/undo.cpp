@@ -124,7 +124,8 @@ void MoveClipAction::undo() {
   MainWindow::instance().setWindowModified(old_project_changed);
 }
 
-void MoveClipAction::redo() {
+void MoveClipAction::redo()
+{
   if (relative) {
     clip->timeline_info.in += new_in;
     clip->timeline_info.out += new_out;
@@ -305,7 +306,7 @@ void AddTransitionCommand::undo()
 
 void AddTransitionCommand::redo()
 {
-  parent_->setTransition(meta_, type_, length_);
+  parent_->setTransition(meta_, type_, length_, secondary_);
   MainWindow::instance().setWindowModified(true);
 }
 
@@ -347,16 +348,16 @@ DeleteTransitionCommand::DeleteTransitionCommand(ClipPtr clp, const ClipTransiti
   if (clip_ != nullptr) {
     // Hold values required to re-create transition(s) for the clip
     switch (type_) {
-    case ClipTransitionType::OPENING:
-      populateOpening();
-      break;
-    case ClipTransitionType::CLOSING:
-      populateClosing();
-      break;
-    case ClipTransitionType::BOTH:
-      populateClosing();
-      populateOpening();
-      break;
+      case ClipTransitionType::OPENING:
+        populateOpening();
+        break;
+      case ClipTransitionType::CLOSING:
+        populateClosing();
+        break;
+      case ClipTransitionType::BOTH:
+        populateClosing();
+        populateOpening();
+        break;
     }
   }
 }
@@ -365,16 +366,16 @@ void DeleteTransitionCommand::undo()
 {
   if (clip_ != nullptr) {
     switch (type_) {
-    case ClipTransitionType::OPENING:
-      clip_->setTransition(meta_.opening_, type_, lengths_.opening_);
-      break;
-    case ClipTransitionType::CLOSING:
-      clip_->setTransition(meta_.closing_, type_, lengths_.closing_);
-      break;
-    case ClipTransitionType::BOTH:
-      clip_->setTransition(meta_.opening_, ClipTransitionType::OPENING, lengths_.opening_);
-      clip_->setTransition(meta_.closing_, ClipTransitionType::CLOSING, lengths_.closing_);
-      break;
+      case ClipTransitionType::OPENING:
+        clip_->setTransition(meta_.opening_, type_, lengths_.opening_, secondary_.opening_.lock());
+        break;
+      case ClipTransitionType::CLOSING:
+        clip_->setTransition(meta_.closing_, type_, lengths_.closing_, secondary_.closing_.lock());
+        break;
+      case ClipTransitionType::BOTH:
+        clip_->setTransition(meta_.opening_, ClipTransitionType::OPENING, lengths_.opening_, secondary_.opening_.lock());
+        clip_->setTransition(meta_.closing_, ClipTransitionType::CLOSING, lengths_.closing_, secondary_.closing_.lock());
+        break;
     }
   }
   MainWindow::instance().setWindowModified(old_project_changed);
@@ -394,8 +395,8 @@ void DeleteTransitionCommand::populateOpening()
 {
   if (auto trans = clip_->getTransition(ClipTransitionType::OPENING)) {
     meta_.opening_ = trans->meta;
-    lengths_.opening_ = trans->get_length();
-    secondary_.opening_ = trans->secondary_clip;
+    lengths_.opening_ = trans->get_true_length();
+    secondary_.opening_ = trans->secondaryClip();
   }
 }
 
@@ -403,8 +404,8 @@ void DeleteTransitionCommand::populateClosing()
 {
   if (auto trans = clip_->getTransition(ClipTransitionType::CLOSING)) {
     meta_.closing_ = trans->meta;
-    lengths_.closing_ = trans->get_length();
-    secondary_.closing_ = trans->secondary_clip;
+    lengths_.closing_ = trans->get_true_length();
+    secondary_.closing_ = trans->secondaryClip();
   }
 }
 

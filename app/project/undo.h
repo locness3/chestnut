@@ -205,8 +205,8 @@ private:
     EffectMeta closing_{};
   } meta_;
   struct {
-    int opening_;
-    int closing_;
+    long opening_;
+    long closing_;
   } lengths_;
   bool old_project_changed;
   void populateOpening();
