@@ -500,18 +500,42 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
             }
           }
         }
-      }
+      }//for
       update();
     } else {
       switch (current_handle) {
         case BEZIER_HANDLE_NONE:
+          // moving a keyframes position
           for (int i=0;i<selected_keys.size();i++) {
-            row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].time = qRound(selected_keys_old_vals.at(i) + (double(event->pos().x() - start_x)/zoom));
-            if (event->modifiers() & Qt::ShiftModifier) {
-              row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = selected_keys_old_doubles.at(i);
-            } else {
-              row->field(selected_keys_fields.at(i))->keyframes[selected_keys.at(i)].data = qRound(selected_keys_old_doubles.at(i) + (double(start_y - event->pos().y())/zoom));
+            EffectField* const field = row->field(selected_keys_fields.at(i));
+            if (field == nullptr) {
+              qWarning() << "EffectField instance is null";
+              continue;
             }
+            EffectKeyframe orig_key = field->keyframes.at(selected_keys.at(i));
+            EffectKeyframe tmp_key = orig_key;
+            tmp_key.time = qRound(selected_keys_old_vals.at(i) + (static_cast<double>(event->pos().x() - start_x)/zoom) );
+            if (event->modifiers() & Qt::ShiftModifier) {
+              //lock move multiple
+              tmp_key.data = selected_keys_old_doubles.at(i);
+            } else {
+              tmp_key.data = qRound(selected_keys_old_doubles.at(i) + (static_cast<double>(start_y - event->pos().y())/zoom) );
+            }
+
+            EffectKeyframe prev_key = field->previousKey(tmp_key.time);
+            if (prev_key.time == orig_key.time) {
+              // set invalid. the original key shouldn't be used for comparisions as its 'moving'
+              prev_key.type = KeyframeType::UNKNOWN;
+            }
+            EffectKeyframe next_key = field->nextKey(tmp_key.time);
+            if (next_key.time == orig_key.time) {
+              // set invalid. the original key shouldn't be used for comparisions as its 'moving'
+              next_key.type = KeyframeType::UNKNOWN;
+            }
+
+            if (valid_bezier_path(tmp_key, prev_key, next_key)) {
+              field->keyframes[selected_keys.at(i)] = tmp_key;
+            } // else otherwise an invalid position (impossible paths)
           }
           moved_keys = true;
           PanelManager::refreshPanels(false);
@@ -520,6 +544,7 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
           [[fallthrough]];
         case BEZIER_HANDLE_POST:
         {
+          // adjusting a bezier-type keyframes handles
           EffectKeyframe tmp_key;
           tmp_key.type = KeyframeType::BEZIER;
           tmp_key.pre_handle_x = old_pre_handle_x;
@@ -556,10 +581,6 @@ void GraphView::mouseMoveEvent(QMouseEvent *event) {
             tmp_key.time = key.time;
             // Ensure values are valid i.e. pre-handles are neg, post-handles are positive
             // Ensure the resultant handle doesn't end up obscured by the keyframe (the circle)
-
-            //TODO: validate the curve that would be generated is valid
-            // i.e. pre-x coordinates are >= the previous keyframe value
-            //  post-x coordinates are <= the next keyframe value
 
             // pres
             tmp_key.pre_handle_x = qMin(tmp_key.pre_handle_x, 0.0);
