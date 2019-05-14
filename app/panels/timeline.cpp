@@ -84,7 +84,6 @@ Timeline::Timeline(QWidget *parent) :
   moving_init(false),
   moving_proc(false),
   move_insert(false),
-  trim_target(-1),
   trim_in_point(false),
   splitting(false),
   importing(false),
