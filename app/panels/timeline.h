@@ -182,8 +182,9 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     bool audio_ghosts{};
     bool move_insert;
 
+    // FIXME: these variables are only ever used in timelinewidget
     // trimming
-    int trim_target; //FIXME: a clip
+    ClipWPtr trim_target;
     bool trim_in_point;
     int transition_select{};
 

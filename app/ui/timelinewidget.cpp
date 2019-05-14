@@ -1098,7 +1098,7 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
 
           if (PanelManager::timeLine().tool == TimelineToolType::POINTER
               && (event->modifiers() & Qt::AltModifier)
-              && PanelManager::timeLine().trim_target == -1) { // if holding alt (and not trimming), duplicate rather than move
+              && PanelManager::timeLine().trim_target.expired()) { // if holding alt (and not trimming), duplicate rather than move
             // duplicate clips
             QVector<int> old_clips;
             QVector<ClipPtr> new_clips;
@@ -1409,14 +1409,14 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame)
     // slipping doesn't move the clips so we don't bother snapping for it
     for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
       const Ghost& g = PanelManager::timeLine().ghosts.at(i);
-      if (PanelManager::timeLine().trim_target == -1 || g.trim_in) {
+      if (PanelManager::timeLine().trim_target.expired() || g.trim_in) {
         fm = g.old_in + frame_diff;
         if (PanelManager::timeLine().snap_to_timeline(&fm, true, true, true)) {
           frame_diff = fm - g.old_in;
           break;
         }
       }
-      if (PanelManager::timeLine().trim_target == -1 || !g.trim_in) {
+      if (PanelManager::timeLine().trim_target.expired() || !g.trim_in) {
         fm = g.old_out + frame_diff;
         if (PanelManager::timeLine().snap_to_timeline(&fm, true, true, true)) {
           frame_diff = fm - g.old_out;
@@ -1748,7 +1748,7 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame)
   if (effective_tool != TimelineToolType::SLIP && !PanelManager::timeLine().importing && !PanelManager::timeLine().creating) {
     for (int i=0;i<global::sequence->selections_.size();i++) {
       Selection& s = global::sequence->selections_[i];
-      if (PanelManager::timeLine().trim_target > -1) {
+      if (!PanelManager::timeLine().trim_target.expired()) {
         if (PanelManager::timeLine().trim_in_point) {
           s.in = s.old_in + frame_diff;
         } else {
@@ -1785,15 +1785,14 @@ void TimelineWidget::update_ghosts(const QPoint& mouse_pos, bool lock_frame)
     QString tip = ((frame_diff < 0) ? "-" : "+") + frame_to_timecode(qAbs(frame_diff),
                                                                      e_config.timecode_view,
                                                                      global::sequence->frameRate());
-    if (PanelManager::timeLine().trim_target > -1) {
+    if (!PanelManager::timeLine().trim_target.expired()) {
       // find which clip is being moved
       const Ghost* g = nullptr;
       for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
-        //FIXME:
-//        if (PanelManager::timeLine().ghosts.at(i).clip == PanelManager::timeLine().trim_target) {
-//          g = &PanelManager::timeLine().ghosts.at(i);
-//          break;
-//        }
+        if (PanelManager::timeLine().ghosts.at(i).clip_.lock() == PanelManager::timeLine().trim_target.lock()) {
+          g = &PanelManager::timeLine().ghosts.at(i);
+          break;
+        }
       }
 
       if (g != nullptr) {
@@ -1855,7 +1854,9 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
                                               || PanelManager::timeLine().importing
                                               || PanelManager::timeLine().creating));
 
-  if (!PanelManager::timeLine().moving_init) track_resizing = false;
+  if (!PanelManager::timeLine().moving_init) {
+    track_resizing = false;
+  }
 
   if (isLiveEditing()) {
     PanelManager::timeLine().snap_to_timeline(&PanelManager::timeLine().cursor_frame,
@@ -1996,7 +1997,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
 
         if (add) {
           g.clip_ = c;
-          g.trimming = (PanelManager::timeLine().trim_target > -1);
+          g.trimming = (!PanelManager::timeLine().trim_target.expired());
           g.trim_in = PanelManager::timeLine().trim_in_point;
           PanelManager::timeLine().ghosts.append(g);
         }
@@ -2042,7 +2043,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
                     Ghost gh;
                     gh.transition.reset();
                     gh.clip_ = comp_clip;
-                    gh.trimming = (PanelManager::timeLine().trim_target > -1);
+                    gh.trimming = (!PanelManager::timeLine().trim_target.expired());
                     gh.trim_in = !PanelManager::timeLine().trim_in_point;
                     PanelManager::timeLine().ghosts.append(gh);
                   }
@@ -2263,7 +2264,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
           if (c->timeline_info.in > mouse_frame_lower && c->timeline_info.in < mouse_frame_upper) {
             int nc = qAbs(c->timeline_info.in + 1 - PanelManager::timeLine().cursor_frame);
             if (nc < closeness) {
-              PanelManager::timeLine().trim_target = i;
+              PanelManager::timeLine().trim_target = c;
               PanelManager::timeLine().trim_in_point = true;
               closeness = nc;
               found = true;
@@ -2272,7 +2273,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
           if (c->timeline_info.out > mouse_frame_lower && c->timeline_info.out < mouse_frame_upper) {
             int nc = qAbs(c->timeline_info.out - 1 - PanelManager::timeLine().cursor_frame);
             if (nc < closeness) {
-              PanelManager::timeLine().trim_target = i;
+              PanelManager::timeLine().trim_target = c;
               PanelManager::timeLine().trim_in_point = false;
               closeness = nc;
               found = true;
@@ -2285,7 +2286,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
               if (transition_point > mouse_frame_lower && transition_point < mouse_frame_upper) {
                 int nc = qAbs(transition_point - 1 - PanelManager::timeLine().cursor_frame);
                 if (nc < closeness) {
-                  PanelManager::timeLine().trim_target = i;
+                  PanelManager::timeLine().trim_target = c;
                   PanelManager::timeLine().trim_in_point = false;
                   PanelManager::timeLine().transition_select = TA_OPENING_TRANSITION;
                   closeness = nc;
@@ -2298,7 +2299,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
               if (transition_point > mouse_frame_lower && transition_point < mouse_frame_upper) {
                 int nc = qAbs(transition_point + 1 - PanelManager::timeLine().cursor_frame);
                 if (nc < closeness) {
-                  PanelManager::timeLine().trim_target = i;
+                  PanelManager::timeLine().trim_target = c;
                   PanelManager::timeLine().trim_in_point = true;
                   PanelManager::timeLine().transition_select = TA_CLOSING_TRANSITION;
                   closeness = nc;
@@ -2316,7 +2317,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
     if (found) {
       setCursor(Qt::SizeHorCursor);
     } else {
-      PanelManager::timeLine().trim_target = -1;
+      PanelManager::timeLine().trim_target.reset();
 
       // look for track heights
       int track_y = 0;
