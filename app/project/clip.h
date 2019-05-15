@@ -276,6 +276,12 @@ public:
      */
   void verifyTransitions(ComboAction &ca);
 
+  /**
+   * @brief     Identify if this clip is locked (editing prevented) in its containing sequence
+   * @return    true==locked
+   */
+  bool locked() const;
+
   //FIXME: all the class members
   SequencePtr sequence;
 

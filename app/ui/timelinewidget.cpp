@@ -61,6 +61,8 @@ using project::FootageStreamPtr;
 constexpr int MAX_TEXT_WIDTH = 20;
 constexpr int TRANSITION_BETWEEN_RANGE = 40;
 constexpr int TOOLTIP_INTERVAL = 500;
+constexpr auto LOCKED_TRACK_PATTERN = Qt::BDiagPattern;
+constexpr auto LOCKED_TRACK_PATTERN_COLOUR = Qt::gray;
 
 
 namespace {
@@ -300,6 +302,23 @@ void TimelineWidget::open_sequence_properties() {
     }
   }
   QMessageBox::critical(this, tr("Error"), tr("Couldn't locate media wrapper for sequence."));
+}
+
+
+void TimelineWidget::paintTrack(QPainter& painter, const int track, const bool video)
+{
+
+  const int point = getScreenPointFromTrack(track);
+  const int track_height = PanelManager::timeLine().calculate_track_height(track);
+  const int line_y = video ? point - 1 : point + track_height;
+  if (global::sequence->trackLocked(track)) {
+    QBrush brush(LOCKED_TRACK_PATTERN);
+    brush.setColor(LOCKED_TRACK_PATTERN_COLOUR);
+    const int y_pos = video ? line_y : line_y - track_height;
+    qInfo() << "Track locked" << track << video;
+    painter.fillRect(0, y_pos, rect().width(), track_height, brush);
+  }
+  painter.drawLine(0, line_y, rect().width(), line_y);
 }
 
 bool same_sign(int a, int b) {
@@ -668,7 +687,6 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
     PanelManager::timeLine().selection_offset = 0;
   }
 
-  // TODO: check clip under cursor's linked clips' track
   const bool track_locked = global::sequence->trackLocked(PanelManager::timeLine().cursor_track);
 
   if (PanelManager::timeLine().creating) {
@@ -2545,11 +2563,10 @@ void TimelineWidget::paintEvent(QPaintEvent*)
     // get widget width and height
     int video_track_limit = 0;
     int audio_track_limit = 0;
-    for (int i=0;i<global::sequence->clips_.size();i++) {
-      ClipPtr clip = global::sequence->clips_.at(i);
-      if (clip != nullptr) {
-        video_track_limit = qMin(video_track_limit, clip->timeline_info.track_.load());
-        audio_track_limit = qMax(audio_track_limit, clip->timeline_info.track_.load());
+    for (const auto seq_clip : global::sequence->clips_) {
+      if (seq_clip != nullptr) {
+        video_track_limit = qMin(video_track_limit, seq_clip->timeline_info.track_.load());
+        audio_track_limit = qMax(audio_track_limit, seq_clip->timeline_info.track_.load());
       }
     }
 
@@ -2569,6 +2586,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
       scrollBar->setMaximum(qMax(0, panel_height - height()));
     }
 
+    // Draw all the clips
     for (int i=0;i<global::sequence->clips_.size();i++) {
       ClipPtr clip = global::sequence->clips_.at(i);
       if (clip != nullptr && is_track_visible(clip->timeline_info.track_)) {
@@ -2601,13 +2619,13 @@ void TimelineWidget::paintEvent(QPaintEvent*)
 
           int thumb_x = clip_rect.x() + 1;
 
-          if (clip->timeline_info.media != nullptr &&
-              clip->timeline_info.media->type() == MediaType::FOOTAGE) {
+          if ( (clip->timeline_info.media != nullptr) &&
+              (clip->timeline_info.media->type() == MediaType::FOOTAGE) ) {
             bool draw_checkerboard = false;
             QRect checkerboard_rect(clip_rect);
             auto ftg = clip->timeline_info.media->object<Footage>();
             FootageStreamPtr ms;
-            if (clip->timeline_info.isVideo()) {
+            if (clip->mediaType() == ClipType::VISUAL) {
               ms = ftg->video_stream_from_file_index(clip->timeline_info.media_stream);
             } else {
               ms = ftg->audio_stream_from_file_index(clip->timeline_info.media_stream);
@@ -2825,7 +2843,8 @@ void TimelineWidget::paintEvent(QPaintEvent*)
     }
 
     // Draw recording clip if recording if valid
-    if (PanelManager::sequenceViewer().is_recording_cued() && is_track_visible(PanelManager::sequenceViewer().recording_track)) {
+    if (PanelManager::sequenceViewer().is_recording_cued()
+        && is_track_visible(PanelManager::sequenceViewer().recording_track)) {
       int rec_track_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(PanelManager::sequenceViewer().recording_start);
       int rec_track_y = getScreenPointFromTrack(PanelManager::sequenceViewer().recording_track);
       int rec_track_height = PanelManager::timeLine().calculate_track_height(PanelManager::sequenceViewer().recording_track, -1);
@@ -2871,19 +2890,20 @@ void TimelineWidget::paintEvent(QPaintEvent*)
     if (e_config.show_track_lines) {
       painter.setPen(QColor(0, 0, 0, 96));
       audio_track_limit++;
-      if (video_track_limit == 0) video_track_limit--;
+      if (video_track_limit == 0) {
+        video_track_limit--;
+      }
+
 
       if (bottom_align) {
         // only draw lines for video tracks
-        for (int i=video_track_limit;i<0;i++) {
-          int line_y = getScreenPointFromTrack(i) - 1;
-          painter.drawLine(0, line_y, rect().width(), line_y);
+        for (int i=video_track_limit; i<0; ++i) {
+          paintTrack(painter, i, true);
         }
       } else {
         // only draw lines for audio tracks
-        for (int i=0;i<audio_track_limit;i++) {
-          int line_y = getScreenPointFromTrack(i) + PanelManager::timeLine().calculate_track_height(i, -1);
-          painter.drawLine(0, line_y, rect().width(), line_y);
+        for (int i=0; i<audio_track_limit; ++i) {
+          paintTrack(painter, i,  false);
         }
       }
     }

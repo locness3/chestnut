@@ -468,7 +468,7 @@ void Timeline::add_transition()
   PanelManager::refreshPanels(true);
 }
 
-int Timeline::calculate_track_height(int track, int value)
+int Timeline::calculate_track_height(const int track, const int value)
 {
   Q_ASSERT(sequence_ != nullptr);
   //FIXME: every time the mouse moves close to the scroll area limit (horizontally) a new track is added

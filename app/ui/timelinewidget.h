@@ -139,6 +139,11 @@ public slots:
     void rename_clip();
     void show_stabilizer_diag();
     void open_sequence_properties();
+
+    /*
+     * Draw the features that enbody a track in the timeline
+     */
+    void paintTrack(QPainter& painter, const int track, const bool video);
 };
 
 #endif // TIMELINEWIDGET_H

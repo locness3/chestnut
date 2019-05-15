@@ -1284,6 +1284,16 @@ void Clip::verifyTransitions(ComboAction &ca)
   verifyTransitions(ca, timeline_info.in, timeline_info.out, timeline_info.track_);
 }
 
+
+bool Clip::locked() const
+{
+  if (sequence == nullptr) {
+    return false;
+  }
+
+  return sequence->trackLocked(timeline_info.track_);
+}
+
 long Clip::clipInWithTransition()
 {
   if ( (transition_.opening_ != nullptr) && (transition_.opening_->secondaryClip() != nullptr) ) {

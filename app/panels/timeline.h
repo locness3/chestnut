@@ -144,7 +144,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void update_effect_controls();
 
     int get_track_height_size(bool video);
-    int calculate_track_height(int track, int height);
+    int calculate_track_height(const int track, const int height=-1);
 
     void delete_selection(QVector<Selection> &selections, bool ripple);
     void select_all();
