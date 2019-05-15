@@ -32,7 +32,8 @@ constexpr int TRANSITION_INTERNAL_LINEARFADE = 1;
 constexpr int TRANSITION_INTERNAL_EXPONENTIALFADE	= 2;
 constexpr int TRANSITION_INTERNAL_LOGARITHMICFADE = 3;
 constexpr int TRANSITION_INTERNAL_CUBE = 4;
-constexpr int TRANSITION_INTERNAL_COUNT = 5;
+constexpr int TRANSITION_INTERNAL_DIPTOCOLOR = 5;
+constexpr int TRANSITION_INTERNAL_COUNT = 6;
 
 
 using TransitionPtr = std::shared_ptr<Transition>;

@@ -33,6 +33,7 @@
 #include "effects/internal/exponentialfadetransition.h"
 #include "effects/internal/logarithmicfadetransition.h"
 #include "effects/internal/cubetransition.h"
+#include "effects/internal/diptocolourtransition.h"
 
 
 constexpr long DEFAULT_TRANSITION_LENGTH = 30;
@@ -122,24 +123,27 @@ TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& e
   } else if ( (em.internal >= 0) && (em.internal < TRANSITION_INTERNAL_COUNT) ) {
     // must be an internal effect
     switch (em.internal) {
-    case TRANSITION_INTERNAL_CROSSDISSOLVE:
-      trans = std::make_shared<CrossDissolveTransition>(c, s, em);
-      break;
-    case TRANSITION_INTERNAL_LINEARFADE:
-      trans = std::make_shared<LinearFadeTransition>(c, s, em);
-      break;
-    case TRANSITION_INTERNAL_EXPONENTIALFADE:
-      trans = std::make_shared<ExponentialFadeTransition>(c, s, em);
-      break;
-    case TRANSITION_INTERNAL_LOGARITHMICFADE:
-      trans = std::make_shared<LogarithmicFadeTransition>(c, s, em);
-      break;
-    case TRANSITION_INTERNAL_CUBE:
-      trans = std::make_shared<CubeTransition>(c, s, em);
-      break;
-    default:
-      qWarning() << "Unhandled transition" << em.internal;
-      break;
+      case TRANSITION_INTERNAL_CROSSDISSOLVE:
+        trans = std::make_shared<CrossDissolveTransition>(c, s, em);
+        break;
+      case TRANSITION_INTERNAL_DIPTOCOLOR:
+        trans = std::make_shared<fx::DipToColourTransition>(c, s, em);
+        break;
+      case TRANSITION_INTERNAL_LINEARFADE:
+        trans = std::make_shared<LinearFadeTransition>(c, s, em);
+        break;
+      case TRANSITION_INTERNAL_EXPONENTIALFADE:
+        trans = std::make_shared<ExponentialFadeTransition>(c, s, em);
+        break;
+      case TRANSITION_INTERNAL_LOGARITHMICFADE:
+        trans = std::make_shared<LogarithmicFadeTransition>(c, s, em);
+        break;
+      case TRANSITION_INTERNAL_CUBE:
+        trans = std::make_shared<CubeTransition>(c, s, em);
+        break;
+      default:
+        qWarning() << "Unhandled transition" << em.internal;
+        break;
     }
   } else {
     qCritical() << "Invalid transition data";
