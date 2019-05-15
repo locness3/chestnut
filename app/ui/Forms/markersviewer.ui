@@ -32,7 +32,7 @@
       <item>
        <widget class="QLineEdit" name="searchLine">
         <property name="placeholderText">
-         <string/>
+         <string>Search</string>
         </property>
        </widget>
       </item>
