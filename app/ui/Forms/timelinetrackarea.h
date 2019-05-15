@@ -50,8 +50,9 @@ class TimelineTrackArea : public QWidget
 
     bool initialise(const TimelineTrackType area_type);
     bool addTrack(const int number, const QString& name);
-
     void setHeights(const QVector<int>& heights);
+    void reset();
+
     TimelineTrackType type_{TimelineTrackType::NONE};
 
   public slots:

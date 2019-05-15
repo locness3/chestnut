@@ -75,6 +75,17 @@ void TimelineTrackArea::setHeights(const QVector<int>& heights)
   }
 }
 
+
+void TimelineTrackArea::reset()
+{
+
+  for (auto t_w : track_widgets_) {
+    ui->mainLayout->removeWidget(t_w);
+    delete t_w;
+  }
+  track_widgets_.clear();
+}
+
 void TimelineTrackArea::trackEnableChange(const bool enabled)
 {
   for (auto key_val : track_widgets_.toStdMap()) {

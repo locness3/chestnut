@@ -507,6 +507,10 @@ void Timeline::update_sequence() {
   recordButton->setEnabled(!null_sequence);
   addButton->setEnabled(!null_sequence);
   headers->setEnabled(!null_sequence);
+  video_track_area_->reset();
+  audio_track_area_->reset();
+  video_track_heights.clear();
+  audio_track_heights.clear();
 
   QString title = tr("Timeline: ");
   if (null_sequence) {
@@ -517,7 +521,8 @@ void Timeline::update_sequence() {
   }
 }
 
-int Timeline::get_snap_range() {
+int Timeline::get_snap_range()
+{
   return getFrameFromScreenPoint(zoom, 10);
 }
 
