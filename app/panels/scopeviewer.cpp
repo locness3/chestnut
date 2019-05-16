@@ -53,10 +53,10 @@ void ScopeViewer::frameGrabbed(const QImage& img)
  */
 void ScopeViewer::setup()
 {
-  setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-
   setWindowTitle(tr("Scope Viewer"));
+  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   resize(PANEL_WIDTH, PANEL_HEIGHT);
+
   auto main_widget = new QWidget();
   setWidget(main_widget);
 
@@ -69,10 +69,6 @@ void ScopeViewer::setup()
   waveform_combo_->addItems(items);
   connect(waveform_combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(indexChanged(int)));
   h_layout->addWidget(waveform_combo_);
-
-  auto spacer = new QSpacerItem(0,0, QSizePolicy::Expanding);
-  h_layout->addSpacerItem(spacer);
-  layout->addLayout(h_layout);
 
   color_scope_ = new ui::ColorScopeWidget();
   layout->addWidget(color_scope_);

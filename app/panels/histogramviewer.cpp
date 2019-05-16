@@ -14,7 +14,7 @@ constexpr int HIST_MIN_WIDTH = 260;
 constexpr int HIST_MIN_HEIGHT = 100;
 constexpr int HIST_COLOR_ALPHA = 128;
 
-constexpr int PANEL_WIDTH = 300;
+constexpr int PANEL_WIDTH = 272;
 constexpr int PANEL_HEIGHT = 480;
 
 constexpr int HIST_GEN_STEP = 24;
@@ -68,10 +68,10 @@ void HistogramViewer::frameGrabbed(const QImage& img)
  */
 void HistogramViewer::setup()
 {
-  setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-
   setWindowTitle(tr("Histogram Viewer"));
   resize(PANEL_WIDTH, PANEL_HEIGHT);
+  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
   auto main_widget = new QWidget();
   setWidget(main_widget);
 
@@ -137,9 +137,6 @@ void HistogramViewer::setup()
   layout_->addWidget(histogram_blue_);
   histogram_blue_->color_ = QColor(0, 0, 250, HIST_COLOR_ALPHA);
   histogram_blue_->setMinimumSize(HIST_MIN_WIDTH, HIST_MIN_HEIGHT);
-
-  auto spacer = new QSpacerItem(0,0, QSizePolicy::Fixed, QSizePolicy::Expanding);
-  layout_->addSpacerItem(spacer);
 }
 
 /*
