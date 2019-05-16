@@ -68,6 +68,7 @@ constexpr auto LOCKED_TRACK_PATTERN_COLOUR = Qt::gray;
 namespace {
   const QColor MOUSE_RELEASE_COLOR(192, 192, 64);
   const QColor TRANSITION_COLOR(255, 0, 0, 16);
+  const QColor DISABLED_TRANSITION_COLOR(0, 0, 0, 16);
   const QColor DISABLED_CLIP_COLOR(96, 96, 96);
 }
 
@@ -2486,55 +2487,59 @@ void draw_waveform(ClipPtr& clip, const FootageStreamPtr& ms, const long media_l
   }
 }
 
-void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRect& text_rect, int transition_type) {
+void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRect& text_rect, int transition_type)
+{
   auto t = (transition_type == TA_OPENING_TRANSITION) ? c->getTransition(ClipTransitionType::OPENING) : c->getTransition(ClipTransitionType::CLOSING);
-  if (t != nullptr) {
-    int transition_width = getScreenPointFromFrame(PanelManager::timeLine().zoom, t->get_true_length());
-    int transition_height = clip_rect.height();
-    int tr_y = clip_rect.y();
-    int tr_x = 0;
-    if (transition_type == TA_OPENING_TRANSITION) {
-      tr_x = clip_rect.x();
-      text_rect.setX(text_rect.x()+transition_width);
-    } else {
-      tr_x = clip_rect.right()-transition_width;
-      text_rect.setWidth(text_rect.width()-transition_width);
-    }
-    QRect transition_rect = QRect(tr_x, tr_y, transition_width, transition_height);
-    p.fillRect(transition_rect, TRANSITION_COLOR);
-    QRect transition_text_rect(transition_rect.x() + CLIP_TEXT_PADDING, transition_rect.y() + CLIP_TEXT_PADDING,
-                               transition_rect.width() - CLIP_TEXT_PADDING, transition_rect.height() - CLIP_TEXT_PADDING);
-    if (transition_text_rect.width() > MAX_TEXT_WIDTH) {
-      bool draw_text = true;
-
-      p.setPen(QColor(0, 0, 0, 96));
-      if (t->secondaryClip() == nullptr) {
-        if (transition_type == TA_OPENING_TRANSITION) {
-          p.drawLine(transition_rect.bottomLeft(), transition_rect.topRight());
-        } else {
-          p.drawLine(transition_rect.topLeft(), transition_rect.bottomRight());
-        }
-      } else {
-        // paint a transition across clips
-        //TODO: don't fill out the track height
-        if (transition_type == TA_OPENING_TRANSITION) {
-          p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.topRight());
-          p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.bottomRight());
-          draw_text = false;
-        } else {
-          p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.topLeft());
-          p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.bottomLeft());
-        }
-      }
-
-      if (draw_text) {
-        p.setPen(Qt::white);
-        p.drawText(transition_text_rect, 0, t->meta.name, &transition_text_rect);
-      }
-    }
-    p.setPen(Qt::black);
-    p.drawRect(transition_rect);
+  if (t == nullptr) {
+    return;
   }
+
+  int transition_width = getScreenPointFromFrame(PanelManager::timeLine().zoom, t->get_true_length());
+  int transition_height = clip_rect.height();
+  int tr_y = clip_rect.y();
+  int tr_x = 0;
+  if (transition_type == TA_OPENING_TRANSITION) {
+    tr_x = clip_rect.x();
+    text_rect.setX(text_rect.x()+transition_width);
+  } else {
+    tr_x = clip_rect.right()-transition_width;
+    text_rect.setWidth(text_rect.width()-transition_width);
+  }
+  QRect transition_rect = QRect(tr_x, tr_y, transition_width, transition_height);
+  const auto clr = t->is_enabled() ? TRANSITION_COLOR : DISABLED_TRANSITION_COLOR;
+  p.fillRect(transition_rect, clr);
+  QRect transition_text_rect(transition_rect.x() + CLIP_TEXT_PADDING, transition_rect.y() + CLIP_TEXT_PADDING,
+                             transition_rect.width() - CLIP_TEXT_PADDING, transition_rect.height() - CLIP_TEXT_PADDING);
+  if (transition_text_rect.width() > MAX_TEXT_WIDTH) {
+    bool draw_text = true;
+
+    p.setPen(QColor(0, 0, 0, 96));
+    if (t->secondaryClip() == nullptr) {
+      if (transition_type == TA_OPENING_TRANSITION) {
+        p.drawLine(transition_rect.bottomLeft(), transition_rect.topRight());
+      } else {
+        p.drawLine(transition_rect.topLeft(), transition_rect.bottomRight());
+      }
+    } else {
+      // paint a transition across clips
+      //TODO: don't fill out the track height
+      if (transition_type == TA_OPENING_TRANSITION) {
+        p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.topRight());
+        p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.bottomRight());
+        draw_text = false;
+      } else {
+        p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.topLeft());
+        p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.bottomLeft());
+      }
+    }
+
+    if (draw_text) {
+        p.setPen(Qt::white);
+      p.drawText(transition_text_rect, 0, t->meta.name, &transition_text_rect);
+    }
+  }
+  p.setPen(Qt::black);
+  p.drawRect(transition_rect);
 
 }
 
