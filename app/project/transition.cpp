@@ -113,6 +113,13 @@ void Transition::set_length_from_slider()
   panels::PanelManager::refreshPanels(false);
 }
 
+void Transition::field_changed()
+{
+  Effect::field_changed();
+  panels::PanelManager::timeLine().repaint_timeline();
+}
+
+
 TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em, const bool setup)
 {
   TransitionPtr trans;

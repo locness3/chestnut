@@ -65,6 +65,11 @@ class Transition : public Effect {
     EffectField* length_field{nullptr};
     ClipWPtr secondary_clip; // Presumably the clip (of the same track) which the transition is spread over
     int secondary_load_id;
+
+    /*
+     * Ensure that the timeline is updated on transition modification
+     */
+    void field_changed() override;
 };
 
 

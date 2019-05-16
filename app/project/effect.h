@@ -219,7 +219,7 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
 
 
   public slots:
-    void field_changed();
+    virtual void field_changed();
   private slots:
     void show_context_menu(const QPoint&);
     void delete_self();
