@@ -131,10 +131,10 @@
             <xs:sequence minOccurs="1" maxOccurs="1">
                 <xs:element name="value"    type="xs:string"/>
                 <xs:element name="frame"    type="xs:integer"/>    	       
-                <xs:element name="prex"     type="xs:integer"/>
-                <xs:element name="prey"     type="xs:integer"/>
-                <xs:element name="postx"    type="xs:integer"/>
-                <xs:element name="posty"    type="xs:integer"/>
+                <xs:element name="prex"     type="xs:decimal"/>
+                <xs:element name="prey"     type="xs:decimal"/>
+                <xs:element name="postx"    type="xs:decimal"/>
+                <xs:element name="posty"    type="xs:decimal"/>
             </xs:sequence>
             <xs:attribute name="type" type="xs:integer"/>
 		</xs:complexType>
@@ -223,7 +223,17 @@
             <xs:attribute ref="id"/>
 		</xs:complexType>
 	</xs:element>
-
+	
+	<xs:element name="track">
+	    <xs:complexType>
+	        <xs:sequence>
+	            <xs:element name="index" type="xs:integer"/>
+	            <xs:element name="enabled" type="xs:boolean"/>
+	            <xs:element name="locked" type="xs:boolean"/>
+	            <xs:element ref="name"/>
+	        </xs:sequence>
+        </xs:complexType>
+    </xs:element>
 
     <xs:element name="sequence">
 		<xs:complexType>
@@ -242,7 +252,10 @@
                 <xs:element ref="framerate"/>
                 <xs:element ref="frequency"/>
                 <xs:element ref="layout"/>
-                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:sequence minOccurs="1" maxOccurs="unbounded">
+                    <xs:element ref="track"/>
+                </xs:sequence>
+                <xs:sequence minOccurs="1" maxOccurs="unbounded">
                     <xs:element ref="clip"/>
                 </xs:sequence>
                 <xs:sequence minOccurs="0" maxOccurs="unbounded">
