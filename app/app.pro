@@ -13,6 +13,7 @@ TARGET = chestnut
 
 
 SOURCES += \
+    project/track.cpp \
     ui/Forms/effects.cpp \
     ui/Forms/timelinetrackarea.cpp \
     ui/Forms/trackareawidget.cpp \
@@ -120,6 +121,7 @@ SOURCES += \
     project/footagestream.cpp
 
 HEADERS += \
+    project/track.h \
     ui/Forms/effects.h \
     ui/Forms/timelinetrackarea.h \
     ui/Forms/trackareawidget.h \

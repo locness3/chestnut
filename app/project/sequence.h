@@ -25,6 +25,7 @@
 #include "project/marker.h"
 #include "project/selection.h"
 #include "project/projectitem.h"
+#include "project/track.h"
 
 //FIXME: this is used EVERYWHERE. This has to be water-tight and heavily tested.
 
@@ -43,11 +44,6 @@ using SequenceWPtr = std::weak_ptr<Sequence>;
 
 Q_DECLARE_METATYPE(SequencePtr)
 
-
-struct Track {
-    bool enabled{true};
-    bool locked{false};
-};
 
 class Sequence : public std::enable_shared_from_this<Sequence>, public project::ProjectItem {
 public:
@@ -164,7 +160,7 @@ private:
     double frame_rate_ = -0.0;
     int32_t audio_frequency_ = -1;
     int32_t audio_layout_ = -1;
-    QMap<int, Track> tracks_;
+    QMap<int, project::Track> tracks_;
 
     bool loadWorkArea(QXmlStreamReader& stream);
 };

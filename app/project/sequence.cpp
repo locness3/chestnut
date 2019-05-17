@@ -28,6 +28,7 @@
 #include "debug.h"
 
 using project::ScanMethod;
+using project::Track;
 
 constexpr int       RECURSION_LIMIT            = 100;
 constexpr int       MAXIMUM_WIDTH              = 4096;
@@ -304,7 +305,7 @@ int Sequence::trackCount(const bool video) const
 bool Sequence::trackEnabled(const int track_number) const
 {
   if (tracks_.contains(track_number)) {
-    return tracks_[track_number].enabled;
+    return tracks_[track_number].enabled_;
   }
   return true;
 }
@@ -313,7 +314,7 @@ bool Sequence::trackEnabled(const int track_number) const
 bool Sequence::trackLocked(const int track_number) const
 {
   if (tracks_.contains(track_number)) {
-    return tracks_[track_number].locked;
+    return tracks_[track_number].locked_;
   }
   return false;
 }
@@ -470,6 +471,10 @@ bool Sequence::save(QXmlStreamWriter& stream) const
   stream.writeTextElement("frequency", QString::number(audio_frequency_));
   stream.writeTextElement("layout", QString::number(audio_layout_));
 
+  for (auto t : tracks_) {
+    t.save(stream);
+  }
+
   for (const auto& clp : clips_) {
     if (clp == nullptr) {
       qDebug() << "Null clip ptr";
@@ -500,17 +505,17 @@ bool Sequence::save(QXmlStreamWriter& stream) const
 void Sequence::lockTrack(const int number, const bool lock)
 {
   if (!tracks_.contains(number)) {
-    tracks_.insert(number, Track());
+    tracks_.insert(number, Track(number));
   }
-  tracks_[number].locked = lock;
+  tracks_[number].locked_ = lock;
 }
 
 void Sequence::enableTrack(const int number, const bool enable)
 {
   if (!tracks_.contains(number)) {
-    tracks_.insert(number, Track());
+    tracks_.insert(number, Track(number));
   }
-  tracks_[number].enabled = enable;
+  tracks_[number].enabled_ = enable;
 }
 
 
