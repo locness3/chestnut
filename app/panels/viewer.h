@@ -117,6 +117,8 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     void resize_move(double d);
 
   private:
+    friend class ViewerTest;
+
     void update_window_title();
     void clean_created_seq();
     void set_sequence(bool main, SequencePtr s);

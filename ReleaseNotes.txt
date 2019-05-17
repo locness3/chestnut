@@ -1,0 +1,47 @@
+-------------
+Version 0.0.1
+-------------
+
+17 May 2019
+
+New:
+    None
+    
+Improvements:
+    - MTS file types added to the video filter in the import dialog
+    
+Fixes:
+    - Prevent "Drop Frame" timecode being an option when not possible with the 
+      current sequence settings #29
+    - If saving a project fails, there is a chance of file-corruption #38
+    - Impossible keyframing in graph editor #36
+    - Fix crash in use of temporal smooth in median mode
+    - Transition across 2 clips not functional #35
+    - Scope and histogram viewer oversize on app restart #33
+    - Transitions enable/disable state not reflected in timeline #40
+    - No audio from Media viewer without a sequence in timeline #34	
+    
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - Random pauses when exporting in h264 #27 
+    - On reverse drag-seek ui-lock #18
+
+
+-----------
+Version 0.0
+-----------
+
+10 May 2019
+
+New:
+    - The baseline stable release
+    - Use of a new project file format, .nut 
+    - Removal of most of (if not all) mention of Olive in the running program
+    - A basic histogram viewer of a rendered frame in the sequence viewer
+    - A basic Scope viewer of a rendered frame in the sequence viewer
+    - Grayscale conversion filter
+    - A Temporal smoothing filter (slow)
+    
+Improvements:
+    - All improvements are in the code, improvements being maintainability changes, 
+    unit-tests and changes due to static-analysis tools.

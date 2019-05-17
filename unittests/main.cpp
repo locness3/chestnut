@@ -32,6 +32,7 @@
 #include "project/UnitTest/effectfieldtest.h"
 #include "project/UnitTest/markertest.h"
 #include "panels/unittest/histogramviewertest.h"
+#include "panels/unittest/viewertest.h"
 
 namespace
 {
@@ -66,5 +67,6 @@ int main(int argc, char** argv)
   status |= runTest<EffectKeyframeTest>();
   status |= runTest<MarkerTest>();
   status |= runTest<panels::HistogramViewerTest>();
+  status |= runTest<ViewerTest>();
   return status;
 }

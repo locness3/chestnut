@@ -40,6 +40,11 @@ using TransitionPtr = std::shared_ptr<Transition>;
 using TransitionWPtr = std::weak_ptr<Transition>;
 
 
+
+using TransitionPtr = std::shared_ptr<Transition>;
+using TransitionWPtr = std::weak_ptr<Transition>;
+
+
 int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em, long length = -1);
 TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em, const bool setup = true);
 

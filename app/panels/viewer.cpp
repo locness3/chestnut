@@ -754,7 +754,7 @@ SequencePtr Viewer::createFootageSequence(const MediaPtr& mda) const
     const auto audio_stream = ftg->audio_tracks.front();
     sqn->setAudioFrequency(audio_stream->audio_frequency);
 
-    auto clp = std::make_shared<Clip>(global::sequence);
+    auto clp = std::make_shared<Clip>(sqn);
     clp->timeline_info.media        = mda;
     clp->timeline_info.media_stream = audio_stream->file_index;
     clp->timeline_info.in           = 0;
