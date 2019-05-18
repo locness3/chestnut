@@ -41,6 +41,8 @@ New:
     - A basic Scope viewer of a rendered frame in the sequence viewer
     - Grayscale conversion filter
     - A Temporal smoothing filter (slow)
+    - A panel to view and edit markers of sequences or imported clips
+    - Markers persisted over project sessions
     
 Improvements:
     - All improvements are in the code, improvements being maintainability changes, 
