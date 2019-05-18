@@ -77,7 +77,7 @@ public:
     void setAudioLayout(const int32_t layout);
 
     /**
-     * @brief         Obtain the populated track count in the sequence
+     * @brief         Obtain the track count in the sequence. This includes empty tracks e.g. between populated tracks
      * @param video   true==video tracks, false==audio tracks
      * @return        track count
      */
@@ -153,6 +153,10 @@ public:
      * @param video   true==video track false==audio track
      */
     void addTrack(const int number, const bool video);
+    /**
+     * @brief As clips are moved amongst tracks, ensure correct Track instances are available
+     */
+    void verifyTrackCount();
 
     QVector<project::Track> audioTracks();
     QVector<project::Track> videoTracks();

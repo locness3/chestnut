@@ -32,6 +32,8 @@ private slots:
 
     void testCaseTrackCount();
 
+    void testCaseTrackCountAudioVidClip();
+
     void testCaseTrackLocked();
 
     void testCaseTrackEnabled();
@@ -45,6 +47,22 @@ private slots:
     void testCaseAddClipDuplicate();
 
     void testCaseAddClipNull();
+
+    void testCaseVerifyTracksEmpty();
+
+    void testCaseVerifyTracksSingleAudio();
+
+    void testCaseVerifyTracksSingleVideo();
+
+    void testCaseVerifyTracksSingleVideoAudio();
+
+    void testCaseVerifyTracksSingleVideoAudioRemoved();
+
+    void testCaseVerifyTracksMoveAudioUp();
+
+    void testCaseVerifyTracksMoveAudioDown();
+
+    void testCaseVerifyTracksRemoveAudio();
 };
 
 #endif // SEQUENCETEST_H

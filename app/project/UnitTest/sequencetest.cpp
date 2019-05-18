@@ -182,17 +182,28 @@ void SequenceTest::testCaseTrackCount()
   //negative numbers are video tracks
   auto clip1 = std::make_shared<Clip>(sqn);
   clip1->timeline_info.track_ = 0;
-  sqn->clips_.append(clip1);
+  sqn->addClip(clip1);
   auto clip2 = std::make_shared<Clip>(sqn);
   clip2->timeline_info.track_ = 1;
-  sqn->clips_.append(clip2);
+  sqn->addClip(clip2);
   auto clip3 = std::make_shared<Clip>(sqn);
   clip3->timeline_info.track_ = -1;
-  sqn->clips_.append(clip3);
+  sqn->addClip(clip3);
 
   QVERIFY(sqn->trackCount(true) == 1);
   QVERIFY(sqn->trackCount(false) == 2);
 
+}
+
+
+void SequenceTest::testCaseTrackCountAudioVidClip()
+{
+  Sequence sqn;
+  auto clp = std::make_shared<Clip>(nullptr);
+  clp->timeline_info.track_ = -1; //video clip
+  sqn.addClip(clp);
+  // no audio clips if only a vid clip added
+  QVERIFY(sqn.trackCount(false) == 0);
 }
 
 void SequenceTest::testCaseTrackLocked()
@@ -259,4 +270,117 @@ void SequenceTest::testCaseAddClipNull()
   Sequence sqn;
   ClipPtr clp = nullptr;
   QVERIFY(sqn.addClip(clp) == false);
+}
+
+
+void SequenceTest::testCaseVerifyTracksEmpty()
+{
+  Sequence sqn;
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.empty() == true);
+}
+
+
+void SequenceTest::testCaseVerifyTracksSingleAudio()
+{
+  Sequence sqn;
+  auto c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 0;
+  sqn.addClip(c);
+
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 1);
+}
+
+
+void SequenceTest::testCaseVerifyTracksSingleVideo()
+{
+  Sequence sqn;
+  auto c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = -1;
+  sqn.addClip(c);
+
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 1);
+}
+
+
+void SequenceTest::testCaseVerifyTracksSingleVideoAudio()
+{
+  Sequence sqn;
+  auto c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = -1;
+  sqn.addClip(c);
+  c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 0;
+  sqn.addClip(c);
+
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 2);
+}
+
+
+void SequenceTest::testCaseVerifyTracksSingleVideoAudioRemoved()
+{
+  Sequence sqn;
+  auto c1 = std::make_shared<Clip>(nullptr);
+  c1->timeline_info.track_ = -1;
+  sqn.addClip(c1);
+  auto c2 = std::make_shared<Clip>(nullptr);
+  c2->timeline_info.track_ = 0;
+  sqn.addClip(c2);
+
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 2);
+
+  sqn.deleteClip(c1->id());
+  sqn.deleteClip(c2->id());
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 0);
+}
+
+
+void SequenceTest::testCaseVerifyTracksMoveAudioUp()
+{
+  Sequence sqn;
+  auto c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 0;
+  sqn.addClip(c);
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 1);
+
+  c->timeline_info.track_ = 10;
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 11);
+}
+
+
+
+void SequenceTest::testCaseVerifyTracksMoveAudioDown()
+{
+  Sequence sqn;
+  auto c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 10;
+  sqn.addClip(c);
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 11);
+
+  c->timeline_info.track_ = 0;
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 1);
+}
+
+
+void SequenceTest::testCaseVerifyTracksRemoveAudio()
+{
+  Sequence sqn;
+  auto c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 10;
+  sqn.addClip(c);
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.size() == 11);
+  sqn.deleteClip(c->id());
+
+  sqn.verifyTrackCount();
+  QVERIFY(sqn.tracks_.empty() == true);
 }

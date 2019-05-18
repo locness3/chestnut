@@ -1451,7 +1451,8 @@ void Timeline::updateTrackAreas()
   if (sequence_ == nullptr) {
     return;
   }
-
+  sequence_->verifyTrackCount();
+  // on clip movement within timeline area, tracks are not created/deleted
   video_track_area_->setTracks(sequence_->videoTracks());
   video_track_area_->setHeights(video_track_heights);
   audio_track_area_->setTracks(sequence_->audioTracks());

@@ -280,7 +280,28 @@ int Sequence::trackCount(const bool video) const
     }
   }
 
-  return tracks.size();
+  if (clips_.empty()) {
+    return 0;
+  }
+
+  if (tracks_.empty()) {
+    return 0;
+  }
+
+  if (video) {
+    return abs(*std::min_element(tracks.begin(), tracks.end()));
+  }
+
+  // fudge because of audio track #0
+  auto itor = std::max_element(tracks.begin(), tracks.end());
+  if (itor == tracks.end()) {
+    return 0;
+  }
+
+  if (*itor >= 0) {
+    return *itor + 1;
+  }
+  return 0;
 }
 
 
@@ -552,6 +573,54 @@ void Sequence::addTrack(const int number, const bool video)
   t.name_ = video ? "Video" : "Audio";
   t.name_ += ":" + QString::number(abs(video ? number : number + 1)); //audio track index starts at 0
   tracks_.insert(number, t);
+}
+
+
+void Sequence::verifyTrackCount()
+{
+  // add missing video tracks
+  auto vid_count = trackCount(true); // video tracks start at -1
+  for (auto ix=-vid_count; ix < 0; ++ix) {
+    if (!tracks_.contains(ix)) {
+      addTrack(ix, true);
+    }
+  }
+
+  // remove video Tracks no longer required
+  if (!tracks_.isEmpty()) {
+    auto key = tracks_.firstKey();
+    while (key < -vid_count) {
+      tracks_.remove(key);
+      if (tracks_.empty()) {
+        break;
+      }
+      key = tracks_.firstKey();
+    }
+  }
+
+  // add missing audio tracks
+  auto audio_count = trackCount(false);
+  qDebug() << "Count" << audio_count;
+  for (auto ix = 0; ix < audio_count; ++ix) {
+    if (!tracks_.contains(ix)) {
+      addTrack(ix, false);
+    }
+  }
+
+
+  // remove video Tracks no longer required
+  if (!tracks_.isEmpty()) {
+    auto key = tracks_.lastKey();
+    while (key >= audio_count) {
+      tracks_.remove(key);
+      if (tracks_.empty()) {
+        break;
+      }
+      key = tracks_.lastKey();
+    }
+  }
+
+
 }
 
 
