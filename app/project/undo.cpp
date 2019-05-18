@@ -150,7 +150,7 @@ DeleteClipAction::DeleteClipAction(ClipPtr del_clip) : clip_(std::move(del_clip)
 void DeleteClipAction::undo()
 {
   if ( (clip_ != nullptr) && (clip_->sequence != nullptr) ) {
-    clip_->sequence->clips_.append(clip_);
+    clip_->sequence->addClip(clip_);
   } else {
     qCritical() << "Null instance(s)";
   }
@@ -202,7 +202,7 @@ void SetTimelineInOutCommand::undo() {
 
   // footage viewer functions
   if (seq->wrapper_sequence_) {
-    FootagePtr  m = seq->clips_.at(0)->timeline_info.media->object<Footage>();
+    FootagePtr  m = seq->clips().at(0)->timeline_info.media->object<Footage>();
     m->using_inout = old_enabled;
     m->in = old_in;
     m->out = old_out;
@@ -224,7 +224,7 @@ void SetTimelineInOutCommand::redo() {
 
   // footage viewer functions
   if (seq->wrapper_sequence_) {
-    FootagePtr  m = seq->clips_.at(0)->timeline_info.media->object<Footage>();
+    FootagePtr  m = seq->clips().at(0)->timeline_info.media->object<Footage>();
     m->using_inout = new_enabled;
     m->in = new_in;
     m->out = new_out;
@@ -503,17 +503,16 @@ void AddClipsCommand::undo()
       qWarning() << "Clip instance is null";
       continue;
     }
-    auto itor = std::find_if(sequence_->clips_.begin(), sequence_->clips_.end(), [&undo_clip] (const ClipPtr& clp) {
-      return (clp != nullptr) && (clp->id() == undo_clip->id());
-    });
-    sequence_->clips_.erase(itor);
+    sequence_->deleteClip(undo_clip->id());
   }
 }
 
 void AddClipsCommand::redo()
 {
   Q_ASSERT(sequence_ != nullptr);
-  sequence_->clips_ = sequence_->clips_ + clips_;
+  for (const auto& c : clips_) {
+    sequence_->addClip(c);
+  }
 }
 
 ClipLinkCommand::ClipLinkCommand(const ClipPtr& clp, const QVector<int>& links, const bool link)
@@ -578,7 +577,7 @@ void ReplaceMediaCommand::replace(QString& filename)
   QVector<MediaPtr> all_sequences = PanelManager::projectViewer().list_all_project_sequences();
   for (const auto & all_sequence : all_sequences) {
     SequencePtr s = all_sequence->object<Sequence>();
-    for (const auto& c : s->clips_) {
+    for (const auto& c : s->clips()) {
       if (c != nullptr && c->timeline_info.media == item && c->is_open) {
         c->close(true);
         c->replaced = true;
@@ -997,7 +996,7 @@ void EditSequenceCommand::update() {
   // update tooltip
   item->setSequence(seq);
 
-  for (auto& clp : seq->clips_) {
+  for (auto& clp : seq->clips()) {
     if (clp != nullptr) {
       clp->refresh();
     }
@@ -1148,7 +1147,7 @@ void SplitClipCommand::redo()
   storeLengths(pre_clip_->id(), *pre_clip_);
   if (auto post = pre_clip_->split(position_)) {
     mapped_posts_[pre_clip_->id()] = post;
-    pre_clip_->sequence->clips_.append(post);
+    pre_clip_->sequence->addClip(post);
   }
 
   // Split linked clips
@@ -1157,7 +1156,7 @@ void SplitClipCommand::redo()
       storeLengths(link, *link_clip);
       if (auto post = link_clip->split(position_)) {
         mapped_posts_[link] = post;
-        pre_clip_->sequence->clips_.append(post);
+        pre_clip_->sequence->addClip(post);
       }
     }
   }
@@ -1225,9 +1224,9 @@ void RippleAction::undo() {
 
 void RippleAction::redo() {
   ca = new ComboAction();
-  for (int i=0;i<s->clips_.size();i++) {
+  for (int i=0;i<s->clips().size();i++) {
     if (!ignore.contains(i)) {
-      ClipPtr   c = s->clips_.at(i);
+      ClipPtr   c = s->clips().at(i);
       if (c != nullptr) {
         if (c->timeline_info.in >= point) {
           c->move(*ca, length, length, 0, 0, true, true);
@@ -1301,7 +1300,7 @@ void RefreshClips::redo()
   QVector<MediaPtr> all_sequences = PanelManager::projectViewer().list_all_project_sequences();
   for (const auto & proj_seq : all_sequences) {
     auto s = proj_seq->object<Sequence>();
-    for (const auto& clp : s->clips_) {
+    for (const auto& clp : s->clips()) {
       if ( (clp != nullptr) && (clp->timeline_info.media == media) ) {
         clp->replaced = true;
         clp->refresh();

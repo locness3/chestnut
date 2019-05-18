@@ -495,8 +495,8 @@ void Project::delete_selected_media()
       auto skip = false;
       for (auto j=0; j<sequence_items.size() && (!abort) && (!skip); ++j) {
         auto seq = sequence_items.at(j)->object<Sequence>();
-        for (auto k=0; (k<seq->clips_.size()) && (!abort) && (!skip); ++k) {
-          const auto& c = seq->clips_.at(k);
+        for (auto k=0; (k<seq->clips().size()) && (!abort) && (!skip); ++k) {
+          const auto& c = seq->clips().at(k);
           if ( (c != nullptr) && (c->timeline_info.media == item) ) {
             if (!confirm_delete) {
               auto ftg = item->object<Footage>();
@@ -599,7 +599,7 @@ void Project::delete_selected_media()
         }
       } else if (item->type() == MediaType::FOOTAGE) {
         if (PanelManager::footageViewer().getSequence()) {
-          for (auto clp : PanelManager::footageViewer().getSequence()->clips_) {
+          for (auto clp : PanelManager::footageViewer().getSequence()->clips()) {
             if (!clp) {
               continue;
             }
@@ -879,7 +879,7 @@ void Project::delete_clips_using_selected_media()
     auto ca = new ComboAction();
     bool deleted = false;
     QModelIndexList items = get_current_selected();
-    for (const auto& del_clip : global::sequence->clips_) {
+    for (const auto& del_clip : global::sequence->clips()) {
       if (del_clip == nullptr) {
         continue;
       }
@@ -1248,7 +1248,7 @@ void MediaThrobber::stop(const int icon_type, const bool replace) {
   auto sequences = PanelManager::projectViewer().list_all_project_sequences();
   for (auto sqn : sequences) {
     if (auto s = sqn->object<Sequence>()) {
-      for (auto clp: s->clips_) {
+      for (auto clp: s->clips()) {
         if (clp != nullptr) {
           clp->refresh();
         }

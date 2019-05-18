@@ -542,16 +542,20 @@ void MainWindow::redo() {
   PanelManager::refreshPanels(true);
 }
 
-void MainWindow::open_speed_dialog() {
-  if (global::sequence != nullptr) {
-    SpeedDialog s(this);
-    for (int i=0;i<global::sequence->clips_.size();i++) {
-      ClipPtr c = global::sequence->clips_.at(i);
-      if (c != nullptr && c->isSelected(true)) {
-        s.clips.append(c);
-      }
+void MainWindow::open_speed_dialog()
+{
+  if (global::sequence == nullptr) {
+    return;
+  }
+  SpeedDialog s(this);
+  for (const auto& c : global::sequence->clips()) {
+    if ( (c != nullptr) && c->isSelected(true)) {
+      s.clips.append(c);
     }
-    if (s.clips.size() > 0) s.run();
+  }
+
+  if (!s.clips.empty()) {
+    s.run();
   }
 }
 
@@ -1622,8 +1626,8 @@ void MainWindow::toggle_enable_clips() {
   if (global::sequence != nullptr) {
     auto ca = new ComboAction();
     bool push_undo = false;
-    for (int i=0;i<global::sequence->clips_.size();i++) {
-      ClipPtr c = global::sequence->clips_.at(i);
+    for (int i=0;i<global::sequence->clips().size();i++) {
+      ClipPtr c = global::sequence->clips().at(i);
       if (c != nullptr && c->isSelected(true)) {
         ca->append(new SetEnableCommand(c, !c->timeline_info.enabled));
         push_undo = true;
@@ -1663,7 +1667,7 @@ void MainWindow::nest()
   int64_t earliest_point = LONG_MAX;
 
   // get selected clips
-  for (const auto& seq_clip : global::sequence->clips_) {
+  for (const auto& seq_clip : global::sequence->clips()) {
     if (seq_clip != nullptr && seq_clip->isSelected(true)) {
       selected_clips.append(seq_clip);
       earliest_point = qMin(seq_clip->timeline_info.in.load(), earliest_point);
@@ -1692,7 +1696,7 @@ void MainWindow::nest()
       ClipPtr copy = sel_clip->copy(s);
       copy->timeline_info.in -= earliest_point;
       copy->timeline_info.out -= earliest_point;
-      s->clips_.append(copy);
+      s->addClip(copy);
     }
 
     // add sequence to project

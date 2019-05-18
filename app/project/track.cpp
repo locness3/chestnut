@@ -43,9 +43,8 @@ bool Track::load(QXmlStreamReader& stream)
       qWarning() << "Unhandled element" << name;
       stream.skipCurrentElement();
     }
-
   }
-  return false;
+  return true;
 }
 
 bool Track::save(QXmlStreamWriter& stream) const

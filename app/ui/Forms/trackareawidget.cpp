@@ -50,3 +50,18 @@ void TrackAreaWidget::setName(const QString& name)
 
   ui->trackNameLabel->setText(name);
 }
+
+void TrackAreaWidget::setLocked(const bool locked)
+{
+  Q_ASSERT(ui != nullptr);
+  Q_ASSERT(ui->lockButton != nullptr);
+  ui->lockButton->setChecked(locked);
+
+}
+
+void TrackAreaWidget::setEnabled(const bool enabled)
+{
+  Q_ASSERT(ui != nullptr);
+  Q_ASSERT(ui->enableButton != nullptr);
+  ui->enableButton->setChecked(enabled);
+}

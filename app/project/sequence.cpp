@@ -266,24 +266,6 @@ void Sequence::setAudioLayout(const int32_t layout)
 }
 
 
-QSet<int> Sequence::tracks(const long frame) const
-{
-  QSet<int> pop_tracks;
-
-  for (const auto& c : clips_) {
-    if (c == nullptr) {
-      qWarning() << "Clip instance is null";
-      continue;
-    }
-    if (c->inRange(frame)) {
-      pop_tracks.insert(c->timeline_info.track_);
-    }
-  }
-
-  return pop_tracks;
-}
-
-
 int Sequence::trackCount(const bool video) const
 {
   QSet<int> tracks;
@@ -336,6 +318,32 @@ QVector<ClipPtr> Sequence::clips(const long frame) const
 }
 
 
+bool Sequence::addClip(const ClipPtr& new_clip)
+{
+  if (new_clip == nullptr) {
+    qWarning() << "Clip instance is null";
+    return false;
+  }
+
+  if (clip(new_clip->id())) {
+    qWarning() << "Clip already added" << new_clip->id();
+    return false;
+  }
+
+  clips_.append(new_clip);
+  if (!tracks_.contains(new_clip->timeline_info.track_)) {
+    addTrack(new_clip->timeline_info.track_, new_clip->mediaType() == ClipType::VISUAL);
+    enableTrack(new_clip->timeline_info.track_);
+  }
+
+  return true;
+}
+
+
+QVector<ClipPtr> Sequence::clips()
+{
+  return clips_;
+}
 
 
 void Sequence::closeActiveClips(const int32_t depth)
@@ -422,10 +430,19 @@ bool Sequence::load(QXmlStreamReader& stream)
       setAudioFrequency(stream.readElementText().toInt());
     } else if (name == "layout") {
       setAudioLayout(stream.readElementText().toInt());
+    } else if (name == "track") {
+      Track trk;
+      if (trk.load(stream)) {
+        tracks_.insert(trk.index_, trk);
+      } else {
+        qCritical() << "Failed to load Track";
+        return false;
+      }
     } else if (name == "clip") {
       auto clp = std::make_shared<Clip>(shared_from_this());
       if (clp->load(stream)) {
-        clips_.append(clp);
+        // NOTE: ensure Tracks are loaded first otherwise they won't get used
+        addClip(clp);
       } else {
         qCritical() << "Failed to load clip";
         return false;
@@ -510,12 +527,42 @@ void Sequence::lockTrack(const int number, const bool lock)
   tracks_[number].locked_ = lock;
 }
 
-void Sequence::enableTrack(const int number, const bool enable)
+void Sequence::enableTrack(const int number)
 {
   if (!tracks_.contains(number)) {
-    tracks_.insert(number, Track(number));
+    qWarning() << "No track to enable" << number;
+    return;
   }
-  tracks_[number].enabled_ = enable;
+  tracks_[number].enabled_ = true;
+}
+
+void Sequence::disableTrack(const int number)
+{
+  if (!tracks_.contains(number)) {
+    qWarning() << "No track to disable" << number;
+    return;
+  }
+  tracks_[number].enabled_ = false;
+}
+
+
+void Sequence::addTrack(const int number, const bool video)
+{
+  Track t(number);
+  t.name_ = video ? "Video" : "Audio";
+  t.name_ += ":" + QString::number(abs(video ? number : number + 1)); //audio track index starts at 0
+  tracks_.insert(number, t);
+}
+
+
+QVector<project::Track> Sequence::audioTracks()
+{
+  return tracks(false);
+}
+
+QVector<project::Track> Sequence::videoTracks()
+{
+  return tracks(true);
 }
 
 
@@ -536,6 +583,20 @@ bool Sequence::loadWorkArea(QXmlStreamReader& stream)
     }
   }
   return true;
+}
+
+
+QVector<project::Track> Sequence::tracks(const bool video)
+{
+  QVector<project::Track> trks;
+
+  for (auto t : tracks_) {
+    if ( (t.index_ < 0) == video) {
+      trks.append(t);
+    }
+  }
+
+  return trks;
 }
 
 std::pair<int64_t, int64_t> Sequence::trackLimits() const

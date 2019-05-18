@@ -117,7 +117,7 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
 
     // collect all the selected clips
     QVector<ClipPtr> selected_clips;
-    for (const auto& clp : global::sequence->clips_) {
+    for (const auto& clp : global::sequence->clips()) {
       if (clp != nullptr && clp->isSelected(true)) {
         selected_clips.append(clp);
       }
@@ -133,7 +133,7 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
       rc_ripple_min = 0;
       rc_ripple_max = LONG_MAX;
 
-      for (const auto& clp : global::sequence->clips_) {
+      for (const auto& clp : global::sequence->clips()) {
         if (clp == nullptr) {
           continue;
         }
@@ -226,7 +226,7 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
 void TimelineWidget::toggle_autoscale()
 {
   auto action = new SetAutoscaleAction();
-  for (const auto& clp : global::sequence->clips_) {
+  for (const auto& clp : global::sequence->clips()) {
     if (clp != nullptr && clp->isSelected(true)) {
       action->clips.append(clp);
     }
@@ -242,8 +242,8 @@ void TimelineWidget::toggle_autoscale()
 void TimelineWidget::tooltip_timer_timeout()
 {
   if (global::sequence != nullptr) {
-    if (tooltip_clip < global::sequence->clips_.size()) {
-      ClipPtr c = global::sequence->clips_.at(tooltip_clip);
+    if (tooltip_clip < global::sequence->clips().size()) {
+      ClipPtr c = global::sequence->clips().at(tooltip_clip);
       if (c != nullptr) {
         QToolTip::showText(QCursor::pos(),
                            tr("%1\nStart: %2\nEnd: %3\nDuration: %4").arg(
@@ -260,8 +260,8 @@ void TimelineWidget::tooltip_timer_timeout()
 
 void TimelineWidget::rename_clip() {
   QVector<ClipPtr> selected_clips;
-  for (int i=0;i<global::sequence->clips_.size();i++) {
-    ClipPtr c = global::sequence->clips_.at(i);
+  for (int i=0;i<global::sequence->clips().size();i++) {
+    ClipPtr c = global::sequence->clips().at(i);
     if (c != nullptr && c->isSelected(true)) {
       selected_clips.append(c);
     }
@@ -500,8 +500,8 @@ void insert_clips(ComboAction* ca) {
 
   QVector<int> split_ids;
 
-  for (int i=0;i<global::sequence->clips_.size();i++) {
-    ClipPtr c = global::sequence->clips_.at(i);
+  for (int i=0;i<global::sequence->clips().size();i++) {
+    ClipPtr c = global::sequence->clips().at(i);
     if (c == nullptr) {
       qWarning() << "Clip instance is null";
       continue;
@@ -593,7 +593,7 @@ void TimelineWidget::mouseDoubleClickEvent(QMouseEvent *event) {
   if (PanelManager::timeLine().tool == TimelineToolType::EDIT) {
     int clip_index = getClipIndexFromCoords(PanelManager::timeLine().cursor_frame, PanelManager::timeLine().cursor_track);
     if (clip_index >= 0) {
-      ClipPtr clip = global::sequence->clips_.at(clip_index);
+      ClipPtr clip = global::sequence->clips().at(clip_index);
       if (!(event->modifiers() & Qt::ShiftModifier)) global::sequence->selections_.clear();
       Selection s;
       s.in = clip->timeline_info.in;
@@ -1923,8 +1923,8 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
 
     // select linked clips too
     if (e_config.edit_tool_selects_links) {
-      for (int j=0;j<global::sequence->clips_.size();j++) {
-        ClipPtr c = global::sequence->clips_.at(j);
+      for (int j=0;j<global::sequence->clips().size();j++) {
+        ClipPtr c = global::sequence->clips().at(j);
         for (int k=0;k<global::sequence->selections_.size();k++) {
           const Selection& s = global::sequence->selections_.at(k);
           if (!(c->timeline_info.in < s.in && c->timeline_info.out < s.in) &&  // TODO: is selected?
@@ -1994,7 +1994,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
     } else {
       // set up movement
       // create ghosts
-      for (const auto& c : global::sequence->clips_) {
+      for (const auto& c : global::sequence->clips()) {
         if (c == nullptr) {
           qWarning() << "Clip instance is null";
           continue;
@@ -2062,8 +2062,8 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
         for (int i=0;i<size;i++) {
           const Ghost& g = PanelManager::timeLine().ghosts.at(i);
           ClipPtr ghost_clip = g.clip_.lock();
-          for (int j=0;j<global::sequence->clips_.size();j++) {
-            ClipPtr comp_clip = global::sequence->clips_.at(j);
+          for (int j=0;j<global::sequence->clips().size();j++) {
+            ClipPtr comp_clip = global::sequence->clips().at(j);
             if (comp_clip->timeline_info.track_ == ghost_clip->timeline_info.track_) {
               if ((PanelManager::timeLine().trim_in_point && comp_clip->timeline_info.out == ghost_clip->timeline_info.in) ||
                   (!PanelManager::timeLine().trim_in_point && comp_clip->timeline_info.in == ghost_clip->timeline_info.out)) {
@@ -2103,7 +2103,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
           const Ghost& g = PanelManager::timeLine().ghosts.at(i);
           ClipPtr ghost_clip = g.clip_.lock();
           PanelManager::timeLine().ghosts[i].trimming = false;
-          for (const auto& c : global::sequence->clips_) {
+          for (const auto& c : global::sequence->clips()) {
             if (c == nullptr) {
               qWarning() << "Clip instance is null";
               continue;
@@ -2153,7 +2153,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
           }
         }
 
-        for (const auto& c : global::sequence->clips_) {
+        for (const auto& c : global::sequence->clips()) {
           if (c != nullptr && !c->isSelected(true)) {
             bool clip_is_post = (c->timeline_info.in >= axis);
 
@@ -2211,7 +2211,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
         int track_max = qMax(track_start, track_end);
 
         QVector<ClipPtr> selected_clips;
-      for (const auto& clp : global::sequence->clips_) {
+      for (const auto& clp : global::sequence->clips()) {
         if (clp != nullptr &&
             clp->timeline_info.track_ >= track_min &&
             clp->timeline_info.track_ <= track_max &&
@@ -2280,8 +2280,8 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
     int min_track = INT_MAX;
     int max_track = INT_MIN;
     PanelManager::timeLine().transition_select = TA_NO_TRANSITION;
-    for (int i=0;i<global::sequence->clips_.size();i++) {
-      if (ClipPtr c = global::sequence->clips_.at(i)) {
+    for (int i=0;i<global::sequence->clips().size();i++) {
+      if (ClipPtr c = global::sequence->clips().at(i)) {
         min_track = qMin(min_track, c->timeline_info.track_.load());
         max_track = qMax(max_track, c->timeline_info.track_.load());
         if (c->timeline_info.track_ == mouse_track) {
@@ -2569,7 +2569,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
     // get widget width and height
     int video_track_limit = 0;
     int audio_track_limit = 0;
-    for (const auto seq_clip : global::sequence->clips_) {
+    for (const auto seq_clip : global::sequence->clips()) {
       if (seq_clip != nullptr) {
         video_track_limit = qMin(video_track_limit, seq_clip->timeline_info.track_.load());
         audio_track_limit = qMax(audio_track_limit, seq_clip->timeline_info.track_.load());
@@ -2593,8 +2593,8 @@ void TimelineWidget::paintEvent(QPaintEvent*)
     }
 
     // Draw all the clips
-    for (int i=0;i<global::sequence->clips_.size();i++) {
-      ClipPtr clip = global::sequence->clips_.at(i);
+    for (int i=0;i<global::sequence->clips().size();i++) {
+      ClipPtr clip = global::sequence->clips().at(i);
       if (clip != nullptr && is_track_visible(clip->timeline_info.track_)) {
         QRect clip_rect(PanelManager::timeLine().getTimelineScreenPointFromFrame(clip->timeline_info.in),
                         getScreenPointFromTrack(clip->timeline_info.track_),
@@ -3069,8 +3069,8 @@ int TimelineWidget::getScreenPointFromTrack(int track) {
 
 int TimelineWidget::getClipIndexFromCoords(long frame, int track)
 {
-  for (int i=0;i<global::sequence->clips_.size();i++) {
-    ClipPtr c = global::sequence->clips_.at(i);
+  for (int i=0;i<global::sequence->clips().size();i++) {
+    ClipPtr c = global::sequence->clips().at(i);
     if (c != nullptr && c->timeline_info.track_ == track && frame >= c->timeline_info.in && frame < c->timeline_info.out) {
       return i;
     }
@@ -3080,7 +3080,7 @@ int TimelineWidget::getClipIndexFromCoords(long frame, int track)
 
 ClipPtr TimelineWidget::getClipFromCoords(const long frame, const int track) const
 {
-  for (const auto& seq_clip : global::sequence->clips_) {
+  for (const auto& seq_clip : global::sequence->clips()) {
     if (seq_clip != nullptr && seq_clip->timeline_info.track_ == track && seq_clip->timeline_info.in <= frame
         && seq_clip->timeline_info.out > frame) {
       return seq_clip;

@@ -801,7 +801,7 @@ void Clip::resetAudio()
     audio_playback.buffer_write = 0;
   } else if (timeline_info.media->type() == MediaType::SEQUENCE) {
     SequencePtr nested_sequence = timeline_info.media->object<Sequence>();
-    for (const auto& clp : nested_sequence->clips_) {
+    for (const auto& clp : nested_sequence->clips()) {
       if (clp != nullptr) {
         clp->resetAudio(); //FIXME: no recursion depth check
       }

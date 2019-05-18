@@ -147,7 +147,7 @@ GLuint compose_sequence(Viewer* viewer,
 
   QVector<ClipPtr> current_clips;
 
-  for (auto clp : lcl_seq->clips_) {
+  for (auto clp : lcl_seq->clips()) {
     // if clip starts within one second and/or hasn't finished yet
     if (clp == nullptr) {
       qWarning() << "Clip instance is null";

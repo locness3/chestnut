@@ -24,6 +24,7 @@
 #include <QVBoxLayout>
 
 #include "ui/Forms/trackareawidget.h"
+#include "project/track.h"
 
 namespace Ui {
   class TimelineTrackArea;
@@ -49,8 +50,25 @@ class TimelineTrackArea : public QWidget
     TimelineTrackArea& operator=(const TimelineTrackArea&&) = delete;
 
     bool initialise(const TimelineTrackType area_type);
-    bool addTrack(const int number, const QString& name);
+    /**
+     * @brief       Add a Track for a widget to be displayed
+     * @param trk
+     * @return      true==Track added
+     */
+    bool addTrack(const project::Track& trk);
+    /**
+     * @brief         Set the tracks that should be displayed
+     * @param tracks  List of tracks
+     */
+    void setTracks(const QVector<project::Track>& tracks);
+    /**
+     * @brief         Set the pixel heights that track widgets should be displayed at
+     * @param heights List of track heights
+     */
     void setHeights(const QVector<int>& heights);
+    /**
+     * @brief Remove the area of all widgets
+     */
     void reset();
 
     TimelineTrackType type_{TimelineTrackType::NONE};

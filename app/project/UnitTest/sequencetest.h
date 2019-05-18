@@ -39,6 +39,12 @@ private slots:
     void testCaseLockTrack();
 
     void testCaseEnableTrack();
+
+    void testCaseAddClip();
+
+    void testCaseAddClipDuplicate();
+
+    void testCaseAddClipNull();
 };
 
 #endif // SEQUENCETEST_H

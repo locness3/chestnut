@@ -40,26 +40,61 @@ bool TimelineTrackArea::initialise(const TimelineTrackType area_type)
 }
 
 
-bool TimelineTrackArea::addTrack(const int number, const QString& name)
+bool TimelineTrackArea::addTrack(const project::Track& trk)
 {
-  if (track_widgets_.contains(number)) {
-    qWarning() << "Already added track" << number;
-    return false;
-  }
 
-  auto idx = number;
+  auto idx = trk.index_;
   if ( (type_ == TimelineTrackType::VISUAL) && (idx >= 0) ) {
     // ensure video track numbers are negative and start from -1. needed for display purposes
     idx = -(idx + 1);
   }
+
+  if (track_widgets_.contains(idx)) {
+    qDebug() << "Updating track" << trk.index_;
+    track_widgets_[idx]->setName(trk.name_);
+    track_widgets_[idx]->setEnabled(trk.enabled_);
+    track_widgets_[idx]->setLocked(trk.locked_);
+    return true;
+  }
+
+
   auto track_wdgt = new TrackAreaWidget(this);
   track_wdgt->initialise();
-  track_wdgt->setName(name);
+  track_wdgt->setName(trk.name_);
   QObject::connect(track_wdgt, &TrackAreaWidget::enableTrack, this, &TimelineTrackArea::trackEnableChange);
   QObject::connect(track_wdgt, &TrackAreaWidget::lockTrack, this, &TimelineTrackArea::trackLockChange);
   track_widgets_[idx] = track_wdgt;
   update();
   return true;
+}
+
+
+void TimelineTrackArea::setTracks(const QVector<project::Track>& tracks)
+{
+  for (auto t : tracks) {
+    addTrack(t);
+  }
+
+  // remove uneeded widgets
+  auto itor = track_widgets_.begin();
+  while (itor != track_widgets_.end()) {
+    bool found = false;
+    for (auto t : tracks) {
+      if (itor.key() == t.index_) {
+        found = true;
+        continue;
+      }
+    }
+    if (found) {
+      itor++;
+    } else {
+      QObject::connect(itor.value(), &TrackAreaWidget::enableTrack, this, &TimelineTrackArea::trackEnableChange);
+      QObject::connect(itor.value(), &TrackAreaWidget::lockTrack, this, &TimelineTrackArea::trackLockChange);
+      delete itor.value();
+      itor = track_widgets_.erase(itor);
+    }
+  }
+
 }
 
 
@@ -78,8 +113,8 @@ void TimelineTrackArea::setHeights(const QVector<int>& heights)
 
 void TimelineTrackArea::reset()
 {
-
   for (auto t_w : track_widgets_) {
+    //TODO: disconnect sig/slots
     ui->mainLayout->removeWidget(t_w);
     delete t_w;
   }

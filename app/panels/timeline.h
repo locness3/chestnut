@@ -299,6 +299,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const SequencePtr& seq);
     ClipPtr split_clip(ComboAction& ca, const ClipPtr& pre_clip, const long frame) const;
     void clipLinkage(const bool link);
+    void updateTrackAreas();
 };
 
 #endif // TIMELINE_H

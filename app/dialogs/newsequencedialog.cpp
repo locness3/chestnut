@@ -106,7 +106,7 @@ void NewSequenceDialog::create() {
     esc->audio_layout = AV_CH_LAYOUT_STEREO;
     ca->append(esc);
 
-    for (const auto& ex_clip : existing_sequence->clips_) {
+    for (const auto& ex_clip : existing_sequence->clips()) {
       if (ex_clip != nullptr) {
         ex_clip->refactorFrameRate(ca, multiplier, true);
       }

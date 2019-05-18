@@ -40,6 +40,8 @@ class TrackAreaWidget : public QWidget
 
     void initialise();
     void setName(const QString& name);
+    void setLocked(const bool locked);
+    void setEnabled(const bool enabled);
   signals:
     void enableTrack(bool value);
     void lockTrack(bool value);

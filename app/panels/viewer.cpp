@@ -140,8 +140,7 @@ void Viewer::reset_all_audio() {
     audio_ibuffer_frame = seq->playhead_;
     audio_ibuffer_timecode = (double) audio_ibuffer_frame / seq->frameRate();
 
-    for (int i=0;i<seq->clips_.size();i++) {
-      ClipPtr c = seq->clips_.at(i);
+    for (const auto& c : seq->clips()) {
       if (c != nullptr) {
         c->resetAudio();
       }
@@ -744,7 +743,7 @@ SequencePtr Viewer::createFootageSequence(const MediaPtr& mda) const
     clp->timeline_info.track_ = -1;
     clp->timeline_info.clip_in  = 0;
     clp->recalculateMaxLength();
-    sqn->clips_.append(clp);
+    sqn->addClip(clp);
   } else {
     sqn->setWidth(MEDIA_WIDTH);
     sqn->setHeight(MEDIA_HEIGHT);
@@ -762,7 +761,7 @@ SequencePtr Viewer::createFootageSequence(const MediaPtr& mda) const
     clp->timeline_info.track_       = 0;
     clp->timeline_info.clip_in      = 0;
     clp->recalculateMaxLength();
-    sqn->clips_.append(clp);
+    sqn->addClip(clp);
 
     if (ftg->video_tracks.empty()) {
       viewer_widget->waveform         = true;

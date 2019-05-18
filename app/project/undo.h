@@ -105,7 +105,7 @@ private:
   SequencePtr s;
   long point;
   long length;
-  QVector<int> ignore;
+  QVector<int> ignore; //TODO: change from index to ids
   ComboAction* ca{};
 };
 

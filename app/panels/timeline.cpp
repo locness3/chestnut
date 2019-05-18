@@ -151,7 +151,7 @@ void Timeline::previous_cut()
   }
 
   long p_cut = 0;
-  for (const auto& seq_clip : sequence_->clips_) {
+  for (const auto& seq_clip : sequence_->clips()) {
     if (seq_clip == nullptr) {
       qCritical() << "Clip instance is null";
       continue;
@@ -173,7 +173,7 @@ void Timeline::next_cut()
 
   bool seek_enabled = false;
   long n_cut = LONG_MAX;
-  for (const auto& seq_clip : sequence_->clips_) {
+  for (const auto& seq_clip : sequence_->clips()) {
     if (seq_clip == nullptr) {
       qCritical() << "Clip instance is null";
       continue;
@@ -450,7 +450,7 @@ void Timeline::add_transition()
   const auto video_meta = get_internal_meta(TRANSITION_INTERNAL_CROSSDISSOLVE, EFFECT_TYPE_TRANSITION);
 
 
-  for (const auto& clp : sequence_->clips_) {
+  for (const auto& clp : sequence_->clips()) {
     if (clp != nullptr && clp->isSelected(true)){
       auto meta = clp->mediaType() == ClipType::AUDIO ? audio_meta : video_meta;
       ca->append(new AddTransitionCommand(clp, nullptr, meta, ClipTransitionType::BOTH, 30));
@@ -469,22 +469,20 @@ void Timeline::add_transition()
 
 int Timeline::calculate_track_height(const int track, const int value)
 {
-  Q_ASSERT(sequence_ != nullptr);
+  if (sequence_ == nullptr) {
+    // nothing to do
+    return -1;
+  }
   //FIXME: every time the mouse moves close to the scroll area limit (horizontally) a new track is added
   //FIXME: this is forever called when the mouse is moved over the timeline area
   int index = (track < 0) ? qAbs(track + 1) : track;
   const bool video_track = track < 0;
   QVector<int>& heights = video_track ? video_track_heights : audio_track_heights;
   TimelineTrackArea* area = video_track ? video_track_area_ : audio_track_area_;
-  int track_count = sequence_->trackCount(video_track);
 
   while ( heights.size() < index+1 ) {
     heights.append(default_track_height);
-    if (area != nullptr && (index < track_count)) {
-      area->addTrack(index, QString("Track:") + QString::number(index));
-    }
   }
-
 
   if (value > -1) {
     heights[index] = value;
@@ -571,6 +569,8 @@ void Timeline::repaint_timeline()
       }
     }
   }
+
+  updateTrackAreas();
 }
 
 void Timeline::select_all()
@@ -578,7 +578,7 @@ void Timeline::select_all()
   Q_ASSERT(sequence_ != nullptr);
 
   sequence_->selections_.clear();
-  for (const auto& seq_clip : sequence_->clips_) {
+  for (const auto& seq_clip : sequence_->clips()) {
     if (seq_clip != nullptr) {
       Selection s;
       s.in = seq_clip->timeline_info.in;
@@ -599,8 +599,8 @@ void Timeline::select_from_playhead()
   Q_ASSERT(sequence_ != nullptr);
 
   sequence_->selections_.clear();
-  for (int i=0;i<sequence_->clips_.size();i++) {
-    ClipPtr c = sequence_->clips_.at(i);
+  for (int i=0;i<sequence_->clips().size();i++) {
+    ClipPtr c = sequence_->clips().at(i);
     if (c != nullptr
         && c->timeline_info.in <= sequence_->playhead_
         && c->timeline_info.out > sequence_->playhead_) {
@@ -663,7 +663,7 @@ void Timeline::delete_selection(QVector<Selection>& selections, bool ripple_dele
       ripple_point++;
 
       bool can_ripple = true;
-      for (const auto& seq_clip : sequence_->clips_) {
+      for (const auto& seq_clip : sequence_->clips()) {
         if (seq_clip == nullptr) {
           continue;
         }
@@ -680,7 +680,7 @@ void Timeline::delete_selection(QVector<Selection>& selections, bool ripple_dele
             }
           }
           if (!deleted) {
-            for (const auto& cc : sequence_->clips_) {
+            for (const auto& cc : sequence_->clips()) {
               if (cc == nullptr) {
                 continue;
               }
@@ -823,8 +823,8 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
   QVector<ClipPtr> post_clips;
 
   for (const auto& sel : areas) {
-    for (int j=0;j<sequence_->clips_.size();j++) {
-      ClipPtr c = sequence_->clips_.at(j);
+    for (int j=0;j<sequence_->clips().size();j++) {
+      ClipPtr c = sequence_->clips().at(j);
       if (c != nullptr && c->timeline_info.track_ == sel.track && !c->undeletable) {
         if (selection_contains_transition(sel, c, TA_OPENING_TRANSITION)) {
           // delete opening transition
@@ -893,7 +893,7 @@ void Timeline::copy(bool del)
   long min_in = 0;
 
 
-  for (const auto& c : sequence_->clips_) {
+  for (const auto& c : sequence_->clips()) {
     if (c == nullptr) {
       qWarning() << "Clip instance is null";
       continue;
@@ -1043,8 +1043,8 @@ void Timeline::paste(bool insert)
     bool skip = false;
     bool ask_conflict = true;
 
-    for (int i=0;i<sequence_->clips_.size();i++) {
-      ClipPtr c = sequence_->clips_.at(i);
+    for (int i=0;i<sequence_->clips().size();i++) {
+      ClipPtr c = sequence_->clips().at(i);
       if (c != nullptr && c->isSelected(true)) {
         for (int j=0;j<e_clipboard.size();j++) {
           EffectPtr e = std::dynamic_pointer_cast<Effect>(e_clipboard.at(j));
@@ -1113,7 +1113,7 @@ void Timeline::paste(bool insert)
 }
 
 void Timeline::ripple_to_in_point(bool in, bool ripple) {
-  if ( (sequence_ != nullptr) && !sequence_->clips_.empty()) {
+  if ( (sequence_ != nullptr) && !sequence_->clips().empty()) {
     // get track count
     int track_min = INT_MAX;
     int track_max = INT_MIN;
@@ -1125,8 +1125,8 @@ void Timeline::ripple_to_in_point(bool in, bool ripple) {
     int64_t prev_cut = 0;
 
     // find closest in point to playhead
-    for (int i=0;i<sequence_->clips_.size();i++) {
-      ClipPtr c = sequence_->clips_.at(i);
+    for (int i=0;i<sequence_->clips().size();i++) {
+      ClipPtr c = sequence_->clips().at(i);
       if (c != nullptr) {
         track_min = qMin(track_min, c->timeline_info.track_.load());
         track_max = qMax(track_max, c->timeline_info.track_.load());
@@ -1228,7 +1228,7 @@ bool Timeline::split_all_clips_at_point(ComboAction* ca, const long point)
   QVector<int> split_clips;
   QVector<ClipPtr> posts;
   bool split = false;
-  for (const auto& clp : sequence_->clips_) {
+  for (const auto& clp : sequence_->clips()) {
     if (clp == nullptr) {
       qWarning() << "Clip instance is null";
       continue;
@@ -1362,8 +1362,8 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
     }
 
     // snap to clip/transition
-    for (int i=0;i<sequence_->clips_.size();i++) {
-      ClipPtr c = sequence_->clips_.at(i);
+    for (int i=0;i<sequence_->clips().size();i++) {
+      ClipPtr c = sequence_->clips().at(i);
       if (c != nullptr) {
         if (snap_to_point(c->timeline_info.in, l)) {
           return true;
@@ -1443,6 +1443,19 @@ void Timeline::clipLinkage(const bool link)
   } else {
     delete ca;
   }
+}
+
+
+void Timeline::updateTrackAreas()
+{
+  if (sequence_ == nullptr) {
+    return;
+  }
+
+  video_track_area_->setTracks(sequence_->videoTracks());
+  video_track_area_->setHeights(video_track_heights);
+  audio_track_area_->setTracks(sequence_->audioTracks());
+  audio_track_area_->setHeights(audio_track_heights);
 }
 
 void Timeline::increase_track_height() {
@@ -1874,7 +1887,7 @@ std::vector<ClipPtr> Timeline::selectedClips()
   Q_ASSERT(sequence_ != nullptr);
 
   std::vector<ClipPtr> clips;
-  auto seqClips = sequence_->clips_;
+  auto seqClips = sequence_->clips();
   for (const auto& clp : seqClips) {
     if ((clp != nullptr) && clp->isSelected(true)) {
       clips.emplace_back(clp);
@@ -1905,7 +1918,11 @@ void Timeline::set_tool() {
 void Timeline::trackEnabled(const bool enabled, const int track_number)
 {
   Q_ASSERT(sequence_ != nullptr);
-  sequence_->enableTrack(track_number, enabled);
+  if (enabled) {
+    sequence_->enableTrack(track_number);
+  } else {
+    sequence_->disableTrack(track_number);
+  }
   repaint_timeline();
   PanelManager::sequenceViewer().update_viewer();
 }

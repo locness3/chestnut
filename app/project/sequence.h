@@ -77,13 +77,6 @@ public:
     void setAudioLayout(const int32_t layout);
 
     /**
-     * @brief Obtain populated tracks at a position in the sequence
-     * @param frame   Position
-     * @return        Set of tracks
-     */
-    QSet<int> tracks(const long frame) const;
-
-    /**
      * @brief         Obtain the populated track count in the sequence
      * @param video   true==video tracks, false==audio tracks
      * @return        track count
@@ -109,6 +102,19 @@ public:
      */
     QVector<ClipPtr> clips(const long frame) const;
 
+    /**
+     * @brief           Add a clip to the sequence if not already present
+     * @param new_clip  Clip instance
+     * @return          true==clip added successfully
+     */
+    bool addClip(const ClipPtr& new_clip);
+
+    /**
+     * @brief   Obtain a list of all the clips in the sequence
+     * @return  A list
+     */
+    QVector<ClipPtr> clips();
+
     void closeActiveClips(const int32_t depth=0);
     /**
      * @brief     Obtain a clip from this sequence
@@ -132,14 +138,26 @@ public:
      */
     void lockTrack(const int number, const bool lock);
     /**
-     * @brief         Enable/disable a track (for the timeline and sequence viewer)
+     * @brief         Enable a track (for the timeline and sequence viewer)
      * @param number  The track number
-     * @param enable  true==enable
      */
-    void enableTrack(const int number, const bool enable);
+    void enableTrack(const int number);
+    /**
+     * @brief         Disable a track (for the timeline and sequence viewer)
+     * @param number  The track number
+     */
+    void disableTrack(const int number);
+    /**
+     * @brief         Add a track to the sequence
+     * @param number  Track index
+     * @param video   true==video track false==audio track
+     */
+    void addTrack(const int number, const bool video);
+
+    QVector<project::Track> audioTracks();
+    QVector<project::Track> videoTracks();
 
     QVector<Selection> selections_;
-    QVector<ClipPtr> clips_;
     int32_t save_id_ = 0; //FIXME: fudge
     struct {
         bool using_ = false;
@@ -161,8 +179,11 @@ private:
     int32_t audio_frequency_ = -1;
     int32_t audio_layout_ = -1;
     QMap<int, project::Track> tracks_;
+    QVector<ClipPtr> clips_;
 
     bool loadWorkArea(QXmlStreamReader& stream);
+
+    QVector<project::Track> tracks(const bool video);
 };
 
 namespace global {

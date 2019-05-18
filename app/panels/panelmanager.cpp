@@ -65,7 +65,7 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
   QVector<int> selected_clips;
   int mode = TA_NO_TRANSITION;
   if (seq != nullptr) {
-    for (const auto& seq_clip : seq->clips_) {
+    for (const auto& seq_clip : seq->clips()) {
       if (seq_clip == nullptr) {
         continue;
       }

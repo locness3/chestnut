@@ -24,5 +24,5 @@ void ViewerTest::testCaseCreateFootageSequenceAudioVideoClip()
 
   Viewer vwr;
   auto sqn = vwr.createFootageSequence(mda);
-  QVERIFY(sqn->clips_.size() == 2);
+  QVERIFY(sqn->clips().size() == 2);
 }

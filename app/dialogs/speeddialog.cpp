@@ -320,7 +320,7 @@ void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, int64_t& e
   proposed_out = c->timeline_info.in + (c->length() * multiplier);
   ca->append(new SetSpeedAction(c, speed));
   if (!ripple && proposed_out > c->timeline_info.out) {
-      for (const auto& compare : c->sequence->clips_) {
+      for (const auto& compare : c->sequence->clips()) {
       if (compare != nullptr
           && compare->timeline_info.track_ == c->timeline_info.track_
           && compare->timeline_info.in >= c->timeline_info.out

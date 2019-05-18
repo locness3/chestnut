@@ -119,7 +119,7 @@ void ReplaceClipMediaDialog::replace()
                                                 new_item,
                                                 use_same_media_in_points->isChecked());
 
-        for (const auto& clp : global::sequence->clips_) {
+        for (const auto& clp : global::sequence->clips()) {
           if ( (clp != nullptr) && (clp->timeline_info.media == media_) ) {
             rcmc->clips.append(clp);
           }

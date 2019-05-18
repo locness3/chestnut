@@ -133,18 +133,12 @@ void SequenceTest::testCaseTracks()
   clip2->timeline_info.track_ = 2;
   clip2->timeline_info.in = 0;
   clip2->timeline_info.out = 10;
-  sqn->clips_.append(clip1);
-  sqn->clips_.append(clip2);
+  sqn->addClip(clip1);
+  sqn->addClip(clip2);
 
-  // in the range of the clips
-  auto tracks = sqn->tracks(1);
-  QVERIFY(tracks.size() == 2);
-  QVERIFY(tracks.contains(1) == true);
-  QVERIFY(tracks.contains(2) == true);
+  QVERIFY(sqn->tracks(true).empty() == true);
+  QVERIFY(sqn->tracks(false).size() == 2);
 
-  // out of the range of the clips
-  tracks = sqn->tracks(11);
-  QVERIFY(tracks.empty() == true);
 }
 
 void SequenceTest::testCaseClips()
@@ -217,13 +211,10 @@ void SequenceTest::testCaseTrackLocked()
 void SequenceTest::testCaseTrackEnabled()
 {
   Sequence sqn;
-
-  // By default, a track is enabled
-  QVERIFY(sqn.trackEnabled(0) == true);
-
-  sqn.enableTrack(1, true);
+  sqn.addTrack(1, true);
+  sqn.enableTrack(1);
   QVERIFY(sqn.trackEnabled(1) == true);
-  sqn.enableTrack(1, false);
+  sqn.disableTrack(1);
   QVERIFY(sqn.trackEnabled(1) == false);
 }
 
@@ -240,8 +231,32 @@ void SequenceTest::testCaseLockTrack()
 void SequenceTest::testCaseEnableTrack()
 {
   Sequence sqn;
-  sqn.enableTrack(0, true);
+  sqn.addTrack(0, true);
+  sqn.enableTrack(0);
   QVERIFY(sqn.trackEnabled(0) == true);
-  sqn.enableTrack(0, false);
+  sqn.disableTrack(0);
   QVERIFY(sqn.trackEnabled(0) == false);
+}
+
+void SequenceTest::testCaseAddClip()
+{
+  Sequence sqn;
+  auto clp = std::make_shared<Clip>(nullptr);
+  QVERIFY(sqn.addClip(clp) == true);
+}
+
+void SequenceTest::testCaseAddClipDuplicate()
+{
+  Sequence sqn;
+  auto clp = std::make_shared<Clip>(nullptr);
+  QVERIFY(sqn.addClip(clp) == true);
+  QVERIFY(sqn.addClip(clp) == false);
+}
+
+
+void SequenceTest::testCaseAddClipNull()
+{
+  Sequence sqn;
+  ClipPtr clp = nullptr;
+  QVERIFY(sqn.addClip(clp) == false);
 }
