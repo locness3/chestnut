@@ -52,7 +52,7 @@ class Transition : public Effect {
     long get_true_length() const;
     long get_length() const;
 
-    void setSecondaryLoadId(const int id);
+    void setSecondaryLoadId(const int load_id);
 
     virtual void setupUi() override;
 
