@@ -42,7 +42,6 @@ bool TimelineTrackArea::initialise(const TimelineTrackType area_type)
 
 bool TimelineTrackArea::addTrack(const project::Track& trk)
 {
-
   auto idx = trk.index_;
   if ( (type_ == TimelineTrackType::VISUAL) && (idx >= 0) ) {
     // ensure video track numbers are negative and start from -1. needed for display purposes
@@ -50,7 +49,6 @@ bool TimelineTrackArea::addTrack(const project::Track& trk)
   }
 
   if (track_widgets_.contains(idx)) {
-    qDebug() << "Updating track" << trk.index_;
     track_widgets_[idx]->setName(trk.name_);
     track_widgets_[idx]->setEnabled(trk.enabled_);
     track_widgets_[idx]->setLocked(trk.locked_);

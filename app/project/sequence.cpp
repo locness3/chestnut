@@ -578,6 +578,8 @@ void Sequence::addTrack(const int number, const bool video)
 
 void Sequence::verifyTrackCount()
 {
+  // TODO: decide whether to remove tracks as they become empty or not
+
   // add missing video tracks
   auto vid_count = trackCount(true); // video tracks start at -1
   for (auto ix=-vid_count; ix < 0; ++ix) {
@@ -600,7 +602,6 @@ void Sequence::verifyTrackCount()
 
   // add missing audio tracks
   auto audio_count = trackCount(false);
-  qDebug() << "Count" << audio_count;
   for (auto ix = 0; ix < audio_count; ++ix) {
     if (!tracks_.contains(ix)) {
       addTrack(ix, false);
@@ -608,7 +609,7 @@ void Sequence::verifyTrackCount()
   }
 
 
-  // remove video Tracks no longer required
+  // remove audio Tracks no longer required
   if (!tracks_.isEmpty()) {
     auto key = tracks_.lastKey();
     while (key >= audio_count) {
@@ -619,8 +620,6 @@ void Sequence::verifyTrackCount()
       key = tracks_.lastKey();
     }
   }
-
-
 }
 
 
