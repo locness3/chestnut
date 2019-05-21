@@ -98,14 +98,20 @@ void TimelineTrackArea::setTracks(const QVector<project::Track>& tracks)
 
 void TimelineTrackArea::setHeights(const QVector<int>& heights)
 {
+  int total_h = 0;
   for (auto ix = 0; ix < heights.size(); ++ix) {
     const auto idx = type_ == TimelineTrackType::VISUAL ? -(ix + 1) : ix; // negative offset for video only to get display correct
     if (track_widgets_.contains(idx) && track_widgets_[idx] != nullptr)  {
       // fixed height
+      total_h += heights.at(ix);
       track_widgets_[idx]->setMinimumHeight(heights.at(ix));
       track_widgets_[idx]->setMaximumHeight(heights.at(ix));
     }
   }
+
+  // Ensure this widget is resized to fit
+  setMinimumHeight(total_h);
+  setMaximumHeight(total_h);
 }
 
 

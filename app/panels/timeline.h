@@ -32,6 +32,7 @@
 #include "project/media.h"
 #include "project/effect.h"
 #include "ui/Forms/timelinetrackarea.h"
+#include "ui/blankscrollarea.h"
 
 constexpr int TRACK_DEFAULT_HEIGHT = 40;
 
@@ -89,6 +90,7 @@ struct Ghost {
     // transition trimming
     TransitionWPtr transition;
 };
+
 
 //FIXME: far too many methods and members
 class Timeline : public QDockWidget, public ui::MarkerDockWidget
@@ -277,6 +279,8 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     TimelineWidget* audio_area{};
     QWidget* editAreas{};
     QScrollBar* videoScrollbar{};
+    ui::BlankScrollArea* video_scroll_{};
+    ui::BlankScrollArea* audio_scroll_{};
     QScrollBar* audioScrollbar{};
     QPushButton* zoomInButton{};
     QPushButton* zoomOutButton{};
@@ -287,7 +291,6 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     TimelineTrackArea* header_track_area_{nullptr};
     TimelineTrackArea* video_track_area_{nullptr};
     TimelineTrackArea* audio_track_area_{nullptr};
-
 
     void set_zoom_value(double v);
     void decheck_tool_buttons(QObject* sender);
@@ -300,6 +303,9 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     ClipPtr split_clip(ComboAction& ca, const ClipPtr& pre_clip, const long frame) const;
     void clipLinkage(const bool link);
     void updateTrackAreas();
+    QWidget* createToolButtonsWidget(QWidget* parent);
+    QWidget* createVideoAreaWidget(QWidget* parent);
+    QWidget* createAudioAreaWidget(QWidget* parent);
 };
 
 #endif // TIMELINE_H

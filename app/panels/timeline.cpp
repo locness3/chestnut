@@ -489,6 +489,7 @@ int Timeline::calculate_track_height(const int track, const int value)
   }
 
   area->setHeights(heights);
+
   return heights.at(index);
 }
 
@@ -1630,15 +1631,11 @@ void Timeline::set_sb_max() {
   headers->set_scrollbar_max(horizontalScrollBar, sequence_->endFrame(), editAreas->width() - getScreenPointFromFrame(zoom, 200));
 }
 
-void Timeline::setup_ui()
+QWidget* Timeline::createToolButtonsWidget(QWidget* parent)
 {
-  auto dockWidgetContents = new QWidget();
+  Q_ASSERT(parent != nullptr);
 
-  auto horizontalLayout = new QHBoxLayout(dockWidgetContents);
-  horizontalLayout->setSpacing(0);
-  horizontalLayout->setContentsMargins(0, 0, 0, 0);
-
-  auto tool_buttons_widget = new QWidget(dockWidgetContents);
+  auto tool_buttons_widget = new QWidget(parent);
   tool_buttons_widget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
 
   auto tool_buttons_layout = new QVBoxLayout(tool_buttons_widget);
@@ -1781,8 +1778,98 @@ void Timeline::setup_ui()
   tool_buttons_layout->addWidget(addButton);
 
   tool_buttons_layout->addStretch();
+  return tool_buttons_widget;
 
-  horizontalLayout->addWidget(tool_buttons_widget);
+}
+
+QWidget* Timeline::createVideoAreaWidget(QWidget* parent)
+{
+  Q_ASSERT(parent != nullptr);
+
+
+  auto video_container = new QWidget(parent);
+  auto video_container_layout = new QHBoxLayout(video_container);
+  video_container_layout->setSpacing(0);
+  video_container_layout->setContentsMargins(0, 0, 0, 0);
+
+  video_track_area_ = new TimelineTrackArea(video_container);
+  video_track_area_->type_ = TimelineTrackType::VISUAL;
+  QObject::connect(video_track_area_, &TimelineTrackArea::trackLocked, this, &Timeline::trackLocked);
+  QObject::connect(video_track_area_, &TimelineTrackArea::trackEnabled, this, &Timeline::trackEnabled);
+
+  video_scroll_ = new ui::BlankScrollArea;
+  video_scroll_->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
+  video_scroll_->containWidget(video_track_area_);
+
+  video_container_layout->addWidget(video_scroll_);
+
+  video_area = new TimelineWidget(video_container);
+  video_area->setFocusPolicy(Qt::ClickFocus);
+  video_area->setMinimumWidth(100);
+  video_area->setMinimumHeight(32);
+
+  video_container_layout->addWidget(video_area);
+
+  videoScrollbar = new QScrollBar(video_container);
+  videoScrollbar->setMaximum(0);
+  videoScrollbar->setSingleStep(20);
+  videoScrollbar->setPageStep(1826);
+  videoScrollbar->setOrientation(Qt::Vertical);
+
+  QObject::connect(videoScrollbar, &QScrollBar::sliderMoved, video_scroll_, &ui::BlankScrollArea::setScroll);
+  video_scroll_->vert_bar_ = videoScrollbar;
+
+  video_container_layout->addWidget(videoScrollbar);
+
+  return video_container;
+}
+
+QWidget* Timeline::createAudioAreaWidget(QWidget* parent)
+{
+  Q_ASSERT(parent != nullptr);
+
+  auto audioContainer = new QWidget(parent);
+  auto audioContainerLayout = new QHBoxLayout(audioContainer);
+  audioContainerLayout->setSpacing(0);
+  audioContainerLayout->setContentsMargins(0, 0, 0, 0);
+
+
+  audio_track_area_ = new TimelineTrackArea(audioContainer);
+  audio_track_area_->type_ = TimelineTrackType::AUDIO;
+  QObject::connect(audio_track_area_, &TimelineTrackArea::trackLocked, this, &Timeline::trackLocked);
+  QObject::connect(audio_track_area_, &TimelineTrackArea::trackEnabled, this, &Timeline::trackEnabled);
+
+  audio_scroll_ = new ui::BlankScrollArea;
+  audio_scroll_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+  audio_scroll_->containWidget(audio_track_area_);
+
+  audioContainerLayout->addWidget(audio_scroll_);
+
+
+  audio_area = new TimelineWidget(audioContainer);
+  audio_area->setFocusPolicy(Qt::ClickFocus);
+
+  audioContainerLayout->addWidget(audio_area);
+
+  audioScrollbar = new QScrollBar(audioContainer);
+  audioScrollbar->setMaximum(0);
+  audioScrollbar->setOrientation(Qt::Vertical);
+  audio_scroll_->vert_bar_ = audioScrollbar;
+
+  audioContainerLayout->addWidget(audioScrollbar);
+  return audioContainer;
+}
+
+void Timeline::setup_ui()
+{
+  auto dockWidgetContents = new QWidget();
+
+  auto horizontalLayout = new QHBoxLayout(dockWidgetContents);
+  horizontalLayout->setSpacing(0);
+  horizontalLayout->setContentsMargins(0, 0, 0, 0);
+
+  auto tool_button_widget = createToolButtonsWidget(dockWidgetContents);
+  horizontalLayout->addWidget(tool_button_widget);
 
   timeline_area = new QWidget(dockWidgetContents);
   QSizePolicy sizePolicy2(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -1813,50 +1900,14 @@ void Timeline::setup_ui()
   editAreaLayout->setContentsMargins(0, 0, 0, 0);
   auto splitter = new QSplitter(editAreas);
   splitter->setOrientation(Qt::Vertical);
-  auto videoContainer = new QWidget(splitter);
-  auto videoContainerLayout = new QHBoxLayout(videoContainer);
-  videoContainerLayout->setSpacing(0);
-  videoContainerLayout->setContentsMargins(0, 0, 0, 0);
-  video_area = new TimelineWidget(videoContainer);
-  video_area->setFocusPolicy(Qt::ClickFocus);
 
-  video_track_area_ = new TimelineTrackArea(video_area);
-  video_track_area_->type_ = TimelineTrackType::VISUAL;
-  QObject::connect(video_track_area_, &TimelineTrackArea::trackLocked, this, &Timeline::trackLocked);
-  QObject::connect(video_track_area_, &TimelineTrackArea::trackEnabled, this, &Timeline::trackEnabled);
-  videoContainerLayout->addWidget(video_track_area_);
-
-  videoContainerLayout->addWidget(video_area);
-
-  videoScrollbar = new QScrollBar(videoContainer);
-  videoScrollbar->setMaximum(0);
-  videoScrollbar->setSingleStep(20);
-  videoScrollbar->setPageStep(1826);
-  videoScrollbar->setOrientation(Qt::Vertical);
-
-  videoContainerLayout->addWidget(videoScrollbar);
-
+  // video timeline area setup
+  auto videoContainer = createVideoAreaWidget(splitter);
   splitter->addWidget(videoContainer);
 
-  auto audioContainer = new QWidget(splitter);
-  auto audioContainerLayout = new QHBoxLayout(audioContainer);
-  audioContainerLayout->setSpacing(0);
-  audioContainerLayout->setContentsMargins(0, 0, 0, 0);
-  audio_area = new TimelineWidget(audioContainer);
-  audio_area->setFocusPolicy(Qt::ClickFocus);
-  audio_track_area_ = new TimelineTrackArea(audio_area);
-  audio_track_area_->type_ = TimelineTrackType::AUDIO;
-  QObject::connect(audio_track_area_, &TimelineTrackArea::trackLocked, this, &Timeline::trackLocked);
-  QObject::connect(audio_track_area_, &TimelineTrackArea::trackEnabled, this, &Timeline::trackEnabled);
-  audioContainerLayout->addWidget(audio_track_area_);
 
-  audioContainerLayout->addWidget(audio_area);
-
-  audioScrollbar = new QScrollBar(audioContainer);
-  audioScrollbar->setMaximum(0);
-  audioScrollbar->setOrientation(Qt::Vertical);
-
-  audioContainerLayout->addWidget(audioScrollbar);
+  // Audio timeline area setup
+  auto audioContainer = createAudioAreaWidget(splitter);
 
   splitter->addWidget(audioContainer);
 
@@ -1934,3 +1985,4 @@ void Timeline::trackLocked(const bool locked, const int track_number)
   sequence_->lockTrack(track_number, locked);
   repaint_timeline();
 }
+

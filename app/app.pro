@@ -17,6 +17,7 @@ SOURCES += \
     ui/Forms/effects.cpp \
     ui/Forms/timelinetrackarea.cpp \
     ui/Forms/trackareawidget.cpp \
+    ui/blankscrollarea.cpp \
     ui/mainwindow.cpp \
     panels/project.cpp \
     panels/effectcontrols.cpp \
@@ -125,6 +126,7 @@ HEADERS += \
     ui/Forms/effects.h \
     ui/Forms/timelinetrackarea.h \
     ui/Forms/trackareawidget.h \
+    ui/blankscrollarea.h \
     ui/mainwindow.h \
     panels/project.h \
     panels/effectcontrols.h \
