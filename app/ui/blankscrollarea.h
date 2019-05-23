@@ -12,7 +12,7 @@ namespace ui
   {
       Q_OBJECT
     public:
-      explicit BlankScrollArea(QWidget* parent=nullptr);
+      BlankScrollArea(QWidget* parent=nullptr, const bool reverse=false);
 
       void containWidget(QWidget* widget);
       QScrollBar* vert_bar_{nullptr};
@@ -23,10 +23,11 @@ namespace ui
     protected:
       virtual void wheelEvent(QWheelEvent *event) override;
 
-      virtual void 	resizeEvent(QResizeEvent *event) override;
+      virtual void resizeEvent(QResizeEvent *event) override;
 
     private:
       int scroll_{0};
+      bool reverse_scroll_{false};
   };
 }
 

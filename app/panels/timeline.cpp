@@ -1797,7 +1797,7 @@ QWidget* Timeline::createVideoAreaWidget(QWidget* parent)
   QObject::connect(video_track_area_, &TimelineTrackArea::trackLocked, this, &Timeline::trackLocked);
   QObject::connect(video_track_area_, &TimelineTrackArea::trackEnabled, this, &Timeline::trackEnabled);
 
-  video_scroll_ = new ui::BlankScrollArea;
+  video_scroll_ = new ui::BlankScrollArea(parent,true);
   video_scroll_->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
   video_scroll_->containWidget(video_track_area_);
 
@@ -1839,7 +1839,7 @@ QWidget* Timeline::createAudioAreaWidget(QWidget* parent)
   QObject::connect(audio_track_area_, &TimelineTrackArea::trackLocked, this, &Timeline::trackLocked);
   QObject::connect(audio_track_area_, &TimelineTrackArea::trackEnabled, this, &Timeline::trackEnabled);
 
-  audio_scroll_ = new ui::BlankScrollArea;
+  audio_scroll_ = new ui::BlankScrollArea(parent, false);
   audio_scroll_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
   audio_scroll_->containWidget(audio_track_area_);
 
@@ -1854,6 +1854,7 @@ QWidget* Timeline::createAudioAreaWidget(QWidget* parent)
   audioScrollbar = new QScrollBar(audioContainer);
   audioScrollbar->setMaximum(0);
   audioScrollbar->setOrientation(Qt::Vertical);
+  QObject::connect(audioScrollbar, &QScrollBar::sliderMoved, audio_scroll_, &ui::BlankScrollArea::setScroll);
   audio_scroll_->vert_bar_ = audioScrollbar;
 
   audioContainerLayout->addWidget(audioScrollbar);

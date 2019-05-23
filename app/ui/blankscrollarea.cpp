@@ -7,11 +7,13 @@
 
 using ui::BlankScrollArea;
 
-BlankScrollArea::BlankScrollArea(QWidget* parent) : QScrollArea(parent)
+BlankScrollArea::BlankScrollArea(QWidget* parent, const bool reverse)
+  : QScrollArea(parent),
+    reverse_scroll_(reverse)
 {
   setWidgetResizable(true);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn); //TODO: turn off once resizing/scrolling is fixed
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
   setMouseTracking(false);
   setAlignment(Qt::AlignBottom);
@@ -30,9 +32,12 @@ void BlankScrollArea::containWidget(QWidget* widget)
 void BlankScrollArea::setScroll(const int val)
 {
   scroll_ = qAbs(val);
-  auto max_val = verticalScrollBar()->maximum();
-  // INFO: needs some sort of offset
-  verticalScrollBar()->setValue(max_val - scroll_);
+  if (reverse_scroll_) {
+    auto max_val = verticalScrollBar()->maximum();
+    verticalScrollBar()->setValue(max_val - scroll_);
+  } else {
+    verticalScrollBar()->setValue(scroll_);
+  }
 }
 
 void BlankScrollArea::wheelEvent(QWheelEvent *event)
@@ -43,6 +48,7 @@ void BlankScrollArea::wheelEvent(QWheelEvent *event)
 
 void BlankScrollArea::resizeEvent(QResizeEvent *event)
 {
-
-
+  event->accept();
+  auto wid = reinterpret_cast<TimelineTrackArea*>(widget());
+  wid->setMinimumHeight(vert_bar_->minimumHeight()); //Fudge to force the area to resize and fill out scrollarea
 }
