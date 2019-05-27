@@ -623,6 +623,16 @@ void Sequence::verifyTrackCount()
 }
 
 
+void Sequence::addSelection(const Selection& sel)
+{
+  if (trackLocked(sel.track)) {
+    qDebug() << "Not able to add selection";
+  } else {
+    selections_.append(sel);
+  }
+}
+
+
 QVector<project::Track> Sequence::audioTracks()
 {
   return tracks(false);

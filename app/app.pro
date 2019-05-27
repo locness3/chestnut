@@ -94,7 +94,6 @@ SOURCES += \
     ui/keyframedrawing.cpp \
     ui/clickablelabel.cpp \
     project/keyframe.cpp \
-    ui/rectangleselect.cpp \
     dialogs/actionsearch.cpp \
     ui/embeddedfilechooser.cpp \
     effects/internal/fillleftrighteffect.cpp \

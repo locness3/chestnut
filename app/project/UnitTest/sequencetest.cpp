@@ -384,3 +384,29 @@ void SequenceTest::testCaseVerifyTracksRemoveAudio()
   sqn.verifyTrackCount();
   QVERIFY(sqn.tracks_.empty() == true);
 }
+
+void SequenceTest::testCaseAddSelectionLocked()
+{
+  Sequence sqn;
+  sqn.addTrack(1, false);
+  sqn.addTrack(2, false);
+  sqn.lockTrack(1, true);
+  QVERIFY(sqn.selections_.empty() == true);
+  Selection sel;
+  sel.track = 1;
+  sqn.addSelection(sel);
+  QVERIFY(sqn.selections_.empty() == true);
+}
+
+void SequenceTest::testCaseAddSelectionNotLocked()
+{
+  Sequence sqn;
+  sqn.addTrack(1, false);
+  sqn.addTrack(2, false);
+  sqn.lockTrack(1, false);
+  QVERIFY(sqn.selections_.empty() == true);
+  Selection sel;
+  sel.track = 1;
+  sqn.addSelection(sel);
+  QVERIFY(sqn.selections_.size() == 1);
+}

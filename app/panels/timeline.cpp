@@ -585,7 +585,7 @@ void Timeline::select_all()
       s.in = seq_clip->timeline_info.in;
       s.out = seq_clip->timeline_info.out;
       s.track = seq_clip->timeline_info.track_;
-      sequence_->selections_.append(s);
+      sequence_->addSelection(s);
     }
   }
   repaint_timeline();
@@ -609,7 +609,7 @@ void Timeline::select_from_playhead()
       s.in = c->timeline_info.in;
       s.out = c->timeline_info.out;
       s.track = c->timeline_info.track_;
-      sequence_->selections_.append(s);
+      sequence_->addSelection(s);
     }
   }
 }
@@ -1312,7 +1312,7 @@ void Timeline::deselect_area(long in, long out, int track)
         new_sel.in = out;
         new_sel.out = s.out;
         new_sel.track = s.track;
-        sequence_->selections_.append(new_sel);
+        sequence_->addSelection(new_sel);
 
         s.out = in;
       } else if (s.in < in && s.out > in) {

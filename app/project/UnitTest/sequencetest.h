@@ -63,6 +63,10 @@ private slots:
     void testCaseVerifyTracksMoveAudioDown();
 
     void testCaseVerifyTracksRemoveAudio();
+
+    void testCaseAddSelectionLocked();
+
+    void testCaseAddSelectionNotLocked();
 };
 
 #endif // SEQUENCETEST_H

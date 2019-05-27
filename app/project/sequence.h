@@ -157,6 +157,11 @@ public:
      * @brief As clips are moved amongst tracks, ensure correct Track instances are available
      */
     void verifyTrackCount();
+    /**
+     * @brief       Add a selection to the sequence taking into account track locks
+     * @param sel   The selection
+     */
+    void addSelection(const Selection& sel);
 
     QVector<project::Track> audioTracks();
     QVector<project::Track> videoTracks();
