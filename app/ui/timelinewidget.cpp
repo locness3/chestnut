@@ -3171,6 +3171,11 @@ bool TimelineWidget::splitClipEvent(const long frame, const QSet<int>& tracks)
       continue;
     }
 
+    if (clp->locked()) {
+      // Do not split a clip in a locked track
+      continue;
+    }
+
     ca->append(new SplitClipCommand(clp, frame));
     split_ids.insert(clp->id());
     for (auto l : clp->linkedClips()) {

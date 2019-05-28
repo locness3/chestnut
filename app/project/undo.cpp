@@ -1153,6 +1153,10 @@ void SplitClipCommand::redo()
   // Split linked clips
   for (auto link : pre_clip_->linkedClips()) {
     if (auto link_clip = pre_clip_->sequence->clip(link)) {
+      if (link_clip->locked()) {
+        // Do not split clip in locked track
+        continue;
+      }
       storeLengths(link, *link_clip);
       if (auto post = link_clip->split(position_)) {
         mapped_posts_[link] = post;
