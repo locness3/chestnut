@@ -63,6 +63,7 @@ constexpr int TRANSITION_BETWEEN_RANGE = 40;
 constexpr int TOOLTIP_INTERVAL = 500;
 constexpr auto LOCKED_TRACK_PATTERN = Qt::BDiagPattern;
 constexpr auto LOCKED_TRACK_PATTERN_COLOUR = Qt::gray;
+constexpr auto EDIT_CURSOR_COLOR = Qt::gray;
 
 
 namespace {
@@ -72,6 +73,7 @@ namespace {
   const QColor DISABLED_CLIP_COLOR(96, 96, 96);
   const QColor GHOST_CLIP_OUTLINE(255, 255, 0);
   const QColor SELECTION_RECT_COLOR(204, 204, 204);
+  const QColor SPLIT_CURSOR_COLOR(64, 64, 64);;
 }
 
 TimelineWidget::TimelineWidget(QWidget *parent): QWidget(parent)
@@ -1928,6 +1930,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
                                               true,
                                               true);
   }
+
   if (PanelManager::timeLine().selecting) {
     int selection_count = 1 + qMax(PanelManager::timeLine().cursor_track,
                                    PanelManager::timeLine().drag_track_start)
@@ -2578,19 +2581,26 @@ void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRec
 
 }
 
-void TimelineWidget::paintSplitEvent(QPainter& painter, Timeline& time_line)
+void TimelineWidget::paintSplitEvent(QPainter& painter, Timeline& time_line) const
 {
-  for (auto track : time_line.split_tracks) {
-    if (is_track_visible(track)) {
-      int cursor_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(time_line.drag_frame_start);
-      int cursor_y = getScreenPointFromTrack(track);
+  Q_ASSERT(global::sequence != nullptr);
 
-      painter.setPen(QColor(64, 64, 64)); //FIXME: magic number
-      painter.drawLine(cursor_x,
-                       cursor_y,
-                       cursor_x,
-                       cursor_y + time_line.calculate_track_height(track, -1));
+  for (auto track : time_line.split_tracks) {
+    if (global::sequence->trackLocked(track)) {
+      continue;
     }
+    if (!is_track_visible(track)) {
+      continue;
+    }
+
+    const int cursor_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(time_line.drag_frame_start);
+    const int cursor_y = getScreenPointFromTrack(track);
+
+    painter.setPen(SPLIT_CURSOR_COLOR);
+    painter.drawLine(cursor_x,
+                     cursor_y,
+                     cursor_x,
+                     cursor_y + time_line.calculate_track_height(track, -1));
   }
 }
 
@@ -2623,6 +2633,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
       panel_height += PanelManager::timeLine().calculate_track_height(i, -1);
     }
   }
+
   if (bottom_align) {
     scrollBar->setMinimum(qMin(0, - panel_height + height()));
   } else {
@@ -2810,9 +2821,13 @@ void TimelineWidget::paintEvent(QPaintEvent*)
 
         // top left bevel
         painter.setPen(Qt::white);
-        if (clip_rect.x() >= 0 && clip_rect.x() < width()) painter.drawLine(clip_rect.bottomLeft(), clip_rect.topLeft());
-        if (clip_rect.y() >= 0 && clip_rect.y() < height()) painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.top()),
-                                                                             QPoint(qMin(width(), clip_rect.right()), clip_rect.top()));
+        if (clip_rect.x() >= 0 && clip_rect.x() < width()) {
+          painter.drawLine(clip_rect.bottomLeft(), clip_rect.topLeft());
+        }
+        if (clip_rect.y() >= 0 && clip_rect.y() < height()) {
+          painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.top()),
+                           QPoint(qMin(width(), clip_rect.right()), clip_rect.top()));
+        }
 
         // draw text
         if (text_rect.width() > MAX_TEXT_WIDTH && text_rect.right() > 0 && text_rect.left() < width()) {
@@ -3041,11 +3056,16 @@ void TimelineWidget::paintEvent(QPaintEvent*)
 
   // Draw edit cursor
   if (isLiveEditing() && is_track_visible(PanelManager::timeLine().cursor_track)) {
-    int cursor_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(PanelManager::timeLine().cursor_frame);
-    int cursor_y = getScreenPointFromTrack(PanelManager::timeLine().cursor_track);
+    if (global::sequence->trackLocked(PanelManager::timeLine().cursor_track)) {
+      // TODO: draw something else to indicate not possible
+    } else {
+      const int cursor_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(PanelManager::timeLine().cursor_frame);
+      const int cursor_y = getScreenPointFromTrack(PanelManager::timeLine().cursor_track);
 
-    painter.setPen(Qt::gray);
-    painter.drawLine(cursor_x, cursor_y, cursor_x, cursor_y + PanelManager::timeLine().calculate_track_height(PanelManager::timeLine().cursor_track, -1));
+      painter.setPen(EDIT_CURSOR_COLOR);
+      painter.drawLine(cursor_x, cursor_y, cursor_x,
+                       cursor_y + PanelManager::timeLine().calculate_track_height(PanelManager::timeLine().cursor_track, -1));
+    }
   }
 
 }
@@ -3054,7 +3074,8 @@ void TimelineWidget::resizeEvent(QResizeEvent* /*event*/) {
   scrollBar->setPageStep(height());
 }
 
-bool TimelineWidget::is_track_visible(int track) {
+bool TimelineWidget::is_track_visible(const int track) const
+{
   return (bottom_align == (track < 0));
 }
 
@@ -3084,7 +3105,8 @@ int TimelineWidget::getTrackFromScreenPoint(int y) {
   return counter;
 }
 
-int TimelineWidget::getScreenPointFromTrack(int track) {
+int TimelineWidget::getScreenPointFromTrack(const int track) const
+{
   int y = 0;
   int counter = 0;
   while (counter != track) {
@@ -3095,7 +3117,7 @@ int TimelineWidget::getScreenPointFromTrack(int track) {
     if (!bottom_align) {
       counter++;
     }
-    if (e_config.show_track_lines && counter != -1) {
+    if (e_config.show_track_lines && (counter != -1)) {
       y++;
     }
   }

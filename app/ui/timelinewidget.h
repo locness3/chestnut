@@ -110,17 +110,22 @@ class TimelineWidget : public QWidget {
 
     void init_ghosts();
     void update_ghosts(const QPoint& mouse_pos, bool lock_frame);
-    bool is_track_visible(int track);
+    bool is_track_visible(const int track) const;
     int getTrackFromScreenPoint(int y);
-    int getScreenPointFromTrack(int track);
+    int getScreenPointFromTrack(const int track) const;
     int getClipIndexFromCoords(long frame, int track);
 
     ClipPtr getClipFromCoords(const long frame, const int track) const;
     bool splitClipEvent(const long frame, const QSet<int>& tracks);
 
     void mouseMoveSplitEvent(const bool alt_pressed, Timeline& time_line) const;
-    
-    void paintSplitEvent(QPainter& painter, Timeline& time_line);
+
+    /**
+     * @brief         Paint the split during a drag-split action
+     * @param painter
+     * @param time_line
+     */
+    void paintSplitEvent(QPainter& painter, Timeline& time_line) const;
 
     void mousePressCreatingEvent(Timeline& time_line);
 
