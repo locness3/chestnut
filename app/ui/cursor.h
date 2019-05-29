@@ -51,6 +51,11 @@ namespace chestnut
     class Cursor
     {
       public:
+        /**
+         * @brief       Get the cursor for a type
+         * @param type  Cursor type based on actions possible in the timeline
+         * @return      Cursor from file or empty if not available
+         */
         static QCursor get(const CursorType type);
 
         explicit Cursor(const CursorType type);
