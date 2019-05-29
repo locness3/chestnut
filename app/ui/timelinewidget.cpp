@@ -53,8 +53,11 @@
 #include "ui/rectangleselect.h"
 #include "io/colorconversions.h"
 #include "debug.h"
+#include "ui/cursor.h"
 
 
+using chestnut::ui::Cursor;
+using chestnut::ui::CursorType;
 using panels::PanelManager;
 using project::FootageStreamPtr;
 
@@ -2428,7 +2431,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
     }
   } else if (PanelManager::timeLine().tool == TimelineToolType::SLIP) {
     if (getClipIndexFromCoords(PanelManager::timeLine().cursor_frame, PanelManager::timeLine().cursor_track) > -1) {
-      setCursor(Qt::SizeHorCursor);
+      setCursor(Cursor::get(CursorType::SLIP));
     } else {
       unsetCursor();
     }

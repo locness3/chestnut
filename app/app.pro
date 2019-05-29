@@ -11,6 +11,7 @@ TEMPLATE = lib
 CONFIG += staticlib
 TARGET = chestnut
 
+QT += svg
 
 SOURCES += \
     project/track.cpp \
@@ -18,6 +19,7 @@ SOURCES += \
     ui/Forms/timelinetrackarea.cpp \
     ui/Forms/trackareawidget.cpp \
     ui/blankscrollarea.cpp \
+    ui/cursor.cpp \
     ui/mainwindow.cpp \
     panels/project.cpp \
     panels/effectcontrols.cpp \
@@ -126,6 +128,7 @@ HEADERS += \
     ui/Forms/timelinetrackarea.h \
     ui/Forms/trackareawidget.h \
     ui/blankscrollarea.h \
+    ui/cursor.h \
     ui/mainwindow.h \
     panels/project.h \
     panels/effectcontrols.h \
@@ -252,6 +255,9 @@ FORMS += \
     ui/Forms/markerwidget.ui \
     ui/Forms/timelinetrackarea.ui \
     ui/Forms/trackareawidget.ui
+
+RESOURCES += \
+  cursors/cursors.qrc
 
 
 

@@ -1,6 +1,6 @@
 include(../../project-settings.pri)
 
-QT += core gui multimedia opengl
+QT += core gui multimedia opengl svg
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -38,7 +38,8 @@ PRE_TARGETDEPS += ../$${DESTDIR}/libchestnut.a
 
 
 RESOURCES += \
-    ../icons/icons.qrc
+    ../icons/icons.qrc \
+  ../cursors/cursors.qrc
 
 isEmpty(PREFIX) {
     PREFIX = /usr/local

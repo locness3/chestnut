@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/cursors">
+        <file>left_trim.svg</file>
+        <file>right_trim.svg</file>
+        <file>2.svg</file>
+        <file>left_ripple.svg</file>
+        <file>right_ripple.svg</file>
+        <file>slip.svg</file>
+        <file>razor.svg</file>
+        <file>5b.svg</file>
+        <file>5c.svg</file>
+    </qresource>
+</RCC>
