@@ -172,14 +172,22 @@ private:
   int old_stransition{};
 };
 
+struct NegativeTransitionLengthException : public std::exception
+{
+  virtual const char*  what() const noexcept override
+  {
+    return "Invalid transition length : negative";
+  }
+};
+
 class ModifyTransitionCommand : public QUndoCommand {
 public:
-  ModifyTransitionCommand(ClipPtr c, const int itype, const long ilength);
+  ModifyTransitionCommand(ClipPtr c, const ClipTransitionType itype, const long ilength);
   virtual void undo() override;
   virtual void redo() override;
 private:
   ClipPtr clip;
-  int type;
+  ClipTransitionType type_;
   long new_length;
   long old_length{};
   bool old_project_changed;
