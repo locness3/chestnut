@@ -851,7 +851,7 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
               ca->append(new DeleteTransitionCommand(c, ClipTransitionType::OPENING));
             } else {
               ca->append(new ModifyTransitionCommand(c, ClipTransitionType::OPENING,
-                                                     opening->get_true_length() - sel.out - c->timeline_info.in));
+                                                     opening->get_true_length() - (sel.out - c->timeline_info.in)));
             }
           }
         }
