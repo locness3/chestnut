@@ -824,19 +824,19 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
   QVector<ClipPtr> post_clips;
 
   for (const auto& sel : areas) {
-    for (int j=0;j<sequence_->clips().size();j++) {
+    for (int j=0; j<sequence_->clips().size(); ++j) {
       ClipPtr c = sequence_->clips().at(j);
-      if (c != nullptr && c->timeline_info.track_ == sel.track && !c->undeletable) {
+      if ( (c != nullptr) && (c->timeline_info.track_ == sel.track) && (!c->undeletable) ) {
         if (selection_contains_transition(sel, c, TA_OPENING_TRANSITION)) {
           // delete opening transition
           ca->append(new DeleteTransitionCommand(c, ClipTransitionType::OPENING));
         } else if (selection_contains_transition(sel, c, TA_CLOSING_TRANSITION)) {
           // delete closing transition
           ca->append(new DeleteTransitionCommand(c, ClipTransitionType::CLOSING));
-        } else if (c->timeline_info.in >= sel.in && c->timeline_info.out <= sel.out) {
+        } else if ( (c->timeline_info.in >= sel.in) && (c->timeline_info.out <= sel.out) ) {
           // clips falls entirely within deletion area
           ca->append(new DeleteClipAction(c));
-        } else if (c->timeline_info.in < sel.in && c->timeline_info.out > sel.out) {
+        } else if ( (c->timeline_info.in < sel.in) && (c->timeline_info.out > sel.out) ) {
           // middle of clip is within deletion area
 
           // FIXME: no method to undo this correctly
@@ -849,12 +849,12 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
           post_clips.append(post);
 
           pre_clips.append(j);
-        } else if (c->timeline_info.in < sel.in && c->timeline_info.out > sel.in) {
+        } else if ( (c->timeline_info.in < sel.in) && (c->timeline_info.out > sel.in) ) {
           // only out point is in deletion area
           c->move(*ca, c->timeline_info.in, sel.in, c->timeline_info.clip_in, c->timeline_info.track_);
 
           if (auto closing = c->getTransition(ClipTransitionType::CLOSING)) {
-            if (sel.in < c->timeline_info.out - closing->get_true_length()) {
+            if (sel.in < (c->timeline_info.out - closing->get_true_length())) {
               ca->append(new DeleteTransitionCommand(c, ClipTransitionType::CLOSING));
             } else {
               ca->append(new ModifyTransitionCommand(c,
@@ -862,14 +862,14 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
                                                      closing->get_true_length() - (c->timeline_info.out - sel.in)));
             }
           }
-        } else if (c->timeline_info.in < sel.out && c->timeline_info.out > sel.out) {
+        } else if ( (c->timeline_info.in < sel.out) && (c->timeline_info.out > sel.out) ) {
           // only in point is in deletion area
           c->move(*ca, sel.out, c->timeline_info.out,
                     c->timeline_info.clip_in + sel.out - c->timeline_info.in,
                     c->timeline_info.track_);
 
           if (auto opening = c->getTransition(ClipTransitionType::OPENING)) {
-            if (sel.out > c->timeline_info.in + opening->get_true_length()) {
+            if (sel.out > (c->timeline_info.in + opening->get_true_length())) {
               ca->append(new DeleteTransitionCommand(c, ClipTransitionType::OPENING));
             } else {
               ca->append(new ModifyTransitionCommand(c, ClipTransitionType::OPENING,

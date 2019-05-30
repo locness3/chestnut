@@ -912,7 +912,7 @@ void make_room_for_transition(ComboAction* ca, const ClipPtr& c, int type,
       if (transition_end >= c->timeline_info.out) {
         ca->append(new DeleteTransitionCommand(c, ClipTransitionType::CLOSING));
       } else if (transition_end > c->timeline_info.out - c->getTransition(ClipTransitionType::CLOSING)->get_true_length()) {
-        ca->append(new ModifyTransitionCommand(c, TA_CLOSING_TRANSITION, c->timeline_info.out - transition_end));
+        ca->append(new ModifyTransitionCommand(c, ClipTransitionType::CLOSING, c->timeline_info.out - transition_end));
       }
     }
   } else {
@@ -923,7 +923,7 @@ void make_room_for_transition(ComboAction* ca, const ClipPtr& c, int type,
       if (transition_start <= c->timeline_info.in) {
         ca->append(new DeleteTransitionCommand(c, ClipTransitionType::OPENING));
       } else if (transition_start < c->timeline_info.in + c->getTransition(ClipTransitionType::OPENING)->get_true_length()) {
-        ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION, transition_start - c->timeline_info.in));
+        ca->append(new ModifyTransitionCommand(c, ClipTransitionType::OPENING, transition_start - c->timeline_info.in));
       }
     }
   }
@@ -1013,377 +1013,378 @@ bool TimelineWidget::applyTransition(ComboAction* ca)
 
 void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
   QToolTip::hideText();
-  if (global::sequence != nullptr) {
-    bool alt = (event->modifiers() & Qt::AltModifier);
-    bool shift = (event->modifiers() & Qt::ShiftModifier);
-    bool ctrl = (event->modifiers() & Qt::ControlModifier);
+  if (global::sequence == nullptr) {
+    return;
+  }
+  bool alt = (event->modifiers() & Qt::AltModifier);
+  bool shift = (event->modifiers() & Qt::ShiftModifier);
+  bool ctrl = (event->modifiers() & Qt::ControlModifier);
 
-    if (event->button() == Qt::LeftButton) {
-      auto ca = new ComboAction();
-      bool push_undo = false;
-      QVector<ClipPtr> moved;
+  if (event->button() == Qt::LeftButton) {
+    auto ca = new ComboAction();
+    bool push_undo = false;
+    QVector<ClipPtr> moved;
 
-      if (PanelManager::timeLine().creating) {
-        if (!PanelManager::timeLine().ghosts.empty()) {
-          const Ghost& g = PanelManager::timeLine().ghosts.front();
+    if (PanelManager::timeLine().creating) {
+      if (!PanelManager::timeLine().ghosts.empty()) {
+        const Ghost& g = PanelManager::timeLine().ghosts.front();
 
-          if (PanelManager::timeLine().creating_object == AddObjectType::AUDIO) {
-            MainWindow::instance().statusBar()->clearMessage();
-            PanelManager::sequenceViewer().cue_recording(qMin(g.in, g.out), qMax(g.in, g.out), g.track);
+        if (PanelManager::timeLine().creating_object == AddObjectType::AUDIO) {
+          MainWindow::instance().statusBar()->clearMessage();
+          PanelManager::sequenceViewer().cue_recording(qMin(g.in, g.out), qMax(g.in, g.out), g.track);
+          PanelManager::timeLine().creating = false;
+        } else if (g.in != g.out) {
+          ClipPtr c(std::make_shared<Clip>(global::sequence));
+          c->timeline_info.media = nullptr;
+          c->timeline_info.in = qMin(g.in, g.out);
+          c->timeline_info.out = qMax(g.in, g.out);
+          c->timeline_info.clip_in = 0;
+          c->timeline_info.color = MOUSE_RELEASE_COLOR;
+          c->timeline_info.track_ = g.track;
+
+          if (ctrl) {
+            insert_clips(ca);
+          } else {
+            Selection s;
+            s.in = c->timeline_info.in;
+            s.out = c->timeline_info.out;
+            s.track = c->timeline_info.track_;
+            QVector<Selection> areas;
+            areas.append(s);
+            PanelManager::timeLine().delete_areas(ca, areas);
+          }
+
+          QVector<ClipPtr> add;
+          add.append(c);
+          ca->append(new AddClipsCommand(global::sequence, add));
+
+          if (c->mediaType() == ClipType::VISUAL) {
+            // default video effects (before custom effects)
+            c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TRANSFORM, EFFECT_TYPE_EFFECT)));
+            //c->media_type = MEDIA_TYPE_SOLID;
+          }
+
+          switch (PanelManager::timeLine().creating_object) {
+            case AddObjectType::TITLE:
+              c->setName(tr("Title"));
+              c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TEXT, EFFECT_TYPE_EFFECT)));
+              break;
+            case AddObjectType::SOLID:
+              c->setName(tr("Solid Color"));
+              c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_SOLID, EFFECT_TYPE_EFFECT)));
+              break;
+            case AddObjectType::BARS:
+            {
+              c->setName(tr("Bars"));
+              EffectPtr e = create_effect(c, get_internal_meta(EFFECT_INTERNAL_SOLID, EFFECT_TYPE_EFFECT));
+              e->row(0)->field(0)->set_combo_index(1);
+              c->effects.append(e);
+            }
+              break;
+            case AddObjectType::TONE:
+              c->setName(tr("Tone"));
+              c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TONE, EFFECT_TYPE_EFFECT)));
+              break;
+            case AddObjectType::NOISE:
+              c->setName(tr("Noise"));
+              c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_NOISE, EFFECT_TYPE_EFFECT)));
+              break;
+            default:
+              qWarning() << "Unhandled object add type" << static_cast<int>(PanelManager::timeLine().creating_object);
+              break;
+          }
+
+          if (c->timeline_info.track_ >= 0) {
+            // default audio effects (after custom effects)
+            c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_VOLUME, EFFECT_TYPE_EFFECT)));
+            c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_PAN, EFFECT_TYPE_EFFECT)));
+            //c->media_type = MEDIA_TYPE_TONE;
+          }
+
+          push_undo = true;
+
+          if (!shift) {
             PanelManager::timeLine().creating = false;
-          } else if (g.in != g.out) {
-            ClipPtr c(std::make_shared<Clip>(global::sequence));
-            c->timeline_info.media = nullptr;
-            c->timeline_info.in = qMin(g.in, g.out);
-            c->timeline_info.out = qMax(g.in, g.out);
-            c->timeline_info.clip_in = 0;
-            c->timeline_info.color = MOUSE_RELEASE_COLOR;
-            c->timeline_info.track_ = g.track;
-
-            if (ctrl) {
-              insert_clips(ca);
-            } else {
-              Selection s;
-              s.in = c->timeline_info.in;
-              s.out = c->timeline_info.out;
-              s.track = c->timeline_info.track_;
-              QVector<Selection> areas;
-              areas.append(s);
-              PanelManager::timeLine().delete_areas(ca, areas);
-            }
-
-            QVector<ClipPtr> add;
-            add.append(c);
-            ca->append(new AddClipsCommand(global::sequence, add));
-
-            if (c->mediaType() == ClipType::VISUAL) {
-              // default video effects (before custom effects)
-              c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TRANSFORM, EFFECT_TYPE_EFFECT)));
-              //c->media_type = MEDIA_TYPE_SOLID;
-            }
-
-            switch (PanelManager::timeLine().creating_object) {
-              case AddObjectType::TITLE:
-                c->setName(tr("Title"));
-                c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TEXT, EFFECT_TYPE_EFFECT)));
-                break;
-              case AddObjectType::SOLID:
-                c->setName(tr("Solid Color"));
-                c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_SOLID, EFFECT_TYPE_EFFECT)));
-                break;
-              case AddObjectType::BARS:
-              {
-                c->setName(tr("Bars"));
-                EffectPtr e = create_effect(c, get_internal_meta(EFFECT_INTERNAL_SOLID, EFFECT_TYPE_EFFECT));
-                e->row(0)->field(0)->set_combo_index(1);
-                c->effects.append(e);
-              }
-                break;
-              case AddObjectType::TONE:
-                c->setName(tr("Tone"));
-                c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TONE, EFFECT_TYPE_EFFECT)));
-                break;
-              case AddObjectType::NOISE:
-                c->setName(tr("Noise"));
-                c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_NOISE, EFFECT_TYPE_EFFECT)));
-                break;
-              default:
-                qWarning() << "Unhandled object add type" << static_cast<int>(PanelManager::timeLine().creating_object);
-                break;
-            }
-
-            if (c->timeline_info.track_ >= 0) {
-              // default audio effects (after custom effects)
-              c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_VOLUME, EFFECT_TYPE_EFFECT)));
-              c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_PAN, EFFECT_TYPE_EFFECT)));
-              //c->media_type = MEDIA_TYPE_TONE;
-            }
-
-            push_undo = true;
-
-            if (!shift) {
-              PanelManager::timeLine().creating = false;
-            }
           }
         }
-      } else if (PanelManager::timeLine().moving_proc) {
-        if (PanelManager::timeLine().ghosts.size() > 0) {
-          const Ghost& first_ghost = PanelManager::timeLine().ghosts.at(0);
+      }
+    } else if (PanelManager::timeLine().moving_proc) {
+      if (PanelManager::timeLine().ghosts.size() > 0) {
+        const Ghost& first_ghost = PanelManager::timeLine().ghosts.at(0);
 
-          // if we were RIPPLING, move all the clips
-          if (PanelManager::timeLine().tool == TimelineToolType::RIPPLE) {
-            long ripple_length, ripple_point;
+        // if we were RIPPLING, move all the clips
+        if (PanelManager::timeLine().tool == TimelineToolType::RIPPLE) {
+          long ripple_length, ripple_point;
 
-            // ripple_length becomes the length/number of frames we trimmed
-            // ripple point becomes the point to ripple (i.e. the point after or before which we move every clip)
-            if (PanelManager::timeLine().trim_in_point) {
-              ripple_length = first_ghost.old_in - first_ghost.in;
-              ripple_point = first_ghost.old_in;
+          // ripple_length becomes the length/number of frames we trimmed
+          // ripple point becomes the point to ripple (i.e. the point after or before which we move every clip)
+          if (PanelManager::timeLine().trim_in_point) {
+            ripple_length = first_ghost.old_in - first_ghost.in;
+            ripple_point = first_ghost.old_in;
 
-              for (int i=0;i<global::sequence->selections_.size();i++) {
-                global::sequence->selections_[i].in += ripple_length;
-                global::sequence->selections_[i].out += ripple_length;
-              }
-            } else {
-              // if we're trimming an out-point
-              ripple_length = first_ghost.old_out - PanelManager::timeLine().ghosts.at(0).out;
-              ripple_point = first_ghost.old_out;
-            }
-            QVector<int> ignore_clips;
-            for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
-              const Ghost& g = PanelManager::timeLine().ghosts.at(i);
-
-              // push rippled clips forward if necessary
-              if (PanelManager::timeLine().trim_in_point) {
-                if (auto g_c = g.clip_.lock()) {
-                  ignore_clips.append(g_c->id());
-                  PanelManager::timeLine().ghosts[i].in += ripple_length;
-                  PanelManager::timeLine().ghosts[i].out += ripple_length;
-                } else {
-                  qWarning() << "Clip instance is null";
-                }
-              }
-
-              long comp_point = PanelManager::timeLine().trim_in_point ? g.old_in : g.old_out;
-              ripple_point = qMin(ripple_point, comp_point);
-            }
-            if (!PanelManager::timeLine().trim_in_point) ripple_length = -ripple_length;
-
-            ripple_clips(ca, global::sequence, ripple_point, ripple_length, ignore_clips);
-          }
-
-          if (PanelManager::timeLine().tool == TimelineToolType::POINTER
-              && (event->modifiers() & Qt::AltModifier)
-              && PanelManager::timeLine().trim_target.expired()) { // if holding alt (and not trimming), duplicate rather than move
-            // duplicate clips
-            QVector<int> old_clips;
-            QVector<ClipPtr> new_clips;
-            QVector<Selection> delete_areas;
-            for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
-              const Ghost& g = PanelManager::timeLine().ghosts.at(i);
-              if (g.old_in != g.in || g.old_out != g.out || g.track != g.old_track || g.clip_in != g.old_clip_in) {
-                // create copy of clip
-                if (auto g_c = g.clip_.lock()) {
-                  ClipPtr c = g_c->copy(global::sequence);
-
-                  c->timeline_info.in = g.in;
-                  c->timeline_info.out = g.out;
-                  c->timeline_info.track_ = g.track;
-
-                  Selection s;
-                  s.in = g.in;
-                  s.out = g.out;
-                  s.track = g.track;
-                  delete_areas.append(s);
-
-                  old_clips.append(g_c->id());
-                  new_clips.append(c);
-                } else {
-                  qWarning() << "Clip instance is null";
-                }
-              }
-            }
-            if (new_clips.empty()) {
-              PanelManager::timeLine().delete_areas(ca, delete_areas);
-              ca->append(new AddClipsCommand(global::sequence, new_clips));
+            for (int i=0;i<global::sequence->selections_.size();i++) {
+              global::sequence->selections_[i].in += ripple_length;
+              global::sequence->selections_[i].out += ripple_length;
             }
           } else {
-            // INSERT if holding ctrl
-            if (PanelManager::timeLine().tool == TimelineToolType::POINTER && ctrl) {
-              insert_clips(ca);
-            } else if (PanelManager::timeLine().tool == TimelineToolType::POINTER || PanelManager::timeLine().tool == TimelineToolType::SLIDE) {
-              // move clips
-              QVector<Selection> delete_areas;
-              for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
-                // step 1 - set clips that are moving to "undeletable" (to avoid step 2 deleting any part of them)
-                const Ghost& g = PanelManager::timeLine().ghosts.at(i);
-                if (auto g_c = g.clip_.lock()) {
-                  g_c->undeletable = true;
-                  if (auto g_t = g.transition.lock()) {
-                    g_t->parent_clip->undeletable = true;
-                    if (auto g_t_s = g_t->secondaryClip()) {
-                      g_t_s->undeletable = true;
-                    }
-                  }
+            // if we're trimming an out-point
+            ripple_length = first_ghost.old_out - PanelManager::timeLine().ghosts.at(0).out;
+            ripple_point = first_ghost.old_out;
+          }
+          QVector<int> ignore_clips;
+          for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
+            const Ghost& g = PanelManager::timeLine().ghosts.at(i);
 
-                  Selection s;
-                  s.in = g.in;
-                  s.out = g.out;
-                  s.track = g.track;
-                  delete_areas.append(s);
-                } else {
-                  qWarning() << "Clip instance is null";
-                }
-              }
-              PanelManager::timeLine().delete_areas(ca, delete_areas);
-              for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
-                const Ghost& g = PanelManager::timeLine().ghosts.at(i);
-                if (auto g_c = g.clip_.lock()) {
-                  g_c->undeletable = false;
-                  if (auto g_t = g.transition.lock()) {
-                    g_t->parent_clip->undeletable = false;
-                    if (auto g_t_s = g_t->secondaryClip()) {
-                      g_t_s->undeletable = false;
-                    }
-                  }
-                } else {
-                  qWarning() << "Clip instance is null";
-                }
+            // push rippled clips forward if necessary
+            if (PanelManager::timeLine().trim_in_point) {
+              if (auto g_c = g.clip_.lock()) {
+                ignore_clips.append(g_c->id());
+                PanelManager::timeLine().ghosts[i].in += ripple_length;
+                PanelManager::timeLine().ghosts[i].out += ripple_length;
+              } else {
+                qWarning() << "Clip instance is null";
               }
             }
 
-            for (auto& g : PanelManager::timeLine().ghosts) {
-              // step 3 - move clips
-              ClipPtr c = g.clip_.lock();
-              if (c == nullptr) {
-                qCritical() << "Clip instance is null";
-                continue;
+            long comp_point = PanelManager::timeLine().trim_in_point ? g.old_in : g.old_out;
+            ripple_point = qMin(ripple_point, comp_point);
+          }
+          if (!PanelManager::timeLine().trim_in_point) ripple_length = -ripple_length;
+
+          ripple_clips(ca, global::sequence, ripple_point, ripple_length, ignore_clips);
+        }
+
+        if (PanelManager::timeLine().tool == TimelineToolType::POINTER
+            && (event->modifiers() & Qt::AltModifier)
+            && PanelManager::timeLine().trim_target.expired()) { // if holding alt (and not trimming), duplicate rather than move
+          // duplicate clips
+          QVector<int> old_clips;
+          QVector<ClipPtr> new_clips;
+          QVector<Selection> delete_areas;
+          for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
+            const Ghost& g = PanelManager::timeLine().ghosts.at(i);
+            if (g.old_in != g.in || g.old_out != g.out || g.track != g.old_track || g.clip_in != g.old_clip_in) {
+              // create copy of clip
+              if (auto g_c = g.clip_.lock()) {
+                ClipPtr c = g_c->copy(global::sequence);
+
+                c->timeline_info.in = g.in;
+                c->timeline_info.out = g.out;
+                c->timeline_info.track_ = g.track;
+
+                Selection s;
+                s.in = g.in;
+                s.out = g.out;
+                s.track = g.track;
+                delete_areas.append(s);
+
+                old_clips.append(g_c->id());
+                new_clips.append(c);
+              } else {
+                qWarning() << "Clip instance is null";
               }
-
-              if (c->locked()) {
-                qDebug() << "Clip instance locked from moving";
-                continue;
-              }
-
-              TransitionPtr g_t = g.transition.lock();
-              if (g_t == nullptr) {
-                moved.append(c);
-                c->move(*ca,
-                        (g.in - g.old_in),
-                        (g.out - g.old_out),
-                        (g.clip_in - g.old_clip_in),
-                        (g.track - g.old_track),
-                        PanelManager::timeLine().ghosts.size() == 1,
-                        true);
-
-                // adjust transitions if we need to
-                long new_clip_length = (g.out - g.in);
-                if (c->getTransition(ClipTransitionType::OPENING) != nullptr) {
-                  long max_open_length = new_clip_length;
-                  if (c->getTransition(ClipTransitionType::CLOSING) != nullptr && !PanelManager::timeLine().trim_in_point) {
-                    max_open_length -= c->getTransition(ClipTransitionType::CLOSING)->get_true_length();
-                  }
-                  if (max_open_length <= 0) {
-                    ca->append(new DeleteTransitionCommand(c, ClipTransitionType::OPENING));
-                  } else if (c->getTransition(ClipTransitionType::OPENING)->get_true_length() > max_open_length) {
-                    ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION, max_open_length));
+            }
+          }
+          if (new_clips.empty()) {
+            PanelManager::timeLine().delete_areas(ca, delete_areas);
+            ca->append(new AddClipsCommand(global::sequence, new_clips));
+          }
+        } else {
+          // INSERT if holding ctrl
+          if (PanelManager::timeLine().tool == TimelineToolType::POINTER && ctrl) {
+            insert_clips(ca);
+          } else if (PanelManager::timeLine().tool == TimelineToolType::POINTER || PanelManager::timeLine().tool == TimelineToolType::SLIDE) {
+            // move clips
+            QVector<Selection> delete_areas;
+            for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
+              // step 1 - set clips that are moving to "undeletable" (to avoid step 2 deleting any part of them)
+              const Ghost& g = PanelManager::timeLine().ghosts.at(i);
+              if (auto g_c = g.clip_.lock()) {
+                g_c->undeletable = true;
+                if (auto g_t = g.transition.lock()) {
+                  g_t->parent_clip->undeletable = true;
+                  if (auto g_t_s = g_t->secondaryClip()) {
+                    g_t_s->undeletable = true;
                   }
                 }
-                if (c->getTransition(ClipTransitionType::CLOSING) != nullptr) {
-                  long max_open_length = new_clip_length;
-                  if (c->getTransition(ClipTransitionType::OPENING) != nullptr && PanelManager::timeLine().trim_in_point) {
-                    max_open_length -= c->getTransition(ClipTransitionType::OPENING)->get_true_length();
-                  }
-                  if (max_open_length <= 0) {
-                    ca->append(new DeleteTransitionCommand(c, ClipTransitionType::CLOSING));
-                  } else if (c->getTransition(ClipTransitionType::CLOSING)->get_true_length() > max_open_length) {
-                    ca->append(new ModifyTransitionCommand(c, TA_CLOSING_TRANSITION, max_open_length));
+
+                Selection s;
+                s.in = g.in;
+                s.out = g.out;
+                s.track = g.track;
+                delete_areas.append(s);
+              } else {
+                qWarning() << "Clip instance is null";
+              }
+            }
+            PanelManager::timeLine().delete_areas(ca, delete_areas);
+            for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
+              const Ghost& g = PanelManager::timeLine().ghosts.at(i);
+              if (auto g_c = g.clip_.lock()) {
+                g_c->undeletable = false;
+                if (auto g_t = g.transition.lock()) {
+                  g_t->parent_clip->undeletable = false;
+                  if (auto g_t_s = g_t->secondaryClip()) {
+                    g_t_s->undeletable = false;
                   }
                 }
               } else {
-                bool is_opening_transition = (g_t == c->getTransition(ClipTransitionType::OPENING));
-                long new_transition_length = g.out - g.in;
-                if (g_t->secondaryClip() != nullptr) {
-                  new_transition_length >>= 1;
+                qWarning() << "Clip instance is null";
+              }
+            }
+          }
+
+          for (auto& g : PanelManager::timeLine().ghosts) {
+            // step 3 - move clips
+            ClipPtr c = g.clip_.lock();
+            if (c == nullptr) {
+              qCritical() << "Clip instance is null";
+              continue;
+            }
+
+            if (c->locked()) {
+              qDebug() << "Clip instance locked from moving";
+              continue;
+            }
+
+            TransitionPtr g_t = g.transition.lock();
+            if (g_t == nullptr) {
+              moved.append(c);
+              c->move(*ca,
+                      (g.in - g.old_in),
+                      (g.out - g.old_out),
+                      (g.clip_in - g.old_clip_in),
+                      (g.track - g.old_track),
+                      PanelManager::timeLine().ghosts.size() == 1,
+                      true);
+
+              // adjust transitions if we need to
+              long new_clip_length = (g.out - g.in);
+              if (c->getTransition(ClipTransitionType::OPENING) != nullptr) {
+                long max_open_length = new_clip_length;
+                if (c->getTransition(ClipTransitionType::CLOSING) != nullptr && !PanelManager::timeLine().trim_in_point) {
+                  max_open_length -= c->getTransition(ClipTransitionType::CLOSING)->get_true_length();
                 }
-                ca->append(new ModifyTransitionCommand(c,
-                                                       is_opening_transition ? TA_OPENING_TRANSITION : TA_CLOSING_TRANSITION,
-                                                       new_transition_length));
-
-                long clip_length = c->length(); //FIXME: this is never used
-
-                if (auto secondary = g_t->secondaryClip()) {
-                  if (g.in != g.old_in && !g.trimming) {
-                    long movement = g.in - g.old_in;
-                    g_t->parent_clip->move(*ca, movement, 0, movement, 0, false, true); //FIXME: ptr check
-                    secondary->move(*ca, 0, movement, 0, 0, false, true);
-                  }
-                } else if (is_opening_transition) {
-                  if (g.in != g.old_in) {
-                    // if transition is going to make the clip bigger, make the clip bigger
-                    c->move(*ca, (g.in - g.old_in), 0, (g.clip_in - g.old_clip_in), 0, true, true);
-                    clip_length -= (g.in - g.old_in);
-                  }
-
-                  make_room_for_transition(ca, c, TA_OPENING_TRANSITION, g.in, g.out, false);
-                } else {
-                  if (g.out != g.old_out) {
-                    // if transition is going to make the clip bigger, make the clip bigger
-                    c->move(*ca, 0, (g.out - g.old_out), 0, 0, true, true);
-                    clip_length += (g.out - g.old_out);
-                  }
-
-                  make_room_for_transition(ca, c, TA_CLOSING_TRANSITION, g.in, g.out, false);
+                if (max_open_length <= 0) {
+                  ca->append(new DeleteTransitionCommand(c, ClipTransitionType::OPENING));
+                } else if (c->getTransition(ClipTransitionType::OPENING)->get_true_length() > max_open_length) {
+                  ca->append(new ModifyTransitionCommand(c, ClipTransitionType::OPENING, max_open_length));
                 }
               }
-            }//for
+              if (c->getTransition(ClipTransitionType::CLOSING) != nullptr) {
+                long max_open_length = new_clip_length;
+                if (c->getTransition(ClipTransitionType::OPENING) != nullptr && PanelManager::timeLine().trim_in_point) {
+                  max_open_length -= c->getTransition(ClipTransitionType::OPENING)->get_true_length();
+                }
+                if (max_open_length <= 0) {
+                  ca->append(new DeleteTransitionCommand(c, ClipTransitionType::CLOSING));
+                } else if (c->getTransition(ClipTransitionType::CLOSING)->get_true_length() > max_open_length) {
+                  ca->append(new ModifyTransitionCommand(c, ClipTransitionType::CLOSING, max_open_length));
+                }
+              }
+            } else {
+              bool is_opening_transition = (g_t == c->getTransition(ClipTransitionType::OPENING));
+              long new_transition_length = g.out - g.in;
+              if (g_t->secondaryClip() != nullptr) {
+                new_transition_length >>= 1;
+              }
+              ca->append(new ModifyTransitionCommand(c,
+                                                     is_opening_transition ? ClipTransitionType::OPENING : ClipTransitionType::CLOSING,
+                                                     new_transition_length));
+
+              long clip_length = c->length(); //FIXME: this is never used
+
+              if (auto secondary = g_t->secondaryClip()) {
+                if (g.in != g.old_in && !g.trimming) {
+                  long movement = g.in - g.old_in;
+                  g_t->parent_clip->move(*ca, movement, 0, movement, 0, false, true); //FIXME: ptr check
+                  secondary->move(*ca, 0, movement, 0, 0, false, true);
+                }
+              } else if (is_opening_transition) {
+                if (g.in != g.old_in) {
+                  // if transition is going to make the clip bigger, make the clip bigger
+                  c->move(*ca, (g.in - g.old_in), 0, (g.clip_in - g.old_clip_in), 0, true, true);
+                  clip_length -= (g.in - g.old_in);
+                }
+
+                make_room_for_transition(ca, c, TA_OPENING_TRANSITION, g.in, g.out, false);
+              } else {
+                if (g.out != g.old_out) {
+                  // if transition is going to make the clip bigger, make the clip bigger
+                  c->move(*ca, 0, (g.out - g.old_out), 0, 0, true, true);
+                  clip_length += (g.out - g.old_out);
+                }
+
+                make_room_for_transition(ca, c, TA_CLOSING_TRANSITION, g.in, g.out, false);
+              }
+            }
+          }//for
 
 
-          }
-          push_undo = true;
         }
-      } else if (PanelManager::timeLine().selecting || PanelManager::timeLine().rect_select_proc) {
-        //FIXME:
-      } else if (PanelManager::timeLine().transition_tool_proc) {
-        qDebug() << "Applying transition";
-        if (applyTransition(ca)) {
-          push_undo = true;
-        }
-      } else if (PanelManager::timeLine().splitting) {
-        push_undo = splitClipEvent(PanelManager::timeLine().drag_frame_start, PanelManager::timeLine().split_tracks);
-      }
-
-      // remove duplicate selections
-      PanelManager::timeLine().clean_up_selections(global::sequence->selections_);
-
-      if (selection_command != nullptr) {
-        selection_command->new_data = global::sequence->selections_;
-        ca->append(selection_command);
-        selection_command = nullptr;
         push_undo = true;
       }
+    } else if (PanelManager::timeLine().selecting || PanelManager::timeLine().rect_select_proc) {
+      //FIXME:
+    } else if (PanelManager::timeLine().transition_tool_proc) {
+      qDebug() << "Applying transition";
+      if (applyTransition(ca)) {
+        push_undo = true;
+      }
+    } else if (PanelManager::timeLine().splitting) {
+      push_undo = splitClipEvent(PanelManager::timeLine().drag_frame_start, PanelManager::timeLine().split_tracks);
+    }
 
-      if (push_undo) {
-        e_undo_stack.push(ca);
+    // remove duplicate selections
+    PanelManager::timeLine().clean_up_selections(global::sequence->selections_);
 
-        // cannot verify transitions of clips until they've actually moved
-        // FIXME: this separates the delete-transition and clip-move into 2 undo steps
-        ca = new ComboAction;
-        for (auto c : moved) {
-          if (c == nullptr) {
-            continue;
-          }
-          c->verifyTransitions(*ca);
+    if (selection_command != nullptr) {
+      selection_command->new_data = global::sequence->selections_;
+      ca->append(selection_command);
+      selection_command = nullptr;
+      push_undo = true;
+    }
+
+    if (push_undo) {
+      e_undo_stack.push(ca);
+
+      // cannot verify transitions of clips until they've actually moved
+      // FIXME: this separates the delete-transition and clip-move into 2 undo steps
+      ca = new ComboAction;
+      for (auto c : moved) {
+        if (c == nullptr) {
+          continue;
         }
-
-        e_undo_stack.push(ca);
-
-      } else {
-        delete ca;
+        c->verifyTransitions(*ca);
       }
 
-      // destroy all ghosts
-      PanelManager::timeLine().ghosts.clear();
+      e_undo_stack.push(ca);
 
-      // clear split tracks
-      PanelManager::timeLine().split_tracks.clear();
-
-      PanelManager::timeLine().selecting = false;
-      PanelManager::timeLine().moving_proc = false;
-      PanelManager::timeLine().moving_init = false;
-      PanelManager::timeLine().splitting = false;
-      PanelManager::timeLine().snapped = false;
-      PanelManager::timeLine().rect_select_init = false;
-      PanelManager::timeLine().rect_select_proc = false;
-      PanelManager::timeLine().transition_tool_init = false;
-      PanelManager::timeLine().transition_tool_proc = false;
-      pre_clips.clear();
-      post_clips.clear();
-
-      PanelManager::refreshPanels(true);
+    } else {
+      delete ca;
     }
-    PanelManager::timeLine().hand_moving = false;
+
+    // destroy all ghosts
+    PanelManager::timeLine().ghosts.clear();
+
+    // clear split tracks
+    PanelManager::timeLine().split_tracks.clear();
+
+    PanelManager::timeLine().selecting = false;
+    PanelManager::timeLine().moving_proc = false;
+    PanelManager::timeLine().moving_init = false;
+    PanelManager::timeLine().splitting = false;
+    PanelManager::timeLine().snapped = false;
+    PanelManager::timeLine().rect_select_init = false;
+    PanelManager::timeLine().rect_select_proc = false;
+    PanelManager::timeLine().transition_tool_init = false;
+    PanelManager::timeLine().transition_tool_proc = false;
+    pre_clips.clear();
+    post_clips.clear();
+
+    PanelManager::refreshPanels(true);
   }
+  PanelManager::timeLine().hand_moving = false;
 }
 
 void TimelineWidget::init_ghosts() {

@@ -311,10 +311,10 @@ void AddTransitionCommand::redo()
 }
 
 ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const ClipTransitionType itype, const long ilength) :
-  clip(std::move(c)),
+  clip_(std::move(c)),
   type_(itype),
-  new_length(ilength),
-  old_project_changed(MainWindow::instance().isWindowModified())
+  new_length_(ilength),
+  old_project_changed_(MainWindow::instance().isWindowModified())
 {
   if (ilength < 0) {
     throw NegativeTransitionLengthException();
@@ -323,11 +323,11 @@ ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const ClipTransition
 
 void ModifyTransitionCommand::undo()
 {
-  TransitionPtr t = (type_ == ClipTransitionType::OPENING)
-                    ? clip->getTransition(ClipTransitionType::OPENING) : clip->getTransition(ClipTransitionType::CLOSING);
-  if (t != nullptr) {
-    t->set_length(old_length);
-    MainWindow::instance().setWindowModified(old_project_changed);
+  TransitionPtr trans = (type_ == ClipTransitionType::OPENING)
+                    ? clip_->getTransition(ClipTransitionType::OPENING) : clip_->getTransition(ClipTransitionType::CLOSING);
+  if (trans != nullptr) {
+    trans->set_length(old_length_);
+    MainWindow::instance().setWindowModified(old_project_changed_);
   } else {
     qWarning() << "Transition command has null ptr";
   }
@@ -335,11 +335,11 @@ void ModifyTransitionCommand::undo()
 
 void ModifyTransitionCommand::redo()
 {
-  TransitionPtr t = (type_ == ClipTransitionType::OPENING)
-                    ? clip->getTransition(ClipTransitionType::OPENING) : clip->getTransition(ClipTransitionType::CLOSING);
-  if (t != nullptr) {
-    old_length = t->get_true_length();
-    t->set_length(new_length);
+  TransitionPtr trans = (type_ == ClipTransitionType::OPENING)
+                    ? clip_->getTransition(ClipTransitionType::OPENING) : clip_->getTransition(ClipTransitionType::CLOSING);
+  if (trans != nullptr) {
+    old_length_ = trans->get_true_length();
+    trans->set_length(new_length_);
     MainWindow::instance().setWindowModified(true);
   } else {
     qWarning() << "Transition command has null ptr";

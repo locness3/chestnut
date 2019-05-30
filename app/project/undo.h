@@ -186,11 +186,11 @@ public:
   virtual void undo() override;
   virtual void redo() override;
 private:
-  ClipPtr clip;
+  ClipPtr clip_;
   ClipTransitionType type_;
-  long new_length;
-  long old_length{};
-  bool old_project_changed;
+  long new_length_;
+  long old_length_{0};
+  bool old_project_changed_;
 };
 
 class DeleteTransitionCommand : public QUndoCommand {
