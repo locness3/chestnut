@@ -836,8 +836,8 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
               ca->append(new DeleteTransitionCommand(c, ClipTransitionType::CLOSING));
             } else {
               ca->append(new ModifyTransitionCommand(c,
-                                                     TA_CLOSING_TRANSITION,
-                                                     closing->get_true_length() - c->timeline_info.out - sel.in));
+                                                     ClipTransitionType::CLOSING,
+                                                     closing->get_true_length() - (c->timeline_info.out - sel.in)));
             }
           }
         } else if (c->timeline_info.in < sel.out && c->timeline_info.out > sel.out) {
@@ -850,7 +850,7 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
             if (sel.out > c->timeline_info.in + opening->get_true_length()) {
               ca->append(new DeleteTransitionCommand(c, ClipTransitionType::OPENING));
             } else {
-              ca->append(new ModifyTransitionCommand(c, TA_OPENING_TRANSITION,
+              ca->append(new ModifyTransitionCommand(c, ClipTransitionType::OPENING,
                                                      opening->get_true_length() - sel.out - c->timeline_info.in));
             }
           }

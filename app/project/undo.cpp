@@ -310,16 +310,21 @@ void AddTransitionCommand::redo()
   MainWindow::instance().setWindowModified(true);
 }
 
-ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const int itype, const long ilength) :
+ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const ClipTransitionType itype, const long ilength) :
   clip(std::move(c)),
-  type(itype),
+  type_(itype),
   new_length(ilength),
   old_project_changed(MainWindow::instance().isWindowModified())
-{}
+{
+  if (ilength < 0) {
+    throw NegativeTransitionLengthException();
+  }
+}
 
 void ModifyTransitionCommand::undo()
 {
-  TransitionPtr t = (type == TA_OPENING_TRANSITION) ? clip->openingTransition() : clip->closingTransition();
+  TransitionPtr t = (type_ == ClipTransitionType::OPENING)
+                    ? clip->getTransition(ClipTransitionType::OPENING) : clip->getTransition(ClipTransitionType::CLOSING);
   if (t != nullptr) {
     t->set_length(old_length);
     MainWindow::instance().setWindowModified(old_project_changed);
@@ -330,7 +335,8 @@ void ModifyTransitionCommand::undo()
 
 void ModifyTransitionCommand::redo()
 {
-  TransitionPtr t = (type == TA_OPENING_TRANSITION) ? clip->openingTransition() : clip->closingTransition();
+  TransitionPtr t = (type_ == ClipTransitionType::OPENING)
+                    ? clip->getTransition(ClipTransitionType::OPENING) : clip->getTransition(ClipTransitionType::CLOSING);
   if (t != nullptr) {
     old_length = t->get_true_length();
     t->set_length(new_length);
