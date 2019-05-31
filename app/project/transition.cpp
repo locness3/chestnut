@@ -41,8 +41,8 @@ constexpr long MINIMUM_TRANSITION_LENGTH = 0;
 
 Transition::Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em) :
   Effect(c, em),
-  secondary_clip(s),
-  length(DEFAULT_TRANSITION_LENGTH)
+  length(DEFAULT_TRANSITION_LENGTH),
+  secondary_clip(s)
 {
 }
 
@@ -51,9 +51,14 @@ Transition::Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em)
 //  return create_transition(c, s, meta, length);
 //}
 
-void Transition::set_length(const long value)
+void Transition::setLength(const long value)
 {
   Q_ASSERT(length_field != nullptr);
+  Q_ASSERT(Effect::parent_clip != nullptr);
+
+  if ( (value <= 0) ) {
+    throw InvalidTransitionLengthException();
+  }
   length = value;
   length_field->set_double_value(value);
 }
@@ -82,7 +87,7 @@ void Transition::setupUi()
   }
   Effect::setupUi();
   length_field = add_row(tr("Length:"), false)->add_field(EffectFieldType::DOUBLE, "length");
-  connect(length_field, SIGNAL(changed()), this, SLOT(set_length_from_slider()));
+  connect(length_field, SIGNAL(changed()), this, SLOT(setLength_from_slider()));
   length_field->set_double_default_value(DEFAULT_TRANSITION_LENGTH);
   length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
 
@@ -109,7 +114,7 @@ ClipPtr Transition::secondaryClip()
 
 void Transition::set_length_from_slider()
 {
-  set_length(qRound(length_field->get_double_value(0)));
+  setLength(qRound(length_field->get_double_value(0)));
   panels::PanelManager::refreshPanels(false);
 }
 
@@ -166,7 +171,7 @@ int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em, 
   auto t = get_transition_from_meta(c, s, em);
   if (t != nullptr) {
     if (length >= 0) {
-      t->set_length(length);
+      t->setLength(length);
     }
     QVector<TransitionPtr>& transition_list = (c->sequence == nullptr) ? e_clipboard_transitions : c->sequence->transitions_;
     transition_list.append(t);

@@ -53,6 +53,7 @@ class FootageStream;
 class Timeline;
 class TimelineAction;
 class SetSelectionsCommand;
+struct Ghost;
 
 bool same_sign(int a, int b);
 void draw_waveform(ClipPtr& clip, const project::FootageStreamPtr& ms, const long media_length, QPainter& p,
@@ -127,6 +128,21 @@ class TimelineWidget : public QWidget {
     bool applyTransition(ComboAction* ca);
 
     
+    void paintGhosts(QPainter& painter);
+    
+    void paintSelections(QPainter& painter);
+
+    void processMove(ComboAction* ca, const bool ctrl_pressed, const bool alt_pressed, QVector<ClipPtr>& moved);
+
+    /**
+     * @brief         Clear an area around a clip before moving it and its linked clips
+     * @param ca
+     * @param c
+     * @param g       The area to be cleared
+     * @param front   true==clear in front of the clip, false==clear behind
+     */
+    void makeRoomForClipLinked(ComboAction& ca, const ClipPtr& c, const Ghost& g, const bool front);
+
 public slots:
     void setScroll(int);
 

@@ -18,13 +18,15 @@
 #ifndef SELECTION_H
 #define SELECTION_H
 
+#include <stdint.h>
+
 struct Selection {
-    long in{-1};
-    long out{-1};
+    int64_t in{-1};
+    int64_t out{-1};
     int track{0};
 
-    long old_in{-1};
-    long old_out{-1};
+    int64_t old_in{-1};
+    int64_t old_out{-1};
     int old_track{-1};
 
     bool trim_in{false};

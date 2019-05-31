@@ -38,6 +38,14 @@ constexpr int TRANSITION_INTERNAL_COUNT = 5;
 using TransitionPtr = std::shared_ptr<Transition>;
 using TransitionWPtr = std::weak_ptr<Transition>;
 
+struct InvalidTransitionLengthException : public std::exception
+{
+    virtual const char* what() const noexcept
+    {
+      return "Invalid length used";
+    }
+};
+
 
 int create_transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em, long length = -1);
 TransitionPtr get_transition_from_meta(ClipPtr c, ClipPtr s, const EffectMeta& em, const bool setup = true);
@@ -48,7 +56,7 @@ class Transition : public Effect {
     Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em);
 
 //    int copy(const ClipPtr& c, const ClipPtr& s);
-    void set_length(const long value);
+    void setLength(const long value);
     long get_true_length() const;
     long get_length() const;
 

@@ -172,13 +172,6 @@ private:
   int old_stransition{};
 };
 
-struct NegativeTransitionLengthException : public std::exception
-{
-  virtual const char*  what() const noexcept override
-  {
-    return "Invalid transition length : negative";
-  }
-};
 
 class ModifyTransitionCommand : public QUndoCommand {
 public:

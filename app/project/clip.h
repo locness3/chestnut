@@ -250,7 +250,8 @@ public:
 
   void addLinkedClip(const Clip& clp);
   void setLinkedClips(const QVector<int32_t>& links);
-  const QVector<int32_t>& linkedClips() const;
+  const QVector<int32_t>& linkedClipIds() const;
+  QVector<ClipPtr> linkedClips() const;
   void clearLinks();
   /**
      * @brief Get tracks of linked clips

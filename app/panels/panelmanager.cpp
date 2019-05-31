@@ -110,7 +110,7 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
       if (vclip >= 0 && aclip >= 0) {
         bool found = false;
         ClipPtr vclip_ref = seq->clip(vclip);
-        for (auto l_clp : vclip_ref->linkedClips()) {
+        for (auto l_clp : vclip_ref->linkedClipIds()) {
           if (l_clp == aclip) {
             found = true;
             break;
