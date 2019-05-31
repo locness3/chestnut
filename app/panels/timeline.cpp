@@ -738,7 +738,7 @@ QVector<int> Timeline::get_tracks_of_linked_clips(int i)
 
   QVector<int> tracks;
   if (ClipPtr clip = sequence_->clip(i)) {
-    for (auto l : clip->linkedClips()) {
+    for (auto l : clip->linkedClipIds()) {
       if (auto l_clip = sequence_->clip(l)) {
         tracks.append(l_clip->timeline_info.track_);
       }
@@ -962,7 +962,7 @@ void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const b
     // create copy of clip and offset by playhead
     ClipPtr cc = c->copy(seq);
     mapped_clips[c->id()] = cc->id();
-    cc->setLinkedClips(c->linkedClips());
+    cc->setLinkedClips(c->linkedClipIds());
 
     // convert frame rates
     cc->timeline_info.in = refactor_frame_number(cc->timeline_info.in, c->timeline_info.cached_fr,
@@ -1238,7 +1238,7 @@ bool Timeline::split_all_clips_at_point(ComboAction* ca, const long point)
       ca->append(new SplitClipCommand(clp, point));
       // prevent agains multiple splits of a clip
       split_clips.append(clp->id());
-      split_clips = split_clips + clp->linkedClips();
+      split_clips = split_clips + clp->linkedClipIds();
     }
   }
 

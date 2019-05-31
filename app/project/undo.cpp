@@ -316,9 +316,7 @@ ModifyTransitionCommand::ModifyTransitionCommand(ClipPtr c, const ClipTransition
   new_length_(ilength),
   old_project_changed_(MainWindow::instance().isWindowModified())
 {
-  if (ilength < 0) {
-    throw NegativeTransitionLengthException();
-  }
+
 }
 
 void ModifyTransitionCommand::undo()
@@ -326,7 +324,7 @@ void ModifyTransitionCommand::undo()
   TransitionPtr trans = (type_ == ClipTransitionType::OPENING)
                     ? clip_->getTransition(ClipTransitionType::OPENING) : clip_->getTransition(ClipTransitionType::CLOSING);
   if (trans != nullptr) {
-    trans->set_length(old_length_);
+    trans->setLength(old_length_);
     MainWindow::instance().setWindowModified(old_project_changed_);
   } else {
     qWarning() << "Transition command has null ptr";
@@ -339,7 +337,7 @@ void ModifyTransitionCommand::redo()
                     ? clip_->getTransition(ClipTransitionType::OPENING) : clip_->getTransition(ClipTransitionType::CLOSING);
   if (trans != nullptr) {
     old_length_ = trans->get_true_length();
-    trans->set_length(new_length_);
+    trans->setLength(new_length_);
     MainWindow::instance().setWindowModified(true);
   } else {
     qWarning() << "Transition command has null ptr";
@@ -528,7 +526,7 @@ ClipLinkCommand::ClipLinkCommand(const ClipPtr& clp, const QVector<int>& links, 
   if (link) {
     new_links_ = links;
   }
-  old_links_ = clip_->linkedClips();
+  old_links_ = clip_->linkedClipIds();
 }
 
 void ClipLinkCommand::undo()
@@ -1131,10 +1129,10 @@ void SplitClipCommand::undo()
         // restore transition length(s)
         if (mapped_transition_lengths_.contains(pre_l_id)) {
           if (auto open_tran = pre_l->getTransition(ClipTransitionType::OPENING)) {
-            open_tran->set_length(mapped_transition_lengths_[pre_l_id].first);
+            open_tran->setLength(mapped_transition_lengths_[pre_l_id].first);
           }
           if (auto close_tran = pre_l->getTransition(ClipTransitionType::CLOSING)) {
-            close_tran->set_length(mapped_transition_lengths_[pre_l_id].second);
+            close_tran->setLength(mapped_transition_lengths_[pre_l_id].second);
           }
         }
       }
@@ -1157,7 +1155,7 @@ void SplitClipCommand::redo()
   }
 
   // Split linked clips
-  for (auto link : pre_clip_->linkedClips()) {
+  for (auto link : pre_clip_->linkedClipIds()) {
     if (auto link_clip = pre_clip_->sequence->clip(link)) {
       if (link_clip->locked()) {
         // Do not split clip in locked track

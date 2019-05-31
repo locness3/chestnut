@@ -139,7 +139,7 @@ void ClipTest::testCaseClearLinks()
   clp.linked.append(2);
   clp.linked.append(3);
   clp.clearLinks();
-  QVERIFY(clp.linkedClips().empty());
+  QVERIFY(clp.linkedClipIds().empty());
 }
 
 

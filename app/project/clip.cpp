@@ -610,11 +610,11 @@ bool Clip::setTransition(const EffectMeta& meta,
       if ( (transition_.opening_ != nullptr) && (transition_.closing_ != nullptr) ) {
         if ( (length * 2) > this->length()) {
           // Fit transitions into clip length
-          transition_.opening_->set_length(length/2);
-          transition_.closing_->set_length(length/2);
+          transition_.opening_->setLength(length/2);
+          transition_.closing_->setLength(length/2);
         } else {
-          transition_.opening_->set_length(length);
-          transition_.closing_->set_length(length);
+          transition_.opening_->setLength(length);
+          transition_.closing_->setLength(length);
         }
         return true;
       }
@@ -622,14 +622,14 @@ bool Clip::setTransition(const EffectMeta& meta,
     case ClipTransitionType::CLOSING:
       transition_.closing_ = get_transition_from_meta(shared_from_this(), secondary, meta, true);
       if (transition_.closing_ != nullptr) {
-        transition_.closing_->set_length(qMin(length, this->length()));
+        transition_.closing_->setLength(qMin(length, this->length()));
         return true;
       }
       break;
     case ClipTransitionType::OPENING:
       transition_.opening_ = get_transition_from_meta(shared_from_this(), secondary, meta, true);
       if (transition_.opening_ != nullptr) {
-        transition_.opening_->set_length(qMin(length, this->length()));
+        transition_.opening_->setLength(qMin(length, this->length()));
         return true;
       }
       break;
@@ -694,10 +694,10 @@ ClipPtr Clip::split(const long frame)
 
   // ensure transition lengths within limits
   if (transition_.opening_ != nullptr) {
-    transition_.opening_->set_length(qMin(transition_.opening_->get_length(), length()));
+    transition_.opening_->setLength(qMin(transition_.opening_->get_length(), length()));
   }
   if (post->transition_.closing_ != nullptr) {
-    post->transition_.closing_->set_length(qMin(post->transition_.closing_->get_length(), post->length()));
+    post->transition_.closing_->setLength(qMin(post->transition_.closing_->get_length(), post->length()));
   }
   return post;
 }
@@ -1123,9 +1123,22 @@ void Clip::setLinkedClips(const QVector<int32_t>& links)
   linked = links;
 }
 
-const QVector<int32_t>& Clip::linkedClips() const
+const QVector<int32_t>& Clip::linkedClipIds() const
 {
   return linked;
+}
+
+
+QVector<ClipPtr> Clip::linkedClips() const
+{
+  Q_ASSERT(sequence != nullptr);
+  QVector<ClipPtr> link_clips;
+  for (auto id : linked) {
+    if (auto l_clip = sequence->clip(id)) {
+      link_clips.append(l_clip);
+    }
+  }
+  return link_clips;
 }
 
 void Clip::clearLinks()
@@ -1489,10 +1502,10 @@ void Clip::refactorFrameRate(ComboAction* ca, double multiplier, bool change_tim
 
   // rescale the length of transitions otherwise the could overlap each other or be longer than the clip
   if (transition_.opening_ != nullptr) {
-    transition_.opening_->set_length(qRound(transition_.opening_->get_length() * multiplier));
+    transition_.opening_->setLength(qRound(transition_.opening_->get_length() * multiplier));
   }
   if (transition_.closing_ != nullptr) {
-    transition_.closing_->set_length(qRound(transition_.closing_->get_length() * multiplier));
+    transition_.closing_->setLength(qRound(transition_.closing_->get_length() * multiplier));
   }
 
   // move keyframes
@@ -2290,7 +2303,7 @@ TransitionPtr Clip::loadTransition(QXmlStreamReader& stream)
     auto meta = Effect::getRegisteredMeta(tran_name);
     if (meta.type > -1) {
       if (auto tran = get_transition_from_meta(shared_from_this(), nullptr, meta, true)) {
-        tran->set_length(tran_length);
+        tran->setLength(tran_length);
         tran->setSecondaryLoadId(secondary_id);
         return tran;
       } else {
