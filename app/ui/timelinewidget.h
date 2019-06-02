@@ -158,6 +158,14 @@ class TimelineWidget : public QWidget {
 
     void moveClip(ComboAction& ca, const ClipPtr& c, const Ghost& g);
 
+    /**
+     * @brief             Moving the mouse across the timeline with the pointer/ripple/slip tools
+     * @param pos
+     * @param time_line
+     * @param seq
+     */
+    void mousingOverEvent(const QPoint& pos, Timeline& time_line, const SequencePtr& seq);
+
 public slots:
     void setScroll(int);
 
