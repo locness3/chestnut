@@ -67,6 +67,7 @@ constexpr int TOOLTIP_INTERVAL = 500;
 constexpr auto LOCKED_TRACK_PATTERN = Qt::BDiagPattern;
 constexpr auto LOCKED_TRACK_PATTERN_COLOUR = Qt::gray;
 constexpr auto EDIT_CURSOR_COLOR = Qt::gray;
+constexpr auto TRANSITION_HEIGHT_PERCENTAGE = 50;
 
 
 namespace {
@@ -80,6 +81,8 @@ namespace {
   const QColor GHOST_COLOUR(255, 255, 0);
   const QColor SELECTION_COLOUR(0, 0, 0, 64);
   const QColor INSERT_INDICATOR_COLOUR(Qt::white);
+  const QColor TRANSITION_GRAPH_COLOUR(0, 0, 0, 96);
+  const QColor TRANSITION_OUTLINE_COLOUR(0, 0, 0, 128);
 }
 
 TimelineWidget::TimelineWidget(QWidget *parent): QWidget(parent)
@@ -2570,9 +2573,11 @@ void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRec
     return;
   }
 
-  int transition_width = getScreenPointFromFrame(PanelManager::timeLine().zoom, t->get_true_length());
-  int transition_height = clip_rect.height();
-  int tr_y = clip_rect.y();
+  const int transition_width = getScreenPointFromFrame(PanelManager::timeLine().zoom, t->get_true_length());
+  // scale the transition to track height
+  const int transition_height = qRound((static_cast<double>(clip_rect.height()) / 100.0) * TRANSITION_HEIGHT_PERCENTAGE);
+  // set the transition in the middle of the clip (y-axis)
+  const int tr_y = clip_rect.y() + qRound(transition_height/2.0);
   int tr_x = 0;
   if (transition_type == TA_OPENING_TRANSITION) {
     tr_x = clip_rect.x();
@@ -2584,12 +2589,10 @@ void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRec
   QRect transition_rect = QRect(tr_x, tr_y, transition_width, transition_height);
   const auto clr = t->is_enabled() ? TRANSITION_COLOUR : DISABLED_TRANSITION_COLOUR;
   p.fillRect(transition_rect, clr);
-  QRect transition_text_rect(transition_rect.x() + CLIP_TEXT_PADDING, transition_rect.y() + CLIP_TEXT_PADDING,
-                             transition_rect.width() - CLIP_TEXT_PADDING, transition_rect.height() - CLIP_TEXT_PADDING);
-  if (transition_text_rect.width() > MAX_TEXT_WIDTH) {
-    bool draw_text = true;
 
-    p.setPen(QColor(0, 0, 0, 96));
+  p.setPen(TRANSITION_GRAPH_COLOUR);
+
+  p.setRenderHint(QPainter::Antialiasing);
     if (t->secondaryClip() == nullptr) {
       if (transition_type == TA_OPENING_TRANSITION) {
         p.drawLine(transition_rect.bottomLeft(), transition_rect.topRight());
@@ -2598,23 +2601,17 @@ void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRec
       }
     } else {
       // paint a transition across clips
-      //TODO: don't fill out the track height
       if (transition_type == TA_OPENING_TRANSITION) {
         p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.topRight());
         p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.bottomRight());
-        draw_text = false;
       } else {
         p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.topLeft());
         p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.bottomLeft());
       }
     }
+  p.setRenderHint(QPainter::Antialiasing, false);
 
-    if (draw_text) {
-      p.setPen(Qt::white);
-      p.drawText(transition_text_rect, 0, t->meta.name, &transition_text_rect);
-    }
-  }
-  p.setPen(Qt::black);
+  p.setPen(TRANSITION_OUTLINE_COLOUR);
   p.drawRect(transition_rect);
 
 }
