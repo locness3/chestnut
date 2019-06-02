@@ -1231,6 +1231,10 @@ bool Clip::load(QXmlStreamReader& stream)
 
 bool Clip::save(QXmlStreamWriter& stream) const
 {
+  if (timeline_info.media == nullptr) {
+    qWarning() << "Not saving a clip that was not derived from a file";
+    return true;
+  }
   stream.writeStartElement("clip");
   stream.writeAttribute("source", QString::number(timeline_info.media->id()));
   stream.writeAttribute("id", QString::number(id_));
