@@ -30,6 +30,8 @@ struct Selection {
     int old_track{-1};
 
     bool trim_in{false};
+
+    bool transition_{false};
 };
 
 #endif // SELECTION_H
