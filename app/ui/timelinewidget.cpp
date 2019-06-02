@@ -1065,7 +1065,7 @@ void TimelineWidget::processMove(ComboAction* ca, const bool ctrl_pressed, const
         }
       }
     }
-    if (new_clips.empty()) {
+    if (!new_clips.empty()) {
       PanelManager::timeLine().delete_areas(ca, delete_areas);
       ca->append(new AddClipsCommand(global::sequence, new_clips));
     }
