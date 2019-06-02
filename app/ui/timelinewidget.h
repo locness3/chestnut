@@ -103,7 +103,7 @@ class TimelineWidget : public QWidget {
     MediaPtr rc_reveal_media;
 
     QTimer tooltip_timer;
-    int tooltip_clip{};
+    ClipWPtr tooltip_clip_;
 
     int scroll{};
 

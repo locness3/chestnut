@@ -254,19 +254,16 @@ void TimelineWidget::toggle_autoscale()
 
 void TimelineWidget::tooltip_timer_timeout()
 {
-  if (global::sequence != nullptr) {
-    if (tooltip_clip < global::sequence->clips().size()) {
-      ClipPtr c = global::sequence->clips().at(tooltip_clip);
-      if (c != nullptr) {
+  Q_ASSERT(global::sequence != nullptr);
+
+  if (auto c = tooltip_clip_.lock()) {
         QToolTip::showText(QCursor::pos(),
                            tr("%1\nStart: %2\nEnd: %3\nDuration: %4").arg(
-                             c->name(),
+                         c->timeline_info.media->name(),
                              frame_to_timecode(c->timeline_info.in, e_config.timecode_view, global::sequence->frameRate()),
                              frame_to_timecode(c->timeline_info.out, e_config.timecode_view, global::sequence->frameRate()),
                              frame_to_timecode(c->length(), e_config.timecode_view, global::sequence->frameRate())
                              ));
-      }
-    }
   }
   tooltip_timer.stop();
 }
@@ -2416,7 +2413,7 @@ void TimelineWidget::mouseMoveEvent(QMouseEvent *event)
             cursor_contains_clip = true;
 
             tooltip_timer.start();
-            tooltip_clip = i;
+            tooltip_clip_ = c;
 
             if (c->getTransition(ClipTransitionType::OPENING) != nullptr &&
                 PanelManager::timeLine().cursor_frame <= (c->timeline_info.in + c->getTransition(ClipTransitionType::OPENING)->get_true_length()) ) {
