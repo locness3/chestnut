@@ -135,7 +135,7 @@ class TimelineWidget : public QWidget {
     
     void paintGhosts(QPainter& painter);
     
-    void paintSelections(QPainter& painter);
+    void paintSelections(QPainter& painter, Timeline& time_line);
 
     void processMove(ComboAction* ca, const bool ctrl_pressed, const bool alt_pressed, QVector<ClipPtr>& moved);
 
