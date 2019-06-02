@@ -220,7 +220,8 @@ void Timeline::nudgeClips(const int pos)
   PanelManager::sequenceViewer().update_viewer();
 }
 
-void ripple_clips(ComboAction* ca, SequencePtr s, long point, long length, const QVector<int>& ignore) {
+void ripple_clips(ComboAction* ca, SequencePtr s, long point, long length, const QVector<int>& ignore)
+{
   ca->append(new RippleAction(s, point, length, ignore));
 }
 
@@ -826,7 +827,7 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
   for (const auto& sel : areas) {
     for (int j=0; j<sequence_->clips().size(); ++j) {
       ClipPtr c = sequence_->clips().at(j);
-      if ( (c != nullptr) && (c->timeline_info.track_ == sel.track) && (!c->undeletable) ) {
+      if ( (c != nullptr) && (c->timeline_info.track_ == sel.track) && c->deleteable ) {
         if (selection_contains_transition(sel, c, TA_OPENING_TRANSITION)) {
           // delete opening transition
           ca->append(new DeleteTransitionCommand(c, ClipTransitionType::OPENING));

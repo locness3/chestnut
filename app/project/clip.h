@@ -305,7 +305,7 @@ public:
   } media_handling; //FIXME: the use of this lot should really be its own library/class
 
   // temporary variables
-  bool undeletable;
+  bool deleteable{true};
   bool reached_end{};
   bool is_open{};
   bool replaced;
