@@ -66,6 +66,10 @@ QString Cursor::filePath() const
       return ":/cursors/slip.svg";
     case CursorType::RAZOR :
       return ":/cursors/razor.svg";
+    case CursorType::LEFT_TRIM_TRANSITION :
+      return ":/cursors/left_trim_transition.svg";
+    case CursorType::RIGHT_TRIM_TRANSITION :
+      return ":/cursors/right_trim_transition.svg";
     case CursorType::TRACK_SELECT :
       [[fallthrough]];
     case CursorType::UNKNOWN:

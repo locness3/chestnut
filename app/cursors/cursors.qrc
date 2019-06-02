@@ -9,5 +9,7 @@
         <file>razor.svg</file>
         <file>5b.svg</file>
         <file>5c.svg</file>
+        <file>left_trim_transition.svg</file>
+        <file>right_trim_transition.svg</file>
     </qresource>
 </RCC>

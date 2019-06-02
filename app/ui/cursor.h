@@ -37,6 +37,8 @@ namespace chestnut
       SLIP,
       RAZOR,
       TRACK_SELECT,
+      LEFT_TRIM_TRANSITION,
+      RIGHT_TRIM_TRANSITION,
       UNKNOWN
     };
 
