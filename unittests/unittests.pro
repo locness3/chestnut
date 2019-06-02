@@ -6,7 +6,7 @@
 
 include(../project-settings.pri)
 
-QT       += testlib
+QT       += testlib svg
 
 
 TARGET = chestnut_ut
