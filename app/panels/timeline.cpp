@@ -805,7 +805,7 @@ void Timeline::delete_areas(ComboAction* ca, QVector<Selection>& areas)
   for (const auto& sel : areas) {
     for (int j=0; j<sequence_->clips_.size(); ++j) {
       ClipPtr c = sequence_->clips_.at(j);
-      if ( (c != nullptr) && (c->timeline_info.track_ == sel.track) && c->deletable ) {
+      if ( (c != nullptr) && (c->timeline_info.track_ == sel.track) && c->deleteable ) {
         if (selection_contains_transition(sel, c, TA_OPENING_TRANSITION)) {
           // delete opening transition
           ca->append(new DeleteTransitionCommand(c, ClipTransitionType::OPENING));
