@@ -60,7 +60,6 @@ double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sam
 Clip::Clip(SequencePtr s) :
   SequenceItem(project::SequenceItemType::CLIP),
   sequence(std::move(s)),
-  undeletable(false),
   replaced(false),
   ignore_reverse(false),
   use_existing_frame(false),
