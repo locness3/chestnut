@@ -10931,15 +10931,15 @@
      stroke="#3465a4"
      inkscape:window-y="27"
      inkscape:window-x="67"
-     inkscape:window-height="927"
-     inkscape:window-width="1633"
+     inkscape:window-height="1025"
+     inkscape:window-width="1853"
      inkscape:showpageshadow="true"
      inkscape:document-units="px"
      inkscape:grid-bbox="true"
      showgrid="true"
      inkscape:current-layer="layer1"
      inkscape:cy="30.940582"
-     inkscape:cx="29.887446"
+     inkscape:cx="-0.13208227"
      inkscape:zoom="10.726351"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0"
@@ -10948,7 +10948,7 @@
      pagecolor="#505050"
      id="base"
      fill="#729fcf"
-     inkscape:window-maximized="0"
+     inkscape:window-maximized="1"
      borderlayer="true"
      inkscape:snap-global="true"
      inkscape:snap-bbox="true"
@@ -10998,7 +10998,7 @@
         <dc:source>http://commons.wikimedia.org/wiki/Tango_icon</dc:source>
         <cc:license
            rdf:resource="http://creativecommons.org/licenses/by-sa/2.0/" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
       <cc:License
          rdf:about="http://creativecommons.org/licenses/by-sa/2.0/">
@@ -11049,28 +11049,29 @@
     <rect
        id="rect6842"
        width="24"
-       height="16"
+       height="28"
        x="40"
-       y="8"
-       style="stroke-width:0.85280287" />
+       y="2"
+       style="stroke-width:1.12815213" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 42,22 62,10"
        id="path6854"
        inkscape:connector-curvature="0" />
-    <rect
-       style="fill:#ffffff"
-       id="rect10301"
-       width="20"
-       height="12"
-       x="42"
-       y="10"
-       ry="4.49999"
-       rx="0" />
     <path
        style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 42,22 62,10"
-       id="path10303"
+       d="M 62,4 42,28"
+       id="path1142"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:#6f7070;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1"
+       d="M 42,4 62,28 V 4 H 42"
+       id="path1141"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1"
+       d="M 42,4 62,28 H 42 Z"
+       id="path1948"
        inkscape:connector-curvature="0" />
   </g>
 </svg>

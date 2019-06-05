@@ -62,12 +62,17 @@ void draw_waveform(ClipPtr& clip, const project::FootageStreamPtr& ms, const lon
 class TimelineWidget : public QWidget {
     Q_OBJECT
   public:
-    explicit TimelineWidget(QWidget *parent = nullptr);
+    /**
+     * @brief TimelineWidget
+     * @param displays_video    true==this widget is displaying video tracks
+     * @param parent
+     */
+    TimelineWidget(const bool displays_video, QWidget *parent = nullptr);
 
     TimelineWidget(const TimelineWidget& ) = delete;
     TimelineWidget& operator=(const TimelineWidget&) = delete;
 
-    QScrollBar* scrollBar{};
+    QScrollBar* scrollBar{nullptr};
     bool bottom_align{false};
   protected:
     void paintEvent(QPaintEvent*) override;
@@ -108,6 +113,7 @@ class TimelineWidget : public QWidget {
     int scroll{};
 
     SetSelectionsCommand* selection_command{};
+    bool displays_video_;
 
     void init_ghosts();
     void update_ghosts(const QPoint& mouse_pos, bool lock_frame);
@@ -137,7 +143,7 @@ class TimelineWidget : public QWidget {
     
     void paintSelections(QPainter& painter, Timeline& time_line);
 
-    void processMove(ComboAction* ca, const bool ctrl_pressed, const bool alt_pressed, QVector<ClipPtr>& moved);
+    void processMove(ComboAction* ca, const bool ctrl_pressed, const bool alt_pressed, QVector<ClipPtr>& moved, Timeline& time_line);
 
     /**
      * @brief         Clear an area around a clip before moving it and its linked clips
@@ -154,7 +160,7 @@ class TimelineWidget : public QWidget {
 
     void moveClipSetup(ComboAction& ca);
 
-    void moveClips(ComboAction& ca, QVector<ClipPtr>& moved);
+    void moveClips(ComboAction& ca, QVector<ClipPtr>& moved, const QVector<Ghost>& ghosts);
 
     void moveClip(ComboAction& ca, const ClipPtr& c, const Ghost& g);
 
@@ -166,7 +172,31 @@ class TimelineWidget : public QWidget {
      */
     void mousingOverEvent(const QPoint& pos, Timeline& time_line, const SequencePtr& seq);
 
-public slots:
+    void setupMovement(Timeline& time_line, const SequencePtr& sqn);
+
+    /**
+     * @brief             Obtain a tracks lower and upper limits, vertically, in this area
+     * @param track
+     * @param time_line
+     * @return            tuple<lower,upper> limits
+     */
+    std::tuple<int,int> trackVerticalLimits(const int track, Timeline& time_line) const;
+
+    /**
+     * @brief               Identify if the mouse cursor is in an area, vertically, where a transition could be painted
+     * @param pos           Mouse position relative to this widgets dimensions
+     * @param time_line
+     * @param track_number
+     * @return              true==in transition area
+     */
+    bool inTransitionArea(const QPoint& pos, Timeline& time_line, const int track_number) const;
+
+    /*
+     * Draw the features that enbody a track in the timeline
+     */
+    void paintTrack(QPainter& painter, const int track, const bool video);
+    
+  public slots:
     void setScroll(int);
 
   private slots:
@@ -178,11 +208,6 @@ public slots:
     void rename_clip();
     void show_stabilizer_diag();
     void open_sequence_properties();
-
-    /*
-     * Draw the features that enbody a track in the timeline
-     */
-    void paintTrack(QPainter& painter, const int track, const bool video);
 };
 
 #endif // TIMELINEWIDGET_H

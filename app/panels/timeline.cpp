@@ -1804,7 +1804,7 @@ QWidget* Timeline::createVideoAreaWidget(QWidget* parent)
 
   video_container_layout->addWidget(video_scroll_);
 
-  video_area = new TimelineWidget(video_container);
+  video_area = new TimelineWidget(true, video_container);
   video_area->setFocusPolicy(Qt::ClickFocus);
   video_area->setMinimumWidth(100);
   video_area->setMinimumHeight(32);
@@ -1847,7 +1847,7 @@ QWidget* Timeline::createAudioAreaWidget(QWidget* parent)
   audioContainerLayout->addWidget(audio_scroll_);
 
 
-  audio_area = new TimelineWidget(audioContainer);
+  audio_area = new TimelineWidget(false, audioContainer);
   audio_area->setFocusPolicy(Qt::ClickFocus);
 
   audioContainerLayout->addWidget(audio_area);
