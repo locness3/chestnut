@@ -742,7 +742,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
         } else {
           if (auto sel_clip = getClipFromCoords(PanelManager::timeLine().drag_frame_start,
                                                 PanelManager::timeLine().drag_track_start)) {
-            auto links = sel_clip->linkedClipIds();
+            auto links = sel_clip->linkedClips();
             if (sel_clip->isSelected(true)) {
               if (shift) {
                 PanelManager::timeLine().deselect_area(sel_clip->timeline_info.in,
@@ -750,21 +750,19 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
                                                        sel_clip->timeline_info.track_);
 
                 if (!alt) {
-                  for (int i=0; i<links.size(); i++) {
-                    ClipPtr link = global::sequence->clip(links.at(i));
+                  for (const auto& link : links) {
                     PanelManager::timeLine().deselect_area(link->timeline_info.in,
                                                            link->timeline_info.out,
                                                            link->timeline_info.track_);
                   }
                 }
-              } else if (PanelManager::timeLine().tool == TimelineToolType::POINTER
-                         && PanelManager::timeLine().transition_select != TA_NO_TRANSITION) {
+              } else if ( (PanelManager::timeLine().tool == TimelineToolType::POINTER)
+                         && (PanelManager::timeLine().transition_select != TA_NO_TRANSITION) ) {
                 PanelManager::timeLine().deselect_area(sel_clip->timeline_info.in,
                                                        sel_clip->timeline_info.out,
                                                        sel_clip->timeline_info.track_);
 
-                for (int i=0;i<links.size();i++) {
-                  ClipPtr link = global::sequence->clip(links.at(i));
+                for (const auto& link : links) {
                   PanelManager::timeLine().deselect_area(link->timeline_info.in,
                                                          link->timeline_info.out,
                                                          link->timeline_info.track_);
@@ -773,15 +771,15 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
                 Selection s;
                 s.track = sel_clip->timeline_info.track_;
 
-                if (PanelManager::timeLine().transition_select == TA_OPENING_TRANSITION
-                    && sel_clip->getTransition(ClipTransitionType::OPENING) != nullptr) {
+                if ( (PanelManager::timeLine().transition_select == TA_OPENING_TRANSITION)
+                    && (sel_clip->getTransition(ClipTransitionType::OPENING) != nullptr) ) {
                   s.in = sel_clip->timeline_info.in;
                   if (sel_clip->getTransition(ClipTransitionType::OPENING)->secondaryClip() != nullptr) {
                     s.in -= sel_clip->getTransition(ClipTransitionType::OPENING)->get_true_length();
                   }
                   s.out = sel_clip->timeline_info.in + sel_clip->getTransition(ClipTransitionType::OPENING)->get_true_length();
-                } else if (PanelManager::timeLine().transition_select == TA_CLOSING_TRANSITION
-                           && sel_clip->getTransition(ClipTransitionType::CLOSING) != nullptr) {
+                } else if ( (PanelManager::timeLine().transition_select == TA_CLOSING_TRANSITION)
+                           && (sel_clip->getTransition(ClipTransitionType::CLOSING) != nullptr) ) {
                   s.in = sel_clip->timeline_info.out - sel_clip->getTransition(ClipTransitionType::CLOSING)->get_true_length();
                   s.out = sel_clip->timeline_info.out;
                   if (sel_clip->getTransition(ClipTransitionType::CLOSING)->secondaryClip() != nullptr) {
@@ -829,17 +827,17 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
 
               //FIXME: the selection made for a "full" transition causes its parent clip to be moved.
 
-              // if alt is not down, select links
+              // if alt is not down and not pressing on a transition, select links
               if (!alt && (PanelManager::timeLine().transition_select == TA_NO_TRANSITION) ) {
-                for (int i=0; i<links.size(); i++) {
-                  ClipPtr link = global::sequence->clip(links.at(i));
-                  if (link != nullptr && !link->isSelected(true)) {
-                    Selection ss;
-                    ss.in = link->timeline_info.in;
-                    ss.out = link->timeline_info.out;
-                    ss.track = link->timeline_info.track_;
-                    global::sequence->addSelection(ss);
+                for (const auto& link : links) {
+                  if ( (link == nullptr) || link->isSelected(true)) {
+                    continue;
                   }
+                  Selection ss;
+                  ss.in = link->timeline_info.in;
+                  ss.out = link->timeline_info.out;
+                  ss.track = link->timeline_info.track_;
+                  global::sequence->addSelection(ss);
                 }
               }
             }
@@ -2040,9 +2038,10 @@ void TimelineWidget::mousingOverEvent(const QPoint& pos, Timeline& time_line, co
   } found;
 
   const int mouse_track = getTrackFromScreenPoint(pos.y());
+  const bool in_transition = inTransitionArea(pos, time_line, mouse_track);
 
-  long mouse_frame_lower = PanelManager::timeLine().getTimelineFrameFromScreenPoint(pos.x()-MOUSE_LIM_X)-1;
-  long mouse_frame_upper = PanelManager::timeLine().getTimelineFrameFromScreenPoint(pos.x()+MOUSE_LIM_X)+1;
+  const long mouse_frame_lower = PanelManager::timeLine().getTimelineFrameFromScreenPoint(pos.x()-MOUSE_LIM_X)-1;
+  const long mouse_frame_upper = PanelManager::timeLine().getTimelineFrameFromScreenPoint(pos.x()+MOUSE_LIM_X)+1;
   auto cursor_contains_clip = false;
   auto closeness = LONG_MAX;
   long nc = 0;
@@ -2061,25 +2060,27 @@ void TimelineWidget::mousingOverEvent(const QPoint& pos, Timeline& time_line, co
     min_track = qMin(min_track, c->timeline_info.track_.load());
     max_track = qMax(max_track, c->timeline_info.track_.load());
     if (c->timeline_info.track_ == mouse_track) {
-      if (time_line.cursor_frame >= c->timeline_info.in &&
-          time_line.cursor_frame <= c->timeline_info.out) {
+      if ( (time_line.cursor_frame >= c->timeline_info.in) &&
+          (time_line.cursor_frame <= c->timeline_info.out) ) {
         cursor_contains_clip = true;
 
         tooltip_timer.start();
         tooltip_clip_ = c;
 
-        if ( (c->getTransition(ClipTransitionType::OPENING) != nullptr) &&
-            (time_line.cursor_frame <=
-             (c->timeline_info.in + c->getTransition(ClipTransitionType::OPENING)->get_true_length()) ) ) {
-          time_line.transition_select = TA_OPENING_TRANSITION;
-        } else if ( (c->getTransition(ClipTransitionType::CLOSING) != nullptr)
-                   && (time_line.cursor_frame >=
-                   (c->timeline_info.out - c->getTransition(ClipTransitionType::CLOSING)->get_true_length()) ) ) {
-          time_line.transition_select = TA_CLOSING_TRANSITION;
+        if (in_transition) {
+          if ( (c->getTransition(ClipTransitionType::OPENING) != nullptr) &&
+              (time_line.cursor_frame <=
+               (c->timeline_info.in + c->getTransition(ClipTransitionType::OPENING)->get_true_length()) ) ) {
+            time_line.transition_select = TA_OPENING_TRANSITION;
+          } else if ( (c->getTransition(ClipTransitionType::CLOSING) != nullptr)
+                     && (time_line.cursor_frame >=
+                     (c->timeline_info.out - c->getTransition(ClipTransitionType::CLOSING)->get_true_length()) ) ) {
+            time_line.transition_select = TA_CLOSING_TRANSITION;
+          }
         }
       }
 
-      if (c->timeline_info.in > mouse_frame_lower && c->timeline_info.in < mouse_frame_upper) {
+      if ( (c->timeline_info.in > mouse_frame_lower) && (c->timeline_info.in < mouse_frame_upper) ) {
         nc = qAbs(c->timeline_info.in + 1 - time_line.cursor_frame);
         if (nc < closeness) {
           time_line.trim_target = c;
@@ -2091,7 +2092,7 @@ void TimelineWidget::mousingOverEvent(const QPoint& pos, Timeline& time_line, co
         }
       }
 
-      if (c->timeline_info.out > mouse_frame_lower && c->timeline_info.out < mouse_frame_upper) {
+      if ( (c->timeline_info.out > mouse_frame_lower) && (c->timeline_info.out < mouse_frame_upper) ) {
         nc = qAbs(c->timeline_info.out - 1 - time_line.cursor_frame);
         if (nc < closeness) {
           time_line.trim_target = c;
@@ -2107,7 +2108,7 @@ void TimelineWidget::mousingOverEvent(const QPoint& pos, Timeline& time_line, co
         if (c->getTransition(ClipTransitionType::OPENING) != nullptr) {
           long transition_point = c->timeline_info.in + c->getTransition(ClipTransitionType::OPENING)->get_true_length();
 
-          if (transition_point > mouse_frame_lower && transition_point < mouse_frame_upper) {
+          if ( (transition_point > mouse_frame_lower) && (transition_point < mouse_frame_upper) ) {
             nc = qAbs(transition_point - 1 - time_line.cursor_frame);
             if (nc < closeness) {
               time_line.trim_target = c;
@@ -2123,7 +2124,7 @@ void TimelineWidget::mousingOverEvent(const QPoint& pos, Timeline& time_line, co
 
         if (c->getTransition(ClipTransitionType::CLOSING) != nullptr) {
           long transition_point = c->timeline_info.out - c->getTransition(ClipTransitionType::CLOSING)->get_true_length();
-          if (transition_point > mouse_frame_lower && transition_point < mouse_frame_upper) {
+          if ( (transition_point > mouse_frame_lower) && (transition_point < mouse_frame_upper) ) {
             nc = qAbs(transition_point + 1 - time_line.cursor_frame);
             if (nc < closeness) {
               time_line.trim_target = c;
@@ -2158,14 +2159,14 @@ void TimelineWidget::mousingOverEvent(const QPoint& pos, Timeline& time_line, co
     // look for track heights
     int track_y = 0;
     for (int i=0; i < time_line.get_track_height_size(bottom_align); ++i) {
-      int track = (bottom_align) ? -1-i : i;
-      if (track >= min_track && track <= max_track) {
+      const int track = (bottom_align) ? -1-i : i;
+      if ( (track >= min_track) && (track <= max_track) ) {
         int track_height = time_line.calculate_track_height(track, -1);
         track_y += track_height;
         int y_test_value = (bottom_align) ? rect().bottom() - track_y : track_y;
         int test_range = 5;
         int mouse_pos = pos.y() + scroll;
-        if (mouse_pos > y_test_value-test_range && mouse_pos < y_test_value+test_range) {
+        if ( (mouse_pos > (y_test_value-test_range)) && (mouse_pos < (y_test_value+test_range) ) ) {
           // if track lines are hidden, only resize track if a clip is already there
           if (e_config.show_track_lines || cursor_contains_clip) {
             found.track_ = true;
