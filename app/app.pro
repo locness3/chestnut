@@ -13,6 +13,7 @@ TARGET = chestnut
 
 
 SOURCES += \
+    ui/cursor.cpp \
     ui/mainwindow.cpp \
     panels/project.cpp \
     panels/effectcontrols.cpp \
@@ -117,6 +118,7 @@ SOURCES += \
     project/footagestream.cpp
 
 HEADERS += \
+    ui/cursor.h \
     ui/mainwindow.h \
     panels/project.h \
     panels/effectcontrols.h \

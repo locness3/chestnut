@@ -155,7 +155,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     QVector<int> video_track_heights;
     QVector<int> audio_track_heights;
     int get_track_height_size(bool video);
-    int calculate_track_height(int track, int height);
+    int calculate_track_height(const int track, const int value=-1);
 
     // snapping
     bool snapping;

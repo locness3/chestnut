@@ -38,7 +38,8 @@ PRE_TARGETDEPS += ../$${DESTDIR}/libchestnut.a
 
 
 RESOURCES += \
-    ../icons/icons.qrc
+    ../icons/icons.qrc \
+  ../cursors/cursors.qrc
 
 isEmpty(PREFIX) {
     PREFIX = /usr/local

@@ -467,7 +467,7 @@ void Timeline::add_transition()
   PanelManager::refreshPanels(true);
 }
 
-int Timeline::calculate_track_height(int track, int value) {
+int Timeline::calculate_track_height(const int track, const int value) {
   int index = (track < 0) ? qAbs(track + 1) : track;
   QVector<int>& vector = (track < 0) ? video_track_heights : audio_track_heights;
   while (vector.size() < index+1) {
@@ -1768,7 +1768,7 @@ void Timeline::setup_ui() {
   QHBoxLayout* videoContainerLayout = new QHBoxLayout(videoContainer);
   videoContainerLayout->setSpacing(0);
   videoContainerLayout->setContentsMargins(0, 0, 0, 0);
-  video_area = new TimelineWidget(videoContainer);
+  video_area = new TimelineWidget(true, videoContainer);
   video_area->setFocusPolicy(Qt::ClickFocus);
 
   videoContainerLayout->addWidget(video_area);
@@ -1787,7 +1787,7 @@ void Timeline::setup_ui() {
   QHBoxLayout* audioContainerLayout = new QHBoxLayout(audioContainer);
   audioContainerLayout->setSpacing(0);
   audioContainerLayout->setContentsMargins(0, 0, 0, 0);
-  audio_area = new TimelineWidget(audioContainer);
+  audio_area = new TimelineWidget(false, audioContainer);
   audio_area->setFocusPolicy(Qt::ClickFocus);
 
   audioContainerLayout->addWidget(audio_area);
