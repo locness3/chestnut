@@ -761,6 +761,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
 
               if (PanelManager::timeLine().tool == TimelineToolType::POINTER) {
                 if (PanelManager::timeLine().transition_select == TA_OPENING_TRANSITION) {
+                  s.transition_ = true;
                   s.out = sel_clip->timeline_info.in + sel_clip->getTransition(ClipTransitionType::OPENING)->get_true_length();
                   if (sel_clip->getTransition(ClipTransitionType::OPENING)->secondaryClip() != nullptr) {
                     s.in -= sel_clip->getTransition(ClipTransitionType::OPENING)->get_true_length();
@@ -769,6 +770,8 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
 
                 if (PanelManager::timeLine().transition_select == TA_CLOSING_TRANSITION) {
                   s.in = sel_clip->timeline_info.out - sel_clip->getTransition(ClipTransitionType::CLOSING)->get_true_length();
+
+                  s.transition_ = true;
                   if (sel_clip->getTransition(ClipTransitionType::CLOSING)->secondaryClip() != nullptr) {
                     s.out += sel_clip->getTransition(ClipTransitionType::CLOSING)->get_true_length();
                   }
@@ -794,7 +797,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
                   ss.in = link->timeline_info.in;
                   ss.out = link->timeline_info.out;
                   ss.track = link->timeline_info.track_;
-                  global::sequence->addSelection(ss);
+                  global::sequence->selections_.append(ss);
                 }
               }
             }
