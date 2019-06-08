@@ -65,6 +65,9 @@ using chestnut::ui::CursorType;
 constexpr int MAX_TEXT_WIDTH = 20;
 constexpr int TRANSITION_BETWEEN_RANGE = 40;
 constexpr int TOOLTIP_INTERVAL = 500;
+constexpr auto LOCKED_TRACK_PATTERN = Qt::BDiagPattern;
+constexpr auto LOCKED_TRACK_PATTERN_COLOUR = Qt::gray;
+constexpr auto EDIT_CURSOR_COLOR = Qt::gray;
 constexpr auto TRANSITION_HEIGHT_PERCENTAGE = 50;
 // percentage of track area (vertically) either side of transition
 constexpr double NOT_TRANSITION_PERCENTAGE = TRANSITION_HEIGHT_PERCENTAGE/200.0;
@@ -73,12 +76,16 @@ constexpr int MOUSE_LIM_X = 5; // selecting range
 
 
 namespace {
-const QColor MOUSE_RELEASE_COLOUR(192, 192, 64);
-const QColor TRANSITION_COLOUR(255, 0, 0, 16);
-const QColor DISABLED_TRANSITION_COLOUR(0, 0, 0, 16);
-const QColor GHOST_COLOUR(255, 255, 0);
-const QColor SELECTION_COLOUR(0, 0, 0, 64);
-const QColor INSERT_INDICATOR_COLOUR(Qt::white);
+  const QColor MOUSE_RELEASE_COLOUR(192, 192, 64);
+  const QColor TRANSITION_COLOUR(255, 0, 0, 16);
+  const QColor DISABLED_TRANSITION_COLOUR(0, 0, 0, 16);
+  const QColor DISABLED_CLIP_COLOR(96, 96, 96);
+  const QColor GHOST_CLIP_OUTLINE(255, 255, 0);
+  const QColor SELECTION_RECT_COLOR(204, 204, 204);
+  const QColor SPLIT_CURSOR_COLOR(64, 64, 64);;
+  const QColor GHOST_COLOUR(255, 255, 0);
+  const QColor SELECTION_COLOUR(0, 0, 0, 64);
+  const QColor INSERT_INDICATOR_COLOUR(Qt::white);
   const QColor TRANSITION_GRAPH_COLOUR(0, 0, 0, 96);
   const QColor TRANSITION_OUTLINE_COLOUR(0, 0, 0, 128);
 }
@@ -2676,22 +2683,22 @@ void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRec
   p.setPen(TRANSITION_GRAPH_COLOUR);
 
   p.setRenderHint(QPainter::Antialiasing);
-  if (t->secondaryClip() == nullptr) {
-    if (transition_type == TA_OPENING_TRANSITION) {
-      p.drawLine(transition_rect.bottomLeft(), transition_rect.topRight());
+    if (t->secondaryClip() == nullptr) {
+      if (transition_type == TA_OPENING_TRANSITION) {
+        p.drawLine(transition_rect.bottomLeft(), transition_rect.topRight());
+      } else {
+        p.drawLine(transition_rect.topLeft(), transition_rect.bottomRight());
+      }
     } else {
-      p.drawLine(transition_rect.topLeft(), transition_rect.bottomRight());
+      // paint a transition across clips
+      if (transition_type == TA_OPENING_TRANSITION) {
+        p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.topRight());
+        p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.bottomRight());
+      } else {
+        p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.topLeft());
+        p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.bottomLeft());
+      }
     }
-  } else {
-    // paint a transition across clips
-    if (transition_type == TA_OPENING_TRANSITION) {
-      p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.topRight());
-      p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.bottomRight());
-    } else {
-      p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.topLeft());
-      p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.bottomLeft());
-    }
-  }
   p.setRenderHint(QPainter::Antialiasing, false);
 
   p.setPen(TRANSITION_OUTLINE_COLOUR);
