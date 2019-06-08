@@ -1,4 +1,32 @@
 -------------
+Version 0.0.2
+-------------
+
+08 June 2019
+
+New:
+    None
+
+Improvements:
+    - Transitions are not shown full height in timeline making them visually separate to clips and individually selectable
+    - Different cursors for resizing transitions or clips
+
+
+Fixes:
+    - transition: set minimum length to 1. 0 caused crashes.
+    - timeline: clip tooltip shows sourcefile
+    - file_save:prevent segfault when saving a timeline with created objects (titles,etc) #46
+    - transition: relink broken sig/slot allowing transtion length to be changed from fx-panel
+    - various timeline issues related to transitions being the same length as its related clip #45
+
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - Random pauses when exporting in h264 #27
+    - On reverse drag-seek ui-lock #18
+    - Saving created objects not possible #46
+
+
+-------------
 Version 0.0.1
 -------------
 
