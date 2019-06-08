@@ -155,7 +155,7 @@ class TimelineWidget : public QWidget {
 
     void moveClipSetup(ComboAction& ca);
 
-    void moveClips(ComboAction& ca, QVector<ClipPtr>& moved);
+    void moveClips(ComboAction& ca, QVector<ClipPtr>& moved, const QVector<Ghost>& ghosts);
 
     void moveClip(ComboAction& ca, const ClipPtr& c, const Ghost& g);
 

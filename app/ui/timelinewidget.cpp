@@ -768,6 +768,7 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
 
               if (PanelManager::timeLine().tool == TimelineToolType::POINTER) {
                 if (PanelManager::timeLine().transition_select == TA_OPENING_TRANSITION) {
+                  // an opening transition has been selected
                   s.transition_ = true;
                   s.out = sel_clip->timeline_info.in + sel_clip->getTransition(ClipTransitionType::OPENING)->get_true_length();
                   if (sel_clip->getTransition(ClipTransitionType::OPENING)->secondaryClip() != nullptr) {
@@ -777,7 +778,6 @@ void TimelineWidget::mousePressEvent(QMouseEvent *event)
 
                 if (PanelManager::timeLine().transition_select == TA_CLOSING_TRANSITION) {
                   s.in = sel_clip->timeline_info.out - sel_clip->getTransition(ClipTransitionType::CLOSING)->get_true_length();
-
                   s.transition_ = true;
                   if (sel_clip->getTransition(ClipTransitionType::CLOSING)->secondaryClip() != nullptr) {
                     s.out += sel_clip->getTransition(ClipTransitionType::CLOSING)->get_true_length();
@@ -2780,16 +2780,23 @@ void TimelineWidget::paintSelections(QPainter& painter)
     if (!is_track_visible(s.track)) {
       continue;
     }
-    const int selection_y = getScreenPointFromTrack(s.track);
+    int selection_y = getScreenPointFromTrack(s.track);
+    int sel_height = PanelManager::timeLine().calculate_track_height(s.track, -1);
+    if (s.transition_) {
+      sel_height = qRound((static_cast<double>(sel_height) / 100.0) * TRANSITION_HEIGHT_PERCENTAGE);
+      selection_y += sel_height/2;
+    }
+
     const int selection_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(s.in);
     if (auto clp = getClipFromCoords(s.in, s.track)) {
-      const long wdth = PanelManager::timeLine().getTimelineScreenPointFromFrame(s.out) - selection_x;
+      const int wdth = PanelManager::timeLine().getTimelineScreenPointFromFrame(s.out) - selection_x;
       painter.setPen(Qt::NoPen);
       painter.setBrush(Qt::NoBrush);
       painter.fillRect(selection_x,
                        selection_y,
                        wdth,
-                       PanelManager::timeLine().calculate_track_height(s.track, -1), SELECTION_COLOUR);
+                       sel_height,
+                       SELECTION_COLOUR);
     }
   }
 }
