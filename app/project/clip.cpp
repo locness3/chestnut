@@ -1067,14 +1067,11 @@ bool Clip::isSelected(const bool containing)
     return false;
   }
 
-  for (const auto& selection : sequence->selections_) {
-    const auto same_track = timeline_info.track_ == selection.track;
-    const auto in_range = timeline_info.in >= selection.in && timeline_info.out <= selection.out;
-    if (same_track && in_range && containing) {
-      return true;
-    }
-    if (!same_track && !in_range && !containing) {
-      // i.e. "not selected"
+  for (const auto& sel : sequence->selections_) {
+
+    const auto same_track = timeline_info.track_ == sel.track;
+    const auto in_range = (timeline_info.in >= sel.in) && (timeline_info.out <= sel.out);
+    if ( (same_track && in_range && !sel.transition_) == containing) {
       return true;
     }
     // keep looking
@@ -1086,7 +1083,7 @@ bool Clip::isSelected(const bool containing)
 bool Clip::isSelected(const Selection& sel) const
 {
 
-  return ( (sel.track == timeline_info.track_) &&
+  return ( !sel.transition_ && (sel.track == timeline_info.track_) &&
            !( ( (timeline_info.in <= sel.in) && (timeline_info.out <= sel.in) )
               || ( (timeline_info.in >= sel.out) && (timeline_info.out >= sel.out) ) ));
 }

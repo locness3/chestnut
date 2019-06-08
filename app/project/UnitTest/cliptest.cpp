@@ -332,7 +332,11 @@ void ClipTest::testCaseIsSelectedBySelection()
   sel.in = 100;
   sel.out = 200;
   sel.track = 0;
-
+  // Selection is a transition
+  sel.transition_ = true;
+  QVERIFY(clp.isSelected(sel) == false);
+  // Selection is not a transition
+  sel.transition_ = false;
   QVERIFY(clp.isSelected(sel) == true);
   //Selection is on different track
   sel.track = 100;
@@ -345,6 +349,40 @@ void ClipTest::testCaseIsSelectedBySelection()
   // selecting an unenabled clip //TODO: what should be the behaviour???
   clp.timeline_info.enabled = false;
   QVERIFY(clp.isSelected(sel) == true);
+}
+
+
+void ClipTest::testCaseIsSelected()
+{
+  auto seq = std::make_shared<Sequence>();
+  Clip clp(seq);
+  clp.timeline_info.in = 0;
+  clp.timeline_info.clip_in = 0;
+  clp.timeline_info.out = 1000;
+  clp.timeline_info.track_ = 0;
+  clp.timeline_info.enabled = true;
+
+  Selection sel;
+  sel.in = 0;
+  sel.out = 1000;
+  sel.track = 0;
+  // Selection is a transition
+  sel.transition_ = true;
+  seq->selections_.append(sel);
+  // is contained in a selection
+  QVERIFY(clp.isSelected(true) == false);
+  // is not contained in a selection
+  QVERIFY(clp.isSelected(false) == true);
+
+  seq->selections_.clear();
+  // Selection is a clip
+  sel.transition_ = false;
+  seq->selections_.append(sel);
+  // is contained in a selection
+  QVERIFY(clp.isSelected(true) == true);
+  // is not contained in a selection
+  QVERIFY(clp.isSelected(false) == false);
+
 }
 
 
