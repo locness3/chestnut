@@ -57,7 +57,7 @@ void Transition::setLength(const long value)
   Q_ASSERT(length_field != nullptr);
   Q_ASSERT(Effect::parent_clip != nullptr);
 
-  if ( (value <= 0) ) {
+  if (value <= 0) {
     throw InvalidTransitionLengthException();
   }
   length = value;
@@ -88,7 +88,7 @@ void Transition::setupUi()
   }
   Effect::setupUi();
   length_field = add_row(tr("Length:"), false)->add_field(EffectFieldType::DOUBLE, "length");
-  connect(length_field, SIGNAL(changed()), this, SLOT(setLength_from_slider()));
+  connect(length_field, &EffectField::changed, this, &Transition::set_length_from_slider);
   length_field->set_double_default_value(DEFAULT_TRANSITION_LENGTH);
   length_field->set_double_minimum_value(MINIMUM_TRANSITION_LENGTH);
 
