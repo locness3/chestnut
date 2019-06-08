@@ -2742,9 +2742,14 @@ void TimelineWidget::paintGhosts(QPainter& painter)
     }
     first_ghost = qMin(first_ghost, g.in);
     const int ghost_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(g.in);
-    const int ghost_y = getScreenPointFromTrack(g.track);
+    int ghost_y = getScreenPointFromTrack(g.track);
     const long ghost_width = PanelManager::timeLine().getTimelineScreenPointFromFrame(g.out) - ghost_x - 1;
-    const int ghost_height = PanelManager::timeLine().calculate_track_height(g.track, -1) - 1;
+    int ghost_height = PanelManager::timeLine().calculate_track_height(g.track, -1) - 1;
+    if (!g.transition.expired()) {
+      // paint ghosts a different height for a transition
+      ghost_height = qRound((static_cast<double>(ghost_height)/100.0) * TRANSITION_HEIGHT_PERCENTAGE);
+      ghost_y += qRound(static_cast<double>(ghost_height)/2.0);
+    }
 
     insert_points.append(ghost_y + (ghost_height>>1));
 
@@ -2772,7 +2777,7 @@ void TimelineWidget::paintGhosts(QPainter& painter)
   }
 }
 
-void TimelineWidget::paintSelections(QPainter& painter)
+void TimelineWidget::paintSelections(QPainter& painter, Timeline& time_line)
 {
   Q_ASSERT(global::sequence != nullptr);
 
@@ -2781,15 +2786,15 @@ void TimelineWidget::paintSelections(QPainter& painter)
       continue;
     }
     int selection_y = getScreenPointFromTrack(s.track);
-    int sel_height = PanelManager::timeLine().calculate_track_height(s.track, -1);
+    int sel_height = time_line.calculate_track_height(s.track, -1);
     if (s.transition_) {
       sel_height = qRound((static_cast<double>(sel_height) / 100.0) * TRANSITION_HEIGHT_PERCENTAGE);
       selection_y += sel_height/2;
     }
 
-    const int selection_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(s.in);
+    const int selection_x = time_line.getTimelineScreenPointFromFrame(s.in);
     if (auto clp = getClipFromCoords(s.in, s.track)) {
-      const int wdth = PanelManager::timeLine().getTimelineScreenPointFromFrame(s.out) - selection_x;
+      const int wdth = time_line.getTimelineScreenPointFromFrame(s.out) - selection_x;
       painter.setPen(Qt::NoPen);
       painter.setBrush(Qt::NoBrush);
       painter.fillRect(selection_x,
@@ -3153,7 +3158,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
     }
 
   // Draw selections
-  paintSelections(painter);
+  paintSelections(painter, PanelManager::timeLine());
 
     // draw rectangle select
     if (PanelManager::timeLine().rect_select_proc) {
