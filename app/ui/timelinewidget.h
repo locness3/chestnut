@@ -155,7 +155,7 @@ class TimelineWidget : public QWidget {
 
     void moveClipSetup(ComboAction& ca);
 
-    void moveClips(ComboAction& ca, QVector<ClipPtr>& moved, const QVector<Ghost>& ghosts);
+    void moveClips(ComboAction& ca, QVector<ClipPtr>& moved);
 
     void moveClip(ComboAction& ca, const ClipPtr& c, const Ghost& g);
 
@@ -191,7 +191,7 @@ class TimelineWidget : public QWidget {
      */
     void paintTrack(QPainter& painter, const int track, const bool video);
     
-  public slots:
+public slots:
     void setScroll(int);
 
   private slots:

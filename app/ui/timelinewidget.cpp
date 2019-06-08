@@ -82,7 +82,7 @@ namespace {
   const QColor DISABLED_CLIP_COLOR(96, 96, 96);
   const QColor GHOST_CLIP_OUTLINE(255, 255, 0);
   const QColor SELECTION_RECT_COLOR(204, 204, 204);
-  const QColor SPLIT_CURSOR_COLOR(64, 64, 64);;
+  const QColor SPLIT_CURSOR_COLOR(64, 64, 64);
   const QColor GHOST_COLOUR(255, 255, 0);
   const QColor SELECTION_COLOUR(0, 0, 0, 64);
   const QColor INSERT_INDICATOR_COLOUR(Qt::white);
@@ -2683,22 +2683,22 @@ void draw_transition(QPainter& p, const ClipPtr& c, const QRect& clip_rect, QRec
   p.setPen(TRANSITION_GRAPH_COLOUR);
 
   p.setRenderHint(QPainter::Antialiasing);
-    if (t->secondaryClip() == nullptr) {
-      if (transition_type == TA_OPENING_TRANSITION) {
-        p.drawLine(transition_rect.bottomLeft(), transition_rect.topRight());
-      } else {
-        p.drawLine(transition_rect.topLeft(), transition_rect.bottomRight());
-      }
+  if (t->secondaryClip() == nullptr) {
+    if (transition_type == TA_OPENING_TRANSITION) {
+      p.drawLine(transition_rect.bottomLeft(), transition_rect.topRight());
     } else {
-      // paint a transition across clips
-      if (transition_type == TA_OPENING_TRANSITION) {
-        p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.topRight());
-        p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.bottomRight());
-      } else {
-        p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.topLeft());
-        p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.bottomLeft());
-      }
+      p.drawLine(transition_rect.topLeft(), transition_rect.bottomRight());
     }
+  } else {
+    // paint a transition across clips
+    if (transition_type == TA_OPENING_TRANSITION) {
+      p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.topRight());
+      p.drawLine(QPoint(transition_rect.left(), transition_rect.center().y()), transition_rect.bottomRight());
+    } else {
+      p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.topLeft());
+      p.drawLine(QPoint(transition_rect.right(), transition_rect.center().y()), transition_rect.bottomLeft());
+    }
+  }
   p.setRenderHint(QPainter::Antialiasing, false);
 
   p.setPen(TRANSITION_OUTLINE_COLOUR);
