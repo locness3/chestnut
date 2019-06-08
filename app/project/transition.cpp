@@ -37,7 +37,7 @@
 
 
 constexpr long DEFAULT_TRANSITION_LENGTH = 30;
-constexpr long MINIMUM_TRANSITION_LENGTH = 0;
+constexpr long MINIMUM_TRANSITION_LENGTH = 1;
 
 
 Transition::Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em) :
