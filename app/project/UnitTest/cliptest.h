@@ -56,6 +56,7 @@ class ClipTest : public QObject
 
      void testCaseIsSelectedBySelection();
 
+     void testCaseIsSelected();
      /**
       * @brief test when 2 clips are side by side with a shared transition
       */
