@@ -856,25 +856,11 @@ void Clip::removeEarliestFromQueue() {
 TransitionPtr Clip::openingTransition() const
 {
   return transition_.opening_;
-  //  if (opening_transition > -1) {
-  //    if (sequence == nullptr) {
-  //      return e_clipboard_transitions.at(opening_transition);
-  //    }
-  //    return sequence->transitions_.at(opening_transition);
-  //  }
-  //  return nullptr;
 }
 
 TransitionPtr Clip::closingTransition() const
 {
   return transition_.closing_;
-  //  if (closing_transition > -1) {
-  //    if (sequence == nullptr) {
-  //      return e_clipboard_transitions.at(closing_transition);
-  //    }
-  //    return sequence->transitions_.at(closing_transition);
-  //  }
-  //  return nullptr;
 }
 
 /**

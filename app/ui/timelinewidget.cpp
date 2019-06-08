@@ -2203,29 +2203,29 @@ void TimelineWidget::setupMovement(Timeline& time_line, const SequencePtr& sqn)
     bool add = c->isSelected(true);
 
     // if a whole clip is not selected, maybe just a transition is
-    if ( (time_line.tool == TimelineToolType::POINTER)
-         && ( (c->getTransition(ClipTransitionType::OPENING) != nullptr)
-              || (c->getTransition(ClipTransitionType::CLOSING) != nullptr)) ) {
+    if ( !add && (time_line.tool == TimelineToolType::POINTER) &&
+         ( (c->getTransition(ClipTransitionType::OPENING) != nullptr) || (c->getTransition(ClipTransitionType::CLOSING) != nullptr)) ) {
       // check if any selections contain the whole clip or transition
       for (const auto& s : sqn->selections_) {
-        if (s.track == c->timeline_info.track_) {
-          if (selection_contains_transition(s, c, TA_OPENING_TRANSITION)) {
-            auto open_tran = c->getTransition(ClipTransitionType::OPENING);
-            if ( (open_tran->get_length() == c->length()) && TRANSITION_CLIP_LENGTH_EQUAL_CLIP_ONLY) {
-              continue;
-            }
-            g.transition = open_tran;
-            add = true;
-            break;
-          } else if (selection_contains_transition(s, c, TA_CLOSING_TRANSITION)) {
-            const auto close_tran = c->getTransition(ClipTransitionType::CLOSING);
-            if ( (close_tran->get_length() == c->length()) && TRANSITION_CLIP_LENGTH_EQUAL_CLIP_ONLY) {
-              continue;
-            }
-            g.transition = close_tran;
-            add = true;
-            break;
+        if (s.track != c->timeline_info.track_) {
+          continue;
+        }
+        if (selection_contains_transition(s, c, TA_OPENING_TRANSITION)) {
+          auto open_tran = c->getTransition(ClipTransitionType::OPENING);
+          if ( (open_tran->get_length() == c->length()) && TRANSITION_CLIP_LENGTH_EQUAL_CLIP_ONLY) {
+            continue;
           }
+          g.transition = open_tran;
+          add = true;
+          break;
+        } else if (selection_contains_transition(s, c, TA_CLOSING_TRANSITION)) {
+          const auto close_tran = c->getTransition(ClipTransitionType::CLOSING);
+          if ( (close_tran->get_length() == c->length()) && TRANSITION_CLIP_LENGTH_EQUAL_CLIP_ONLY) {
+            continue;
+          }
+          g.transition = close_tran;
+          add = true;
+          break;
         }
       }//for
     }
@@ -2233,8 +2233,8 @@ void TimelineWidget::setupMovement(Timeline& time_line, const SequencePtr& sqn)
     TransitionPtr g_t = g.transition.lock();
     if (add && (g_t != nullptr) ) {
       // check for duplicate transitions
-      for (auto& g : time_line.ghosts) {
-        if (g.transition.lock() == g_t) {
+      for (auto& t_g : time_line.ghosts) {
+        if (t_g.transition.lock() == g_t) {
           add = false;
           break;
         }
