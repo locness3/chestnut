@@ -1,4 +1,26 @@
 -------------
+Version 0.0.3
+-------------
+
+09 June 2019
+
+New:
+    - Added uninstall rule for make
+    - Added Install instructions
+
+Improvements:
+    None
+
+Fixes:
+    - build: missing icons in qrc file caused build fail
+
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - Random pauses when exporting in h264 #27
+    - On reverse drag-seek ui-lock #18
+    - Saving created objects not possible #46
+
+-------------
 Version 0.0.2
 -------------
 
