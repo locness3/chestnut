@@ -23,4 +23,4 @@ jobs:
           command: 'qmake CONFIG+="release"'
       - run:
           name: Build
-          command: 'make -j'
+          command: 'make'
