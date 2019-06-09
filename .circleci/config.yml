@@ -13,10 +13,10 @@ jobs:
 
       - run:
           name: Setup Build Tools
-          command: 'apt install build-essential pkg-config qtchooser'
+          command: 'apt install --assume-yes build-essential pkg-config qtchooser'
       - run:
           name: Install Libraries
-          command: 'apt install qt5-default libqt5svg5-dev qtmultimedia5-dev \
+          command: 'apt install --assume-yes qt5-default libqt5svg5-dev qtmultimedia5-dev \
           libavutil-dev libavformat-dev libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev'
 
       - run:
