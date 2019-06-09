@@ -44,6 +44,10 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
+constexpr auto X264_MINIMUM_CRF = 0;
+constexpr auto X264_MAXIMUM_CRF = 51;
+constexpr auto X264_DEFAULT_CRF = 23;
+
 enum ExportFormats {
   FORMAT_3GPP,
   FORMAT_AIFF,
@@ -618,8 +622,9 @@ void ExportDialog::comp_type_changed(int) {
       break;
     case CompressionType::CFR:
       videoBitrateLabel->setText(tr("Quality (CRF):"));
-      videobitrateSpinbox->setValue(36);
-      videobitrateSpinbox->setMaximum(51);
+      videobitrateSpinbox->setValue(X264_DEFAULT_CRF);
+      videobitrateSpinbox->setMinimum(X264_MINIMUM_CRF);
+      videobitrateSpinbox->setMaximum(X264_MAXIMUM_CRF);
       videobitrateSpinbox->setToolTip(tr("Quality Factor:\n\n0 = lossless\n17-18 = visually lossless "
                                          "(compressed, but unnoticeable)\n23 = high quality\n51 = lowest quality possible"));
       break;
