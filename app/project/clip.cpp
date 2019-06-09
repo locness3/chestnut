@@ -2253,15 +2253,17 @@ bool Clip::loadInEffect(QXmlStreamReader& stream)
     }
   }
   const EffectMeta meta = Effect::getRegisteredMeta(eff_name);
-  auto eff = create_effect(shared_from_this(), meta, true);
-  eff->set_enabled(eff_enabled);
-  if (!eff->load(stream)) {
-    qCritical() << "Failed to load clip effect";
-    return false;
+  if (auto eff = create_effect(shared_from_this(), meta, true)) {
+    eff->set_enabled(eff_enabled);
+    if (!eff->load(stream)) {
+      qCritical() << "Failed to load clip effect";
+      return false;
+    }
+    eff->setupUi();
+    effects.append(eff);
+    return true;
   }
-  eff->setupUi();
-  effects.append(eff);
-  return true;
+  return false;
 }
 
 
