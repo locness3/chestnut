@@ -33,6 +33,6 @@ jobs:
           name: Build UnitTests
           command: 'make -j4'
 
-      - run: 
-          name: Run UnitTests
-          command: './unittests/build/debug/chestnut_ut'
+      - #run:
+        #  name: Run UnitTests
+        #  command: './unittests/build/debug/chestnut_ut'
