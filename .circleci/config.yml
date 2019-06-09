@@ -22,5 +22,13 @@ jobs:
           name: Configure Build
           command: 'qmake CONFIG+="release"'
       - run:
-          name: Build
-          command: 'make'
+          name: Build Chestnut
+          command: 'make -j4'
+
+      - run:
+          name: Configure UnitTest build
+          command: 'qmake CONFIG+=unittests'
+
+      - run:
+          name: Build UnitTests
+          command: 'make -j4'
