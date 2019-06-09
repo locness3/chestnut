@@ -9,7 +9,7 @@ jobs:
 
       - run:
           name: Update Environment
-          command: 'apt update && apt upgrade'
+          command: 'apt update && apt upgrade --assume--yes'
 
       - run:
           name: Setup Build Tools
