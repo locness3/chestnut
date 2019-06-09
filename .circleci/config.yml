@@ -8,6 +8,10 @@ jobs:
       - checkout
 
       - run:
+          name: Update Environment
+          command: 'apt update && apt upgrade'
+
+      - run:
           name: Setup Build Tools
           command: 'apt install build-essential pkg-config qtchooser'
       - run:
