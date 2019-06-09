@@ -19,5 +19,8 @@ jobs:
           command: 'apt install --assume-yes qt5-default libqt5svg5-dev qtmultimedia5-dev libavutil-dev libavformat-dev libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev'
 
       - run:
-          name: Print the Current Time
-          command: date
+          name: Configure Build
+          command: 'qmake CONFIG+="release"'
+      - run:
+          name: Build
+          command: 'make -j'
