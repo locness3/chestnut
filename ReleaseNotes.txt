@@ -1,4 +1,54 @@
 -------------
+Version 0.0.3
+-------------
+
+09 June 2019
+
+New:
+    - Added uninstall rule for make
+    - Added Install instructions
+
+Improvements:
+    None
+
+Fixes:
+    - build: missing icons in qrc file caused build fail
+
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - Random pauses when exporting in h264 #27
+    - On reverse drag-seek ui-lock #18
+    - Saving created objects not possible #46
+
+-------------
+Version 0.0.2
+-------------
+
+08 June 2019
+
+New:
+    None
+
+Improvements:
+    - Transitions are not shown full height in timeline making them visually separate to clips and individually selectable
+    - Different cursors for resizing transitions or clips
+
+
+Fixes:
+    - transition: set minimum length to 1. 0 caused crashes.
+    - timeline: clip tooltip shows sourcefile
+    - file_save:prevent segfault when saving a timeline with created objects (titles,etc) #46
+    - transition: relink broken sig/slot allowing transtion length to be changed from fx-panel
+    - various timeline issues related to transitions being the same length as its related clip #45
+
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - Random pauses when exporting in h264 #27
+    - On reverse drag-seek ui-lock #18
+    - Saving created objects not possible #46
+
+
+-------------
 Version 0.0.1
 -------------
 
@@ -41,6 +91,8 @@ New:
     - A basic Scope viewer of a rendered frame in the sequence viewer
     - Grayscale conversion filter
     - A Temporal smoothing filter (slow)
+    - A panel to view and edit markers of sequences or imported clips
+    - Markers persisted over project sessions
     
 Improvements:
     - All improvements are in the code, improvements being maintainability changes, 

@@ -46,6 +46,7 @@ isEmpty(PREFIX) {
 }
 
 target.path = $$PREFIX/bin
+target.uninstall = @echo "uninstall"
 
 effects.files = $$PWD/../effects/*.frag $$PWD/../effects/*.xml $$PWD/../effects/*.vert
 effects.path = $$PREFIX/share/chestnut/effects
@@ -74,3 +75,6 @@ icon1024.files = $$PWD/packaging/linux/icons/1024x1024/org.olivevideoeditor.Oliv
 icon1024.path = $$PREFIX/share/icons/hicolor/1024x1024/apps
 
 INSTALLS += target effects metainfo desktop mime icon16 icon32 icon48 icon64 icon128 icon256 icon512 icon1024
+
+DISTFILES += \
+  ../../ReleaseNotes.txt

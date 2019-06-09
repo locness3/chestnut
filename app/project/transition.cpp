@@ -76,9 +76,9 @@ long Transition::get_length() const {
 }
 
 
-void Transition::setSecondaryLoadId(const int id)
+void Transition::setSecondaryLoadId(const int load_id)
 {
-  secondary_load_id = id;
+  secondary_load_id = load_id;
 }
 
 void Transition::setupUi()
