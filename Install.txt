@@ -1,0 +1,25 @@
+
+= Ubuntu 18.04 =
+
+== Requirements ==
+First install the following packages:
+
+    sudo apt install qtchooser pkg-config qt5-default libqt5svg5-dev qtmultimedia5-dev \
+    libavutil-dev libavformat-dev libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev
+
+== Build ==
+Run:
+    qmake
+
+Then:
+    make -j{JOBS} # replace {JOBS} with the amount of cores on your build system + 1
+
+== Install ==
+
+By default, Chestnut will install to /usr/local
+
+    sudo make install
+
+== Uninstall ==
+
+    sudo make uninstall
