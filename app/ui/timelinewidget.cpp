@@ -263,7 +263,7 @@ void TimelineWidget::tooltip_timer_timeout()
   Q_ASSERT(global::sequence != nullptr);
 
   if (auto c = tooltip_clip_.lock()) {
-    const QString name = c->timeline_info.media != nullptr ? c->timeline_info.media->name() : "";
+    const QString name = c->timeline_info.media != nullptr ? c->timeline_info.media->name() : c->name();
     QToolTip::showText(QCursor::pos(),
                        tr("%1\nStart: %2\nEnd: %3\nDuration: %4").arg(
                          name,
