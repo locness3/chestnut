@@ -204,7 +204,8 @@
 
 	<xs:element name="clip">
 		<xs:complexType>
-            <xs:sequence>                
+            <xs:sequence>
+                <xs:element ref="name"/>                
                 <xs:element ref="timelineinfo"/>
                 <xs:element name="opening_transition" type="transition"/>
                 <xs:element name="closing_transition" type="transition"/>                   

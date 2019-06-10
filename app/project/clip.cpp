@@ -1217,6 +1217,8 @@ bool Clip::load(QXmlStreamReader& stream)
         qCritical() << "Failed to load Effect";
         return false;
       }
+    } else if (name == "name") {
+      name_ = stream.readElementText();
     } else {
       stream.skipCurrentElement();
       qWarning() << "Unhandled element" << name;
@@ -1228,14 +1230,14 @@ bool Clip::load(QXmlStreamReader& stream)
 
 bool Clip::save(QXmlStreamWriter& stream) const
 {
-  if (timeline_info.media == nullptr) {
-    qWarning() << "Not saving a clip that was not derived from a file";
-    return true;
-  }
+
   stream.writeStartElement("clip");
-  stream.writeAttribute("source", QString::number(timeline_info.media->id()));
+  // "Create" clips (e.g. titles) are defined as -1 source
+  const QString source_id = (timeline_info.media != nullptr) ? QString::number(timeline_info.media->id()) : "-1";
+  stream.writeAttribute("source", source_id);
   stream.writeAttribute("id", QString::number(id_));
 
+  stream.writeTextElement("name", name_);
 
   if (!timeline_info.save(stream)) {
     qCritical() << "Failed to save timeline info";
