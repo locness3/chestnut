@@ -16,37 +16,24 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sequenceitem.h"
+#ifndef OBJECTCLIP_H
+#define OBJECTCLIP_H
 
-using project::SequenceItem;
+#include "project/clip.h"
 
-SequenceItem::SequenceItem()
-  : name_(),
-    type_(project::SequenceItemType::NONE)
+class ObjectClip : public Clip
 {
+  public:
+    /**
+     * @brief Only to be used at load of project file
+     * @param base
+     */
+    explicit ObjectClip(const Clip& base);
+    explicit ObjectClip(SequencePtr seq);
 
-}
+    bool mediaOpen() const override;
+    void frame(const long playhead, bool& texture_failed) override;
+    bool isCreatedObject() const override;
+};
 
-SequenceItem::SequenceItem(const project::SequenceItemType sequenceType)
-  : name_(),
-    type_(sequenceType)
-{
-
-}
-
-
-void SequenceItem::setName(const QString& val)
-{
-  //TODO: input validation
-  name_ = val;
-}
-const QString& SequenceItem::name() const
-{
-  return name_;
-}
-
-
-project::SequenceItemType SequenceItem::type() const
-{
-  return type_;
-}
+#endif // OBJECTCLIP_H

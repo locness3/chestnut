@@ -751,7 +751,8 @@ bool Effect::is_glsl_linked() {
   return (glsl_.program_ != nullptr) && glsl_.program_->isLinked();
 }
 
-void Effect::startEffect() {
+void Effect::startEffect()
+{
   if (!is_open_) {
     open();
     qWarning() << "Tried to start a closed effect - opening";

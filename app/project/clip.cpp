@@ -1219,6 +1219,8 @@ bool Clip::load(QXmlStreamReader& stream)
       }
     } else if (name == "name") {
       name_ = stream.readElementText();
+    } else if (name == "created_object") {
+      created_object_ = stream.readElementText().toLower() == "true";
     } else {
       stream.skipCurrentElement();
       qWarning() << "Unhandled element" << name;
@@ -1238,6 +1240,7 @@ bool Clip::save(QXmlStreamWriter& stream) const
   stream.writeAttribute("id", QString::number(id_));
 
   stream.writeTextElement("name", name_);
+  stream.writeTextElement("created_object", this->isCreatedObject() ? "true" : "false");
 
   if (!timeline_info.save(stream)) {
     qCritical() << "Failed to save timeline info";
@@ -1297,6 +1300,12 @@ bool Clip::save(QXmlStreamWriter& stream) const
 void Clip::verifyTransitions(ComboAction &ca)
 {
   verifyTransitions(ca, timeline_info.in, timeline_info.out, timeline_info.track_);
+}
+
+
+bool Clip::isCreatedObject() const
+{
+  return created_object_;
 }
 
 long Clip::clipInWithTransition()

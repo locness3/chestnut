@@ -13,6 +13,7 @@ TARGET = chestnut
 
 
 SOURCES += \
+    project/objectclip.cpp \
     ui/cursor.cpp \
     ui/mainwindow.cpp \
     panels/project.cpp \
@@ -118,6 +119,7 @@ SOURCES += \
     project/footagestream.cpp
 
 HEADERS += \
+    project/objectclip.h \
     ui/cursor.h \
     ui/mainwindow.h \
     panels/project.h \

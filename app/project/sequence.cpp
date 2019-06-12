@@ -22,6 +22,7 @@
 #include <libavutil/channel_layout.h>
 
 #include "panels/panelmanager.h"
+#include "project/objectclip.h"
 #include "clip.h"
 #include "transition.h"
 
@@ -388,7 +389,12 @@ bool Sequence::load(QXmlStreamReader& stream)
     } else if (name == "clip") {
       auto clp = std::make_shared<Clip>(shared_from_this());
       if (clp->load(stream)) {
-        clips_.append(clp);
+        if (clp->isCreatedObject()) {
+          auto created_obj = std::make_shared<ObjectClip>(*clp);
+          clips_.append(created_obj);
+        } else {
+          clips_.append(clp);
+        }
       } else {
         qCritical() << "Failed to load clip";
         return false;
