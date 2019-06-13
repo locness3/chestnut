@@ -169,7 +169,7 @@ void load_internal_effects()
   em.internal = EFFECT_INTERNAL_TONE;
   Effect::registerMeta(em);
 
-  em.name = "Noise";
+  em.name = "Audio Noise";
   em.internal = EFFECT_INTERNAL_NOISE;
   Effect::registerMeta(em);
 
@@ -338,6 +338,10 @@ bool EffectMeta::operator==(const EffectMeta& rhs) const
 
 void Effect::registerMeta(const EffectMeta& meta)
 {
+  if (Effect::registered.contains(meta.name.toLower())) {
+    qWarning() << "Effect Meta name already used:" << meta.name;
+    return;
+  }
   Effect::registered.insert(meta.name.toLower(), meta);
 }
 
