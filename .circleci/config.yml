@@ -32,3 +32,12 @@ jobs:
       - run:
           name: Build UnitTests
           command: 'make -j4'
+
+      # Could be done in parallel with build
+      - run:
+          name: Setup Sonar Scanner
+          command: 'pushd scripts && chmod +x setupSonarScanner.sh && ./setupSonarScanner.sh && popd'
+
+      - run:
+          name: Run Static Analysis
+          command: './scripts/static_analysis.sh'

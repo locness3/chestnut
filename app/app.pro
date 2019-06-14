@@ -11,8 +11,6 @@ TEMPLATE = lib
 CONFIG += staticlib
 TARGET = chestnut
 
-QT += svg
-
 SOURCES += \
     project/track.cpp \
     ui/Forms/effects.cpp \
