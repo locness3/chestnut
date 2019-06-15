@@ -144,6 +144,35 @@ EffectMeta get_internal_meta(const int internal_id, const int type)
   return meta;
 }
 
+QString get_system_effects_path()
+{
+  return qgetenv(EFFECT_PATH_ENV);
+}
+
+QList<QString> get_effects_paths()
+{
+  QList<QString> effects_paths;
+  // Ensure the ordering remains, local, system, env
+  effects_paths.append(get_app_dir() + "/" + LOCAL_EFFECT_PATH);
+  effects_paths.append(get_app_dir() + "/" + SYSTEM_EFFECT_PATH);
+  QString env_path(get_system_effects_path());
+  if (!env_path.isEmpty()) {
+    effects_paths.append(env_path);
+  }
+  return effects_paths;
+}
+
+QString get_effect_path()
+{
+  for (auto& path : get_effects_paths()) {
+    if (QDir(path).exists()) {
+      return path;
+    }
+  }
+  return "";
+}
+
+
 //FIXME: do something cleaner
 void load_internal_effects()
 {
@@ -152,6 +181,8 @@ void load_internal_effects()
   }
 
   EffectMeta em;
+  // Some internal effects have shader
+  em.path = get_effect_path();
 
   // internal effects
   em.type = EFFECT_TYPE_EFFECT;
@@ -236,17 +267,6 @@ void load_internal_effects()
   Effect::registerMeta(em);
 }
 
-QList<QString> get_effects_paths()
-{
-  QList<QString> effects_paths;
-  effects_paths.append(get_app_dir() + "/" + LOCAL_EFFECT_PATH);
-  effects_paths.append(get_app_dir() + "/" + SYSTEM_EFFECT_PATH);
-  QString env_path(qgetenv(EFFECT_PATH_ENV));
-  if (!env_path.isEmpty()) {
-    effects_paths.append(env_path);
-  }
-  return effects_paths;
-}
 
 bool addEffect(QXmlStreamReader& reader,
                const QString& file_name,
