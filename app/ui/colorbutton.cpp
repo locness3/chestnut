@@ -22,32 +22,46 @@
 #include <QColorDialog>
 
 ColorButton::ColorButton(QWidget *parent)
-  : QPushButton(parent), color(Qt::white) {
+  : QPushButton(parent),
+    color(Qt::white)
+{
   set_button_color();
   connect(this, SIGNAL(clicked(bool)), this, SLOT(open_dialog()));
 }
 
-QColor ColorButton::get_color() {
+QColor ColorButton::get_color() const
+{
   return color;
 }
 
-void ColorButton::set_color(QColor c) {
+void ColorButton::set_color(const QColor& c)
+{
   previousColor = color;
   color = c;
   set_button_color();
 }
 
-const QColor &ColorButton::getPreviousValue() {
+const QColor &ColorButton::getPreviousValue()
+{
   return previousColor;
 }
 
-void ColorButton::set_button_color() {
+void ColorButton::set_button_color()
+{
   QPalette pal = palette();
   pal.setColor(QPalette::Button, color);
   setPalette(pal);
 }
 
-void ColorButton::open_dialog() {
+
+void ColorButton::showEvent(QShowEvent *event)
+{
+  event->accept();
+  set_button_color();
+}
+
+void ColorButton::open_dialog()
+{
   QColor new_color = QColorDialog::getColor(color, nullptr, tr("Set Color"));
   if (new_color.isValid() && color != new_color) {
     set_color(new_color);

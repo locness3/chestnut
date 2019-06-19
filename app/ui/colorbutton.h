@@ -26,9 +26,11 @@ class ColorButton : public QPushButton {
     Q_OBJECT
   public:
     explicit ColorButton(QWidget* parent = nullptr);
-    QColor get_color();
-    void set_color(QColor c);
+    QColor get_color() const;
+    void set_color(const QColor& c);
     const QColor& getPreviousValue();
+  protected:
+    virtual void showEvent(QShowEvent *event) override;
   private:
     QColor color;
     QColor previousColor;

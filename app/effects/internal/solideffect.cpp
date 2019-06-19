@@ -28,11 +28,12 @@
 #include "project/sequence.h"
 
 
+constexpr int SMPTE_BARS = 7;
+constexpr int SMPTE_STRIP_COUNT = 3;
+constexpr int SMPTE_LOWER_BARS = 4;
 
-namespace  {
-  const int SMPTE_BARS = 7;
-  const int SMPTE_STRIP_COUNT = 3;
-  const int SMPTE_LOWER_BARS = 4;
+namespace
+{
   enum class SolidType {
     COLOR = 0,
     BARS = 1,
