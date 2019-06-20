@@ -28,10 +28,10 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-//#define GL_DEFAULT_BLEND glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
 #define GL_DEFAULT_BLEND glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE)
 
-GLuint draw_clip(QOpenGLContext* ctx, QOpenGLFramebufferObject* fbo, GLuint texture, bool clear) {
+GLuint draw_clip(QOpenGLContext* ctx, QOpenGLFramebufferObject* fbo, const GLuint texture, const bool clear)
+{
   glPushMatrix();
   glLoadIdentity();
   glOrtho(0, 1, 0, 1, -1, 1);
@@ -41,7 +41,9 @@ GLuint draw_clip(QOpenGLContext* ctx, QOpenGLFramebufferObject* fbo, GLuint text
 
   fbo->bind();
 
-  if (clear) glClear(GL_COLOR_BUFFER_BIT);
+  if (clear) {
+    glClear(GL_COLOR_BUFFER_BIT);
+  }
 
   // get current blend mode
   GLint src_rgb, src_alpha, dst_rgb, dst_alpha;
@@ -65,13 +67,10 @@ GLuint draw_clip(QOpenGLContext* ctx, QOpenGLFramebufferObject* fbo, GLuint text
   glEnd();
   glBindTexture(GL_TEXTURE_2D, 0);
 
-  //	fbo->release();
   ctx->functions()->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, current_fbo);
 
   // restore previous blendFunc
   ctx->functions()->glBlendFuncSeparate(src_rgb, dst_rgb, src_alpha, dst_alpha);
-
-  //if (default_fbo != nullptr) default_fbo->bind();
 
   glPopMatrix();
   return fbo->texture();
@@ -85,31 +84,37 @@ void process_effect(QOpenGLContext* ctx,
                     GLuint& composite_texture,
                     bool& fbo_switcher,
                     bool& texture_failed,
-                    int data) {
-  if (e->is_enabled()) {
-    if (e->hasCapability(Capability::COORDS)) {
-      e->process_coords(timecode, coords, data);
-    }
-    if (( e->hasCapability(Capability::SHADER) && shaders_are_enabled) || e->hasCapability(Capability::SUPERIMPOSE)) {
-      e->startEffect();
-      if ((e->hasCapability(Capability::SHADER) && shaders_are_enabled) && e->is_glsl_linked()) {
-        for (auto i = 0; i < e->glsl_.iterations_; ++i) {
-          e->process_shader(timecode, coords, i);
-          composite_texture = draw_clip(ctx, c->fbo[fbo_switcher], composite_texture, true);
-          fbo_switcher = !fbo_switcher;
-        }
+                    int data)
+{
+  if (!e->is_enabled()) {
+    return;
+  }
+
+  if (e->hasCapability(Capability::COORDS)) {
+    e->process_coords(timecode, coords, data);
+  }
+
+  if (( e->hasCapability(Capability::SHADER) && shaders_are_enabled) || e->hasCapability(Capability::SUPERIMPOSE)) {
+    e->startEffect();
+    if ((e->hasCapability(Capability::SHADER) && shaders_are_enabled) && e->is_glsl_linked()) {
+      for (auto i = 0; i < e->glsl_.iterations_; ++i) {
+        e->process_shader(timecode, coords, i);
+        composite_texture = draw_clip(ctx, c->fbo[fbo_switcher], composite_texture, true);
+        fbo_switcher = !fbo_switcher;
       }
-      if (e->hasCapability(Capability::SUPERIMPOSE)) {
-        GLuint superimpose_texture = e->process_superimpose(timecode);
-        if (superimpose_texture == 0) {
-          qWarning() << "Superimpose texture was nullptr, retrying...";
-          texture_failed = true;
-        } else {
-          composite_texture = draw_clip(ctx, c->fbo[!fbo_switcher], superimpose_texture, false);
-        }
-      }
-      e->endEffect();
     }
+
+    if (e->hasCapability(Capability::SUPERIMPOSE)) {
+      GLuint superimpose_texture = e->process_superimpose(timecode);
+      if (superimpose_texture == 0) {
+        qWarning() << "Superimpose texture was nullptr, retrying...";
+        texture_failed = true;
+      } else {
+        composite_texture = draw_clip(ctx, c->fbo[!fbo_switcher], superimpose_texture, false);
+      }
+    }
+
+    e->endEffect();
   }
 }
 
@@ -121,7 +126,8 @@ GLuint compose_sequence(Viewer* viewer,
                         const bool render_audio,
                         EffectPtr &gizmos,
                         bool &texture_failed,
-                        const bool rendering) {
+                        const bool rendering)
+{
   GLint current_fbo = 0;
   if (video) {
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &current_fbo);
@@ -156,8 +162,9 @@ GLuint compose_sequence(Viewer* viewer,
     if (!seq->trackEnabled(clp->timeline_info.track_)) {
       continue;
     }
-
-    if ((clp->mediaType() == ClipType::VISUAL) == video) {
+    if ((clp->mediaType() == ClipType::VISUAL)) != video) {
+      continue;
+    }
       auto clip_is_active = false;
 
       if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
@@ -176,11 +183,11 @@ GLuint compose_sequence(Viewer* viewer,
               }
             } else if (clp->is_open) {
               clp->close(false);
-            }
-          } else {
-            qWarning() << "Media '" + ftg->name() + "' was not ready, retrying...";
-            texture_failed = true;
           }
+        } else {
+          qWarning() << "Media '" + ftg->name() + "' was not ready, retrying...";
+          texture_failed = true;
+        }
         }
       } else {
         if (clp->isActive(playhead)) {
@@ -205,7 +212,6 @@ GLuint compose_sequence(Viewer* viewer,
         }
         if (!added) {
           current_clips.append(clp);
-        }
       }
     }
   }//for
