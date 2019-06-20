@@ -162,7 +162,7 @@ GLuint compose_sequence(Viewer* viewer,
     if (!seq->trackEnabled(clp->timeline_info.track_)) {
       continue;
     }
-    if ((clp->mediaType() == ClipType::VISUAL)) != video) {
+    if ((clp->mediaType() == ClipType::VISUAL) != video) {
       continue;
     }
       auto clip_is_active = false;
