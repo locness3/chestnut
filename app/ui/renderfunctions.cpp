@@ -28,10 +28,10 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-//#define GL_DEFAULT_BLEND glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE)
 #define GL_DEFAULT_BLEND glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE)
 
-GLuint draw_clip(QOpenGLContext* ctx, QOpenGLFramebufferObject* fbo, GLuint texture, bool clear) {
+GLuint draw_clip(QOpenGLContext* ctx, QOpenGLFramebufferObject* fbo, const GLuint texture, const bool clear)
+{
   glPushMatrix();
   glLoadIdentity();
   glOrtho(0, 1, 0, 1, -1, 1);
@@ -41,7 +41,9 @@ GLuint draw_clip(QOpenGLContext* ctx, QOpenGLFramebufferObject* fbo, GLuint text
 
   fbo->bind();
 
-  if (clear) glClear(GL_COLOR_BUFFER_BIT);
+  if (clear) {
+    glClear(GL_COLOR_BUFFER_BIT);
+  }
 
   // get current blend mode
   GLint src_rgb, src_alpha, dst_rgb, dst_alpha;
@@ -65,13 +67,10 @@ GLuint draw_clip(QOpenGLContext* ctx, QOpenGLFramebufferObject* fbo, GLuint text
   glEnd();
   glBindTexture(GL_TEXTURE_2D, 0);
 
-  //	fbo->release();
   ctx->functions()->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, current_fbo);
 
   // restore previous blendFunc
   ctx->functions()->glBlendFuncSeparate(src_rgb, dst_rgb, src_alpha, dst_alpha);
-
-  //if (default_fbo != nullptr) default_fbo->bind();
 
   glPopMatrix();
   return fbo->texture();
@@ -85,31 +84,37 @@ void process_effect(QOpenGLContext* ctx,
                     GLuint& composite_texture,
                     bool& fbo_switcher,
                     bool& texture_failed,
-                    int data) {
-  if (e->is_enabled()) {
-    if (e->hasCapability(Capability::COORDS)) {
-      e->process_coords(timecode, coords, data);
-    }
-    if (( e->hasCapability(Capability::SHADER) && shaders_are_enabled) || e->hasCapability(Capability::SUPERIMPOSE)) {
-      e->startEffect();
-      if ((e->hasCapability(Capability::SHADER) && shaders_are_enabled) && e->is_glsl_linked()) {
-        for (auto i = 0; i < e->glsl_.iterations_; ++i) {
-          e->process_shader(timecode, coords, i);
-          composite_texture = draw_clip(ctx, c->fbo[fbo_switcher], composite_texture, true);
-          fbo_switcher = !fbo_switcher;
-        }
+                    int data)
+{
+  if (!e->is_enabled()) {
+    return;
+  }
+
+  if (e->hasCapability(Capability::COORDS)) {
+    e->process_coords(timecode, coords, data);
+  }
+
+  if (( e->hasCapability(Capability::SHADER) && shaders_are_enabled) || e->hasCapability(Capability::SUPERIMPOSE)) {
+    e->startEffect();
+    if ((e->hasCapability(Capability::SHADER) && shaders_are_enabled) && e->is_glsl_linked()) {
+      for (auto i = 0; i < e->glsl_.iterations_; ++i) {
+        e->process_shader(timecode, coords, i);
+        composite_texture = draw_clip(ctx, c->fbo[fbo_switcher], composite_texture, true);
+        fbo_switcher = !fbo_switcher;
       }
-      if (e->hasCapability(Capability::SUPERIMPOSE)) {
-        GLuint superimpose_texture = e->process_superimpose(timecode);
-        if (superimpose_texture == 0) {
-          qWarning() << "Superimpose texture was nullptr, retrying...";
-          texture_failed = true;
-        } else {
-          composite_texture = draw_clip(ctx, c->fbo[!fbo_switcher], superimpose_texture, false);
-        }
-      }
-      e->endEffect();
     }
+
+    if (e->hasCapability(Capability::SUPERIMPOSE)) {
+      GLuint superimpose_texture = e->process_superimpose(timecode);
+      if (superimpose_texture == 0) {
+        qWarning() << "Superimpose texture was nullptr, retrying...";
+        texture_failed = true;
+      } else {
+        composite_texture = draw_clip(ctx, c->fbo[!fbo_switcher], superimpose_texture, false);
+      }
+    }
+
+    e->endEffect();
   }
 }
 
@@ -121,7 +126,8 @@ GLuint compose_sequence(Viewer* viewer,
                         const bool render_audio,
                         EffectPtr &gizmos,
                         bool &texture_failed,
-                        const bool rendering) {
+                        const bool rendering)
+{
   GLint current_fbo = 0;
   if (video) {
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &current_fbo);
@@ -149,57 +155,59 @@ GLuint compose_sequence(Viewer* viewer,
 
   for (auto clp : lcl_seq->clips_) {
     // if clip starts within one second and/or hasn't finished yet
-    if (clp != nullptr) {
-      if ((clp->timeline_info.isVideo()) == video) {
-        auto clip_is_active = false;
+    if (clp == nullptr) {
+      continue;
+    }
+    if ((clp->timeline_info.isVideo()) != video) {
+      continue;
+    }
+    auto clip_is_active = false;
 
-        if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
-          auto ftg = clp->timeline_info.media->object<Footage>();
-          if (ftg->valid && !( (clp->timeline_info.track_ >= 0) && !is_audio_device_set())) {
-            if (ftg->ready) {
-              const auto found = ftg->has_stream_from_file_index(clp->timeline_info.media_stream);
+    if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
+      auto ftg = clp->timeline_info.media->object<Footage>();
+      if (ftg->valid && !( (clp->timeline_info.track_ >= 0) && !is_audio_device_set())) {
+        if (ftg->ready) {
+          const auto found = ftg->has_stream_from_file_index(clp->timeline_info.media_stream);
 
-              if (found && clp->isActive(playhead)) {
-                // if thread is already working, we don't want to touch this,
-                // but we also don't want to hang the UI thread
-                clp->open(!rendering);
-                clip_is_active = true;
-                if (clp->timeline_info.track_ >= 0) {
-                  audio_track_count++;
-                }
-              } else if (clp->is_open) {
-                clp->close(false);
-              }
-            } else {
-              qWarning() << "Media '" + ftg->name() + "' was not ready, retrying...";
-              texture_failed = true;
-            }
-          }
-        } else {
-          if (clp->isActive(playhead)) {
+          if (found && clp->isActive(playhead)) {
+            // if thread is already working, we don't want to touch this,
+            // but we also don't want to hang the UI thread
             clp->open(!rendering);
             clip_is_active = true;
+            if (clp->timeline_info.track_ >= 0) {
+              audio_track_count++;
+            }
           } else if (clp->is_open) {
             clp->close(false);
           }
+        } else {
+          qWarning() << "Media '" + ftg->name() + "' was not ready, retrying...";
+          texture_failed = true;
         }
-        if (clip_is_active) {
-          bool added = false;
-          for (int j=0; j<current_clips.size(); ++j) {
-            if (!current_clips.at(j)){
-              qDebug() << "Clip is Null";
-              continue;
-            }
-            if (current_clips.at(j)->timeline_info.track_ < clp->timeline_info.track_) {
-              current_clips.insert(j, clp);
-              added = true;
-              break;
-            }
-          }
-          if (!added) {
-            current_clips.append(clp);
-          }
+      }
+    } else {
+      if (clp->isActive(playhead)) {
+        clp->open(!rendering);
+        clip_is_active = true;
+      } else if (clp->is_open) {
+        clp->close(false);
+      }
+    }
+    if (clip_is_active) {
+      bool added = false;
+      for (int j=0; j<current_clips.size(); ++j) {
+        if (!current_clips.at(j)){
+          qDebug() << "Clip is Null";
+          continue;
         }
+        if (current_clips.at(j)->timeline_info.track_ < clp->timeline_info.track_) {
+          current_clips.insert(j, clp);
+          added = true;
+          break;
+        }
+      }
+      if (!added) {
+        current_clips.append(clp);
       }
     }
   }//for

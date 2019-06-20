@@ -101,7 +101,7 @@ public:
   void make_key_from_change(ComboAction* ca);
   const QVariant& getDefaultData() const;
 
-  void setValue(const QVariant& value);
+  bool setValue(const QVariant& value);
 
   virtual bool load(QXmlStreamReader& stream) override;
   virtual bool save(QXmlStreamWriter& stream) const override;

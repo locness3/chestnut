@@ -14,6 +14,7 @@ class EffectFieldTest : public QObject
   private slots:
     void testCasePrevKey();
     void testCaseNextKey();
+    void testCaseSetValueColor();
 };
 
 #endif // EFFECTFIELDTEST_H
