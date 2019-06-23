@@ -41,3 +41,10 @@ jobs:
       - run:
           name: Run Static Analysis
           command: './scripts/static_analysis.sh'
+
+      - run: 
+          name: AppImage Build
+          command: 'cd packaging/appimage/ && ../../third_party/pkg2appimage  chestnut.yml'
+
+      - store_artifacts:
+          path: 'packaging/appimage/out/Chestnut-.glibc2.14-x86_64.AppImage'
