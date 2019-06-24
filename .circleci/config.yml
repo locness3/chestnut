@@ -27,7 +27,7 @@ jobs:
 
       - run:
           name: Configure UnitTest build
-          command: 'qmake CONFIG+="debug unittests"'
+          command: 'qmake CONFIG+="release unittests"'
 
       - run:
           name: Build UnitTests
