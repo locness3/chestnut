@@ -44,7 +44,7 @@ jobs:
 
       - run: 
           name: AppImage Build
-          command: 'cd packaging/appimage/ && cp ../../third_party/pkg2appimage . && chmod u+x pkg2appimage && pkg2appimage chestnut.yml'
+          command: 'cd packaging/appimage/ && cp ../../third_party/pkg2appimage . && chmod u+x pkg2appimage && ./pkg2appimage chestnut.yml'
 
       - store_artifacts:
           path: 'packaging/appimage/out/Chestnut-.glibc2.14-x86_64.AppImage'
