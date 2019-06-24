@@ -7,6 +7,8 @@ ingredients:
     - python3 ../copyLibs.py
 
 script:
+  - pwd
+  - ls -lav
   - cp ../lib/* ./usr/lib/
   - cp ../../../../app/main/build/release/chestnut ./usr/bin/
   - touch chestnut.png # TODO: create a icon
