@@ -48,3 +48,4 @@ jobs:
 
       - store_artifacts:
           path: 'packaging/appimage/out/Chestnut-.glibc2.14-x86_64.AppImage'
+          destination: 'Chestnut-glibc2.14-x86_64.AppImage'
