@@ -37,4 +37,5 @@ pathlib.Path(LIB_DIR).mkdir(parents=True, exist_ok=True)
 for l in output.split():
     entry = l.decode("utf-8")
     if entry.startswith("/lib") or entry.startswith("/usr/lib/"):
+        print(entry)
         copy(entry, LIB_DIR)
