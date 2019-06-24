@@ -9,6 +9,8 @@ ingredients:
 script:
   - pwd
   - ls -lav
+  - ls -lav ../
+  - ls -lav ../../
   - cp ../lib/* ./usr/lib/
   - cp ../../../../app/main/build/release/chestnut ./usr/bin/
   - touch chestnut.png # TODO: create a icon
