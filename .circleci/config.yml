@@ -25,26 +25,26 @@ jobs:
           name: Build Chestnut
           command: 'make -j4'
 
-      - run:
-          name: Configure UnitTest build
-          command: 'qmake CONFIG+="debug unittests"'
+      #- run:
+      #    name: Configure UnitTest build
+      #    command: 'qmake CONFIG+="debug unittests"'
 
-      - run:
-          name: Build UnitTests
-          command: 'make -j4'
+      #- run:
+      #    name: Build UnitTests
+      #    command: 'make -j4'
 
       # Could be done in parallel with build
-      - run:
-          name: Setup Sonar Scanner
-          command: 'pushd scripts && chmod +x setupSonarScanner.sh && ./setupSonarScanner.sh && popd'
+      #- run:
+      #    name: Setup Sonar Scanner
+      #    command: 'pushd scripts && chmod +x setupSonarScanner.sh && ./setupSonarScanner.sh && popd'
 
-      - run:
-          name: Run Static Analysis
-          command: './scripts/static_analysis.sh'
+      #- run:
+      #    name: Run Static Analysis
+      #    command: './scripts/static_analysis.sh'
 
       - run: 
           name: AppImage Build
-          command: 'cd packaging/appimage/ && chmod u+x ../../third_party/pkg2appimage && ../../third_party/pkg2appimage chestnut.yml'
+          command: 'cd packaging/appimage/ && chmod u+x ../../third_party/pkg2appimage && mkdir -p lib && ../../third_party/pkg2appimage chestnut.yml'
 
       - store_artifacts:
           path: 'packaging/appimage/out/Chestnut-.glibc2.14-x86_64.AppImage'
