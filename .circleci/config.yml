@@ -20,7 +20,7 @@ jobs:
 
       - run:
           name: Configure Build
-          command: 'qmake CONFIG+="debug"'
+          command: 'qmake CONFIG+="release"'
       - run:
           name: Build Chestnut
           command: 'make -j4'
