@@ -650,6 +650,65 @@ bool MainWindow::can_close_project() {
   return true;
 }
 
+void MainWindow::setupEditMenu(QMenuBar* menuBar)
+{
+  edit_menu_ = menuBar->addMenu(tr("&Edit"));
+  connect(edit_menu_, SIGNAL(aboutToShow()), this, SLOT(editMenu_About_To_Be_Shown()));
+
+  undo_action = edit_menu_->addAction(tr("&Undo"), this, SLOT(undo()), QKeySequence("Ctrl+Z"));
+  undo_action->setProperty("id", "undo");
+  redo_action = edit_menu_->addAction(tr("Redo"), this, SLOT(redo()), QKeySequence("Ctrl+Shift+Z"));
+  redo_action->setProperty("id", "redo");
+
+  edit_menu_->addSeparator();
+
+  edit_menu_->addAction(tr("Cu&t"), this, SLOT(cut()), QKeySequence("Ctrl+X"))->setProperty("id", "cut");
+  edit_menu_->addAction(tr("Cop&y"), this, SLOT(copy()), QKeySequence("Ctrl+C"))->setProperty("id", "copy");
+  edit_menu_->addAction(tr("&Paste"), this, SLOT(paste()), QKeySequence("Ctrl+V"))->setProperty("id", "paste");
+  edit_menu_->addAction(tr("Paste Insert"), this, SLOT(paste_insert()), QKeySequence("Ctrl+Shift+V"))->setProperty("id", "pasteinsert");
+  edit_menu_->addAction(tr("Duplicate"), this, SLOT(duplicate()), QKeySequence("Ctrl+D"))->setProperty("id", "duplicate");
+  edit_menu_->addAction(tr("Delete"), this, SLOT(delete_slot()), QKeySequence("Del"))->setProperty("id", "delete");
+  edit_menu_->addAction(tr("Ripple Delete"), this, SLOT(ripple_delete()), QKeySequence("Shift+Del"))->setProperty("id", "rippledelete");
+  edit_menu_->addAction(tr("Split"), &PanelManager::timeLine(), SLOT(split_at_playhead()), QKeySequence("Ctrl+K"))->setProperty("id", "split");
+  edit_menu_->addAction(tr("Nudge Forward"), this, &MainWindow::nudgeForward, QKeySequence("Ctrl+Right"))->setProperty("id", "nudgefwd");
+  edit_menu_->addAction(tr("Nudge Back"), this, &MainWindow::nudgeBackward, QKeySequence("Ctrl+Left"))->setProperty("id", "nudgebk");
+
+  edit_menu_->addSeparator();
+
+  edit_menu_->addAction(tr("Select &All"), this, SLOT(select_all()), QKeySequence("Ctrl+A"))->setProperty("id", "selectall");
+
+  edit_menu_->addAction(tr("Deselect All"), &PanelManager::timeLine(), SLOT(deselect()), QKeySequence("Ctrl+Shift+A"))->setProperty("id", "deselectall");
+
+  edit_menu_->addSeparator();
+
+  edit_menu_->addAction(tr("Add Default Transition"), this, SLOT(add_default_transition()), QKeySequence("Ctrl+Shift+D"))->setProperty("id", "deftransition");
+  edit_menu_->addAction(tr("Link"), &PanelManager::timeLine(), SLOT(linkClips()), QKeySequence("Ctrl+L"))->setProperty("id", "linkclips");
+  edit_menu_->addAction(tr("Unlink"), &PanelManager::timeLine(), SLOT(unlinkClips()), QKeySequence("Ctrl+Shift+L"))->setProperty("id", "unlinkclips");
+  edit_menu_->addAction(tr("Enable/Disable"), this, SLOT(toggle_enable_clips()), QKeySequence("Shift+E"))->setProperty("id", "enabledisable");
+  edit_menu_->addAction(tr("Nest"), this, SLOT(nest()))->setProperty("id", "nest");
+
+  edit_menu_->addSeparator();
+
+  edit_menu_->addAction(tr("Ripple to In Point"), this, SLOT(ripple_to_in_point()), QKeySequence("Q"))->setProperty("id", "rippletoin");
+  edit_menu_->addAction(tr("Ripple to Out Point"), this, SLOT(ripple_to_out_point()), QKeySequence("W"))->setProperty("id", "rippletoout");
+  edit_menu_->addAction(tr("Edit to In Point"), this, SLOT(edit_to_in_point()), QKeySequence("Ctrl+Alt+Q"))->setProperty("id", "edittoin");
+  edit_menu_->addAction(tr("Edit to Out Point"), this, SLOT(edit_to_out_point()), QKeySequence("Ctrl+Alt+W"))->setProperty("id", "edittoout");
+
+  edit_menu_->addSeparator();
+
+  make_inout_menu(edit_menu_);
+  edit_menu_->addAction(tr("Delete In/Out Point"), this, SLOT(delete_inout()), QKeySequence(";"))->setProperty("id", "deleteinout");
+  edit_menu_->addAction(tr("Ripple Delete In/Out Point"), this, SLOT(ripple_delete_inout()), QKeySequence("'"))->setProperty("id", "rippledeleteinout");
+
+  edit_menu_->addSeparator();
+
+  edit_menu_->addAction(tr("Set/Edit Marker"), this, SLOT(set_marker()), QKeySequence("M"))->setProperty("id", "marker");
+
+  for (auto& act : edit_menu_->actions()) {
+    act->setDisabled(true);
+  }
+}
+
 void MainWindow::setup_menus() {
   QMenuBar* menuBar = new QMenuBar(this);
   setMenuBar(menuBar);
@@ -689,57 +748,7 @@ void MainWindow::setup_menus() {
 
   // INITIALIZE EDIT MENU
 
-  QMenu* edit_menu = menuBar->addMenu(tr("&Edit"));
-  connect(edit_menu, SIGNAL(aboutToShow()), this, SLOT(editMenu_About_To_Be_Shown()));
-
-  undo_action = edit_menu->addAction(tr("&Undo"), this, SLOT(undo()), QKeySequence("Ctrl+Z"));
-  undo_action->setProperty("id", "undo");
-  redo_action = edit_menu->addAction(tr("Redo"), this, SLOT(redo()), QKeySequence("Ctrl+Shift+Z"));
-  redo_action->setProperty("id", "redo");
-
-  edit_menu->addSeparator();
-
-  edit_menu->addAction(tr("Cu&t"), this, SLOT(cut()), QKeySequence("Ctrl+X"))->setProperty("id", "cut");
-  edit_menu->addAction(tr("Cop&y"), this, SLOT(copy()), QKeySequence("Ctrl+C"))->setProperty("id", "copy");
-  edit_menu->addAction(tr("&Paste"), this, SLOT(paste()), QKeySequence("Ctrl+V"))->setProperty("id", "paste");
-  edit_menu->addAction(tr("Paste Insert"), this, SLOT(paste_insert()), QKeySequence("Ctrl+Shift+V"))->setProperty("id", "pasteinsert");
-  edit_menu->addAction(tr("Duplicate"), this, SLOT(duplicate()), QKeySequence("Ctrl+D"))->setProperty("id", "duplicate");
-  edit_menu->addAction(tr("Delete"), this, SLOT(delete_slot()), QKeySequence("Del"))->setProperty("id", "delete");
-  edit_menu->addAction(tr("Ripple Delete"), this, SLOT(ripple_delete()), QKeySequence("Shift+Del"))->setProperty("id", "rippledelete");
-  edit_menu->addAction(tr("Split"), &PanelManager::timeLine(), SLOT(split_at_playhead()), QKeySequence("Ctrl+K"))->setProperty("id", "split");
-  edit_menu->addAction(tr("Nudge Forward"), this, &MainWindow::nudgeForward, QKeySequence("Ctrl+Right"))->setProperty("id", "nudgefwd");
-  edit_menu->addAction(tr("Nudge Back"), this, &MainWindow::nudgeBackward, QKeySequence("Ctrl+Left"))->setProperty("id", "nudgebk");
-
-  edit_menu->addSeparator();
-
-  edit_menu->addAction(tr("Select &All"), this, SLOT(select_all()), QKeySequence("Ctrl+A"))->setProperty("id", "selectall");
-
-  edit_menu->addAction(tr("Deselect All"), &PanelManager::timeLine(), SLOT(deselect()), QKeySequence("Ctrl+Shift+A"))->setProperty("id", "deselectall");
-
-  edit_menu->addSeparator();
-
-  edit_menu->addAction(tr("Add Default Transition"), this, SLOT(add_default_transition()), QKeySequence("Ctrl+Shift+D"))->setProperty("id", "deftransition");
-  edit_menu->addAction(tr("Link"), &PanelManager::timeLine(), SLOT(linkClips()), QKeySequence("Ctrl+L"))->setProperty("id", "linkclips");
-  edit_menu->addAction(tr("Unlink"), &PanelManager::timeLine(), SLOT(unlinkClips()), QKeySequence("Ctrl+Shift+L"))->setProperty("id", "unlinkclips");
-  edit_menu->addAction(tr("Enable/Disable"), this, SLOT(toggle_enable_clips()), QKeySequence("Shift+E"))->setProperty("id", "enabledisable");
-  edit_menu->addAction(tr("Nest"), this, SLOT(nest()))->setProperty("id", "nest");
-
-  edit_menu->addSeparator();
-
-  edit_menu->addAction(tr("Ripple to In Point"), this, SLOT(ripple_to_in_point()), QKeySequence("Q"))->setProperty("id", "rippletoin");
-  edit_menu->addAction(tr("Ripple to Out Point"), this, SLOT(ripple_to_out_point()), QKeySequence("W"))->setProperty("id", "rippletoout");
-  edit_menu->addAction(tr("Edit to In Point"), this, SLOT(edit_to_in_point()), QKeySequence("Ctrl+Alt+Q"))->setProperty("id", "edittoin");
-  edit_menu->addAction(tr("Edit to Out Point"), this, SLOT(edit_to_out_point()), QKeySequence("Ctrl+Alt+W"))->setProperty("id", "edittoout");
-
-  edit_menu->addSeparator();
-
-  make_inout_menu(edit_menu);
-  edit_menu->addAction(tr("Delete In/Out Point"), this, SLOT(delete_inout()), QKeySequence(";"))->setProperty("id", "deleteinout");
-  edit_menu->addAction(tr("Ripple Delete In/Out Point"), this, SLOT(ripple_delete_inout()), QKeySequence("'"))->setProperty("id", "rippledeleteinout");
-
-  edit_menu->addSeparator();
-
-  edit_menu->addAction(tr("Set/Edit Marker"), this, SLOT(set_marker()), QKeySequence("M"))->setProperty("id", "marker");
+  setupEditMenu(menuBar);
 
   // INITIALIZE VIEW MENU
 
@@ -1183,6 +1192,7 @@ void MainWindow::sequenceLoaded(const SequencePtr& new_sequence)
 {
   Q_ASSERT(drop_frame_action != nullptr);
   Q_ASSERT(nondrop_frame_action != nullptr);
+  Q_ASSERT(edit_menu_ != nullptr);
 
   if (new_sequence == nullptr) {
     qWarning() << "Sequence instance is null";
@@ -1198,7 +1208,12 @@ void MainWindow::sequenceLoaded(const SequencePtr& new_sequence)
   }
   drop_frame_action->setEnabled(droppable);
 
-  // TODO: enable all the actions now that a sequence is in the timeline
+  // enable all the actions now that a sequence is in the timeline
+  for (auto& item : edit_menu_->actions()) {
+    Q_ASSERT(item);
+    item->setEnabled(true);
+  }
+
 }
 
 void MainWindow::reset_layout()
