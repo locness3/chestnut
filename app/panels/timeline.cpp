@@ -1547,7 +1547,8 @@ void Timeline::add_btn_click() {
   add_menu.exec(QCursor::pos());
 }
 
-void Timeline::add_menu_item(QAction* action) {
+void Timeline::add_menu_item(QAction* action)
+{
   creating = true;
   creating_object = static_cast<AddObjectType>(action->data().toInt());
 }

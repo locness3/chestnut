@@ -196,6 +196,8 @@ class TimelineWidget : public QWidget {
      */
     void paintTrack(QPainter& painter, const int track, const bool video);
     
+    bool createObjectEvent(ComboAction& ca, const bool ctrl, const bool shift, const SequencePtr& seq, Timeline& time_line);
+    
   public slots:
     void setScroll(int);
 

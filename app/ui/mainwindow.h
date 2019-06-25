@@ -234,8 +234,10 @@ class MainWindow : public QMainWindow {
     bool enable_launch_with_project = false;
     QTimer autorecovery_timer;
     QString config_fn;
+    QMenu* edit_menu_{nullptr};
 
     static MainWindow* instance_;
+    void setupEditMenu(QMenuBar* menuBar);
 };
 
 

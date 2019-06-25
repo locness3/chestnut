@@ -16,37 +16,37 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sequenceitem.h"
+#include "objectclip.h"
 
-using project::SequenceItem;
+ObjectClip::ObjectClip(const Clip& base) :
+  Clip(base.sequence)
+{
+  id_ = base.id_;
+  transition_ = base.transition_;
+  timeline_info = base.timeline_info;
+  linked = base.linked;
+  effects = base.effects;
+  setName(base.name());
+}
 
-SequenceItem::SequenceItem()
-  : name_(),
-    type_(project::SequenceItemType::NONE)
+ObjectClip::ObjectClip(SequencePtr seq) : Clip(std::move(seq))
 {
 
 }
 
-SequenceItem::SequenceItem(const project::SequenceItemType sequenceType)
-  : name_(),
-    type_(sequenceType)
+bool ObjectClip::mediaOpen() const
 {
-
+  return true;
 }
 
 
-void SequenceItem::setName(const QString& val)
+void ObjectClip::frame(const long /*playhead*/, bool& texture_failed)
 {
-  //TODO: input validation
-  name_ = val;
-}
-const QString& SequenceItem::name() const
-{
-  return name_;
+  // Do nothing
+  texture_failed = false;
 }
 
-
-project::SequenceItemType SequenceItem::type() const
+bool ObjectClip::isCreatedObject() const
 {
-  return type_;
+  return true;
 }

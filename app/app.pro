@@ -12,6 +12,7 @@ CONFIG += staticlib
 TARGET = chestnut
 
 SOURCES += \
+    project/objectclip.cpp \
     project/track.cpp \
     ui/Forms/effects.cpp \
     ui/Forms/timelinetrackarea.cpp \
@@ -121,6 +122,7 @@ SOURCES += \
     project/footagestream.cpp
 
 HEADERS += \
+    project/objectclip.h \
     project/track.h \
     ui/Forms/effects.h \
     ui/Forms/timelinetrackarea.h \

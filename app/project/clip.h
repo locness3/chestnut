@@ -107,10 +107,10 @@ public:
      */
   bool open(const bool open_multithreaded);
   /**
-     * @brief mediaOpen
-     * @return  true==clip's media has been opened
-     */
-  bool mediaOpen() const;
+   * @brief mediaOpen
+   * @return  true==clip's media has been opened
+   */
+  virtual bool mediaOpen() const;
   /**
      * @brief Close this clip and free up resources
      * @param wait  Wait on cache?
@@ -191,7 +191,7 @@ public:
   long timelineOutWithTransition();
   long length();
   double mediaFrameRate();
-  long maximumLength();
+  long maximumLength() const;
   void recalculateMaxLength();
   int width();
   int height();
@@ -209,10 +209,10 @@ public:
   TransitionPtr closingTransition() const;
 
   /**
-     * @brief set frame cache to a position
-     * @param playhead
-     */
-  void frame(const long playhead, bool& texture_failed);
+   * @brief set frame cache to a position
+   * @param playhead
+   */
+  virtual void frame(const long playhead, bool& texture_failed);
   /**
      * @brief get_timecode
      * @param playhead
@@ -238,14 +238,14 @@ public:
      */
   bool inRange(const long frame) const; //TODO: think of a better name
   /**
-     * @brief Obtain this clip type
-     * @return
-     */
+   * @brief Obtain this clip type
+   * @return
+   */
   ClipType mediaType() const;
   /**
-     * @brief Obtain the Media parent
-     * @return MediaPtr or null
-     */
+   * @brief Obtain the Media parent
+   * @return MediaPtr or null
+   */
   MediaPtr parentMedia();
 
   void addLinkedClip(const Clip& clp);
@@ -254,14 +254,14 @@ public:
   QVector<ClipPtr> linkedClips() const;
   void clearLinks();
   /**
-     * @brief Get tracks of linked clips
-     * @return set of timeline tracks
-     */
+   * @brief Get tracks of linked clips
+   * @return set of timeline tracks
+   */
   QSet<int> getLinkedTracks() const;
   /**
-     * @brief           Update the linked clips using a mapping of old_id : new_clip
-     * @param mapping   Mapped ids and clips
-     */
+   * @brief           Update the linked clips using a mapping of old_id : new_clip
+   * @param mapping   Mapped ids and clips
+   */
   void relink(const QMap<int, int>& mapping);
   void setId(const int32_t id);
   void move(ComboAction& ca, const long iin, const long iout,
@@ -272,10 +272,15 @@ public:
   virtual bool save(QXmlStreamWriter& stream) const override;
 
   /**
-     * @brief     Verify the transitions are valid with its secondary clip
-     * @param ca  For undo actions
-     */
+   * @brief     Verify the transitions are valid with its secondary clip
+   * @param ca  For undo actions
+   */
   void verifyTransitions(ComboAction &ca);
+  /**
+   * @brief   Is this Clip due to being drawn on the timeline (Title,Noise, Adjustment Layer, etc clip)
+   * @return  true==manually created
+   */
+  virtual bool isCreatedObject() const;
 
   /**
    * @brief     Identify if this clip is locked (editing prevented) in its containing sequence
@@ -294,15 +299,15 @@ public:
 
   // media handling
   struct {
-    AVFormatContext* formatCtx = nullptr;
-    AVStream* stream = nullptr;
-    AVCodec* codec = nullptr;
-    AVCodecContext* codecCtx = nullptr;
-    AVPacket* pkt = nullptr;
-    AVFrame* frame = nullptr;
-    AVDictionary* opts = nullptr;
-    long calculated_length = -1;
-  } media_handling; //FIXME: the use of this lot should really be its own library/class
+    AVFormatContext* format_ctx_ {nullptr};
+    AVStream* stream_ {nullptr};
+    AVCodec* codec_ {nullptr};
+    AVCodecContext* codec_ctx_ {nullptr};
+    AVPacket* pkt_ {nullptr};
+    AVFrame* frame_ {nullptr};
+    AVDictionary* opts_ {nullptr};
+    long calculated_length_ {-1};
+  } media_handling_; //FIXME: the use of this lot should really be its own library/class
 
   // temporary variables
   bool deleteable{true};
@@ -354,6 +359,7 @@ protected:
   static int32_t next_id;
 private:
   friend class ClipTest;
+  friend class ObjectClip;
   struct {
     bool caching = false;
     // must be set before caching
@@ -370,6 +376,8 @@ private:
   int32_t id_{-1};
   //TODO: link to ptrs
   QVector<int32_t> linked; //id of clips linked to this i.e. audio<->video streams of same footage
+  ClipType media_type_{ClipType::UNKNOWN};
+  bool created_object_{false};
 
   void apply_audio_effects(const double timecode_start, AVFrame* frame, const int nb_bytes, QVector<ClipPtr>& nests);
 
@@ -384,17 +392,17 @@ private:
 
 
   /**
-     * @brief To set up the caching thread?
-     * @param playhead
-     * @param reset
-     * @param scrubbing
-     * @param nests
-     */
+   * @brief To set up the caching thread?
+   * @param playhead
+   * @param reset
+   * @param scrubbing
+   * @param nests
+   */
   void cache_worker(const long playhead, const bool reset, const bool scrubbing, QVector<ClipPtr>& nests);
   /**
-     * @brief reset_cache
-     * @param target_frame
-     */
+   * @brief reset_cache
+   * @param target_frame
+   */
   void reset_cache(const long target_frame);
   bool loadInEffect(QXmlStreamReader& stream);
   TransitionPtr loadTransition(QXmlStreamReader& stream);

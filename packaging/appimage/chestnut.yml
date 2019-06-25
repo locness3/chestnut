@@ -1,0 +1,24 @@
+# Build rules for AppImage
+
+app: Chestnut
+
+ingredients:
+  script:
+    - python3 ../copyLibs.py
+
+script:
+  - ldd ../../../../app/main/build/release/chestnut
+  - ls -lav ../lib/
+  - cp ../lib/* ./usr/lib/
+  - cp ../../../../app/main/build/release/chestnut ./usr/bin/
+  - touch chestnut.png # TODO: create a icon
+  - cat > chestnut.desktop << EOF
+  - [Desktop Entry]
+  - Name=Chestnut
+  - Comment=NLE Video Editor
+  - Exec=chestnut
+  - Icon=chestnut
+  - Terminal=false
+  - Type=Application
+  - Categories=AudioVideo
+  - EOF

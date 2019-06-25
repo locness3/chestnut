@@ -197,6 +197,7 @@ GLuint compose_sequence(Viewer* viewer,
           clp->close(false);
         }
       }
+
       if (clip_is_active) {
         bool added = false;
         for (int j=0; j<current_clips.size(); ++j) {
@@ -209,7 +210,8 @@ GLuint compose_sequence(Viewer* viewer,
             added = true;
             break;
           }
-        }
+      }//for
+
         if (!added) {
           current_clips.append(clp);
       }
@@ -244,15 +246,15 @@ GLuint compose_sequence(Viewer* viewer,
           switch (clp->timeline_info.media->type()) {
             case MediaType::FOOTAGE:
               // set up opengl texture
-              if ( (clp->media_handling.stream == nullptr)
-                   || (clp->media_handling.stream->codecpar == nullptr) ) {
+              if ( (clp->media_handling_.stream_ == nullptr)
+                   || (clp->media_handling_.stream_->codecpar == nullptr) ) {
                 qCritical() << "Media stream is null";
                 break;
               }
               if ( clp->texture == nullptr) {
                 clp->texture = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
-                clp->texture->setSize(clp->media_handling.stream->codecpar->width,
-                                      clp->media_handling.stream->codecpar->height);
+                clp->texture->setSize(clp->media_handling_.stream_->codecpar->width,
+                                      clp->media_handling_.stream_->codecpar->height);
                 clp->texture->setFormat(get_gl_tex_fmt_from_av(clp->pix_fmt));
                 clp->texture->setMipLevels(clp->texture->maximumMipLevels());
                 clp->texture->setMinMagFilters(QOpenGLTexture::Linear, QOpenGLTexture::Linear);
@@ -469,15 +471,7 @@ GLuint compose_sequence(Viewer* viewer,
           }
 
           glPopMatrix();
-
-          /*GLfloat motion_blur_frac = (GLfloat) motion_blur_prog / (GLfloat) motion_blur_lim;
-                    if (motion_blur_prog == 0) {
-                        glAccum(GL_LOAD, motion_blur_frac);
-                    } else {
-                        glAccum(GL_ACCUM, motion_blur_frac);
-                    }
-                    motion_blur_prog++;*/
-        }
+       }
       } else {
         if (render_audio || (e_config.enable_audio_scrubbing && audio_scrub)) {
           if (clp->timeline_info.media != nullptr && clp->timeline_info.media->type() == MediaType::SEQUENCE) {
