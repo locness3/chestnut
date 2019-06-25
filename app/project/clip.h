@@ -191,7 +191,7 @@ public:
   long timelineOutWithTransition();
   long length();
   double mediaFrameRate();
-  long maximumLength();
+  long maximumLength() const;
   void recalculateMaxLength();
   int width();
   int height();
@@ -293,15 +293,15 @@ public:
 
   // media handling
   struct {
-    AVFormatContext* formatCtx = nullptr;
-    AVStream* stream = nullptr;
-    AVCodec* codec = nullptr;
-    AVCodecContext* codecCtx = nullptr;
-    AVPacket* pkt = nullptr;
-    AVFrame* frame = nullptr;
-    AVDictionary* opts = nullptr;
-    long calculated_length = -1;
-  } media_handling; //FIXME: the use of this lot should really be its own library/class
+    AVFormatContext* format_ctx_ {nullptr};
+    AVStream* stream_ {nullptr};
+    AVCodec* codec_ {nullptr};
+    AVCodecContext* codec_ctx_ {nullptr};
+    AVPacket* pkt_ {nullptr};
+    AVFrame* frame_ {nullptr};
+    AVDictionary* opts_ {nullptr};
+    long calculated_length_ {-1};
+  } media_handling_; //FIXME: the use of this lot should really be its own library/class
 
   // temporary variables
   bool deleteable{true};

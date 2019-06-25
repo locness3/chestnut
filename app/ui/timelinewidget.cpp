@@ -1277,6 +1277,7 @@ bool TimelineWidget::createObjectEvent(ComboAction& ca, const bool ctrl, const b
     c->timeline_info.clip_in = 0;
     c->timeline_info.color = CREATED_OBJECT_COLOUR;
     c->timeline_info.track_ = g.track;
+    c->recalculateMaxLength();
 
     if (ctrl) {
       insert_clips(&ca);
@@ -1297,7 +1298,6 @@ bool TimelineWidget::createObjectEvent(ComboAction& ca, const bool ctrl, const b
     if (c->mediaType() == ClipType::VISUAL) {
       // default video effects (before custom effects)
       c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TRANSFORM, EFFECT_TYPE_EFFECT)));
-      //c->media_type = MEDIA_TYPE_SOLID;
     }
 
     switch (time_line.creating_object) {
@@ -1334,7 +1334,6 @@ bool TimelineWidget::createObjectEvent(ComboAction& ca, const bool ctrl, const b
       // default audio effects (after custom effects)
       c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_VOLUME, EFFECT_TYPE_EFFECT)));
       c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_PAN, EFFECT_TYPE_EFFECT)));
-      //c->media_type = MEDIA_TYPE_TONE;
     }
 
     push_undo = true;
