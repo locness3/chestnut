@@ -11,7 +11,7 @@ script:
   - ls -lav ../lib/
   - cp ../lib/* ./usr/lib/
   - cp ../../../../app/main/build/release/chestnut ./usr/bin/
-  - touch chestnut.png # TODO: create a icon
+  - cp ../../../../app/icons/chestnut.png .
   - cat > chestnut.desktop << EOF
   - [Desktop Entry]
   - Name=Chestnut
