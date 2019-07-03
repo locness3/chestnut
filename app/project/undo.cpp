@@ -1215,7 +1215,7 @@ void RippleAction::undo()
 void RippleAction::redo()
 {
   ca_ = std::make_unique<ComboAction>();
-  for (auto& c : sqn_->clips_) {
+  for (auto& c : sqn_->clips()) {
     if (c->timeline_info.in >= point_) {
       if (ignore_.contains(c->id())) {
         // should be the first clip in ripple
