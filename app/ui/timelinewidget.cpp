@@ -1049,51 +1049,57 @@ void TimelineWidget::makeRoomForClipLinked(ComboAction& ca, const ClipPtr& c, co
   PanelManager::timeLine().delete_areas(&ca, delete_areas);
 }
 
-void TimelineWidget::rippleMove(ComboAction& ca, const Ghost& first_ghost)
+
+void TimelineWidget::rippleMove(ComboAction& ca, SequencePtr seq, Timeline& time_line)
 {
-  if (PanelManager::timeLine().tool == TimelineToolType::RIPPLE) {
-    long ripple_length, ripple_point;
+  Q_ASSERT(seq != nullptr);
 
-    // ripple_length becomes the length/number of frames we trimmed
-    // ripple point becomes the point to ripple (i.e. the point after or before which we move every clip)
-    if (PanelManager::timeLine().trim_in_point) {
-      ripple_length = first_ghost.old_in - first_ghost.in;
-      ripple_point = first_ghost.old_in;
+  const Ghost& first_ghost = time_line.ghosts.front();
 
-      for (int i=0;i<global::sequence->selections_.size();i++) {
-        global::sequence->selections_[i].in += ripple_length;
-        global::sequence->selections_[i].out += ripple_length;
-      }
-    } else {
-      // if we're trimming an out-point
-      ripple_length = first_ghost.old_out - PanelManager::timeLine().ghosts.at(0).out;
-      ripple_point = first_ghost.old_out;
+  long ripple_length, ripple_point;
+
+  // ripple_length becomes the length/number of frames we trimmed
+  // ripple point becomes the point to ripple (i.e. the point after or before which we move every clip)
+  if (time_line.trim_in_point) {
+    ripple_length = first_ghost.old_in - first_ghost.in;
+    ripple_point = first_ghost.old_in;
+
+    // update all the timeline selections
+    for (auto& sel : seq->selections_) {
+      sel.in += ripple_length;
+      sel.out += ripple_length;
     }
-    QVector<int> ignore_clips;
-    for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
-      const Ghost& g = PanelManager::timeLine().ghosts.at(i);
-
-      // push rippled clips forward if necessary
-      if (PanelManager::timeLine().trim_in_point) {
-        if (auto g_c = g.clip_.lock()) {
-          ignore_clips.append(g_c->id());
-          PanelManager::timeLine().ghosts[i].in += ripple_length;
-          PanelManager::timeLine().ghosts[i].out += ripple_length;
-        } else {
-          qWarning() << "Clip instance is null";
-        }
-      }
-
-      long comp_point = PanelManager::timeLine().trim_in_point ? g.old_in : g.old_out;
-      ripple_point = qMin(ripple_point, comp_point);
-    }
-
-    if (!PanelManager::timeLine().trim_in_point) {
-      ripple_length = -ripple_length;
-    }
-
-    ripple_clips(&ca, global::sequence, ripple_point, ripple_length, ignore_clips);
+  } else {
+    // if we're trimming an out-point
+    ripple_length = first_ghost.old_out - first_ghost.out;
+    ripple_point = first_ghost.old_out;
   }
+
+  // update the timeline ghosts
+  QVector<int> ignore_clips;
+  for (auto& g : time_line.ghosts) {
+    // push rippled clips forward if necessary
+    if (time_line.trim_in_point) {
+      if (auto g_c = g.clip_.lock()) {
+        // The 1st clip in ripple
+        ignore_clips.append(g_c->id());
+        g.in += ripple_length;
+        g.out += ripple_length;
+      } else {
+        qWarning() << "Clip instance is null";
+      }
+    }
+
+    long comp_point = time_line.trim_in_point ? g.old_in : g.old_out;
+    ripple_point = qMin(ripple_point, comp_point);
+  }
+
+  if (!time_line.trim_in_point) {
+    ripple_length = -ripple_length;
+  }
+
+  // Do the rippling
+  ripple_clips(&ca, seq, ripple_point, ripple_length, ignore_clips);
 }
 
 void TimelineWidget::duplicateClips(ComboAction& ca)
@@ -1282,9 +1288,10 @@ void TimelineWidget::processMove(ComboAction* ca,
   }
 
   // if we were RIPPLING, move all the clips
-  rippleMove(*ca, time_line.ghosts.front());
-
-  if ( (time_line.tool == TimelineToolType::POINTER)
+  if (PanelManager::timeLine().tool == TimelineToolType::RIPPLE) {
+    rippleMove(*ca, global::sequence, PanelManager::timeLine());
+    moveClips(*ca, moved, time_line.ghosts);
+  } else if ( (time_line.tool == TimelineToolType::POINTER)
        && alt_pressed
        && time_line.trim_target.expired()) {
     // if holding alt (and not trimming), duplicate rather than move
@@ -1297,7 +1304,6 @@ void TimelineWidget::processMove(ComboAction* ca,
                 || (time_line.tool == TimelineToolType::SLIDE) ) {
       moveClipSetup(*ca);
     }
-
     moveClips(*ca, moved, time_line.ghosts);
   }
 }
@@ -2703,6 +2709,7 @@ void draw_waveform(ClipPtr& clip, const FootageStreamPtr& ms, const long media_l
     for (auto j=0; j<ms->audio_channels; ++j) {
       auto mid = (e_config.rectified_waveforms) ? clip_rect.top()+channel_height*(j+1) : clip_rect.top()+channel_height*j+(channel_height/2);
       auto offset = waveform_index+(j*2);
+      Q_ASSERT(offset >= 0);
 
       if ((offset + 1) < ms->audio_preview.size()) {
         const auto min = static_cast<double>(ms->audio_preview.at(offset)) / 128.0 * (channel_height/2);

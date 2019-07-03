@@ -1191,25 +1191,6 @@ void SplitClipCommand::storeLengths(const int id, Clip& clp)
   mapped_transition_lengths_[id] = tran_lengths;
 }
 
-//SetPointer::SetPointer(void **pointer, void *data) :
-//  old_changed(MainWindow::instance().isWindowModified()),
-//  p(pointer),
-//  new_data(data)
-//{
-
-//}
-
-//void SetPointer::undo() {
-//  *p = old_data;
-//  MainWindow::instance().setWindowModified(old_changed);
-//}
-
-//void SetPointer::redo() {
-//  old_data = *p;
-//  *p = new_data;
-//  MainWindow::instance().setWindowModified(true);
-//}
-
 void ReloadEffectsCommand::undo() {
   redo();
 }
@@ -1219,30 +1200,31 @@ void ReloadEffectsCommand::redo() {
 }
 
 RippleAction::RippleAction(SequencePtr is, const long ipoint, const long ilength, QVector<int> iignore) :
-  s(std::move(is)),
-  point(ipoint),
-  length(ilength),
-  ignore(std::move(iignore))
+  sqn_(std::move(is)),
+  point_(ipoint),
+  length_(ilength),
+  ignore_(std::move(iignore))
 {}
 
-void RippleAction::undo() {
-  ca->undo();
-  delete ca;
+void RippleAction::undo()
+{
+  ca_->undo();
+  ca_.reset();
 }
 
-void RippleAction::redo() {
-  ca = new ComboAction();
-  for (int i=0;i<s->clips().size();i++) {
-    if (!ignore.contains(i)) {
-      ClipPtr   c = s->clips().at(i);
-      if (c != nullptr) {
-        if (c->timeline_info.in >= point) {
-          c->move(*ca, length, length, 0, 0, true, true);
-        }
+void RippleAction::redo()
+{
+  ca_ = std::make_unique<ComboAction>();
+  for (auto& c : sqn_->clips_) {
+    if (c->timeline_info.in >= point_) {
+      if (ignore_.contains(c->id())) {
+        // should be the first clip in ripple
+      } else {
+        c->move(*ca_, length_, length_, 0, 0, true, true);
       }
     }
   }
-  ca->redo();
+  ca_->redo();
 }
 
 SetQVariant::SetQVariant(QVariant *itarget, QVariant iold, QVariant inew) :

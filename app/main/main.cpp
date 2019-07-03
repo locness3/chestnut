@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 #endif
 
   QApplication a(argc, argv);
-  QApplication::setWindowIcon(QIcon(":/icons/olive64.png"));
+  QApplication::setWindowIcon(QIcon(":/icons/chestnut.png"));
 
   MainWindow& w = MainWindow::instance(nullptr, appName);
   w.initialise();

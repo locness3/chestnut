@@ -102,11 +102,11 @@ public:
   virtual void undo() override;
   virtual void redo() override;
 private:
-  SequencePtr s;
-  long point;
-  long length;
-  QVector<int> ignore; //TODO: change from index to ids
-  ComboAction* ca{};
+  SequencePtr sqn_;
+  long point_;
+  long length_;
+  QVector<int> ignore_;
+  std::unique_ptr<ComboAction> ca_;
 };
 
 class DeleteClipAction : public QUndoCommand {

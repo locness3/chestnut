@@ -154,7 +154,7 @@ class TimelineWidget : public QWidget {
      */
     void makeRoomForClipLinked(ComboAction& ca, const ClipPtr& c, const Ghost& g, const bool front);
 
-    void rippleMove(ComboAction& ca, const Ghost& first_ghost);
+    void rippleMove(ComboAction& ca, SequencePtr seq, Timeline& time_line);
     
     void duplicateClips(ComboAction& ca);
 

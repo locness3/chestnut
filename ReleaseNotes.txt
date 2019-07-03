@@ -1,4 +1,33 @@
 -------------
+Version 0.0.4
+-------------
+
+25 June 2019
+
+New:
+    - timeline: created object clips save + load #47
+
+Improvements:
+    - import: allow mxf files in filter
+    - ui: edit menu disabled until a sequence is present
+
+Fixes:
+    - file_load: fix crash on load with unknown effect
+    - file_save: Saving create objects possible, closes #46
+    - timeline: Use name of clip for created objects
+    - effect: fix effect name collision for Noise
+    - effect: fix solid effect colour button not retaining value over repeated shows
+    - effect: fix link to frag files for internal effects
+    - file_load: fix colour values not loading
+    - timeline: created objects did not work until save + load
+
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - Random pauses when exporting in h264 #27
+    - On reverse drag-seek ui-lock #18
+    - Large imported files not playable/viewable until waveform-preview generated #26
+
+-------------
 Version 0.0.3
 -------------
 

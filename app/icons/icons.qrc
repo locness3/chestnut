@@ -38,7 +38,6 @@
         <file>zoomout-disabled.png</file>
         <file>add-transition.png</file>
         <file>add-effect.png</file>
-        <file>olive-splash.png</file>
         <file>add-button.png</file>
         <file>add-button-disabled.png</file>
         <file>clock.png</file>
@@ -58,6 +57,6 @@
         <file>tri-up.png</file>
         <file>hand.png</file>
         <file>hand-disabled.png</file>
-        <file>olive64.png</file>
+        <file>chestnut.png</file>
     </qresource>
 </RCC>
