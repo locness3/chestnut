@@ -47,10 +47,10 @@ void HistogramViewer::frameGrabbed(const QImage& img)
   // a full-resolution histogram shouldn't be done during playback
   const auto div = full_resolution_ ? 1 : HIST_GEN_STEP; //TODO: create a way to enable full_resolution
   QRgb clr;
-  for (auto w = 0; w < img.width(); w+=div){
-    for (auto h = 0; h < img.height(); h+=div) {
+  for (auto h = 0; h < img.height(); h+=div) {
+    for (auto w = 0; w < img.width(); w+=div){
       clr = img.pixel(w, h);
-      histogram_->values_.at(static_cast<size_t>(qGray(clr)))++;
+      histogram_->values_.at(static_cast<size_t>(qGray(clr)))++; //FIXME: qGray is expensive
       histogram_red_->values_.at(static_cast<size_t>(qRed(clr)))++;
       histogram_green_->values_.at(static_cast<size_t>(qGreen(clr)))++;
       histogram_blue_->values_.at(static_cast<size_t>(qBlue(clr)))++;
