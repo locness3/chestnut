@@ -55,7 +55,7 @@ void debug_message_handler(QtMsgType type, const QMessageLogContext &context, co
   debug_mutex.lock();
   const QByteArray localMsg = msg.toLocal8Bit();
   const QDateTime now = QDateTime::currentDateTime();
-  const QByteArray timeRepr(now.toString(Qt::ISODate).toLocal8Bit());
+  const QByteArray timeRepr(now.toString(Qt::ISODateWithMs).toLocal8Bit());
   QString msgTag;
   QString fontColor;
   switch (type) {
