@@ -74,7 +74,7 @@ uint8_t median(const int ix, const VectorSpanBytes& data)
   if ( (sz % 2) == 0) {
     // sum pixels "around" the middle and avg of the 2
     uint16_t tmp = vals[sz >> 1];
-    tmp += vals[sz >> 1];
+    tmp += vals[static_cast<size_t>(sz + 0.5)];
     val = static_cast<uint8_t>(tmp >> 1);
   } else {
     // use middle val
