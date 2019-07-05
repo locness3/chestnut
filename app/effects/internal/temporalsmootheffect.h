@@ -41,6 +41,7 @@ class TemporalSmoothEffect : public Effect
     EffectField* frame_length_;
     EffectField* blend_mode_;
     VectorSpanBytes frames_;
+    int thread_count_{1};
 };
 
 #endif // TEMPORALSMOOTHEFFECT_H
