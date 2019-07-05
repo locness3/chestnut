@@ -64,11 +64,14 @@ void ScopeViewer::setup()
   main_widget->setLayout(layout);
 
   auto h_layout = new QHBoxLayout();
+  layout->addLayout(h_layout);
   waveform_combo_ = new QComboBox();
   QStringList items = {"RGB", "Luma"};
   waveform_combo_->addItems(items);
   connect(waveform_combo_, SIGNAL(currentIndexChanged(int)), this, SLOT(indexChanged(int)));
   h_layout->addWidget(waveform_combo_);
+  auto spacer = new QSpacerItem(0,0, QSizePolicy::Expanding);
+  h_layout->addSpacerItem(spacer);
 
   color_scope_ = new ui::ColorScopeWidget();
   layout->addWidget(color_scope_);
