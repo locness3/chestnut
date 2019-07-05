@@ -22,9 +22,14 @@
 
 #include "gsl/span"
 
+constexpr size_t MEDIAN_LENGTH_LIMIT = 10;
+
 TemporalSmoothEffect::TemporalSmoothEffect(ClipPtr c, const EffectMeta& em) : Effect(std::move(c), em)
 {  
   setCapability(Capability::IMAGE);
+#ifdef _OPENMP
+  thread_count_ = static_cast<int>(round(omp_get_max_threads() * 0.9));
+#endif
 
 }
 
@@ -38,9 +43,11 @@ TemporalSmoothEffect::~TemporalSmoothEffect()
 
 uint8_t average(const int ix, const VectorSpanBytes& data)
 {
-  auto val = 0;
+  uint64_t val = 0;
   for (const auto& d: data) {
-    val += d[ix];
+    if (val < UINT64_MAX) {
+      val += d[ix];
+    }
   }
   // average pixel in all frames
   return static_cast<uint8_t>(val / data.size());
@@ -48,23 +55,30 @@ uint8_t average(const int ix, const VectorSpanBytes& data)
 
 uint8_t median(const int ix, const VectorSpanBytes& data)
 {
-  const auto sz = data.size();
-  auto lim = sz > 10 ? 10 : sz;
-  QVector<uint8_t> vals(lim);
-
-  for (auto i = 0; i < lim; ++i) {
-    vals[i] = data[i].at(ix);
+  const size_t sz = static_cast<size_t>(data.size());
+  size_t lim;
+  if (sz < MEDIAN_LENGTH_LIMIT) {
+    lim = sz;
+  } else {
+    lim = MEDIAN_LENGTH_LIMIT;
   }
+
+  std::vector<uint8_t> vals(lim);
+
+  for (size_t i = 0; i < lim; ++i) {
+    vals[i] = data[static_cast<int>(i)][ix];
+  }
+
   std::sort(vals.begin(), vals.end());
   uint8_t val;
   if ( (sz % 2) == 0) {
-    // sum pixels "around" the middle and avg
-    uint16_t tmp = vals.at(sz/2);
-    tmp += vals.at(lround(static_cast<double>(sz)/2));
-    val = static_cast<uint8_t>(lround(static_cast<double>(tmp) / 2));
+    // sum pixels "around" the middle and avg of the 2
+    uint16_t tmp = vals[sz >> 1];
+    tmp += vals[sz >> 1];
+    val = static_cast<uint8_t>(tmp >> 1);
   } else {
     // use middle val
-    val = vals.at(sz/2);
+    val = vals[sz >> 1];
   }
   return val;
 }
@@ -116,27 +130,34 @@ void TemporalSmoothEffect::process_image(double timecode, gsl::span<uint8_t>& da
 
 
   const auto mode_index = blend_mode_->get_combo_index(timecode);
-#pragma omp parallel for
-  for (auto i=0L; i < data.size(); ++i) {
-    uint8_t val;
-    switch (mode_index) {
-      case 0:
-        val = average(i, frames_);
-        break;
-      case 1:
-        val = median(i, frames_);
-        break;
-      case 2:
-        val = maxVal(i, frames_);
-        break;
-      case 3:
-        val = minVal(i, frames_);
-        break;
-      default:
-        val = data.at(i);
-        break;
+
+  uint8_t (*func) (const int ix, const VectorSpanBytes& data) = nullptr;
+
+  switch (mode_index) {
+    case 0:
+      func = average;
+      break;
+    case 1:
+      func = median;
+      break;
+    case 2:
+      func = maxVal;
+      break;
+    case 3:
+      func = minVal;
+      break;
+    default:
+      break;
+  }
+
+#ifdef _OPENMP
+  omp_set_num_threads(thread_count_);
+#endif
+  if (func != nullptr) {
+    #pragma omp parallel for
+    for (auto i=0L; i < data.size(); ++i) {
+      data[i] = func(i, frames_);
     }
-    data[i] = val;
   }
 }
 
