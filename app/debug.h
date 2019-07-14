@@ -20,6 +20,11 @@
 
 #include <QDebug>
 
+namespace chestnut::debug
+{
+extern QtMsgType debug_level;
+}
+
 void debug_message_handler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 const QString& get_debug_str();
 void open_debug_file();

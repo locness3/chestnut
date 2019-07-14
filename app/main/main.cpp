@@ -17,6 +17,13 @@
  */
 #include "ui/mainwindow.h"
 #include <QApplication>
+#include <iostream>
+#include <QLoggingCategory>
+
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "debug.h"
 #include "project/effect.h"
@@ -27,46 +34,64 @@ extern "C" {
 #include <libavfilter/avfilter.h>
 }
 
-int main(int argc, char *argv[]) {
-  QString appName = "Chestnut";
+constexpr auto APP_NAME = "Chestnut";
 
+int main(int argc, char *argv[])
+{
   auto launch_fullscreen = false;
   QString load_proj;
+  int c;
 
-  auto use_internal_logger = true;
-  if (argc > 1) {
-    for (int i=1;i<argc;i++) {
-      if (argv[i][0] == '-') {
-        if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
-#ifndef GITHASH
-          qWarning() << "No Git commit information found";
-#endif
-          printf("%s\n", appName.toUtf8().constData());
-          return 0;
-        } else if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
-          printf("Usage: %s [options] [filename]\n\n[filename] is the file to open on startup.\n\nOptions:\n\t-v, "
-                 "--version\tShow version information\n\t-h, --help\tShow this help\n\t-f, --fullscreen\tStart in full screen mode\n\n",
-                 argv[0]);
-          return 0;
-        } else if (!strcmp(argv[i], "--fullscreen") || !strcmp(argv[i], "-f")) {
-          launch_fullscreen = true;
-        } else if (!strcmp(argv[i], "--disable-shaders")) {
-          shaders_are_enabled = false;
-        } else if (!strcmp(argv[i], "--no-debug")) {
-          use_internal_logger = false;
-        } else {
-          printf("[ERROR] Unknown argument '%s'\n", argv[1]);
-          return 1;
+  while ((c = getopt(argc, argv, "fhi:l:s")) != -1)
+  {
+    switch (c) {
+      case 'f':
+        // fullscreen
+        launch_fullscreen = true;
+        break;
+      case 'h':
+        printf("Usage: %s [options] \n\nOptions:"
+               "\n\t-f \t\tStart in full screen mode"
+               "\n\t-h \t\tShow this help and exit"
+               "\n\t-i <filename> \tLoad a project file"
+               "\n\t-l <level> \t\tSet the logging level (fatal, critical, warning, info, debug)"
+               "\n\t-s  \t\tDisable shaders\n\n",
+               argv[0]);
+        return 0;
+      case 'i':
+        // input file to load
+        load_proj = optarg;
+        break;
+      case 'l':
+        // log level
+        {
+          QString val = optarg;
+          if (val == "fatal") {
+            chestnut::debug::debug_level = QtMsgType::QtFatalMsg;
+          } else if (val == "critical") {
+            chestnut::debug::debug_level = QtMsgType::QtCriticalMsg;
+          } else if (val == "warning") {
+            chestnut::debug::debug_level = QtMsgType::QtWarningMsg;
+          } else if (val == "info") {
+            chestnut::debug::debug_level = QtMsgType::QtInfoMsg;
+          } else if (val == "debug") {
+            chestnut::debug::debug_level = QtMsgType::QtDebugMsg;
+          } else {
+            std::cerr << "Unknown logging level:" << val.toUtf8().toStdString() << std::endl;
+          }
         }
-      } else if (load_proj.isEmpty()) {
-        load_proj = argv[i];
-      }
+        break;
+      case 's':
+        // Disable shader effects
+        shaders_are_enabled = false;
+        break;
+      default:
+        std::cerr << "Ignoring:" << c << std::endl;
+        break;
     }
   }
 
-  if (use_internal_logger) {
-    qInstallMessageHandler(debug_message_handler);
-  }
+  qInstallMessageHandler(debug_message_handler);
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
   // init ffmpeg subsystem
@@ -80,7 +105,8 @@ int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
   QApplication::setWindowIcon(QIcon(":/icons/chestnut.png"));
 
-  MainWindow& w = MainWindow::instance(nullptr, appName);
+  const QString name(APP_NAME);
+  MainWindow& w = MainWindow::instance(nullptr, name);
   w.initialise();
   w.updateTitle("");
 

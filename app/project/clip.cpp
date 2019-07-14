@@ -988,7 +988,7 @@ void Clip::frame(const long playhead, bool& texture_failed)
       reset = true;
     }
 
-    if (target_frame == nullptr || reset) {
+    if ( (target_frame == nullptr) || reset) {
       // reset cache
       texture_failed = true;
     }

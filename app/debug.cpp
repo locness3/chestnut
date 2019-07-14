@@ -25,6 +25,7 @@
 
 #include "dialogs/debugdialog.h"
 
+QtMsgType chestnut::debug::debug_level = QtMsgType::QtFatalMsg;
 QString debug_info;
 QMutex debug_mutex;
 QFile debug_file;
@@ -50,8 +51,46 @@ void close_debug_file()
   }
 }
 
+/**
+ * @brief       Check if a message should be displayed/logged
+ * @param type  Message type to be compared to configured setting
+ * @return      true==message should be displayed/logged
+ */
+bool shouldPrintMessage(const QtMsgType type)
+{
+  // unfortunately, the enum vals aren't in the order one would hope for i.e debug = 0, fatal = 4
+  switch (type) {
+    case QtMsgType::QtFatalMsg:
+      return (chestnut::debug::debug_level == QtFatalMsg
+          || chestnut::debug::debug_level == QtCriticalMsg
+          || chestnut::debug::debug_level == QtWarningMsg
+          || chestnut::debug::debug_level == QtInfoMsg
+          || chestnut::debug::debug_level == QtDebugMsg);
+    case QtMsgType::QtCriticalMsg:
+      return (chestnut::debug::debug_level == QtCriticalMsg
+          || chestnut::debug::debug_level == QtWarningMsg
+          || chestnut::debug::debug_level == QtInfoMsg
+          || chestnut::debug::debug_level == QtDebugMsg);
+    case QtMsgType::QtWarningMsg:
+      return (chestnut::debug::debug_level == QtWarningMsg
+          || chestnut::debug::debug_level == QtInfoMsg
+          || chestnut::debug::debug_level == QtDebugMsg);
+    case QtMsgType::QtInfoMsg:
+      return (chestnut::debug::debug_level == QtInfoMsg
+          || chestnut::debug::debug_level == QtDebugMsg);
+    case QtMsgType::QtDebugMsg:
+      return chestnut::debug::debug_level == QtDebugMsg;
+    default:
+      return false;
+  }
+}
+
 void debug_message_handler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
+  if (!shouldPrintMessage(type)) {
+    return;
+  }
+
   debug_mutex.lock();
   const QByteArray localMsg = msg.toLocal8Bit();
   const QDateTime now = QDateTime::currentDateTime();
@@ -72,7 +111,7 @@ void debug_message_handler(QtMsgType type, const QMessageLogContext &context, co
       fontColor = "yellow";
       break;
     case QtCriticalMsg:
-      msgTag = "ERROR";
+      msgTag = "CRITICAL";
       fontColor = "red";
       break;
     case QtFatalMsg:
