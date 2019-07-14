@@ -159,10 +159,10 @@ Project::Project(QWidget *parent) :
   verticalLayout->addWidget(toolbar_widget);
 
   // tree view
-  tree_view = new SourceTable(dockWidgetContents);
-  tree_view->project_parent = this;
-  tree_view->setModel(sorter);
-  verticalLayout->addWidget(tree_view);
+  tree_view_ = new SourceTable(dockWidgetContents);
+  tree_view_->project_parent_ = this;
+  tree_view_->setModel(sorter);
+  verticalLayout->addWidget(tree_view_);
 
   // icon view
   icon_view_container = new QWidget();
@@ -195,19 +195,19 @@ Project::Project(QWidget *parent) :
 
   icon_view_container_layout->addLayout(icon_view_controls);
 
-  icon_view = new SourceIconView(this, dockWidgetContents);
-  icon_view->setModel(sorter);
-  icon_view->setIconSize(QSize(100, 100));
-  icon_view->setViewMode(QListView::IconMode);
-  icon_view->setUniformItemSizes(true);
-  icon_view_container_layout->addWidget(icon_view);
+  icon_view_ = new SourceIconView(this, dockWidgetContents);
+  icon_view_->setModel(sorter);
+  icon_view_->setIconSize(QSize(100, 100));
+  icon_view_->setViewMode(QListView::IconMode);
+  icon_view_->setUniformItemSizes(true);
+  icon_view_container_layout->addWidget(icon_view_);
 
-  icon_size_slider->setValue(icon_view->iconSize().height());
+  icon_size_slider->setValue(icon_view_->iconSize().height());
 
   verticalLayout->addWidget(icon_view_container);
 
   connect(directory_up, SIGNAL(clicked(bool)), this, SLOT(go_up_dir()));
-  connect(icon_view, SIGNAL(changed_root()), this, SLOT(set_up_dir_enabled()));
+  connect(icon_view_, SIGNAL(changed_root()), this, SLOT(set_up_dir_enabled()));
 
   //retranslateUi(Project);
   setWindowTitle(tr("Project"));
@@ -400,7 +400,7 @@ QString Project::get_file_ext_from_path(const QString &path) const
 
 bool Project::is_focused() const
 {
-  return tree_view->hasFocus() || icon_view->hasFocus();
+  return tree_view_->hasFocus() || icon_view_->hasFocus();
 }
 
 MediaPtr Project::newFolder(const QString &name)
@@ -832,15 +832,15 @@ bool Project::reveal_media(MediaPtr media, QModelIndex parent) {
 
       if (e_config.project_view_type == ProjectView::TREE) {
         while (hierarchy.isValid()) {
-          tree_view->setExpanded(hierarchy, true);
+          tree_view_->setExpanded(hierarchy, true);
           hierarchy = hierarchy.parent();
         }
 
         // select item
-        tree_view->selectionModel()->select(sorted_index, QItemSelectionModel::Select);
+        tree_view_->selectionModel()->select(sorted_index, QItemSelectionModel::Select);
       } else if (e_config.project_view_type == ProjectView::ICON) {
-        icon_view->setRootIndex(hierarchy);
-        icon_view->selectionModel()->select(sorted_index, QItemSelectionModel::Select);
+        icon_view_->setRootIndex(hierarchy);
+        icon_view_->selectionModel()->select(sorted_index, QItemSelectionModel::Select);
         set_up_dir_enabled();
       }
 
@@ -1043,15 +1043,15 @@ void Project::save_project(const bool autorecovery)
 
 void Project::update_view_type()
 {
-  tree_view->setVisible(e_config.project_view_type == ProjectView::TREE);
+  tree_view_->setVisible(e_config.project_view_type == ProjectView::TREE);
   icon_view_container->setVisible(e_config.project_view_type == ProjectView::ICON);
 
   switch (e_config.project_view_type) {
     case ProjectView::TREE:
-      sources_common->setCurrentView(tree_view);
+      sources_common->setCurrentView(tree_view_);
       break;
     case ProjectView::ICON:
-      sources_common->setCurrentView(icon_view);
+      sources_common->setCurrentView(icon_view_);
       break;
     default:
       qWarning() << "Unhandled Project View type" << static_cast<int>(e_config.project_view_type);
@@ -1092,21 +1092,22 @@ void Project::clear_recent_projects() {
 }
 
 void Project::set_icon_view_size(int s) {
-  icon_view->setIconSize(QSize(s, s));
+  icon_view_->setIconSize(QSize(s, s));
 }
 
 void Project::set_up_dir_enabled() {
-  directory_up->setEnabled(icon_view->rootIndex().isValid());
+  directory_up->setEnabled(icon_view_->rootIndex().isValid());
 }
 
 void Project::go_up_dir() {
-  icon_view->setRootIndex(icon_view->rootIndex().parent());
+  icon_view_->setRootIndex(icon_view_->rootIndex().parent());
   set_up_dir_enabled();
 }
 
-void Project::make_new_menu() {
+void Project::make_new_menu()
+{
   QMenu new_menu(this);
-  MainWindow::instance().make_new_menu(&new_menu);
+  MainWindow::instance().make_new_menu(new_menu);
   new_menu.exec(QCursor::pos());
 }
 
@@ -1187,9 +1188,9 @@ QVector<MediaPtr> Project::list_all_project_sequences() {
 QModelIndexList Project::get_current_selected()
 {
   if (e_config.project_view_type == ProjectView::TREE) {
-    return PanelManager::projectViewer().tree_view->selectionModel()->selectedRows();
+    return PanelManager::projectViewer().tree_view_->selectionModel()->selectedRows();
   }
-  return PanelManager::projectViewer().icon_view->selectionModel()->selectedIndexes();
+  return PanelManager::projectViewer().icon_view_->selectionModel()->selectedIndexes();
 }
 
 
@@ -1259,6 +1260,6 @@ void MediaThrobber::stop(const int icon_type, const bool replace) {
   // redraw clips
   PanelManager::refreshPanels(replace);
 
-  PanelManager::projectViewer().tree_view->viewport()->update();
+  PanelManager::projectViewer().tree_view_->viewport()->update();
   deleteLater();
 }

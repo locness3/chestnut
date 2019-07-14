@@ -47,8 +47,8 @@ void ProjectModel::clear()
 {
   beginResetModel();
   destroy_root();
-  endResetModel();
   project_items.clear();
+  endResetModel();
   insert(std::make_shared<Media>());
 }
 
@@ -209,8 +209,10 @@ bool ProjectModel::setData(const QModelIndex &index, const QVariant &value, int 
 int ProjectModel::rowCount(const QModelIndex &parent) const
 {
   MediaPtr parentItem;
-  if (parent.column() > 0)
+  if ( (parent.column() > 0) || project_items.empty())
+  {
     return 0;
+  }
 
   if (!parent.isValid()) {
     parentItem = project_items.first();
@@ -226,6 +228,11 @@ int ProjectModel::rowCount(const QModelIndex &parent) const
 
 int ProjectModel::columnCount(const QModelIndex &parent) const
 {
+  if (project_items.empty())
+  {
+    return 0;
+  }
+
   if (parent.isValid()) {
     const auto mda = get(parent);
     if (mda != nullptr) {

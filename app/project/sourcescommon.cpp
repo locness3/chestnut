@@ -65,7 +65,8 @@ void SourcesCommon::create_seq_from_selected() {
   }
 }
 
-void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& items) {
+void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& items)
+{
   QMenu menu(parent);
 
   selected_items = items;
@@ -74,7 +75,7 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
   QObject::connect(import_action, SIGNAL(triggered(bool)), project_parent, SLOT(import_dialog()));
 
   QMenu* new_menu = menu.addMenu(tr("New"));
-  MainWindow::instance().make_new_menu(new_menu);
+  MainWindow::instance().make_new_menu(*new_menu);
 
   if (!items.empty()) {
     if (auto mda = project_parent->item_to_media(items.front())) {

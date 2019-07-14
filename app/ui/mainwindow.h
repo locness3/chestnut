@@ -40,8 +40,8 @@ class MainWindow : public QMainWindow {
     void updateTitle(const QString &url);
     void launch_with_project(const QString& s);
 
-    void make_new_menu(QMenu* parent);
-    void make_inout_menu(QMenu* parent);
+    void make_new_menu(QMenu& parent_menu) const;
+    void make_inout_menu(QMenu& parent_menu) const;
 
     void load_shortcuts(const QString &fn, bool first = false);
     void save_shortcuts(const QString &fn);

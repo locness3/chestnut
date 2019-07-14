@@ -40,7 +40,8 @@
 #include "debug.h"
 
 
-SourceTable::SourceTable(QWidget* parent) : QTreeView(parent) {
+SourceTable::SourceTable(QWidget* parent) : QTreeView(parent)
+{
   setSortingEnabled(true);
   setAcceptDrops(true);
   sortByColumn(0, Qt::AscendingOrder);
@@ -52,29 +53,36 @@ SourceTable::SourceTable(QWidget* parent) : QTreeView(parent) {
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu()));
 }
 
-void SourceTable::show_context_menu() {
-  project_parent->sources_common->show_context_menu(this, selectionModel()->selectedRows());
+void SourceTable::show_context_menu()
+{
+  project_parent_->sources_common->show_context_menu(this, selectionModel()->selectedRows());
 }
 
-void SourceTable::item_click(const QModelIndex& index) {
+void SourceTable::item_click(const QModelIndex& index)
+{
   if ((selectionModel()->selectedRows().size() == 1) && (index.column() == 0)) {
-    project_parent->sources_common->item_click(project_parent->item_to_media(index), index);
+    project_parent_->sources_common->item_click(project_parent_->item_to_media(index), index);
   }
 }
 
-void SourceTable::mousePressEvent(QMouseEvent* event) {
-  project_parent->sources_common->mousePressEvent(event);
+void SourceTable::mousePressEvent(QMouseEvent* event)
+{
+  Q_ASSERT(project_parent_);
+  Q_ASSERT(project_parent_->sources_common);
+  project_parent_->sources_common->mousePressEvent(event);
   QTreeView::mousePressEvent(event);
 }
 
 void SourceTable::mouseDoubleClickEvent(QMouseEvent* event)
 {
-  if ( (project_parent != nullptr) && (project_parent->sources_common != nullptr) ){
-    project_parent->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
+  if ( (project_parent_ != nullptr) && (project_parent_->sources_common != nullptr) ){
+    project_parent_->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
   }
 }
 
-void SourceTable::dragEnterEvent(QDragEnterEvent *event) {
+void SourceTable::dragEnterEvent(QDragEnterEvent *event)
+{
+  Q_ASSERT(event);
   if (event->mimeData()->hasUrls()) {
     event->acceptProposedAction();
   } else {
@@ -82,7 +90,9 @@ void SourceTable::dragEnterEvent(QDragEnterEvent *event) {
   }
 }
 
-void SourceTable::dragMoveEvent(QDragMoveEvent *event) {
+void SourceTable::dragMoveEvent(QDragMoveEvent *event)
+{
+  Q_ASSERT(event);
   if (event->mimeData()->hasUrls()) {
     event->acceptProposedAction();
   } else {
@@ -90,6 +100,10 @@ void SourceTable::dragMoveEvent(QDragMoveEvent *event) {
   }
 }
 
-void SourceTable::dropEvent(QDropEvent* event) {
-  project_parent->sources_common->dropEvent(this, event, indexAt(event->pos()), selectionModel()->selectedRows());
+void SourceTable::dropEvent(QDropEvent* event)
+{
+  Q_ASSERT(event);
+  Q_ASSERT(project_parent_);
+  Q_ASSERT(project_parent_->sources_common);
+  project_parent_->sources_common->dropEvent(this, event, indexAt(event->pos()), selectionModel()->selectedRows());
 }

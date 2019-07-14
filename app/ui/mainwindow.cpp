@@ -324,21 +324,23 @@ void MainWindow::launch_with_project(const QString& s) {
   enable_launch_with_project = true;
 }
 
-void MainWindow::make_new_menu(QMenu *parent) {
-  parent->addAction(tr("&Project"), this, SLOT(new_project()), QKeySequence("Ctrl+N"))->setProperty("id", "newproj");
-  parent->addSeparator();
-  parent->addAction(tr("&Sequence"), this, SLOT(new_sequence()), QKeySequence("Ctrl+Shift+N"))->setProperty("id", "newseq");
-  parent->addAction(tr("&Folder"), this, SLOT(new_folder()))->setProperty("id", "newfolder");
+void MainWindow::make_new_menu(QMenu& parent_menu) const
+{
+  parent_menu.addAction(tr("&Project"), this, SLOT(new_project()), QKeySequence("Ctrl+N"))->setProperty("id", "newproj");
+  parent_menu.addSeparator();
+  parent_menu.addAction(tr("&Sequence"), this, SLOT(new_sequence()), QKeySequence("Ctrl+Shift+N"))->setProperty("id", "newseq");
+  parent_menu.addAction(tr("&Folder"), this, SLOT(new_folder()))->setProperty("id", "newfolder");
 }
 
-void MainWindow::make_inout_menu(QMenu *parent) {
-  parent->addAction(tr("Set In Point"), this, SLOT(set_in_point()), QKeySequence("I"))->setProperty("id", "setinpoint");
-  parent->addAction(tr("Set Out Point"), this, SLOT(set_out_point()), QKeySequence("O"))->setProperty("id", "setoutpoint");
-  parent->addAction(tr("Enable/Disable In/Out Point"), this, SLOT(enable_inout()))->setProperty("id", "enableinout");
-  parent->addSeparator();
-  parent->addAction(tr("Reset In Point"), this, SLOT(clear_in()))->setProperty("id", "resetin");
-  parent->addAction(tr("Reset Out Point"), this, SLOT(clear_out()))->setProperty("id", "resetout");
-  parent->addAction(tr("Clear In/Out Point"), this, SLOT(clear_inout()), QKeySequence("G"))->setProperty("id", "clearinout");
+void MainWindow::make_inout_menu(QMenu& parent_menu) const
+{
+  parent_menu.addAction(tr("Set In Point"), this, SLOT(set_in_point()), QKeySequence("I"))->setProperty("id", "setinpoint");
+  parent_menu.addAction(tr("Set Out Point"), this, SLOT(set_out_point()), QKeySequence("O"))->setProperty("id", "setoutpoint");
+  parent_menu.addAction(tr("Enable/Disable In/Out Point"), this, SLOT(enable_inout()))->setProperty("id", "enableinout");
+  parent_menu.addSeparator();
+  parent_menu.addAction(tr("Reset In Point"), this, SLOT(clear_in()))->setProperty("id", "resetin");
+  parent_menu.addAction(tr("Reset Out Point"), this, SLOT(clear_out()))->setProperty("id", "resetout");
+  parent_menu.addAction(tr("Clear In/Out Point"), this, SLOT(clear_inout()), QKeySequence("G"))->setProperty("id", "clearinout");
 }
 
 void kbd_shortcut_processor(QByteArray& file, QMenu* menu, bool save, bool first) {
@@ -600,7 +602,6 @@ void MainWindow::new_project()
     PanelManager::projectViewer().new_project();
     updateTitle("");
     PanelManager::refreshPanels(false);
-    PanelManager::projectViewer().tree_view->update();
   }
 }
 
@@ -700,7 +701,7 @@ void MainWindow::setupEditMenu(QMenuBar* menuBar)
 
   edit_menu_->addSeparator();
 
-  make_inout_menu(edit_menu_);
+  make_inout_menu(*edit_menu_);
   edit_menu_->addAction(tr("Delete In/Out Point"), this, SLOT(delete_inout()), QKeySequence(";"))->setProperty("id", "deleteinout");
   edit_menu_->addAction(tr("Ripple Delete In/Out Point"), this, SLOT(ripple_delete_inout()), QKeySequence("'"))->setProperty("id", "rippledeleteinout");
 
@@ -723,7 +724,7 @@ void MainWindow::setup_menus() {
   connect(file_menu, SIGNAL(aboutToShow()), this, SLOT(fileMenu_About_To_Be_Shown()));
 
   QMenu* new_menu = file_menu->addMenu(tr("&New"));
-  make_new_menu(new_menu);
+  make_new_menu(*new_menu);
 
   file_menu->addAction(tr("&Open Project"), this, SLOT(open_project()), QKeySequence("Ctrl+O"))->setProperty("id", "openproj");
 
@@ -1427,10 +1428,10 @@ void MainWindow::new_folder()
   QModelIndex index = Project::model().add(m);
   switch (e_config.project_view_type) {
   case ProjectView::TREE:
-    PanelManager::projectViewer().tree_view->edit(PanelManager::projectViewer().sorter->mapFromSource(index));
+    PanelManager::projectViewer().tree_view_->edit(PanelManager::projectViewer().sorter->mapFromSource(index));
     break;
   case ProjectView::ICON:
-    PanelManager::projectViewer().icon_view->edit(PanelManager::projectViewer().sorter->mapFromSource(index));
+    PanelManager::projectViewer().icon_view_->edit(PanelManager::projectViewer().sorter->mapFromSource(index));
     break;
   default:
     qWarning() << "Unhandled Project View type";
