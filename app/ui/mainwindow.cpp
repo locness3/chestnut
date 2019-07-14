@@ -319,9 +319,17 @@ void MainWindow::tearDown()
   instance_ = nullptr;
 }
 
-void MainWindow::launch_with_project(const QString& s) {
-  project_url = s;
-  enable_launch_with_project = true;
+void MainWindow::launch_with_project(const QString& s)
+{
+  if (QDir().exists(s)) {
+    project_url = s;
+    enable_launch_with_project = true;
+  } else {
+    QMessageBox msg;
+    msg.setText("Project file does not exist: '" + s + "'. Not loading.");
+    msg.setIcon(QMessageBox::Warning);
+    msg.exec();
+  }
 }
 
 void MainWindow::make_new_menu(QMenu& parent_menu) const
