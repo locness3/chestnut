@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
   QString load_proj;
   int c;
 
+  av_log_set_level(AV_LOG_PANIC);
+
   while ((c = getopt(argc, argv, "fhi:l:s")) != -1)
   {
     switch (c) {
@@ -68,14 +70,19 @@ int main(int argc, char *argv[])
           QString val = optarg;
           if (val == "fatal") {
             chestnut::debug::debug_level = QtMsgType::QtFatalMsg;
+            av_log_set_level(AV_LOG_FATAL);
           } else if (val == "critical") {
             chestnut::debug::debug_level = QtMsgType::QtCriticalMsg;
+            av_log_set_level(AV_LOG_ERROR);
           } else if (val == "warning") {
             chestnut::debug::debug_level = QtMsgType::QtWarningMsg;
+            av_log_set_level(AV_LOG_WARNING);
           } else if (val == "info") {
             chestnut::debug::debug_level = QtMsgType::QtInfoMsg;
+            av_log_set_level(AV_LOG_INFO);
           } else if (val == "debug") {
             chestnut::debug::debug_level = QtMsgType::QtDebugMsg;
+            av_log_set_level(AV_LOG_VERBOSE);
           } else {
             std::cerr << "Unknown logging level:" << val.toUtf8().toStdString() << std::endl;
           }
