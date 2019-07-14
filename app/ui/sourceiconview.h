@@ -34,11 +34,11 @@ public:
     SourceIconView& operator=(const SourceIconView&) = delete;
     SourceIconView& operator=(const SourceIconView&&) = delete;
 
-    void mousePressEvent(QMouseEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent *event);
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dragMoveEvent(QDragMoveEvent *event);
-    void dropEvent(QDropEvent* event);
+    void mousePressEvent(QMouseEvent* event) final;
+    void mouseDoubleClickEvent(QMouseEvent *event) final;
+    void dragEnterEvent(QDragEnterEvent *event) final;
+    void dragMoveEvent(QDragMoveEvent *event) final;
+    void dropEvent(QDropEvent* event) final;
 signals:
     void changed_root();
 private slots:

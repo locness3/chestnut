@@ -477,14 +477,16 @@ void TimelineHeader::paintEvent(QPaintEvent*)
   p.fillPath(path, Qt::red);
 }
 
-void TimelineHeader::show_context_menu(const QPoint &pos) {
+void TimelineHeader::show_context_menu(const QPoint &pos)
+{
   QMenu menu(this);
 
-  MainWindow::instance().make_inout_menu(&menu);
+  MainWindow::instance().make_inout_menu(menu);
 
   menu.exec(mapToGlobal(pos));
 }
 
-void TimelineHeader::resized_scroll_listener(double d) {
+void TimelineHeader::resized_scroll_listener(double d)
+{
   update_zoom(zoom * d);
 }

@@ -334,7 +334,8 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
   PanelManager::timeLine().importing_files = false;
 
   // Dragging footage from the project-view window
-  if ( (event->source() == PanelManager::projectViewer().tree_view) || (event->source() == PanelManager::projectViewer().icon_view) ) {
+  if ( (event->source() == PanelManager::projectViewer().tree_view_)
+       || (event->source() == PanelManager::projectViewer().icon_view_) ) {
     auto items = PanelManager::projectViewer().get_current_selected();
     media_list.resize(items.size());
     for (auto item : items) {

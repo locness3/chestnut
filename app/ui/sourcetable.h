@@ -33,8 +33,8 @@ public:
 
     SourceTable(const SourceTable& ) = delete;
     SourceTable& operator=(const SourceTable&) = delete;
-
-    Project* project_parent;
+    
+    Project* project_parent_;
 protected:
     void mousePressEvent(QMouseEvent*) override;
     void mouseDoubleClickEvent(QMouseEvent *) override;

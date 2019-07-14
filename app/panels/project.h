@@ -111,8 +111,8 @@ public:
     void refresh();
 
 
-    SourceTable* tree_view;
-    SourceIconView* icon_view;
+    SourceTable* tree_view_;
+    SourceIconView* icon_view_;
     SourcesCommon* sources_common;
     ProjectFilter* sorter;
     QWidget* toolbar_widget;
