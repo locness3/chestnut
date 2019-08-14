@@ -59,7 +59,7 @@ class ExportThread : public QThread {
 
     // export parameters
     QString filename;
-    struct {
+    struct Params {
         bool enabled = false;
         int codec = -1;
         int width = -1;
@@ -67,6 +67,8 @@ class ExportThread : public QThread {
         double frame_rate = 0.0;
         CompressionType compression_type = CompressionType::UNKNOWN;
         double bitrate = 0.0;
+        int gop_length_{};
+        int b_frames_{};
     } video_params;
 
     struct {
@@ -124,6 +126,8 @@ class ExportThread : public QThread {
 
     bool setUpContext(RenderThread& rt, Viewer& vwr);
     void setDownContext(RenderThread& rt, Viewer& vwr) const;
+    void setupH264Encoder(AVCodecContext& ctx, const Params& video_params) const;
+    void setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_params) const;
 };
 
 #endif // EXPORTTHREAD_H

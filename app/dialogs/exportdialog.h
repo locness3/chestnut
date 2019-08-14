@@ -78,6 +78,8 @@ class ExportDialog : public QDialog
     QGroupBox* videoGroupbox;
     QGroupBox* audioGroupbox;
     QComboBox* compressionTypeCombobox;
+    QSpinBox* gop_length_box_ {nullptr};
+    QSpinBox* b_frame_box_ {nullptr};
 };
 
 #endif // EXPORTDIALOG_H

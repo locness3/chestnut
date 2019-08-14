@@ -31,6 +31,7 @@
 #include <QPushButton>
 #include <QProgressBar>
 #include <QStandardPaths>
+#include <limits>
 
 #include "debug.h"
 #include "panels/panelmanager.h"
@@ -47,6 +48,7 @@ extern "C" {
 constexpr auto X264_MINIMUM_CRF = 0;
 constexpr auto X264_MAXIMUM_CRF = 51;
 constexpr auto X264_DEFAULT_CRF = 23;
+constexpr auto DEFAULT_B_FRAMES = 2;
 
 enum ExportFormats {
   FORMAT_3GPP,
@@ -126,6 +128,8 @@ ExportDialog::ExportDialog(QWidget *parent)
   heightSpinbox->setValue(global::sequence->height());
   samplingRateSpinbox->setValue(global::sequence->audioFrequency());
   framerateSpinbox->setValue(global::sequence->frameRate());
+  gop_length_box_->setValue(qRound(global::sequence->frameRate() * 10));
+  b_frame_box_->setValue(DEFAULT_B_FRAMES);
 }
 
 ExportDialog::~ExportDialog()
@@ -558,6 +562,8 @@ void ExportDialog::export_action() {
       et->video_params.frame_rate = framerateSpinbox->value();
       et->video_params.compression_type = static_cast<CompressionType>(compressionTypeCombobox->currentData().toInt());
       et->video_params.bitrate = videobitrateSpinbox->value();
+      et->video_params.gop_length_ = gop_length_box_->value();
+      et->video_params.b_frames_ = b_frame_box_->value();
     }
     et->audio_params.enabled = audioGroupbox->isChecked();
     if (et->audio_params.enabled) {
@@ -700,6 +706,18 @@ void ExportDialog::setup_ui() {
   videobitrateSpinbox->setMaximum(100);
   videobitrateSpinbox->setValue(2);
   videoGridLayout->addWidget(videobitrateSpinbox, 5, 1, 1, 1);
+
+
+  videoGridLayout->addWidget(new QLabel(tr("GOP Length:")), 6, 0, 1, 1);
+  gop_length_box_ = new QSpinBox(videoGroupbox);
+  gop_length_box_->setMinimum(1);
+  gop_length_box_->setMaximum(std::numeric_limits<int>::max());
+  videoGridLayout->addWidget(gop_length_box_, 6, 1, 1, 1);
+
+  videoGridLayout->addWidget(new QLabel(tr("B-Frame count:")), 7, 0, 1, 1);
+  b_frame_box_ = new QSpinBox(videoGroupbox);
+  b_frame_box_->setMinimum(0);
+  videoGridLayout->addWidget(b_frame_box_, 7, 1, 1, 1);
 
   verticalLayout->addWidget(videoGroupbox);
 

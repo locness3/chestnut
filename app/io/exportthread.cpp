@@ -42,17 +42,25 @@ extern "C" {
 
 using panels::PanelManager;
 
+constexpr auto ERR_LEN = 256;
+
+namespace  {
+  char err[ERR_LEN];
+}
+
 ExportThread::ExportThread()
   : QThread(nullptr)
 {
   surface.create();
 }
 
-bool ExportThread::encode(AVFormatContext* ofmt_ctx, AVCodecContext* codec_ctx, AVFrame* frame, AVPacket* packet, AVStream* stream, bool rescale) {
+bool ExportThread::encode(AVFormatContext* ofmt_ctx, AVCodecContext* codec_ctx, AVFrame* frame, AVPacket* packet, AVStream* stream, bool rescale)
+{
   ret = avcodec_send_frame(codec_ctx, frame);
   if (ret < 0) {
-    qCritical() << "Failed to send frame to encoder." << ret;
-    ed->export_error = tr("failed to send frame to encoder (%1)").arg(QString::number(ret));
+    av_strerror(ret, err, ERR_LEN);
+    qCritical() << "Failed to send frame to encoder." << err;
+    ed->export_error = tr("failed to send frame to encoder (%1)").arg(err);
     return false;
   }
 
@@ -76,9 +84,13 @@ bool ExportThread::encode(AVFormatContext* ofmt_ctx, AVCodecContext* codec_ctx, 
   return true;
 }
 
-bool ExportThread::setupVideo() {
+//FIXME: setup is too naive/basic
+bool ExportThread::setupVideo()
+{
   // if video is disabled, no setup necessary
-  if (!video_params.enabled) return true;
+  if (!video_params.enabled) {
+    return true;
+  }
 
   // find video encoder
   vcodec = avcodec_find_encoder(static_cast<AVCodecID>(video_params.codec));
@@ -118,31 +130,37 @@ bool ExportThread::setupVideo() {
   }
   vcodec_ctx->time_base = av_inv_q(vcodec_ctx->framerate);
   video_stream->time_base = vcodec_ctx->time_base;
-
-  if (fmt_ctx->oformat->flags & AVFMT_GLOBALHEADER) {
-    vcodec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-  }
-
-  if (vcodec_ctx->codec_id == AV_CODEC_ID_H264) {
-    switch (video_params.compression_type) {
-      case CompressionType::CFR:
-        av_opt_set(vcodec_ctx->priv_data, "crf", QString::number(static_cast<int>(video_params.bitrate)).toUtf8(), AV_OPT_SEARCH_CHILDREN);
-        break;
-      default:
-        qWarning() << "Unhandled h264 compression type" << static_cast<int>(video_params.compression_type);
-        break;
-    }
-  }
+  vcodec_ctx->gop_size = video_params.gop_length_;
 
   AVDictionary* opts = nullptr;
   av_dict_set(&opts, "threads", "auto", 0);
 
   ret = avcodec_open2(vcodec_ctx, vcodec, &opts);
   if (ret < 0) {
-    qCritical() << "Could not open output video encoder." << ret;
-    ed->export_error = tr("could not open output video encoder (%1)").arg(QString::number(ret));
+    av_strerror(ret, err, ERR_LEN);
+    qCritical() << "Could not open output video encoder." << err;
+    ed->export_error = tr("could not open output video encoder (%1)").arg(err);
     return false;
   }
+
+  // Do bare minimum before avcodec_open2
+  switch (vcodec_ctx->codec_id) {
+    case AV_CODEC_ID_H264:
+      setupH264Encoder(*vcodec_ctx, video_params);
+      break;
+    case AV_CODEC_ID_MPEG2VIDEO:
+      setupMPEG2Encoder(*vcodec_ctx, video_params);
+      break;
+    default:
+      // Nothing defined for these codecs yet
+      break;
+  }
+
+  if (fmt_ctx->oformat->flags & AVFMT_GLOBALHEADER) {
+    vcodec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+  }
+  vcodec_ctx->sample_aspect_ratio = {1, 1};
+  vcodec_ctx->max_b_frames = video_params.b_frames_;
 
   // copy video encoder parameters to output stream
   ret = avcodec_parameters_from_context(video_stream->codecpar, vcodec_ctx);
@@ -545,4 +563,31 @@ void ExportThread::run()
 void ExportThread::wake()
 {
   waitCond.wakeAll();
+}
+
+void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_params) const
+{
+  switch (video_params.compression_type) {
+    case CompressionType::CFR:
+      av_opt_set(ctx.priv_data,
+                 "crf",
+                 QString::number(static_cast<int>(video_params.bitrate)).toUtf8(),
+                 AV_OPT_SEARCH_CHILDREN);
+      break;
+    default:
+      qWarning() << "Unhandled h264 compression type" << static_cast<int>(video_params.compression_type);
+      break;
+  }
+}
+
+
+void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_params) const
+{
+  // TODO: there are various things that are restricted in MPEG2 depending on resolution, aspect ratios and frame rates
+  // Perhaps use MP@ML (see FF_PROFILE_MPEG2_*)
+//    ctx.rc_max_rate = INT_MAX;
+  // if high-resolution
+//    ctx.rc_buffer_size = INT_MAX;
+//    ctx.rc_min_vbv_overflow_use = 2;
+    ctx.rc_max_available_vbv_use = 2;
 }
