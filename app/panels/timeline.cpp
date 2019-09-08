@@ -31,6 +31,7 @@
 #include <QHBoxLayout>
 #include <QSplitter>
 #include <QStatusBar>
+#include <QtCore/qglobal.h>
 
 #include "panels/panelmanager.h"
 #include "ui/timelinewidget.h"
