@@ -60,15 +60,18 @@ class ExportThread : public QThread {
     // export parameters
     QString filename;
     struct Params {
-        bool enabled = false;
+        double frame_rate = 0.0;
+        double bitrate = 0.0;
         int codec = -1;
         int width = -1;
         int height = -1;
-        double frame_rate = 0.0;
         CompressionType compression_type = CompressionType::UNKNOWN;
-        double bitrate = 0.0;
         int gop_length_{};
         int b_frames_{};
+        std::string profile_;
+        std::string level_;
+        bool enabled = false;
+        bool closed_gop_ {false};
     } video_params;
 
     struct {
@@ -100,17 +103,17 @@ class ExportThread : public QThread {
     bool setupContainer();
 
     AVFormatContext* fmt_ctx = nullptr;
-    AVStream* video_stream= nullptr;
-    AVCodec* vcodec= nullptr;
-    AVCodecContext* vcodec_ctx= nullptr;
+    AVStream* video_stream = nullptr;
+    AVCodec* vcodec = nullptr;
+    AVCodecContext* vcodec_ctx = nullptr;
     AVFrame* video_frame= nullptr;
-    AVFrame* sws_frame= nullptr;
-    SwsContext* sws_ctx= nullptr;
-    AVStream* audio_stream= nullptr;
-    AVCodec* acodec= nullptr;
-    AVFrame* audio_frame= nullptr;
-    AVFrame* swr_frame= nullptr;
-    AVCodecContext* acodec_ctx= nullptr;
+    AVFrame* sws_frame = nullptr;
+    SwsContext* sws_ctx = nullptr;
+    AVStream* audio_stream = nullptr;
+    AVCodec* acodec = nullptr;
+    AVFrame* audio_frame = nullptr;
+    AVFrame* swr_frame = nullptr;
+    AVCodecContext* acodec_ctx = nullptr;
     AVPacket video_pkt;
     AVPacket audio_pkt;
     SwrContext* swr_ctx = nullptr;

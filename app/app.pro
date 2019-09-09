@@ -122,6 +122,7 @@ SOURCES += \
     project/footagestream.cpp
 
 HEADERS += \
+    coderconstants.h \
     project/objectclip.h \
     project/track.h \
     ui/Forms/effects.h \

@@ -15,18 +15,20 @@
  * You should have received a copy of the GNU General Public License
  *along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #ifndef EXPORTDIALOG_H
 #define EXPORTDIALOG_H
 
 #include <QDialog>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QSpinBox>
+#include <QDoubleSpinBox>
+#include <QLabel>
+#include <QProgressBar>
+#include <QGroupBox>
 
-class ExportThread;
-class QComboBox;
-class QSpinBox;
-class QDoubleSpinBox;
-class QLabel;
-class QProgressBar;
-class QGroupBox;
+#include "io/exportthread.h"
 
 class ExportDialog : public QDialog
 {
@@ -81,6 +83,7 @@ class ExportDialog : public QDialog
     QGroupBox* audioGroupbox;
     QComboBox* compressionTypeCombobox;
     QSpinBox* gop_length_box_ {nullptr};
+    QCheckBox* closed_gop_box_ {nullptr};
     QSpinBox* b_frame_box_ {nullptr};
     QComboBox* profile_box_ {nullptr};
     QComboBox* level_box_ {nullptr};

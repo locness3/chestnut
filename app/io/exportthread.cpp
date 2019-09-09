@@ -32,6 +32,7 @@
 #include "dialogs/exportdialog.h"
 #include "ui/mainwindow.h"
 #include "debug.h"
+#include "coderconstants.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -45,7 +46,7 @@ using panels::PanelManager;
 constexpr auto ERR_LEN = 256;
 
 namespace  {
-  char err[ERR_LEN];
+  std::array<char, ERR_LEN> err;
 }
 
 ExportThread::ExportThread()
@@ -58,9 +59,9 @@ bool ExportThread::encode(AVFormatContext* ofmt_ctx, AVCodecContext* codec_ctx, 
 {
   ret = avcodec_send_frame(codec_ctx, frame);
   if (ret < 0) {
-    av_strerror(ret, err, ERR_LEN);
-    qCritical() << "Failed to send frame to encoder." << err;
-    ed->export_error = tr("failed to send frame to encoder (%1)").arg(err);
+    av_strerror(ret, err.data(), ERR_LEN);
+    qCritical() << "Failed to send frame to encoder." << err.data();
+    ed->export_error = tr("failed to send frame to encoder (%1)").arg(err.data());
     return false;
   }
 
@@ -126,7 +127,10 @@ bool ExportThread::setupVideo()
   vcodec_ctx->pix_fmt = vcodec->pix_fmts[0]; // maybe be breakable code
   vcodec_ctx->framerate = av_d2q(video_params.frame_rate, INT_MAX);
   if (video_params.compression_type == CompressionType::CBR) {
-    vcodec_ctx->bit_rate = static_cast<int64_t>((video_params.bitrate * 1000000.0) + 0.5);
+    const auto brate = static_cast<int64_t>((video_params.bitrate * 1E6) + 0.5);
+    vcodec_ctx->bit_rate = brate;
+    vcodec_ctx->rc_min_rate = brate;
+    vcodec_ctx->rc_max_rate = brate;
   }
   vcodec_ctx->time_base = av_inv_q(vcodec_ctx->framerate);
   video_stream->time_base = vcodec_ctx->time_base;
@@ -134,12 +138,16 @@ bool ExportThread::setupVideo()
 
   AVDictionary* opts = nullptr;
   av_dict_set(&opts, "threads", "auto", 0);
+  if (video_params.closed_gop_) {
+    // effectively disabling scene change detection
+    av_dict_set(&opts, "sc_threshold", "1000000000", 0);
+  }
 
   ret = avcodec_open2(vcodec_ctx, vcodec, &opts);
   if (ret < 0) {
-    av_strerror(ret, err, ERR_LEN);
-    qCritical() << "Could not open output video encoder." << err;
-    ed->export_error = tr("could not open output video encoder (%1)").arg(err);
+    av_strerror(ret, err.data(), ERR_LEN);
+    qCritical() << "Could not open output video encoder." << err.data();
+    ed->export_error = tr("could not open output video encoder (%1)").arg(err.data());
     return false;
   }
 
@@ -155,6 +163,7 @@ bool ExportThread::setupVideo()
       // Nothing defined for these codecs yet
       break;
   }
+
 
   if (fmt_ctx->oformat->flags & AVFMT_GLOBALHEADER) {
     vcodec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
@@ -250,6 +259,10 @@ bool ExportThread::setupAudio() {
 
   // open encoder
   ret = avcodec_open2(acodec_ctx, acodec, nullptr);
+  // if high-resolution
+//  auto byrate = video_params.bitrate  * 1E6;
+//  ctx.rc_buffer_size = byrate * 2;
+  //    ctx.rc_min_vbv_overflow_use = 2;
   if (ret < 0) {
     qCritical() << "Could not open output audio encoder." << ret;
     ed->export_error = tr("could not open output audio encoder (%1)").arg(QString::number(ret));
@@ -583,11 +596,43 @@ void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_par
 
 void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_params) const
 {
-  // TODO: there are various things that are restricted in MPEG2 depending on resolution, aspect ratios and frame rates
-  // Perhaps use MP@ML (see FF_PROFILE_MPEG2_*)
-//    ctx.rc_max_rate = INT_MAX;
-  // if high-resolution
-//    ctx.rc_buffer_size = INT_MAX;
-//    ctx.rc_min_vbv_overflow_use = 2;
-    ctx.rc_max_available_vbv_use = 2;
+  ctx.rc_max_available_vbv_use = 2;
+
+  if (video_params.profile_ == MPEG2_SIMPLE_PROFILE) {
+    ctx.profile = FF_PROFILE_MPEG2_SIMPLE;
+    ctx.intra_dc_precision = 10;
+  } else if (video_params.profile_ == MPEG2_MAIN_PROFILE) {
+    ctx.profile = FF_PROFILE_MPEG2_MAIN;
+    ctx.intra_dc_precision = 10;
+  } else if (video_params.profile_ == MPEG2_HIGH_PROFILE) {
+    ctx.profile = FF_PROFILE_MPEG2_HIGH;
+    ctx.intra_dc_precision = 11;
+  } else if (video_params.profile_ == MPEG2_422_PROFILE) {
+    ctx.profile = FF_PROFILE_MPEG2_422;
+    ctx.intra_dc_precision = 11;
+  }
+
+  if (video_params.profile_ == MPEG2_422_PROFILE) {
+    if (video_params.level_ == MPEG2_MAIN_LEVEL) {
+      ctx.level = 5;
+    } else if (video_params.level_ == MPEG2_HIGH_LEVEL) {
+      ctx.level = 2;
+    } else {
+      qWarning() << "Unhandled MPEG2 level for 422-profile";
+    }
+  } else {
+    if (video_params.level_ == MPEG2_LOW_LEVEL) {
+      // Can't find the ffmpeg constant
+    } else if (video_params.level_ == MPEG2_MAIN_LEVEL) {
+      ctx.level = 8;
+    } else if (video_params.level_ == MPEG2_HIGH1440_LEVEL) {
+      ctx.level = 6;
+    } else if (video_params.level_ == MPEG2_HIGH_LEVEL) {
+      ctx.level = 4;
+    } else {
+      qWarning() << "Unknown MPEG2 level";
+    }
+  }
+
+
 }

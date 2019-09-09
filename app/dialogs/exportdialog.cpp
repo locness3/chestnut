@@ -40,25 +40,15 @@
 #include "io/exportthread.h"
 #include "playback/playback.h"
 #include "ui/mainwindow.h"
+#include "coderconstants.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
 }
 
-constexpr auto X264_MINIMUM_CRF = 0;
-constexpr auto X264_MAXIMUM_CRF = 51;
+
 constexpr auto X264_DEFAULT_CRF = 23;
 constexpr auto DEFAULT_B_FRAMES = 2;
-
-constexpr auto MPEG2_SIMPLE_PROFILE = "SP";
-constexpr auto MPEG2_MAIN_PROFILE = "MP";
-constexpr auto MPEG2_HIGH_PROFILE = "HP";
-constexpr auto MPEG2_422_PROFILE = "422";
-
-constexpr auto MPEG2_LOW_LEVEL = "LL";
-constexpr auto MPEG2_MAIN_LEVEL = "ML";
-constexpr auto MPEG2_HIGH1440_LEVEL = "H-14";
-constexpr auto MPEG2_HIGH_LEVEL = "HL";
 
 
 
@@ -415,6 +405,13 @@ void ExportDialog::prep_ui_for_render(bool r)
 
 void ExportDialog::export_action()
 {
+  Q_ASSERT(formatCombobox);
+  Q_ASSERT(widthSpinbox);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_);
+  Q_ASSERT(closed_gop_box_);
+
   if ( (widthSpinbox->value() % 2) == 1 ||  (heightSpinbox->value() % 2) == 1) {
     QMessageBox::critical(
           this,
@@ -602,7 +599,10 @@ void ExportDialog::export_action()
       et->video_params.compression_type = static_cast<CompressionType>(compressionTypeCombobox->currentData().toInt());
       et->video_params.bitrate = videobitrateSpinbox->value();
       et->video_params.gop_length_ = gop_length_box_->value();
+      et->video_params.closed_gop_ = closed_gop_box_->isChecked();
       et->video_params.b_frames_ = b_frame_box_->value();
+      et->video_params.profile_ = profile_box_->currentText().toStdString();
+      et->video_params.level_ = level_box_->currentText().toStdString();
     }
     et->audio_params.enabled = audioGroupbox->isChecked();
     if (et->audio_params.enabled) {
@@ -798,6 +798,13 @@ void ExportDialog::setup_ui()
   videoGridLayout->addWidget(gop_length_box_, row, 1, 1, 1);
   row++;
 
+  videoGridLayout->addWidget(new QLabel(tr("Closed GOP:")), row, 0, 1, 1);
+  closed_gop_box_ = new QCheckBox(videoGroupbox);
+  closed_gop_box_->setCheckable(true);
+  closed_gop_box_->setChecked(true);
+  videoGridLayout->addWidget(closed_gop_box_, row, 1, 1, 1);
+  row++;
+
   videoGridLayout->addWidget(new QLabel(tr("B-Frame count:")), row, 0, 1, 1);
   b_frame_box_ = new QSpinBox(videoGroupbox);
   b_frame_box_->setMinimum(0);
@@ -908,11 +915,11 @@ void ExportDialog::setup_for_mpeg2()
 
 void ExportDialog::constrain_mpeg2()
 {
-  assert(profile_box_);
-  assert(level_box_);
-  assert(heightSpinbox);
-  assert(heightSpinbox);
-  assert(b_frame_box_);
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(b_frame_box_);
 
   int max_width = 0;
   int max_height = 0;
@@ -958,11 +965,11 @@ void ExportDialog::constrain_mpeg2()
 
 void ExportDialog::unconstrain()
 {
-  assert(profile_box_);
-  assert(level_box_);
-  assert(heightSpinbox);
-  assert(heightSpinbox);
-  assert(b_frame_box_);
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(b_frame_box_);
 
   constexpr auto max_val = std::numeric_limits<int>::max();
   heightSpinbox->setMaximum(max_val);
