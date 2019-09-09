@@ -146,14 +146,7 @@ bool ExportThread::setupVideo()
     // effectively disabling scene change detection
     av_dict_set(&opts, "sc_threshold", "1000000000", 0);
   }
-
-  ret = avcodec_open2(vcodec_ctx, vcodec, &opts);
-  if (ret < 0) {
-    av_strerror(ret, err.data(), ERR_LEN);
-    qCritical() << "Could not open output video encoder." << err.data();
-    ed->export_error = tr("could not open output video encoder (%1)").arg(err.data());
-    return false;
-  }
+  // TODO: FF_MOV_FLAG_FASTSTART for moov at start for mp4/mov files
 
   // Do bare minimum before avcodec_open2
   switch (vcodec_ctx->codec_id) {
@@ -167,6 +160,16 @@ bool ExportThread::setupVideo()
       // Nothing defined for these codecs yet
       break;
   }
+
+  ret = avcodec_open2(vcodec_ctx, vcodec, &opts);
+  if (ret < 0) {
+    av_strerror(ret, err.data(), ERR_LEN);
+    qCritical() << "Could not open output video encoder." << err.data();
+    ed->export_error = tr("could not open output video encoder (%1)").arg(err.data());
+    return false;
+  }
+
+
 
 
   if (fmt_ctx->oformat->flags & AVFMT_GLOBALHEADER) {
@@ -594,6 +597,24 @@ void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_par
     default:
       qWarning() << "Unhandled h264 compression type" << static_cast<int>(video_params.compression_type);
       break;
+  }
+
+  // Using ctx.profile does nothing
+  if (video_params.profile_ == H264_BASELINE_PROFILE) {
+    av_opt_set(ctx.priv_data, "profile", "baseline", 0);
+  } else if (video_params.profile_ == H264_EXTENDED_PROFILE) {
+    // FIXME: fail to open codec with this profile
+    av_opt_set(ctx.priv_data, "profile", "extended", 0);
+  } else if (video_params.profile_ == H264_MAIN_PROFILE) {
+    av_opt_set(ctx.priv_data, "profile", "main", 0);
+  } else if (video_params.profile_ == H264_HIGH_PROFILE) {
+    av_opt_set(ctx.priv_data, "profile", "high", 0);
+  }
+
+  try {
+    ctx.level = qRound(std::stod(video_params.level_) * 10);
+  } catch (const std::invalid_argument& ex) {
+    qWarning() << "Failed to convert H264 level to double, ex =" << ex.what();
   }
 }
 

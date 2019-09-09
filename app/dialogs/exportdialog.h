@@ -96,9 +96,16 @@ class ExportDialog : public QDialog
     void setup_ui();
     void prep_ui_for_render(bool r);
 
-    void setup_for_mpeg2();
-    void constrain_mpeg2();
+    void setupForMpeg2();
+    void constrainMpeg2();
+
+    void setupForMpeg4();
+    void setupForH264();
+    void constrainH264();
+
     void unconstrain();
+
+    std::string getCodecLongName(const AVCodecID codec) const;
 };
 
 #endif // EXPORTDIALOG_H

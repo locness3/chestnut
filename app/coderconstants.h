@@ -35,6 +35,7 @@ constexpr auto MPEG2_MAIN_LEVEL = "ML";
 constexpr auto MPEG2_HIGH1440_LEVEL = "H-14";
 constexpr auto MPEG2_HIGH_LEVEL = "HL";
 
+
 static const QStringList MPEG2_LOW_LEVEL_FRATES = {"23.976", "24", "25", "29.97", "30"};
 static const auto MPEG2_MAIN_LEVEL_FRATES = MPEG2_LOW_LEVEL_FRATES;
 static const QStringList MPEG2_HIGH1440_LEVEL_FRATES = {"23.976", "24", "25", "29.97", "30", "50", "59.94", "60"};
@@ -42,6 +43,13 @@ static const auto MPEG2_HIGH_LEVEL_FRATES = MPEG2_HIGH1440_LEVEL_FRATES;
 
 constexpr auto X264_MINIMUM_CRF = 0;
 constexpr auto X264_MAXIMUM_CRF = 51;
+
+
+constexpr auto H264_BASELINE_PROFILE = "BP";
+constexpr auto H264_EXTENDED_PROFILE = "XP";
+constexpr auto H264_MAIN_PROFILE = "MP";
+constexpr auto H264_HIGH_PROFILE = "HiP";
+
 
 
 

@@ -48,13 +48,15 @@ extern "C" {
 
 constexpr auto X264_DEFAULT_CRF = 23;
 constexpr auto DEFAULT_B_FRAMES = 2;
-
+constexpr auto MIN_H264_LEVEL = 2;
+constexpr auto MAX_H264_LEVEL = 5;
 
 
 namespace
 {
   const QStringList MPEG2_PROFILES {MPEG2_SIMPLE_PROFILE, MPEG2_MAIN_PROFILE, MPEG2_HIGH_PROFILE, MPEG2_422_PROFILE};
   const QStringList MPEG2_LEVELS {MPEG2_LOW_LEVEL, MPEG2_MAIN_LEVEL, MPEG2_HIGH1440_LEVEL, MPEG2_HIGH_LEVEL};
+  const QStringList H264_PROFILES {H264_BASELINE_PROFILE, H264_EXTENDED_PROFILE, H264_MAIN_PROFILE, H264_HIGH_PROFILE};
   const QStringList FRAME_RATES {"10", "12", "15", "23.976", "24", "25", "29.97", "30", "48", "50", "59.94", "60"};
 }
 
@@ -85,16 +87,29 @@ enum ExportFormats {
 
 struct LevelConstraints
 {
-  int max_width;
-  int max_height;
-  int max_bitrate;
-  QStringList framerates;
+    int max_width;
+    int max_height;
+    int max_bitrate;
+    QStringList framerates;
 };
 
 static const LevelConstraints MPEG2_LL_CONSTRAINTS {352, 288, 4000000, MPEG2_LOW_LEVEL_FRATES};
 static const LevelConstraints MPEG2_ML_CONSTRAINTS {720, 576, 15000000, MPEG2_MAIN_LEVEL_FRATES};
 static const LevelConstraints MPEG2_H14_CONSTRAINTS {1440, 1152, 60000000, MPEG2_HIGH1440_LEVEL_FRATES};
 static const LevelConstraints MPEG2_HL_CONSTRAINTS {1920, 1080, 80000000, MPEG2_HIGH_LEVEL_FRATES};
+
+static const LevelConstraints H264_20_CONSTRAINTS {-1, -1, 2000000, {}};
+static const LevelConstraints H264_21_CONSTRAINTS {-1, -1, 4000000, {}};
+static const LevelConstraints H264_22_CONSTRAINTS {-1, -1, 4000000, {}};
+static const LevelConstraints H264_30_CONSTRAINTS {-1, -1, 10000000, {}};
+static const LevelConstraints H264_31_CONSTRAINTS {-1, -1, 14000000, {}};
+static const LevelConstraints H264_32_CONSTRAINTS {-1, -1, 20000000, {}};
+static const LevelConstraints H264_40_CONSTRAINTS {-1, -1, 20000000, {}};
+static const LevelConstraints H264_41_CONSTRAINTS {-1, -1, 50000000, {}};
+static const LevelConstraints H264_42_CONSTRAINTS {-1, -1, 50000000, {}};
+static const LevelConstraints H264_50_CONSTRAINTS {-1, -1, 135000000, {}};
+static const LevelConstraints H264_51_CONSTRAINTS {-1, -1, 240000000, {}};
+static const LevelConstraints H264_52_CONSTRAINTS {-1, -1, 240000000, {}};
 
 
 using panels::PanelManager;
@@ -261,19 +276,11 @@ void ExportDialog::format_changed(int index)
       default_acodec = 1;
       break;
     case FORMAT_MPEG2:
-      setup_for_mpeg2();
-
+      setupForMpeg2();
       default_acodec = 1;
       break;
     case FORMAT_MPEG4:
-      format_vcodecs.append(AV_CODEC_ID_MPEG4);
-      format_vcodecs.append(AV_CODEC_ID_H264);
-
-      format_acodecs.append(AV_CODEC_ID_AAC);
-      format_acodecs.append(AV_CODEC_ID_AC3);
-      format_acodecs.append(AV_CODEC_ID_MP2);
-      format_acodecs.append(AV_CODEC_ID_MP3);
-
+      setupForMpeg4();
       default_vcodec = 1;
       break;
     case FORMAT_MPEGTS:
@@ -355,8 +362,8 @@ void ExportDialog::format_changed(int index)
   }
 
   AVCodec* codec_info;
-  for (int i=0;i<format_vcodecs.size();i++) {
-    codec_info = avcodec_find_encoder(static_cast<AVCodecID>(format_vcodecs.at(i)));
+  for (const auto& fmt: format_vcodecs) {
+    codec_info = avcodec_find_encoder(static_cast<AVCodecID>(fmt));
     if (codec_info == nullptr) {
       vcodecCombobox->addItem("nullptr");
     } else {
@@ -398,7 +405,7 @@ void ExportDialog::render_thread_finished()
   PanelManager::sequenceViewer().viewer_widget->initializeGL();
   PanelManager::refreshPanels(false);
   if (progressBar->value() >= 100) {
-      accept();
+    accept();
   }
 }
 
@@ -653,14 +660,28 @@ void ExportDialog::cancel_render() {
 
 void ExportDialog::vcodec_changed(int index)
 {
+  Q_ASSERT(compressionTypeCombobox);
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_);
+  Q_ASSERT(formatCombobox);
+
   compressionTypeCombobox->clear();
-  if ((format_vcodecs.size() > 0) && (format_vcodecs.at(index) == AV_CODEC_ID_H264)) {
+  if (!format_vcodecs.empty() && (format_vcodecs.at(index) == AV_CODEC_ID_H264)) {
     compressionTypeCombobox->setEnabled(true);
     compressionTypeCombobox->addItem(tr("Quality-based (Constant Rate Factor)"), static_cast<int>(CompressionType::CFR));
+    setupForH264();
+  } else if (formatCombobox->currentIndex() == FORMAT_MPEG2) {
+    compressionTypeCombobox->addItem(tr("Constant Bitrate"), static_cast<int>(CompressionType::CBR));
+    compressionTypeCombobox->setCurrentIndex(0);
+    compressionTypeCombobox->setEnabled(false);
   } else {
     compressionTypeCombobox->addItem(tr("Constant Bitrate"), static_cast<int>(CompressionType::CBR));
     compressionTypeCombobox->setCurrentIndex(0);
     compressionTypeCombobox->setEnabled(false);
+    profile_box_->clear();
+    profile_box_->setEnabled(false);
+    level_box_->clear();
+    level_box_->setEnabled(false);
   }
 }
 
@@ -697,10 +718,15 @@ void ExportDialog::comp_type_changed(int)
 
 void ExportDialog::profile_changed(int)
 {
-  assert(formatCombobox);
+  Q_ASSERT(formatCombobox);
+  Q_ASSERT(vcodecCombobox);
+
   const auto format = formatCombobox->currentText();
   if (format == format_strings[FORMAT_MPEG2]) {
-    constrain_mpeg2();
+    constrainMpeg2();
+  } else if ( (format == format_strings[FORMAT_MPEG4]) &&
+              (vcodecCombobox->currentText().toStdString() == getCodecLongName(AV_CODEC_ID_H264)) ) { // possible to use format_vcodecs but aim to remove that
+    constrainH264();
   } else {
     unconstrain();
   }
@@ -711,7 +737,10 @@ void ExportDialog::level_changed(int)
   assert(formatCombobox);
   const auto format = formatCombobox->currentText();
   if (format == format_strings[FORMAT_MPEG2]) {
-    constrain_mpeg2();
+    constrainMpeg2();
+  } else if ( (format == format_strings[FORMAT_MPEG4]) &&
+              (vcodecCombobox->currentText().toStdString() == getCodecLongName(AV_CODEC_ID_H264)) ) { // possible to use format_vcodecs but aim to remove that
+    constrainH264();
   } else {
     unconstrain();
   }
@@ -890,37 +919,36 @@ void ExportDialog::setup_ui()
 }
 
 
-void ExportDialog::setup_for_mpeg2()
+void ExportDialog::setupForMpeg2()
 {
-    assert(profile_box_);
-    assert(level_box_);
+  assert(profile_box_);
+  assert(level_box_);
+
+  const int profile_default = 1;
+  const int level_default = 1;
+
+  format_vcodecs.append(AV_CODEC_ID_MPEG2VIDEO);
+
+  format_acodecs.append(AV_CODEC_ID_AC3);
+  format_acodecs.append(AV_CODEC_ID_MP2);
+  format_acodecs.append(AV_CODEC_ID_MP3);
+  format_acodecs.append(AV_CODEC_ID_PCM_S16LE);
+
+  profile_box_->clear();
+  profile_box_->addItems(MPEG2_PROFILES);
+  profile_box_->setCurrentIndex(profile_default);
+
+  level_box_->clear();
+  level_box_->addItems(MPEG2_LEVELS);
+  level_box_->setCurrentIndex(level_default);
 
 
-    const int profile_default = 1;
-    const int level_default = 1;
-
-    format_vcodecs.append(AV_CODEC_ID_MPEG2VIDEO);
-
-    format_acodecs.append(AV_CODEC_ID_AC3);
-    format_acodecs.append(AV_CODEC_ID_MP2);
-    format_acodecs.append(AV_CODEC_ID_MP3);
-    format_acodecs.append(AV_CODEC_ID_PCM_S16LE);
-
-    profile_box_->clear();
-    profile_box_->addItems(MPEG2_PROFILES);
-    profile_box_->setCurrentIndex(profile_default);
-
-    level_box_->clear();
-    level_box_->addItems(MPEG2_LEVELS);
-    level_box_->setCurrentIndex(level_default);
-
-
-    profile_box_->setEnabled(true);
-    level_box_->setEnabled(true);
+  profile_box_->setEnabled(true);
+  level_box_->setEnabled(true);
 }
 
 
-void ExportDialog::constrain_mpeg2()
+void ExportDialog::constrainMpeg2()
 {
   Q_ASSERT(profile_box_);
   Q_ASSERT(level_box_);
@@ -983,6 +1011,92 @@ void ExportDialog::constrain_mpeg2()
   framerate_box_->setCurrentIndex(ix);
 }
 
+void ExportDialog::setupForMpeg4()
+{
+  assert(profile_box_);
+  assert(level_box_);
+
+  format_vcodecs.append(AV_CODEC_ID_MPEG4);
+  format_vcodecs.append(AV_CODEC_ID_H264);
+
+  format_acodecs.append(AV_CODEC_ID_AAC);
+  format_acodecs.append(AV_CODEC_ID_AC3);
+  format_acodecs.append(AV_CODEC_ID_MP2);
+  format_acodecs.append(AV_CODEC_ID_MP3);
+}
+
+void ExportDialog::setupForH264()
+{
+  Q_ASSERT(profile_box_);
+  const int profile_default = 2;
+  const auto level_default = "4.0";
+  profile_box_->clear();
+  profile_box_->addItems(H264_PROFILES);
+  profile_box_->setCurrentIndex(profile_default);
+
+  level_box_->clear();
+
+  for (auto lvl = MIN_H264_LEVEL; lvl < MAX_H264_LEVEL; ++lvl) {
+    for (auto sub = 0; sub <= 2; ++sub) {
+      auto level = QString("%1.%2").arg(QString::number(lvl)).arg(QString::number(sub));
+      level_box_->addItem(level);
+    }
+  }
+
+  auto ix = level_box_->findText(level_default);
+  level_box_->setCurrentIndex(ix);
+  profile_box_->setEnabled(true);
+  level_box_->setEnabled(true);
+}
+
+
+void ExportDialog::constrainH264()
+{
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(sequence_);
+
+  int max_width = 0;
+  int max_height = 0;
+  int max_bitrate = 0;
+
+
+  const auto profile = profile_box_->currentText();
+  //TODO:
+
+  const auto level = level_box_->currentText();
+  //TODO: using CRF
+  //  if (level == "2.0") {
+  //    max_bitrate = H264_20_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "2.1") {
+  //    max_bitrate = H264_21_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "2.2") {
+  //    max_bitrate = H264_22_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "3.0") {
+  //    max_bitrate = H264_30_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "3.1") {
+  //    max_bitrate = H264_31_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "3.2") {
+  //    max_bitrate = H264_32_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "4.0") {
+  //    max_bitrate = H264_40_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "4.1") {
+  //    max_bitrate = H264_41_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "4.2") {
+  //    max_bitrate = H264_42_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "5.0") {
+  //    max_bitrate = H264_50_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "5.1") {
+  //    max_bitrate = H264_51_CONSTRAINTS.max_bitrate;
+  //  } else if (level == "5.2") {
+  //    max_bitrate = H264_52_CONSTRAINTS.max_bitrate;
+  //  }
+
+  //  videobitrateSpinbox->setMaximum(max_bitrate);
+}
+
 
 void ExportDialog::unconstrain()
 {
@@ -992,10 +1106,23 @@ void ExportDialog::unconstrain()
   Q_ASSERT(heightSpinbox);
   Q_ASSERT(b_frame_box_);
 
+
+
   constexpr auto max_val = std::numeric_limits<int>::max();
   heightSpinbox->setMaximum(max_val);
   widthSpinbox->setMaximum(max_val);
   videobitrateSpinbox->setMaximum(max_val);
   b_frame_box_->setMaximum(max_val);
 
+}
+
+
+std::string ExportDialog::getCodecLongName(const AVCodecID codec) const
+{
+  auto codec_info = avcodec_find_encoder(codec);
+  if (codec_info == nullptr) {
+    return "";
+  }
+
+  return codec_info->long_name;
 }
