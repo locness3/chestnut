@@ -178,10 +178,10 @@ ExportDialog::~ExportDialog()
 
 void ExportDialog::format_changed(int index)
 {
-  assert(vcodecCombobox);
-  assert(acodecCombobox);
-  assert(profile_box_);
-  assert(level_box_);
+  Q_ASSERT(vcodecCombobox);
+  Q_ASSERT(acodecCombobox);
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_);
 
 
   profile_box_->setEnabled(false);
@@ -610,7 +610,7 @@ void ExportDialog::export_action()
       et->video_params.height = heightSpinbox->value();
       bool ok;
       et->video_params.frame_rate = framerate_box_->currentText().toDouble(&ok);
-      assert(ok);
+      Q_ASSERT(ok);
       et->video_params.compression_type = static_cast<CompressionType>(compressionTypeCombobox->currentData().toInt());
       et->video_params.bitrate = videobitrateSpinbox->value();
       et->video_params.gop_length_ = gop_length_box_->value();
@@ -734,7 +734,7 @@ void ExportDialog::profile_changed(int)
 
 void ExportDialog::level_changed(int)
 {
-  assert(formatCombobox);
+  Q_ASSERT(formatCombobox);
   const auto format = formatCombobox->currentText();
   if (format == format_strings[FORMAT_MPEG2]) {
     constrainMpeg2();
@@ -921,8 +921,8 @@ void ExportDialog::setup_ui()
 
 void ExportDialog::setupForMpeg2()
 {
-  assert(profile_box_);
-  assert(level_box_);
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_);
 
   const int profile_default = 1;
   const int level_default = 1;
@@ -1013,8 +1013,8 @@ void ExportDialog::constrainMpeg2()
 
 void ExportDialog::setupForMpeg4()
 {
-  assert(profile_box_);
-  assert(level_box_);
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_);
 
   format_vcodecs.append(AV_CODEC_ID_MPEG4);
   format_vcodecs.append(AV_CODEC_ID_H264);
