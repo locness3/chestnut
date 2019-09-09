@@ -50,6 +50,24 @@ constexpr auto X264_MAXIMUM_CRF = 51;
 constexpr auto X264_DEFAULT_CRF = 23;
 constexpr auto DEFAULT_B_FRAMES = 2;
 
+constexpr auto MPEG2_SIMPLE_PROFILE = "SP";
+constexpr auto MPEG2_MAIN_PROFILE = "MP";
+constexpr auto MPEG2_HIGH_PROFILE = "HP";
+constexpr auto MPEG2_422_PROFILE = "422";
+
+constexpr auto MPEG2_LOW_LEVEL = "LL";
+constexpr auto MPEG2_MAIN_LEVEL = "ML";
+constexpr auto MPEG2_HIGH1440_LEVEL = "H-14";
+constexpr auto MPEG2_HIGH_LEVEL = "HL";
+
+
+
+namespace  {
+
+  const QStringList MPEG2_PROFILES {MPEG2_SIMPLE_PROFILE, MPEG2_MAIN_PROFILE, MPEG2_HIGH_PROFILE, MPEG2_422_PROFILE};
+  const QStringList MPEG2_LEVELS {MPEG2_LOW_LEVEL, MPEG2_MAIN_LEVEL, MPEG2_HIGH1440_LEVEL, MPEG2_HIGH_LEVEL};
+}
+
 enum ExportFormats {
   FORMAT_3GPP,
   FORMAT_AIFF,
@@ -74,6 +92,18 @@ enum ExportFormats {
   FORMAT_WMV,
   FORMAT_SIZE
 };
+
+struct LevelConstraints
+{
+  int max_width;
+  int max_height;
+  int max_bitrate;
+};
+
+constexpr LevelConstraints MPEG2_LL_CONSTRAINTS {352, 288, 4000000};
+constexpr LevelConstraints MPEG2_ML_CONSTRAINTS {720, 576, 15000000};
+constexpr LevelConstraints MPEG2_H14_CONSTRAINTS {1440, 1152, 60000000};
+constexpr LevelConstraints MPEG2_HL_CONSTRAINTS {1920, 1080, 80000000};
 
 
 using panels::PanelManager;
@@ -137,6 +167,15 @@ ExportDialog::~ExportDialog()
 
 void ExportDialog::format_changed(int index)
 {
+  assert(vcodecCombobox);
+  assert(acodecCombobox);
+  assert(profile_box_);
+  assert(level_box_);
+
+
+  profile_box_->setEnabled(false);
+  level_box_->setEnabled(false);
+
   format_vcodecs.clear();
   format_acodecs.clear();
   vcodecCombobox->clear();
@@ -226,12 +265,7 @@ void ExportDialog::format_changed(int index)
       default_acodec = 1;
       break;
     case FORMAT_MPEG2:
-      format_vcodecs.append(AV_CODEC_ID_MPEG2VIDEO);
-
-      format_acodecs.append(AV_CODEC_ID_AC3);
-      format_acodecs.append(AV_CODEC_ID_MP2);
-      format_acodecs.append(AV_CODEC_ID_MP3);
-      format_acodecs.append(AV_CODEC_ID_PCM_S16LE);
+      setup_for_mpeg2();
 
       default_acodec = 1;
       break;
@@ -333,8 +367,8 @@ void ExportDialog::format_changed(int index)
       vcodecCombobox->addItem(codec_info->long_name);
     }
   }
-  for (int i=0;i<format_acodecs.size();i++) {
-    codec_info = avcodec_find_encoder(static_cast<AVCodecID>(format_acodecs.at(i)));
+  for (auto& acodec : format_acodecs) {
+    codec_info = avcodec_find_encoder(static_cast<AVCodecID>(acodec));
     if (codec_info == nullptr) {
       acodecCombobox->addItem("nullptr");
     } else {
@@ -353,7 +387,8 @@ void ExportDialog::format_changed(int index)
   audioGroupbox->setEnabled(audio_enabled);
 }
 
-void ExportDialog::render_thread_finished() {
+void ExportDialog::render_thread_finished()
+{
   if (progressBar->value() < 100 && !cancelled) {
     QMessageBox::critical(
           this,
@@ -366,17 +401,21 @@ void ExportDialog::render_thread_finished() {
   PanelManager::sequenceViewer().viewer_widget->makeCurrent();
   PanelManager::sequenceViewer().viewer_widget->initializeGL();
   PanelManager::refreshPanels(false);
-  if (progressBar->value() == 100) accept();
+  if (progressBar->value() >= 100) {
+      accept();
+  }
 }
 
-void ExportDialog::prep_ui_for_render(bool r) {
+void ExportDialog::prep_ui_for_render(bool r)
+{
   export_button->setEnabled(!r);
   cancel_button->setEnabled(!r);
   renderCancel->setEnabled(r);
 }
 
-void ExportDialog::export_action() {
-  if (widthSpinbox->value()%2 == 1 || heightSpinbox->value()%2 == 1) {
+void ExportDialog::export_action()
+{
+  if ( (widthSpinbox->value() % 2) == 1 ||  (heightSpinbox->value() % 2) == 1) {
     QMessageBox::critical(
           this,
           tr("Invalid dimensions"),
@@ -586,11 +625,12 @@ void ExportDialog::export_action() {
   }
 }
 
-void ExportDialog::update_progress_bar(int value, qint64 remaining_ms) {
+void ExportDialog::update_progress_bar(int value, qint64 remaining_ms)
+{
   // convert ms to H:MM:SS
-  int seconds = qFloor(remaining_ms*0.001)%60;
-  int minutes = qFloor(remaining_ms/60000)%60;
-  int hours = qFloor(remaining_ms/3600000);
+  const int seconds = qFloor(remaining_ms * 0.001) % 60;
+  const int minutes = qFloor(remaining_ms / 60000) % 60;
+  const int hours = qFloor(remaining_ms / 3600000);
   progressBar->setFormat("%p% (ETA: " + QString::number(hours) + ":" + QString::number(minutes).rightJustified(2, '0')
                          + ":" + QString::number(seconds).rightJustified(2, '0') + ")");
 
@@ -603,7 +643,8 @@ void ExportDialog::cancel_render() {
   et->wake();
 }
 
-void ExportDialog::vcodec_changed(int index) {
+void ExportDialog::vcodec_changed(int index)
+{
   compressionTypeCombobox->clear();
   if ((format_vcodecs.size() > 0) && (format_vcodecs.at(index) == AV_CODEC_ID_H264)) {
     compressionTypeCombobox->setEnabled(true);
@@ -615,7 +656,8 @@ void ExportDialog::vcodec_changed(int index) {
   }
 }
 
-void ExportDialog::comp_type_changed(int) {
+void ExportDialog::comp_type_changed(int)
+{
   videobitrateSpinbox->setToolTip("");
   videobitrateSpinbox->setMinimum(0);
   videobitrateSpinbox->setMaximum(99.99);
@@ -644,10 +686,34 @@ void ExportDialog::comp_type_changed(int) {
   }//switch
 }
 
-void ExportDialog::setup_ui() {
-  QVBoxLayout* verticalLayout = new QVBoxLayout(this);
 
-  QHBoxLayout* format_layout = new QHBoxLayout();
+void ExportDialog::profile_changed(int)
+{
+  assert(formatCombobox);
+  const auto format = formatCombobox->currentText();
+  if (format == format_strings[FORMAT_MPEG2]) {
+    constrain_mpeg2();
+  } else {
+    unconstrain();
+  }
+}
+
+void ExportDialog::level_changed(int)
+{
+  assert(formatCombobox);
+  const auto format = formatCombobox->currentText();
+  if (format == format_strings[FORMAT_MPEG2]) {
+    constrain_mpeg2();
+  } else {
+    unconstrain();
+  }
+}
+
+void ExportDialog::setup_ui()
+{
+  auto verticalLayout = new QVBoxLayout(this);
+
+  auto format_layout = new QHBoxLayout();
 
   format_layout->addWidget(new QLabel(tr("Format:")));
 
@@ -657,7 +723,7 @@ void ExportDialog::setup_ui() {
 
   verticalLayout->addLayout(format_layout);
 
-  QHBoxLayout* range_layout = new QHBoxLayout();
+  auto range_layout = new QHBoxLayout();
 
   range_layout->addWidget(new QLabel(tr("Range:")));
 
@@ -674,50 +740,69 @@ void ExportDialog::setup_ui() {
   videoGroupbox->setFlat(false);
   videoGroupbox->setCheckable(true);
 
-  QGridLayout* videoGridLayout = new QGridLayout(videoGroupbox);
+  auto videoGridLayout = new QGridLayout(videoGroupbox);
 
-  videoGridLayout->addWidget(new QLabel(tr("Codec:")), 0, 0, 1, 1);
+  int row = 0;
+  videoGridLayout->addWidget(new QLabel(tr("Codec:")), row, 0, 1, 1);
   vcodecCombobox = new QComboBox(videoGroupbox);
-  videoGridLayout->addWidget(vcodecCombobox, 0, 1, 1, 1);
+  videoGridLayout->addWidget(vcodecCombobox, row, 1, 1, 1);
+  row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("Width:")), 1, 0, 1, 1);
+  videoGridLayout->addWidget(new QLabel(tr("Profile")), row, 0, 1, 1);
+  profile_box_ = new QComboBox(videoGroupbox);
+  videoGridLayout->addWidget(profile_box_, row, 1, 1, 1);
+  row++;
+
+  videoGridLayout->addWidget(new QLabel(tr("Level")), row, 0, 1, 1);
+  level_box_ = new QComboBox(videoGroupbox);
+  videoGridLayout->addWidget(level_box_, row, 1, 1, 1);
+  row++;
+
+  videoGridLayout->addWidget(new QLabel(tr("Width:")), row, 0, 1, 1);
   widthSpinbox = new QSpinBox(videoGroupbox);
   widthSpinbox->setMaximum(16777216);
-  videoGridLayout->addWidget(widthSpinbox, 1, 1, 1, 1);
+  videoGridLayout->addWidget(widthSpinbox, row, 1, 1, 1);
+  row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("Height:")), 2, 0, 1, 1);
+  videoGridLayout->addWidget(new QLabel(tr("Height:")), row, 0, 1, 1);
   heightSpinbox = new QSpinBox(videoGroupbox);
   heightSpinbox->setMaximum(16777216);
-  videoGridLayout->addWidget(heightSpinbox, 2, 1, 1, 1);
+  videoGridLayout->addWidget(heightSpinbox, row, 1, 1, 1);
+  row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("Frame Rate:")), 3, 0, 1, 1);
+  videoGridLayout->addWidget(new QLabel(tr("Frame Rate:")), row, 0, 1, 1);
   framerateSpinbox = new QDoubleSpinBox(videoGroupbox);
   framerateSpinbox->setMaximum(60);
   framerateSpinbox->setValue(0);
-  videoGridLayout->addWidget(framerateSpinbox, 3, 1, 1, 1);
+  videoGridLayout->addWidget(framerateSpinbox, row, 1, 1, 1);
+  row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("Compression Type:")), 4, 0, 1, 1);
+  videoGridLayout->addWidget(new QLabel(tr("Compression Type:")), row, 0, 1, 1);
   compressionTypeCombobox = new QComboBox(videoGroupbox);
-  videoGridLayout->addWidget(compressionTypeCombobox, 4, 1, 1, 1);
+  videoGridLayout->addWidget(compressionTypeCombobox, row, 1, 1, 1);
+  row++;
 
   videoBitrateLabel = new QLabel(videoGroupbox);
-  videoGridLayout->addWidget(videoBitrateLabel, 5, 0, 1, 1);
+  videoGridLayout->addWidget(videoBitrateLabel, row, 0, 1, 1);
   videobitrateSpinbox = new QDoubleSpinBox(videoGroupbox);
   videobitrateSpinbox->setMaximum(100);
   videobitrateSpinbox->setValue(2);
-  videoGridLayout->addWidget(videobitrateSpinbox, 5, 1, 1, 1);
+  videoGridLayout->addWidget(videobitrateSpinbox, row, 1, 1, 1);
+  row++;
 
 
-  videoGridLayout->addWidget(new QLabel(tr("GOP Length:")), 6, 0, 1, 1);
+  videoGridLayout->addWidget(new QLabel(tr("GOP Length:")), row, 0, 1, 1);
   gop_length_box_ = new QSpinBox(videoGroupbox);
   gop_length_box_->setMinimum(1);
   gop_length_box_->setMaximum(std::numeric_limits<int>::max());
-  videoGridLayout->addWidget(gop_length_box_, 6, 1, 1, 1);
+  videoGridLayout->addWidget(gop_length_box_, row, 1, 1, 1);
+  row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("B-Frame count:")), 7, 0, 1, 1);
+  videoGridLayout->addWidget(new QLabel(tr("B-Frame count:")), row, 0, 1, 1);
   b_frame_box_ = new QSpinBox(videoGroupbox);
   b_frame_box_->setMinimum(0);
-  videoGridLayout->addWidget(b_frame_box_, 7, 1, 1, 1);
+  videoGridLayout->addWidget(b_frame_box_, row, 1, 1, 1);
+  row++;
 
   verticalLayout->addWidget(videoGroupbox);
 
@@ -725,27 +810,30 @@ void ExportDialog::setup_ui() {
   audioGroupbox->setTitle("Audio");
   audioGroupbox->setCheckable(true);
 
-  QGridLayout* audioGridLayout = new QGridLayout(audioGroupbox);
+  auto audioGridLayout = new QGridLayout(audioGroupbox);
+  row = 0;
 
-  audioGridLayout->addWidget(new QLabel(tr("Codec:")), 0, 0, 1, 1);
+  audioGridLayout->addWidget(new QLabel(tr("Codec:")), row, 0, 1, 1);
   acodecCombobox = new QComboBox(audioGroupbox);
-  audioGridLayout->addWidget(acodecCombobox, 0, 1, 1, 1);
+  audioGridLayout->addWidget(acodecCombobox, row, 1, 1, 1);
+  row++;
 
-  audioGridLayout->addWidget(new QLabel(tr("Sampling Rate:")), 1, 0, 1, 1);
+  audioGridLayout->addWidget(new QLabel(tr("Sampling Rate:")), row, 0, 1, 1);
   samplingRateSpinbox = new QSpinBox(audioGroupbox);
   samplingRateSpinbox->setMaximum(96000);
   samplingRateSpinbox->setValue(0);
-  audioGridLayout->addWidget(samplingRateSpinbox, 1, 1, 1, 1);
+  audioGridLayout->addWidget(samplingRateSpinbox, row, 1, 1, 1);
+  row++;
 
-  audioGridLayout->addWidget(new QLabel(tr("Bitrate (Kbps/CBR):")), 3, 0, 1, 1);
+  audioGridLayout->addWidget(new QLabel(tr("Bitrate (Kbps/CBR):")), row, 0, 1, 1);
   audiobitrateSpinbox = new QSpinBox(audioGroupbox);
   audiobitrateSpinbox->setMaximum(320);
   audiobitrateSpinbox->setValue(256);
-  audioGridLayout->addWidget(audiobitrateSpinbox, 3, 1, 1, 1);
+  audioGridLayout->addWidget(audiobitrateSpinbox, row, 1, 1, 1);
 
   verticalLayout->addWidget(audioGroupbox);
 
-  QHBoxLayout* progressLayout = new QHBoxLayout();
+  auto progressLayout = new QHBoxLayout();
   progressBar = new QProgressBar(this);
   progressBar->setFormat("%p% (ETA: 0:00:00)");
   progressBar->setEnabled(false);
@@ -761,7 +849,7 @@ void ExportDialog::setup_ui() {
 
   verticalLayout->addLayout(progressLayout);
 
-  QHBoxLayout* buttonLayout = new QHBoxLayout();
+  auto buttonLayout = new QHBoxLayout();
   buttonLayout->addStretch();
 
   export_button = new QPushButton(this);
@@ -783,4 +871,103 @@ void ExportDialog::setup_ui() {
   connect(formatCombobox, SIGNAL(currentIndexChanged(int)), this, SLOT(format_changed(int)));
   connect(compressionTypeCombobox, SIGNAL(currentIndexChanged(int)), this, SLOT(comp_type_changed(int)));
   connect(vcodecCombobox, SIGNAL(currentIndexChanged(int)), this, SLOT(vcodec_changed(int)));
+  connect(profile_box_, SIGNAL(currentIndexChanged(int)), this, SLOT(profile_changed(int)));
+  connect(level_box_, SIGNAL(currentIndexChanged(int)), this, SLOT(level_changed(int)));
+}
+
+
+void ExportDialog::setup_for_mpeg2()
+{
+    assert(profile_box_);
+    assert(level_box_);
+
+
+    const int profile_default = 1;
+    const int level_default = 1;
+
+    format_vcodecs.append(AV_CODEC_ID_MPEG2VIDEO);
+
+    format_acodecs.append(AV_CODEC_ID_AC3);
+    format_acodecs.append(AV_CODEC_ID_MP2);
+    format_acodecs.append(AV_CODEC_ID_MP3);
+    format_acodecs.append(AV_CODEC_ID_PCM_S16LE);
+
+    profile_box_->clear();
+    profile_box_->addItems(MPEG2_PROFILES);
+    profile_box_->setCurrentIndex(profile_default);
+
+    level_box_->clear();
+    level_box_->addItems(MPEG2_LEVELS);
+    level_box_->setCurrentIndex(level_default);
+
+
+    profile_box_->setEnabled(true);
+    level_box_->setEnabled(true);
+}
+
+
+void ExportDialog::constrain_mpeg2()
+{
+  assert(profile_box_);
+  assert(level_box_);
+  assert(heightSpinbox);
+  assert(heightSpinbox);
+  assert(b_frame_box_);
+
+  int max_width = 0;
+  int max_height = 0;
+  int max_bitrate = 0;
+  int max_b_frames = 0;
+
+
+  const auto profile = profile_box_->currentText();
+  if (profile == MPEG2_SIMPLE_PROFILE) {
+    max_b_frames = 0;
+  } else {
+    max_b_frames = std::numeric_limits<int>::max();
+  }
+
+  const auto level = level_box_->currentText();
+  if (level == MPEG2_LOW_LEVEL) {
+    max_height = MPEG2_LL_CONSTRAINTS.max_height;
+    max_width =  MPEG2_LL_CONSTRAINTS.max_width;
+    max_bitrate = MPEG2_LL_CONSTRAINTS.max_bitrate;
+  } else if (level == MPEG2_MAIN_LEVEL) {
+    max_height = MPEG2_ML_CONSTRAINTS.max_height;
+    max_width = MPEG2_ML_CONSTRAINTS.max_width;
+    max_bitrate = MPEG2_ML_CONSTRAINTS.max_bitrate;
+  } else if (level == MPEG2_HIGH1440_LEVEL) {
+    max_height = MPEG2_H14_CONSTRAINTS.max_height;
+    max_width = MPEG2_H14_CONSTRAINTS.max_width;
+    max_bitrate = MPEG2_H14_CONSTRAINTS.max_bitrate;
+  } else if (level == MPEG2_HIGH_LEVEL) {
+    max_height = MPEG2_HL_CONSTRAINTS.max_height;
+    max_width = MPEG2_HL_CONSTRAINTS.max_width;
+    max_bitrate = MPEG2_HL_CONSTRAINTS.max_bitrate;
+  } else {
+    qCritical() << "Unknown MPEG2 level =" << level;
+    return;
+  }
+
+  heightSpinbox->setMaximum(max_height);
+  widthSpinbox->setMaximum(max_width);
+  videobitrateSpinbox->setMaximum(max_bitrate);
+  b_frame_box_->setMaximum(max_b_frames);
+}
+
+
+void ExportDialog::unconstrain()
+{
+  assert(profile_box_);
+  assert(level_box_);
+  assert(heightSpinbox);
+  assert(heightSpinbox);
+  assert(b_frame_box_);
+
+  constexpr auto max_val = std::numeric_limits<int>::max();
+  heightSpinbox->setMaximum(max_val);
+  widthSpinbox->setMaximum(max_val);
+  videobitrateSpinbox->setMaximum(max_val);
+  b_frame_box_->setMaximum(max_val);
+
 }

@@ -48,16 +48,18 @@ class ExportDialog : public QDialog
     void render_thread_finished();
     void vcodec_changed(int index);
     void comp_type_changed(int index);
+    void profile_changed(int index);
+    void level_changed(int index);
 
   private:
     QString output_dir_;
     QVector<QString> format_strings;
     QVector<int> format_vcodecs;
     QVector<int> format_acodecs;
-    void setup_ui();
+    QVector<QString> format_profiles;
+    QVector<QString> format_levels;
 
     ExportThread* et;
-    void prep_ui_for_render(bool r);
     bool cancelled;
 
     QComboBox* rangeCombobox;
@@ -80,6 +82,16 @@ class ExportDialog : public QDialog
     QComboBox* compressionTypeCombobox;
     QSpinBox* gop_length_box_ {nullptr};
     QSpinBox* b_frame_box_ {nullptr};
+    QComboBox* profile_box_ {nullptr};
+    QComboBox* level_box_ {nullptr};
+
+
+    void setup_ui();
+    void prep_ui_for_render(bool r);
+
+    void setup_for_mpeg2();
+    void constrain_mpeg2();
+    void unconstrain();
 };
 
 #endif // EXPORTDIALOG_H
