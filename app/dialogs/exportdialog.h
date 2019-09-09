@@ -29,16 +29,19 @@
 #include <QGroupBox>
 
 #include "io/exportthread.h"
+#include "project/sequence.h"
 
 class ExportDialog : public QDialog
 {
     Q_OBJECT
   public:
-    explicit ExportDialog(QWidget *parent = nullptr);
+    ExportDialog(SequencePtr seq, QWidget *parent = nullptr);
     virtual ~ExportDialog();
 
     ExportDialog(const ExportDialog& ) = delete;
     ExportDialog& operator=(const ExportDialog&) = delete;
+    ExportDialog(const ExportDialog&& ) = delete;
+    ExportDialog& operator=(const ExportDialog&&) = delete;
 
     QString export_error;
 
@@ -54,6 +57,7 @@ class ExportDialog : public QDialog
     void level_changed(int index);
 
   private:
+    SequencePtr sequence_ {nullptr};
     QString output_dir_;
     QVector<QString> format_strings;
     QVector<int> format_vcodecs;
@@ -68,7 +72,7 @@ class ExportDialog : public QDialog
     QSpinBox* widthSpinbox;
     QDoubleSpinBox* videobitrateSpinbox;
     QLabel* videoBitrateLabel;
-    QDoubleSpinBox* framerateSpinbox;
+    QComboBox* framerate_box_ {nullptr};
     QComboBox* vcodecCombobox;
     QComboBox* acodecCombobox;
     QSpinBox* samplingRateSpinbox;

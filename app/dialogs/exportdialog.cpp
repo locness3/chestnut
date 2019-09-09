@@ -46,16 +46,16 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-
 constexpr auto X264_DEFAULT_CRF = 23;
 constexpr auto DEFAULT_B_FRAMES = 2;
 
 
 
-namespace  {
-
+namespace
+{
   const QStringList MPEG2_PROFILES {MPEG2_SIMPLE_PROFILE, MPEG2_MAIN_PROFILE, MPEG2_HIGH_PROFILE, MPEG2_422_PROFILE};
   const QStringList MPEG2_LEVELS {MPEG2_LOW_LEVEL, MPEG2_MAIN_LEVEL, MPEG2_HIGH1440_LEVEL, MPEG2_HIGH_LEVEL};
+  const QStringList FRAME_RATES {"10", "12", "15", "23.976", "24", "25", "29.97", "30", "48", "50", "59.94", "60"};
 }
 
 enum ExportFormats {
@@ -88,30 +88,33 @@ struct LevelConstraints
   int max_width;
   int max_height;
   int max_bitrate;
+  QStringList framerates;
 };
 
-constexpr LevelConstraints MPEG2_LL_CONSTRAINTS {352, 288, 4000000};
-constexpr LevelConstraints MPEG2_ML_CONSTRAINTS {720, 576, 15000000};
-constexpr LevelConstraints MPEG2_H14_CONSTRAINTS {1440, 1152, 60000000};
-constexpr LevelConstraints MPEG2_HL_CONSTRAINTS {1920, 1080, 80000000};
+static const LevelConstraints MPEG2_LL_CONSTRAINTS {352, 288, 4000000, MPEG2_LOW_LEVEL_FRATES};
+static const LevelConstraints MPEG2_ML_CONSTRAINTS {720, 576, 15000000, MPEG2_MAIN_LEVEL_FRATES};
+static const LevelConstraints MPEG2_H14_CONSTRAINTS {1440, 1152, 60000000, MPEG2_HIGH1440_LEVEL_FRATES};
+static const LevelConstraints MPEG2_HL_CONSTRAINTS {1920, 1080, 80000000, MPEG2_HIGH_LEVEL_FRATES};
 
 
 using panels::PanelManager;
 
-ExportDialog::ExportDialog(QWidget *parent)
+ExportDialog::ExportDialog(SequencePtr seq, QWidget *parent)
   : QDialog(parent),
+    sequence_(std::move(seq)),
     output_dir_()
 {
+  Q_ASSERT(sequence_);
   if (!QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).empty()) {
     output_dir_ = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).first();
   }
-  setWindowTitle(tr("Export \"%1\"").arg(global::sequence->name()));
+  setWindowTitle(tr("Export \"%1\"").arg(sequence_->name()));
   setup_ui();
 
   rangeCombobox->setCurrentIndex(0);
-  if (global::sequence->workarea_.using_) {
+  if (sequence_->workarea_.using_) {
     rangeCombobox->setEnabled(true);
-    if (global::sequence->workarea_.enabled_) {
+    if (sequence_->workarea_.enabled_) {
       rangeCombobox->setCurrentIndex(1);
     }
   }
@@ -144,16 +147,19 @@ ExportDialog::ExportDialog(QWidget *parent)
   }
   formatCombobox->setCurrentIndex(FORMAT_MPEG4);
 
-  widthSpinbox->setValue(global::sequence->width());
-  heightSpinbox->setValue(global::sequence->height());
-  samplingRateSpinbox->setValue(global::sequence->audioFrequency());
-  framerateSpinbox->setValue(global::sequence->frameRate());
-  gop_length_box_->setValue(qRound(global::sequence->frameRate() * 10));
+  widthSpinbox->setValue(sequence_->width());
+  heightSpinbox->setValue(sequence_->height());
+  samplingRateSpinbox->setValue(sequence_->audioFrequency());
+  const int ix = framerate_box_->findText(QString::number(sequence_->frameRate(), 'g', 4));
+  framerate_box_->setCurrentIndex(ix);
+  gop_length_box_->setValue(qRound(sequence_->frameRate() * 10));
   b_frame_box_->setValue(DEFAULT_B_FRAMES);
 }
 
 ExportDialog::~ExportDialog()
-{}
+{
+
+}
 
 void ExportDialog::format_changed(int index)
 {
@@ -577,7 +583,7 @@ void ExportDialog::export_action()
     connect(et, SIGNAL(finished()), this, SLOT(render_thread_finished()));
     connect(et, SIGNAL(progress_changed(int, qint64)), this, SLOT(update_progress_bar(int, qint64)));
 
-    global::sequence->closeActiveClips();
+    sequence_->closeActiveClips();
 
     MainWindow::instance().set_rendering_state(true);
 
@@ -595,7 +601,9 @@ void ExportDialog::export_action()
       et->video_params.codec = format_vcodecs.at(vcodecCombobox->currentIndex());
       et->video_params.width = widthSpinbox->value();
       et->video_params.height = heightSpinbox->value();
-      et->video_params.frame_rate = framerateSpinbox->value();
+      bool ok;
+      et->video_params.frame_rate = framerate_box_->currentText().toDouble(&ok);
+      assert(ok);
       et->video_params.compression_type = static_cast<CompressionType>(compressionTypeCombobox->currentData().toInt());
       et->video_params.bitrate = videobitrateSpinbox->value();
       et->video_params.gop_length_ = gop_length_box_->value();
@@ -612,10 +620,10 @@ void ExportDialog::export_action()
     }
 
     et->start_frame = 0;
-    et->end_frame = global::sequence->endFrame(); // entire sequence
+    et->end_frame = sequence_->endFrame(); // entire sequence
     if (rangeCombobox->currentIndex() == 1) {
-      et->start_frame = qMax(global::sequence->workarea_.in_, et->start_frame);
-      et->end_frame = qMin(global::sequence->workarea_.out_, et->end_frame);
+      et->start_frame = qMax(sequence_->workarea_.in_, et->start_frame);
+      et->end_frame = qMin(sequence_->workarea_.out_, et->end_frame);
     }
 
     et->ed = this;
@@ -666,7 +674,7 @@ void ExportDialog::comp_type_changed(int)
     case CompressionType::CBR:
     case CompressionType::TARGETBITRATE:
       videoBitrateLabel->setText(tr("Bitrate (Mbps):"));
-      videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * global::sequence->height()) - 4.5))); // FIXME: magic numbers
+      videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * sequence_->height()) - 4.5))); // FIXME: magic numbers
       break;
     case CompressionType::CFR:
       videoBitrateLabel->setText(tr("Quality (CRF):"));
@@ -771,10 +779,9 @@ void ExportDialog::setup_ui()
   row++;
 
   videoGridLayout->addWidget(new QLabel(tr("Frame Rate:")), row, 0, 1, 1);
-  framerateSpinbox = new QDoubleSpinBox(videoGroupbox);
-  framerateSpinbox->setMaximum(60);
-  framerateSpinbox->setValue(0);
-  videoGridLayout->addWidget(framerateSpinbox, row, 1, 1, 1);
+  framerate_box_ = new QComboBox(videoGroupbox);
+  framerate_box_->addItems(FRAME_RATES);
+  videoGridLayout->addWidget(framerate_box_, row, 1, 1, 1);
   row++;
 
   videoGridLayout->addWidget(new QLabel(tr("Compression Type:")), row, 0, 1, 1);
@@ -920,11 +927,13 @@ void ExportDialog::constrain_mpeg2()
   Q_ASSERT(heightSpinbox);
   Q_ASSERT(heightSpinbox);
   Q_ASSERT(b_frame_box_);
+  Q_ASSERT(sequence_);
 
   int max_width = 0;
   int max_height = 0;
   int max_bitrate = 0;
   int max_b_frames = 0;
+  QStringList rates = FRAME_RATES;
 
 
   const auto profile = profile_box_->currentText();
@@ -939,18 +948,22 @@ void ExportDialog::constrain_mpeg2()
     max_height = MPEG2_LL_CONSTRAINTS.max_height;
     max_width =  MPEG2_LL_CONSTRAINTS.max_width;
     max_bitrate = MPEG2_LL_CONSTRAINTS.max_bitrate;
+    rates = MPEG2_LOW_LEVEL_FRATES;
   } else if (level == MPEG2_MAIN_LEVEL) {
     max_height = MPEG2_ML_CONSTRAINTS.max_height;
     max_width = MPEG2_ML_CONSTRAINTS.max_width;
     max_bitrate = MPEG2_ML_CONSTRAINTS.max_bitrate;
+    rates = MPEG2_MAIN_LEVEL_FRATES;
   } else if (level == MPEG2_HIGH1440_LEVEL) {
     max_height = MPEG2_H14_CONSTRAINTS.max_height;
     max_width = MPEG2_H14_CONSTRAINTS.max_width;
     max_bitrate = MPEG2_H14_CONSTRAINTS.max_bitrate;
+    rates = MPEG2_HIGH1440_LEVEL_FRATES;
   } else if (level == MPEG2_HIGH_LEVEL) {
     max_height = MPEG2_HL_CONSTRAINTS.max_height;
     max_width = MPEG2_HL_CONSTRAINTS.max_width;
     max_bitrate = MPEG2_HL_CONSTRAINTS.max_bitrate;
+    rates = MPEG2_HIGH_LEVEL_FRATES;
   } else {
     qCritical() << "Unknown MPEG2 level =" << level;
     return;
@@ -960,6 +973,14 @@ void ExportDialog::constrain_mpeg2()
   widthSpinbox->setMaximum(max_width);
   videobitrateSpinbox->setMaximum(max_bitrate);
   b_frame_box_->setMaximum(max_b_frames);
+  framerate_box_->clear();
+  framerate_box_->addItems(rates);
+
+
+  heightSpinbox->setValue(sequence_->height());
+  widthSpinbox->setValue(sequence_->width());
+  const int ix = framerate_box_->findText(QString::number(sequence_->frameRate(), 'g', 4));
+  framerate_box_->setCurrentIndex(ix);
 }
 
 

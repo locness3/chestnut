@@ -22,6 +22,7 @@
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
 #include <QPainter>
+#include <utility>
 
 #include "project/sequence.h"
 #include "panels/panelmanager.h"
@@ -47,6 +48,9 @@ constexpr auto ERR_LEN = 256;
 
 namespace  {
   std::array<char, ERR_LEN> err;
+  std::pair<double, AVRational> NTSC_24P {23.976, {24000, 1001}};
+  std::pair<double, AVRational> NTSC_30P {29.97, {30000, 1001}};
+  std::pair<double, AVRational> NTSC_60P {59.94, {60000, 1001}};
 }
 
 ExportThread::ExportThread()
@@ -125,7 +129,7 @@ bool ExportThread::setupVideo()
   vcodec_ctx->height = video_params.height;
   vcodec_ctx->sample_aspect_ratio = {1, 1};
   vcodec_ctx->pix_fmt = vcodec->pix_fmts[0]; // maybe be breakable code
-  vcodec_ctx->framerate = av_d2q(video_params.frame_rate, INT_MAX);
+  setupFrameRate(*vcodec_ctx, video_params.frame_rate);
   if (video_params.compression_type == CompressionType::CBR) {
     const auto brate = static_cast<int64_t>((video_params.bitrate * 1E6) + 0.5);
     vcodec_ctx->bit_rate = brate;
@@ -633,6 +637,18 @@ void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_pa
       qWarning() << "Unknown MPEG2 level";
     }
   }
+}
 
-
+void ExportThread::setupFrameRate(AVCodecContext& ctx, const double frame_rate) const
+{
+  Q_ASSERT(frame_rate > 0.0);
+  if (qFuzzyCompare(frame_rate, NTSC_24P.first)) {
+    ctx.framerate = NTSC_24P.second;
+  } else if (qFuzzyCompare(frame_rate, NTSC_30P.first)) {
+    ctx.framerate = NTSC_30P.second;
+  } else if (qFuzzyCompare(frame_rate, NTSC_60P.first)) {
+    ctx.framerate = NTSC_60P.second;
+  } else {
+    ctx.framerate = av_d2q(frame_rate, INT_MAX);
+  }
 }

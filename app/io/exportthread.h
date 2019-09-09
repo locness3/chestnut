@@ -131,6 +131,15 @@ class ExportThread : public QThread {
     void setDownContext(RenderThread& rt, Viewer& vwr) const;
     void setupH264Encoder(AVCodecContext& ctx, const Params& video_params) const;
     void setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_params) const;
+
+    /**
+     * @brief Configure codec frame rate parameter
+     * @note av_d2q() is not able to reliably go from a double (of drop-type TCs) to an AVRational which will
+     *                work with avcodec_open2()
+     * @param ctx         Encoder's context
+     * @param frame_rate  value > 0
+     */
+    void setupFrameRate(AVCodecContext& ctx, const double frame_rate) const;
 };
 
 #endif // EXPORTTHREAD_H

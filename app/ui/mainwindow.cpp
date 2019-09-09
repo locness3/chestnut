@@ -522,32 +522,42 @@ void MainWindow::zoom_out()
   }
 }
 
-void MainWindow::export_dialog() {
+void MainWindow::export_dialog()
+{
   if (global::sequence == nullptr) {
-    QMessageBox::information(this, tr("No active sequence"), tr("Please open the sequence you wish to export."), QMessageBox::Ok);
+    QMessageBox::information(this,
+                             tr("No active sequence"),
+                             tr("Please open the sequence you wish to export."),
+                             QMessageBox::Ok);
   } else {
-    ExportDialog e(this);
+    ExportDialog e(global::sequence , this);
     e.exec();
   }
 }
 
-void MainWindow::ripple_delete() {
-  if (global::sequence != nullptr) PanelManager::timeLine().delete_selection(global::sequence->selections_, true);
+void MainWindow::ripple_delete()
+{
+  if (global::sequence != nullptr) {
+    PanelManager::timeLine().delete_selection(global::sequence->selections_, true);
+  }
 }
 
-void MainWindow::editMenu_About_To_Be_Shown() {
+void MainWindow::editMenu_About_To_Be_Shown()
+{
   undo_action->setEnabled(e_undo_stack.canUndo());
   redo_action->setEnabled(e_undo_stack.canRedo());
 }
 
-void MainWindow::undo() {
+void MainWindow::undo()
+{
   if (!PanelManager::timeLine().importing) { // workaround to prevent crash (and also users should never need to do this)
     e_undo_stack.undo();
     PanelManager::refreshPanels(true);
   }
 }
 
-void MainWindow::redo() {
+void MainWindow::redo()
+{
   e_undo_stack.redo();
   PanelManager::refreshPanels(true);
 }
