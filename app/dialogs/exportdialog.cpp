@@ -995,10 +995,10 @@ void ExportDialog::constrainMpeg2()
   framerate_box_->clear();
   framerate_box_->addItems(rates);
 
-
   heightSpinbox->setValue(sequence_->height());
   widthSpinbox->setValue(sequence_->width());
-  const int ix = framerate_box_->findText(QString::number(sequence_->frameRate(), 'g', 4));
+  int ix = framerate_box_->findText(QString::number(sequence_->frameRate(), 'g', 4));
+  ix = std::max(0, ix);
   framerate_box_->setCurrentIndex(ix);
 }
 
