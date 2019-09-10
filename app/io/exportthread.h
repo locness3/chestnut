@@ -68,17 +68,18 @@ class ExportThread : public QThread {
         CompressionType compression_type = CompressionType::UNKNOWN;
         int gop_length_{};
         int b_frames_{};
-        std::string profile_;
-        std::string level_;
+        QString profile_;
+        QString level_;
         bool enabled = false;
         bool closed_gop_ {false};
+        bool subsampling {true};
     } video_params;
 
     struct {
-      bool enabled = false;
       int codec = -1;
       int sampling_rate = -1;
       int bitrate = -1;
+      bool enabled = false;
     } audio_params;
 
     int64_t start_frame;
@@ -130,6 +131,7 @@ class ExportThread : public QThread {
     void setDownContext(RenderThread& rt, Viewer& vwr) const;
     void setupH264Encoder(AVCodecContext& ctx, const Params& video_params) const;
     void setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_params) const;
+    void setupDNXHDEncoder(AVCodecContext& ctx, const Params& video_params) const;
 
     /**
      * @brief Configure codec frame rate parameter

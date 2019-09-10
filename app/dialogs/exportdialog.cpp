@@ -52,13 +52,6 @@ constexpr auto MIN_H264_LEVEL = 2;
 constexpr auto MAX_H264_LEVEL = 5;
 
 
-namespace
-{
-  const QStringList MPEG2_PROFILES {MPEG2_SIMPLE_PROFILE, MPEG2_MAIN_PROFILE, MPEG2_HIGH_PROFILE, MPEG2_422_PROFILE};
-  const QStringList MPEG2_LEVELS {MPEG2_LOW_LEVEL, MPEG2_MAIN_LEVEL, MPEG2_HIGH1440_LEVEL, MPEG2_HIGH_LEVEL};
-  const QStringList H264_PROFILES {H264_BASELINE_PROFILE, H264_EXTENDED_PROFILE, H264_MAIN_PROFILE, H264_HIGH_PROFILE};
-  const QStringList FRAME_RATES {"10", "12", "15", "23.976", "24", "25", "29.97", "30", "48", "50", "59.94", "60"};
-}
 
 enum ExportFormats {
   FORMAT_3GPP,
@@ -85,31 +78,8 @@ enum ExportFormats {
   FORMAT_SIZE
 };
 
-struct LevelConstraints
-{
-    int max_width;
-    int max_height;
-    int max_bitrate;
-    QStringList framerates;
-};
 
-static const LevelConstraints MPEG2_LL_CONSTRAINTS {352, 288, 4000000, MPEG2_LOW_LEVEL_FRATES};
-static const LevelConstraints MPEG2_ML_CONSTRAINTS {720, 576, 15000000, MPEG2_MAIN_LEVEL_FRATES};
-static const LevelConstraints MPEG2_H14_CONSTRAINTS {1440, 1152, 60000000, MPEG2_HIGH1440_LEVEL_FRATES};
-static const LevelConstraints MPEG2_HL_CONSTRAINTS {1920, 1080, 80000000, MPEG2_HIGH_LEVEL_FRATES};
 
-static const LevelConstraints H264_20_CONSTRAINTS {-1, -1, 2000000, {}};
-static const LevelConstraints H264_21_CONSTRAINTS {-1, -1, 4000000, {}};
-static const LevelConstraints H264_22_CONSTRAINTS {-1, -1, 4000000, {}};
-static const LevelConstraints H264_30_CONSTRAINTS {-1, -1, 10000000, {}};
-static const LevelConstraints H264_31_CONSTRAINTS {-1, -1, 14000000, {}};
-static const LevelConstraints H264_32_CONSTRAINTS {-1, -1, 20000000, {}};
-static const LevelConstraints H264_40_CONSTRAINTS {-1, -1, 20000000, {}};
-static const LevelConstraints H264_41_CONSTRAINTS {-1, -1, 50000000, {}};
-static const LevelConstraints H264_42_CONSTRAINTS {-1, -1, 50000000, {}};
-static const LevelConstraints H264_50_CONSTRAINTS {-1, -1, 135000000, {}};
-static const LevelConstraints H264_51_CONSTRAINTS {-1, -1, 240000000, {}};
-static const LevelConstraints H264_52_CONSTRAINTS {-1, -1, 240000000, {}};
 
 
 using panels::PanelManager;
@@ -230,9 +200,7 @@ void ExportDialog::format_changed(int index)
       default_acodec = 5;
       break;
     case FORMAT_DNXHD:
-      format_vcodecs.append(AV_CODEC_ID_DNXHD);
-
-      format_acodecs.append(AV_CODEC_ID_PCM_S16LE);
+      setupForDNXHD();
       break;
     case FORMAT_AC3:
       format_acodecs.append(AV_CODEC_ID_AC3);
@@ -616,8 +584,9 @@ void ExportDialog::export_action()
       et->video_params.gop_length_ = gop_length_box_->value();
       et->video_params.closed_gop_ = closed_gop_box_->isChecked();
       et->video_params.b_frames_ = b_frame_box_->value();
-      et->video_params.profile_ = profile_box_->currentText().toStdString();
-      et->video_params.level_ = level_box_->currentText().toStdString();
+      et->video_params.profile_ = profile_box_->currentText();
+      et->video_params.level_ = level_box_->currentText();
+      et->video_params.subsampling = subsampling_;
     }
     et->audio_params.enabled = audioGroupbox->isChecked();
     if (et->audio_params.enabled) {
@@ -670,7 +639,8 @@ void ExportDialog::vcodec_changed(int index)
     compressionTypeCombobox->setEnabled(true);
     compressionTypeCombobox->addItem(tr("Quality-based (Constant Rate Factor)"), static_cast<int>(CompressionType::CFR));
     setupForH264();
-  } else if (formatCombobox->currentIndex() == FORMAT_MPEG2) {
+  } else if ( (formatCombobox->currentIndex() == FORMAT_MPEG2) ||
+              (formatCombobox->currentIndex() == FORMAT_DNXHD) ) {
     compressionTypeCombobox->addItem(tr("Constant Bitrate"), static_cast<int>(CompressionType::CBR));
     compressionTypeCombobox->setCurrentIndex(0);
     compressionTypeCombobox->setEnabled(false);
@@ -687,15 +657,30 @@ void ExportDialog::vcodec_changed(int index)
 
 void ExportDialog::comp_type_changed(int)
 {
+  Q_ASSERT(compressionTypeCombobox);
+  Q_ASSERT(videobitrateSpinbox);
+  Q_ASSERT(videoBitrateLabel);
+  Q_ASSERT(formatCombobox);
+
+
+  auto locked_br = formatCombobox->currentText() == format_strings[FORMAT_DNXHD];
+
   videobitrateSpinbox->setToolTip("");
-  videobitrateSpinbox->setMinimum(0);
-  videobitrateSpinbox->setMaximum(99.99);
+
+  if (!locked_br) {
+    // Already constrained
+    videobitrateSpinbox->setMinimum(0);
+    videobitrateSpinbox->setMaximum(99.99);
+  }
   const auto compressionType = static_cast<CompressionType>(compressionTypeCombobox->currentData().toInt());
   switch (compressionType) {
     case CompressionType::CBR:
     case CompressionType::TARGETBITRATE:
       videoBitrateLabel->setText(tr("Bitrate (Mbps):"));
-      videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * sequence_->height()) - 4.5))); // FIXME: magic numbers
+      if (!locked_br) {
+        // already constrained
+        videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * sequence_->height()) - 4.5))); // FIXME: magic numbers
+      }
       break;
     case CompressionType::CFR:
       videoBitrateLabel->setText(tr("Quality (CRF):"));
@@ -727,6 +712,8 @@ void ExportDialog::profile_changed(int)
   } else if ( (format == format_strings[FORMAT_MPEG4]) &&
               (vcodecCombobox->currentText().toStdString() == getCodecLongName(AV_CODEC_ID_H264)) ) { // possible to use format_vcodecs but aim to remove that
     constrainH264();
+  } else if (format == format_strings[FORMAT_DNXHD]) {
+    constrainDNXHD();
   } else {
     unconstrain();
   }
@@ -826,22 +813,24 @@ void ExportDialog::setup_ui()
   videoGridLayout->addWidget(videobitrateSpinbox, row, 1, 1, 1);
   row++;
 
-
-  videoGridLayout->addWidget(new QLabel(tr("GOP Length:")), row, 0, 1, 1);
+  gop_length_label_ = new QLabel(tr("GOP Length:"));
+  videoGridLayout->addWidget(gop_length_label_, row, 0, 1, 1);
   gop_length_box_ = new QSpinBox(videoGroupbox);
   gop_length_box_->setMinimum(1);
   gop_length_box_->setMaximum(std::numeric_limits<int>::max());
   videoGridLayout->addWidget(gop_length_box_, row, 1, 1, 1);
   row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("Closed GOP:")), row, 0, 1, 1);
+  closed_gop_label_ = new QLabel(tr("Closed GOP:"));
+  videoGridLayout->addWidget(closed_gop_label_, row, 0, 1, 1);
   closed_gop_box_ = new QCheckBox(videoGroupbox);
   closed_gop_box_->setCheckable(true);
   closed_gop_box_->setChecked(true);
   videoGridLayout->addWidget(closed_gop_box_, row, 1, 1, 1);
   row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("B-Frame count:")), row, 0, 1, 1);
+  b_frame_label_ = new QLabel(tr("B-Frame count:"));
+  videoGridLayout->addWidget(b_frame_label_, row, 0, 1, 1);
   b_frame_box_ = new QSpinBox(videoGroupbox);
   b_frame_box_->setMinimum(0);
   videoGridLayout->addWidget(b_frame_box_, row, 1, 1, 1);
@@ -945,6 +934,8 @@ void ExportDialog::setupForMpeg2()
 
   profile_box_->setEnabled(true);
   level_box_->setEnabled(true);
+
+  setGOPWidgetsVisible(true);
 }
 
 
@@ -1047,6 +1038,7 @@ void ExportDialog::setupForH264()
   level_box_->setCurrentIndex(ix);
   profile_box_->setEnabled(true);
   level_box_->setEnabled(true);
+  setGOPWidgetsVisible(true);
 }
 
 
@@ -1098,6 +1090,75 @@ void ExportDialog::constrainH264()
 }
 
 
+void ExportDialog::setupForDNXHD()
+{
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(gop_length_box_);
+  Q_ASSERT(b_frame_box_);
+  Q_ASSERT(closed_gop_box_);
+
+  format_vcodecs.append(AV_CODEC_ID_DNXHD);
+  format_acodecs.append(AV_CODEC_ID_PCM_S16LE);
+
+  profile_box_->clear();
+  profile_box_->addItems(DNXHD_PROFILES);
+  profile_box_->setEnabled(true);
+
+  setGOPWidgetsVisible(false);
+}
+
+void ExportDialog::constrainDNXHD()
+{
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(widthSpinbox);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(videobitrateSpinbox);
+
+  auto profile = profile_box_->currentText();
+  LevelConstraints constraint;
+  if (profile == "440x") {
+    constraint = DNXHD_440X_CONSTRAINTS;
+  } else if (profile == "440") {
+    constraint = DNXHD_440_CONSTRAINTS;
+  } else if (profile == "365x") {
+    constraint = DNXHD_365X_CONSTRAINTS;
+  } else if (profile == "365") {
+    constraint = DNXHD_365_CONSTRAINTS;
+  } else if (profile == "350x") {
+    constraint = DNXHD_350X_CONSTRAINTS;
+  } else if (profile == "350") {
+    constraint = DNXHD_350_CONSTRAINTS;
+  } else if (profile == "220x") {
+    constraint = DNXHD_220X_CONSTRAINTS;
+  } else if (profile == "220") {
+    constraint = DNXHD_220_CONSTRAINTS;
+  } else if (profile == "185x") {
+    constraint = DNXHD_185X_CONSTRAINTS;
+  } else if (profile == "185") {
+    constraint = DNXHD_185_CONSTRAINTS;
+  } else if (profile == "145") {
+    constraint = DNXHD_145_CONSTRAINTS;
+  } else if (profile == "100") {
+    constraint = DNXHD_100_CONSTRAINTS;
+  } else if (profile == "90") {
+    constraint = DNXHD_90_CONSTRAINTS;
+  } else {
+    return;
+  }
+
+  widthSpinbox->setMaximum(constraint.max_width);
+  widthSpinbox->setMinimum(constraint.max_width);
+  heightSpinbox->setMaximum(constraint.max_height);
+  heightSpinbox->setMinimum(constraint.max_height);
+  const auto mb_brate = constraint.max_bitrate / 1E6;
+  videobitrateSpinbox->setMaximum(mb_brate);
+  videobitrateSpinbox->setMinimum(mb_brate);
+  framerate_box_->clear();
+  framerate_box_->addItems(constraint.framerates);
+  subsampling_ = constraint.subsampling;
+}
+
+
 void ExportDialog::unconstrain()
 {
   Q_ASSERT(profile_box_);
@@ -1106,14 +1167,31 @@ void ExportDialog::unconstrain()
   Q_ASSERT(heightSpinbox);
   Q_ASSERT(b_frame_box_);
 
-
-
   constexpr auto max_val = std::numeric_limits<int>::max();
   heightSpinbox->setMaximum(max_val);
   widthSpinbox->setMaximum(max_val);
   videobitrateSpinbox->setMaximum(max_val);
   b_frame_box_->setMaximum(max_val);
 
+  setGOPWidgetsVisible(true);
+}
+
+
+void ExportDialog::setGOPWidgetsVisible(const bool visible)
+{
+  Q_ASSERT(gop_length_label_);
+  Q_ASSERT(gop_length_box_);
+  Q_ASSERT(b_frame_label_);
+  Q_ASSERT(b_frame_box_);
+  Q_ASSERT(closed_gop_label_);
+  Q_ASSERT(closed_gop_box_);
+
+  gop_length_label_->setVisible(visible);
+  gop_length_box_->setVisible(visible);
+  b_frame_label_->setVisible(visible);
+  b_frame_box_->setVisible(visible);
+  closed_gop_label_->setVisible(visible);
+  closed_gop_box_->setVisible(visible);
 }
 
 

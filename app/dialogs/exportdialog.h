@@ -86,11 +86,15 @@ class ExportDialog : public QDialog
     QGroupBox* videoGroupbox;
     QGroupBox* audioGroupbox;
     QComboBox* compressionTypeCombobox;
+    QLabel* gop_length_label_ {nullptr};
     QSpinBox* gop_length_box_ {nullptr};
+    QLabel* closed_gop_label_ {nullptr};
     QCheckBox* closed_gop_box_ {nullptr};
+    QLabel* b_frame_label_ {nullptr};
     QSpinBox* b_frame_box_ {nullptr};
     QComboBox* profile_box_ {nullptr};
     QComboBox* level_box_ {nullptr};
+    bool subsampling_ {true};
 
 
     void setup_ui();
@@ -103,7 +107,12 @@ class ExportDialog : public QDialog
     void setupForH264();
     void constrainH264();
 
+    void setupForDNXHD();
+    void constrainDNXHD();
+
     void unconstrain();
+
+    void setGOPWidgetsVisible(const bool visible);
 
     std::string getCodecLongName(const AVCodecID codec) const;
 };

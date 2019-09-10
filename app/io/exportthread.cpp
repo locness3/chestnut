@@ -162,6 +162,9 @@ bool ExportThread::setupVideo()
     case AV_CODEC_ID_MPEG2VIDEO:
       setupMPEG2Encoder(*vcodec_ctx, video_params);
       break;
+    case AV_CODEC_ID_DNXHD:
+      setupDNXHDEncoder(*vcodec_ctx, video_params);
+      break;
     default:
       // Nothing defined for these codecs yet
       break;
@@ -631,7 +634,9 @@ void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_par
   }
 
   try {
-    ctx.level = qRound(std::stod(video_params.level_) * 10);
+    bool conv_ok;
+    ctx.level = qRound(video_params.level_.toDouble(&conv_ok) * 10);
+    Q_ASSERT(conv_ok);
   } catch (const std::invalid_argument& ex) {
     qWarning() << "Failed to convert H264 level to double, ex =" << ex.what();
   }
@@ -677,6 +682,23 @@ void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_pa
       qWarning() << "Unknown MPEG2 level";
     }
   }
+}
+
+
+void ExportThread::setupDNXHDEncoder(AVCodecContext& ctx, const Params& video_params) const
+{
+  ctx.profile = FF_PROFILE_DNXHD;
+
+  if (video_params.profile_.endsWith("x")) {
+    // dnxhdenc will deduce this is 10bits
+    if (!video_params.subsampling) {
+      ctx.pix_fmt = AV_PIX_FMT_YUV444P10;
+    } else {
+      ctx.pix_fmt = AV_PIX_FMT_YUV422P10;
+    }
+  }
+
+
 }
 
 void ExportThread::setupFrameRate(AVCodecContext& ctx, const double frame_rate) const
