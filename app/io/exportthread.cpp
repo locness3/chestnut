@@ -154,6 +154,8 @@ bool ExportThread::setupVideo()
 
   AVDictionary* opts = nullptr;
   if (video_params.closed_gop_) {
+    // Technically incorrect "closed gop" refers to last frame in each GOP being a P-frame
+    // Terminology being used to identify a fixed structure and libavcodec dynamically changing structure
     // effectively disabling scene change detection
     auto ret = av_dict_set(&opts, "sc_threshold", "1000000000", 0);
     if (ret < 0) {
@@ -681,7 +683,9 @@ void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_pa
     ctx.intra_dc_precision = 11;
   } else if (video_params.profile_ == MPEG2_422_PROFILE) {
     ctx.profile = FF_PROFILE_MPEG2_422;
-    ctx.intra_dc_precision = 11;
+    ctx.intra_dc_precision = 11;    
+    // Technically can be 4:2:2 or 4:2:0 but it's the only separable difference between it and "high"
+    ctx.pix_fmt = AV_PIX_FMT_YUV422P;
   }
 
   if (video_params.profile_ == MPEG2_422_PROFILE) {
@@ -713,15 +717,13 @@ void ExportThread::setupDNXHDEncoder(AVCodecContext& ctx, const Params& video_pa
   ctx.profile = FF_PROFILE_DNXHD;
 
   if (video_params.profile_.endsWith("x")) {
-    // dnxhdenc will deduce this is 10bits
+    // dnxhdenc will deduce this as 10bits
     if (!video_params.subsampling) {
       ctx.pix_fmt = AV_PIX_FMT_YUV444P10;
     } else {
       ctx.pix_fmt = AV_PIX_FMT_YUV422P10;
     }
   }
-
-
 }
 
 void ExportThread::setupFrameRate(AVCodecContext& ctx, const double frame_rate) const
