@@ -139,6 +139,7 @@ bool ExportThread::setupVideo()
   vcodec_ctx->time_base = av_inv_q(vcodec_ctx->framerate);
   video_stream->time_base = vcodec_ctx->time_base;
   vcodec_ctx->gop_size = video_params.gop_length_;
+  vcodec_ctx->thread_count = static_cast<int>(std::thread::hardware_concurrency());
 
   AVDictionary* opts = nullptr;
   av_dict_set(&opts, "threads", "auto", 0);
