@@ -23,6 +23,7 @@
 #include <QOpenGLPaintDevice>
 #include <QPainter>
 #include <utility>
+#include <thread>
 
 #include "project/sequence.h"
 #include "panels/panelmanager.h"
