@@ -81,14 +81,18 @@ bool ExportThread::encode(AVFormatContext* ofmt_ctx,
       return true;
     } else if (ret < 0) {
       if (ret != AVERROR_EOF) {
-        qCritical() << "Failed to receive packet from encoder." << ret;
+        av_strerror(ret, err.data(), ERR_LEN);
+        qCritical() << "Failed to receive packet from encoder, code=" << err.data();
         ed->export_error = tr("failed to receive packet from encoder (%1)").arg(QString::number(ret));
       }
       return false;
     }
 
     packet->stream_index = stream->index;
-    if (rescale) av_packet_rescale_ts(packet, codec_ctx->time_base, stream->time_base);
+    if (rescale) {
+      av_packet_rescale_ts(packet, codec_ctx->time_base, stream->time_base);
+    }
+
     av_interleaved_write_frame(ofmt_ctx, packet);
     av_packet_unref(packet);
   }
@@ -98,6 +102,7 @@ bool ExportThread::encode(AVFormatContext* ofmt_ctx,
 //FIXME: setup is too naive/basic
 bool ExportThread::setupVideo()
 {
+  Q_ASSERT(fmt_ctx);
   // if video is disabled, no setup necessary
   if (!video_params.enabled) {
     return true;
@@ -148,12 +153,28 @@ bool ExportThread::setupVideo()
   vcodec_ctx->thread_count = static_cast<int>(std::thread::hardware_concurrency());
 
   AVDictionary* opts = nullptr;
-  av_dict_set(&opts, "threads", "auto", 0);
   if (video_params.closed_gop_) {
     // effectively disabling scene change detection
-    av_dict_set(&opts, "sc_threshold", "1000000000", 0);
+    auto ret = av_dict_set(&opts, "sc_threshold", "1000000000", 0);
+    if (ret < 0) {
+      av_strerror(ret, err.data(), ERR_LEN);
+      qCritical() << "Failed to set closed-gop, code=" << err.data();
+      ed->export_error = tr("Failed to set closed-gop (%1)").arg(err.data());
+      return false;
+    }
   }
-  // TODO: FF_MOV_FLAG_FASTSTART for moov at start for mp4/mov files
+
+  const std::string fmt_name(fmt_ctx->oformat->name);
+  if ( (fmt_name == "mp4") || (fmt_name == "mov") ) {
+    // moov atom at start for mp4/mov files
+    auto ret = av_dict_set( &opts, "movflags", "faststart", 0);
+    if (ret < 0) {
+      av_strerror(ret, err.data(), ERR_LEN);
+      qCritical() << "Failed to set moov atom at start, code=" << err.data();
+      ed->export_error = tr("Failed to set moov atom at start (%1)").arg(err.data());
+      return false;
+    }
+  }
 
   // Do bare minimum before avcodec_open2
   switch (vcodec_ctx->codec_id) {
@@ -182,6 +203,7 @@ bool ExportThread::setupVideo()
   if (fmt_ctx->oformat->flags & AVFMT_GLOBALHEADER) {
     vcodec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
   }
+
   vcodec_ctx->sample_aspect_ratio = {1, 1};
   vcodec_ctx->max_b_frames = video_params.b_frames_;
 
