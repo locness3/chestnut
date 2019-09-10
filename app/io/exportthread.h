@@ -122,7 +122,6 @@ class ExportThread : public QThread {
     bool apkt_alloc = false;
 
     int aframe_bytes;
-    int ret;
 
     QMutex mutex;
     QWaitCondition waitCond;
