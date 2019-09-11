@@ -31,6 +31,13 @@
 #include "io/exportthread.h"
 #include "project/sequence.h"
 
+struct FormatCodecs
+{
+  QVector<int> video_;
+  QVector<int> audio_;
+};
+
+
 class ExportDialog : public QDialog
 {
     Q_OBJECT
@@ -59,9 +66,9 @@ class ExportDialog : public QDialog
   private:
     SequencePtr sequence_ {nullptr};
     QString output_dir_;
+
+    FormatCodecs format_codecs_;
     QVector<QString> format_strings;
-    QVector<int> format_vcodecs;
-    QVector<int> format_acodecs;
     QVector<QString> format_profiles;
     QVector<QString> format_levels;
 
@@ -100,8 +107,8 @@ class ExportDialog : public QDialog
     void setup_ui();
     void prep_ui_for_render(bool r);
 
-    void setupForMpeg2();
-    void constrainMpeg2();
+    void setupForMpeg2Video();
+    void constrainMpeg2Video();
 
     void setupForMpeg4();
     void setupForH264();
