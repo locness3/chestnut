@@ -189,6 +189,8 @@ bool ExportThread::setupVideo()
     case AV_CODEC_ID_DNXHD:
       setupDNXHDEncoder(*vcodec_ctx, video_params);
       break;
+    case AV_CODEC_ID_MPEG4:
+      setupMPEG4Encoder(*vcodec_ctx, video_params);
     default:
       // Nothing defined for these codecs yet
       break;
@@ -694,7 +696,7 @@ void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_pa
     } else if (video_params.level_ == MPEG2_HIGH_LEVEL) {
       ctx.level = 2;
     } else {
-      qWarning() << "Unhandled MPEG2 level for 422-profile";
+      qWarning() << "Unhandled MPEG2-video level for 422-profile";
     }
   } else {
     if (video_params.level_ == MPEG2_LOW_LEVEL) {
@@ -706,8 +708,32 @@ void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_pa
     } else if (video_params.level_ == MPEG2_HIGH_LEVEL) {
       ctx.level = 4;
     } else {
-      qWarning() << "Unknown MPEG2 level";
+      qWarning() << "Unknown MPEG2-video level";
     }
+  }
+}
+
+
+void ExportThread::setupMPEG4Encoder(AVCodecContext& ctx, const Params& video_params) const
+{
+  if (video_params.profile_ == MPEG4_SSTP_PROFILE) {
+    ctx.profile = FF_PROFILE_MPEG4_SIMPLE_STUDIO;
+  } else {
+    qWarning() << "Unknown MPEG4 profile";
+  }
+
+  // found in https://svn.code.sf.net/p/gpac/code/trunk/gpac/src/media_tools/av_parsers.c
+  // TODO: identify if these are actually being used and are correct
+  if (video_params.level_ == MPEG4_SSTP_1_LEVEL) {
+    ctx.level = 0xE1;
+  } else if (video_params.level_ == MPEG4_SSTP_2_LEVEL) {
+    ctx.level = 0xE2;
+  } else if (video_params.level_ == MPEG4_SSTP_3_LEVEL) {
+    ctx.level = 0xE3;
+  } else if (video_params.level_ == MPEG4_SSTP_4_LEVEL) {
+    ctx.level = 0xE4;
+  } else {
+    qWarning() << "Unknown MPEG4 level";
   }
 }
 

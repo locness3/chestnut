@@ -113,6 +113,8 @@ class ExportDialog : public QDialog
     void constrainMpeg2Video();
 
     void setupForMpeg4();
+    void constrainMPEG4();
+
     void setupForH264();
     void constrainH264();
 
@@ -124,6 +126,8 @@ class ExportDialog : public QDialog
     void setGOPWidgetsVisible(const bool visible);
 
     std::string getCodecLongName(const AVCodecID codec) const;
+
+    void matchWidgetsToSequence();
 };
 
 #endif // EXPORTDIALOG_H

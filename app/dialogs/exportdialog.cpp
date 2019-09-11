@@ -51,6 +51,8 @@ constexpr auto DEFAULT_B_FRAMES = 2;
 constexpr auto MIN_H264_LEVEL = 2;
 constexpr auto MAX_H264_LEVEL = 5;
 
+constexpr auto MAX_WIDTH = 3840;
+constexpr auto MAX_HEIGHT = 2160;
 
 
 enum ExportFormats
@@ -141,10 +143,6 @@ void ExportDialog::format_changed(int index)
   Q_ASSERT(acodecCombobox);
   Q_ASSERT(profile_box_);
   Q_ASSERT(level_box_);
-
-
-  profile_box_->setEnabled(false);
-  level_box_->setEnabled(false);
 
   vcodecCombobox->clear();
   acodecCombobox->clear();
@@ -403,19 +401,10 @@ void ExportDialog::vcodec_changed(int index)
   if (!format_codecs_.video_.empty() && (format_codecs_.video_.at(index) == AV_CODEC_ID_H264)) {
     compressionTypeCombobox->setEnabled(true);
     compressionTypeCombobox->addItem(tr("Quality-based (Constant Rate Factor)"), static_cast<int>(CompressionType::CFR));
-  } else if ( (formatCombobox->currentIndex() == FORMAT_MPEG2) ||
-              (formatCombobox->currentIndex() == FORMAT_DNXHD) ) {
-    compressionTypeCombobox->addItem(tr("Constant Bitrate"), static_cast<int>(CompressionType::CBR));
-    compressionTypeCombobox->setCurrentIndex(0);
-    compressionTypeCombobox->setEnabled(false);
   } else {
     compressionTypeCombobox->addItem(tr("Constant Bitrate"), static_cast<int>(CompressionType::CBR));
     compressionTypeCombobox->setCurrentIndex(0);
     compressionTypeCombobox->setEnabled(false);
-    profile_box_->clear();
-    profile_box_->setEnabled(false);
-    level_box_->clear();
-    level_box_->setEnabled(false);
   }
 
   switch (format_codecs_.video_.at(index)) {
@@ -496,6 +485,9 @@ void ExportDialog::profile_changed(int)
     case AV_CODEC_ID_DNXHD:
       constrainDNXHD();
       break;
+    case AV_CODEC_ID_MPEG4:
+      constrainMPEG4();
+      break;
     default:
       unconstrain();
   }
@@ -503,16 +495,7 @@ void ExportDialog::profile_changed(int)
 
 void ExportDialog::level_changed(int)
 {
-  Q_ASSERT(formatCombobox);
-  const auto format = formatCombobox->currentText();
-  if (format == format_strings[FORMAT_MPEG2]) {
-    constrainMpeg2Video();
-  } else if ( (format == format_strings[FORMAT_MPEG4]) &&
-              (vcodecCombobox->currentText().toStdString() == getCodecLongName(AV_CODEC_ID_H264)) ) { // possible to use format_codecs_.video but aim to remove that
-    constrainH264();
-  } else {
-    unconstrain();
-  }
+  profile_changed(-1);
 }
 
 void ExportDialog::setup_ui()
@@ -726,12 +709,7 @@ void ExportDialog::constrainMpeg2Video()
   Q_ASSERT(b_frame_box_);
   Q_ASSERT(sequence_);
 
-  int max_width = 0;
-  int max_height = 0;
-  int max_bitrate = 0;
   int max_b_frames = 0;
-  QStringList rates = FRAME_RATES;
-
 
   const auto profile = profile_box_->currentText();
   if (profile == MPEG2_SIMPLE_PROFILE) {
@@ -740,50 +718,87 @@ void ExportDialog::constrainMpeg2Video()
     max_b_frames = std::numeric_limits<int>::max();
   }
 
+  LevelConstraints constraint;
   const auto level = level_box_->currentText();
   if (level == MPEG2_LOW_LEVEL) {
-    max_height = MPEG2_LL_CONSTRAINTS.max_height;
-    max_width =  MPEG2_LL_CONSTRAINTS.max_width;
-    max_bitrate = MPEG2_LL_CONSTRAINTS.max_bitrate;
-    rates = MPEG2_LOW_LEVEL_FRATES;
+    constraint = MPEG2_LL_CONSTRAINTS;
   } else if (level == MPEG2_MAIN_LEVEL) {
-    max_height = MPEG2_ML_CONSTRAINTS.max_height;
-    max_width = MPEG2_ML_CONSTRAINTS.max_width;
-    max_bitrate = MPEG2_ML_CONSTRAINTS.max_bitrate;
-    rates = MPEG2_MAIN_LEVEL_FRATES;
+    constraint = MPEG2_ML_CONSTRAINTS;
   } else if (level == MPEG2_HIGH1440_LEVEL) {
-    max_height = MPEG2_H14_CONSTRAINTS.max_height;
-    max_width = MPEG2_H14_CONSTRAINTS.max_width;
-    max_bitrate = MPEG2_H14_CONSTRAINTS.max_bitrate;
-    rates = MPEG2_HIGH1440_LEVEL_FRATES;
+    constraint = MPEG2_H14_CONSTRAINTS;
   } else if (level == MPEG2_HIGH_LEVEL) {
-    max_height = MPEG2_HL_CONSTRAINTS.max_height;
-    max_width = MPEG2_HL_CONSTRAINTS.max_width;
-    max_bitrate = MPEG2_HL_CONSTRAINTS.max_bitrate;
-    rates = MPEG2_HIGH_LEVEL_FRATES;
+    constraint = MPEG2_HL_CONSTRAINTS;
   } else {
     qCritical() << "Unknown MPEG2 level =" << level;
     return;
   }
 
-  heightSpinbox->setMaximum(max_height);
-  widthSpinbox->setMaximum(max_width);
-  videobitrateSpinbox->setMaximum(max_bitrate);
+  heightSpinbox->setMaximum(constraint.max_height);
+  widthSpinbox->setMaximum(constraint.max_width);
+  videobitrateSpinbox->setMaximum(constraint.max_bitrate);
   b_frame_box_->setMaximum(max_b_frames);
   framerate_box_->clear();
-  framerate_box_->addItems(rates);
+  framerate_box_->addItems(constraint.framerates);
 
-  heightSpinbox->setValue(sequence_->height());
-  widthSpinbox->setValue(sequence_->width());
-  int ix = framerate_box_->findText(QString::number(sequence_->frameRate(), 'g', 4));
-  ix = std::max(0, ix);
-  framerate_box_->setCurrentIndex(ix);
+  matchWidgetsToSequence();
 }
 
 void ExportDialog::setupForMpeg4()
 {
+  Q_ASSERT(profile_box_label_);
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_label_);
+  Q_ASSERT(level_box_);
+
+  profile_box_->clear();
+  profile_box_->addItems(MPEG4_PROFILES);
+
+  level_box_->clear();
+  level_box_->addItems(MPEG4_LEVELS);
+
+  profile_box_->setEnabled(true);
+  level_box_->setEnabled(true);
+  setGOPWidgetsVisible(true);
+
+  profile_box_label_->setVisible(true);
+  profile_box_->setVisible(true);
+  level_box_label_->setVisible(true);
+  level_box_->setVisible(true);
+}
+
+
+void ExportDialog::constrainMPEG4()
+{
   Q_ASSERT(profile_box_);
   Q_ASSERT(level_box_);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(sequence_);
+
+  LevelConstraints constraint;
+  const auto level = level_box_->currentText();
+  if (level == MPEG4_SSTP_1_LEVEL) {
+    constraint = MPEG4_SSTP_1_CONSTRAINTS;
+  } else if (level == MPEG4_SSTP_2_LEVEL) {
+    constraint = MPEG4_SSTP_2_CONSTRAINTS;
+  } else if (level == MPEG4_SSTP_3_LEVEL) {
+    constraint = MPEG4_SSTP_3_CONSTRAINTS;
+  } else if (level == MPEG4_SSTP_4_LEVEL) {
+    constraint = MPEG4_SSTP_4_CONSTRAINTS;
+  } else if (level == MPEG4_SSTP_5_LEVEL) {
+    constraint = MPEG4_SSTP_5_CONSTRAINTS;
+  } else if (level == MPEG4_SSTP_6_LEVEL) {
+    constraint = MPEG4_SSTP_6_CONSTRAINTS;
+  }
+
+  widthSpinbox->setMaximum(constraint.max_width);
+  heightSpinbox->setMaximum(constraint.max_height);
+  const auto mb_brate = constraint.max_bitrate / 1E6;
+  videobitrateSpinbox->setMaximum(mb_brate);
+  framerate_box_->clear();
+  framerate_box_->addItems(constraint.framerates);
+
+  matchWidgetsToSequence();
 }
 
 void ExportDialog::setupForH264()
@@ -826,13 +841,16 @@ void ExportDialog::constrainH264()
   Q_ASSERT(profile_box_);
   Q_ASSERT(level_box_);
   Q_ASSERT(heightSpinbox);
-  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(widthSpinbox);
   Q_ASSERT(sequence_);
 
-  int max_width = 0;
-  int max_height = 0;
-  int max_bitrate = 0;
+  widthSpinbox->setMaximum(MAX_WIDTH);
+  heightSpinbox->setMaximum(MAX_HEIGHT);
 
+  framerate_box_->clear();
+  framerate_box_->addItems(ALL_FRATES);
+
+  matchWidgetsToSequence();
 
   const auto profile = profile_box_->currentText();
   //TODO:
@@ -951,12 +969,17 @@ void ExportDialog::unconstrain()
   Q_ASSERT(heightSpinbox);
   Q_ASSERT(heightSpinbox);
   Q_ASSERT(b_frame_box_);
+  Q_ASSERT(framerate_box_);
+  Q_ASSERT(sequence_);
 
   constexpr auto max_val = std::numeric_limits<int>::max();
-  heightSpinbox->setMaximum(max_val);
-  widthSpinbox->setMaximum(max_val);
+  widthSpinbox->setMaximum(MAX_WIDTH);
+  heightSpinbox->setMaximum(MAX_HEIGHT);
   videobitrateSpinbox->setMaximum(max_val);
   b_frame_box_->setMaximum(max_val);
+
+  framerate_box_->clear();
+  framerate_box_->addItems(ALL_FRATES);
 
   profile_box_label_->setVisible(false);
   profile_box_->setVisible(false);
@@ -964,6 +987,8 @@ void ExportDialog::unconstrain()
   level_box_->setVisible(false);
 
   setGOPWidgetsVisible(true);
+
+  matchWidgetsToSequence();
 }
 
 
@@ -993,4 +1018,16 @@ std::string ExportDialog::getCodecLongName(const AVCodecID codec) const
   }
 
   return codec_info->long_name;
+}
+
+
+void ExportDialog::matchWidgetsToSequence()
+{
+  widthSpinbox->setValue(sequence_->width());
+  heightSpinbox->setValue(sequence_->height());
+  auto frate = QString::number(sequence_->frameRate(), 'g', 4);
+  auto ix = framerate_box_->findText(frate);
+  if (ix >= 0) {
+    framerate_box_->setCurrentIndex(ix);
+  }
 }
