@@ -99,7 +99,9 @@ class ExportDialog : public QDialog
     QCheckBox* closed_gop_box_ {nullptr};
     QLabel* b_frame_label_ {nullptr};
     QSpinBox* b_frame_box_ {nullptr};
+    QLabel* profile_box_label_ {nullptr};
     QComboBox* profile_box_ {nullptr};
+    QLabel* level_box_label_ {nullptr};
     QComboBox* level_box_ {nullptr};
     bool subsampling_ {true};
 

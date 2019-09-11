@@ -554,12 +554,14 @@ void ExportDialog::setup_ui()
   videoGridLayout->addWidget(vcodecCombobox, row, 1, 1, 1);
   row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("Profile")), row, 0, 1, 1);
+  profile_box_label_ = new QLabel(tr("Profile"));
+  videoGridLayout->addWidget(profile_box_label_, row, 0, 1, 1);
   profile_box_ = new QComboBox(videoGroupbox);
   videoGridLayout->addWidget(profile_box_, row, 1, 1, 1);
   row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("Level")), row, 0, 1, 1);
+  level_box_label_ = new QLabel(tr("Level"));
+  videoGridLayout->addWidget(level_box_label_, row, 0, 1, 1);
   level_box_ = new QComboBox(videoGroupbox);
   videoGridLayout->addWidget(level_box_, row, 1, 1, 1);
   row++;
@@ -706,9 +708,10 @@ void ExportDialog::setupForMpeg2Video()
   level_box_->addItems(MPEG2_LEVELS);
   level_box_->setCurrentIndex(level_default);
 
-
-  profile_box_->setEnabled(true);
-  level_box_->setEnabled(true);
+  profile_box_label_->setVisible(true);
+  profile_box_->setVisible(true);
+  level_box_label_->setVisible(true);
+  level_box_->setVisible(true);
 
   setGOPWidgetsVisible(true);
 }
@@ -785,7 +788,11 @@ void ExportDialog::setupForMpeg4()
 
 void ExportDialog::setupForH264()
 {
+  Q_ASSERT(profile_box_label_);
   Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_label_);
+  Q_ASSERT(level_box_);
+
   const int profile_default = 2;
   const auto level_default = "4.0";
   profile_box_->clear();
@@ -806,6 +813,11 @@ void ExportDialog::setupForH264()
   profile_box_->setEnabled(true);
   level_box_->setEnabled(true);
   setGOPWidgetsVisible(true);
+
+  profile_box_label_->setVisible(true);
+  profile_box_->setVisible(true);
+  level_box_label_->setVisible(true);
+  level_box_->setVisible(true);
 }
 
 
@@ -863,10 +875,17 @@ void ExportDialog::setupForDNXHD()
   Q_ASSERT(gop_length_box_);
   Q_ASSERT(b_frame_box_);
   Q_ASSERT(closed_gop_box_);
+  Q_ASSERT(level_box_label_);
+  Q_ASSERT(level_box_);
 
   profile_box_->clear();
   profile_box_->addItems(DNXHD_PROFILES);
   profile_box_->setEnabled(true);
+
+  profile_box_label_->setVisible(true);
+  profile_box_->setVisible(true);
+  level_box_label_->setVisible(false);
+  level_box_->setVisible(false);
 
   setGOPWidgetsVisible(false);
 }
@@ -925,7 +944,9 @@ void ExportDialog::constrainDNXHD()
 
 void ExportDialog::unconstrain()
 {
+  Q_ASSERT(profile_box_label_);
   Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_label_);
   Q_ASSERT(level_box_);
   Q_ASSERT(heightSpinbox);
   Q_ASSERT(heightSpinbox);
@@ -936,6 +957,11 @@ void ExportDialog::unconstrain()
   widthSpinbox->setMaximum(max_val);
   videobitrateSpinbox->setMaximum(max_val);
   b_frame_box_->setMaximum(max_val);
+
+  profile_box_label_->setVisible(false);
+  profile_box_->setVisible(false);
+  level_box_label_->setVisible(false);
+  level_box_->setVisible(false);
 
   setGOPWidgetsVisible(true);
 }
