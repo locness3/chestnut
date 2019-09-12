@@ -580,7 +580,8 @@ void MainWindow::copy() {
   }
 }
 
-void MainWindow::paste() {
+void MainWindow::paste()
+{
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if ( (&PanelManager::timeLine() == focused_panel || &PanelManager::fxControls() == focused_panel)
        && global::sequence != nullptr) {
@@ -622,7 +623,8 @@ bool MainWindow::save_project_as() {
   return false;
 }
 
-bool MainWindow::save_project() {
+bool MainWindow::save_project()
+{
   if (project_url.isEmpty()) {
     return save_project_as();
   } else {
@@ -631,7 +633,8 @@ bool MainWindow::save_project() {
   }
 }
 
-bool MainWindow::can_close_project() {
+bool MainWindow::can_close_project()
+{
   if (isWindowModified()) {
     QMessageBox* m = new QMessageBox(
           QMessageBox::Question,
