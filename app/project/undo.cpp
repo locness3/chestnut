@@ -476,14 +476,16 @@ DeleteMediaCommand::DeleteMediaCommand(const MediaPtr& i) :
 {}
 
 
-void DeleteMediaCommand::undo() {
+void DeleteMediaCommand::undo()
+{
   Project::model().appendChild(parent, item);
 
   MainWindow::instance().setWindowModified(old_project_changed);
   done = false;
 }
 
-void DeleteMediaCommand::redo() {
+void DeleteMediaCommand::redo()
+{
   Project::model().removeChild(parent, item);
 
   MainWindow::instance().setWindowModified(true);

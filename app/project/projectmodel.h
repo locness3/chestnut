@@ -52,7 +52,7 @@ public:
 
     bool appendChild(MediaPtr parent, const MediaPtr& child);
     void moveChild(const MediaPtr& child, MediaPtr to);
-    void removeChild(MediaPtr parent, const MediaPtr& m);
+    void removeChild(MediaPtr parent, const MediaPtr& child);
     MediaPtr child(const int index, MediaPtr parent = nullptr);
     int childCount(MediaPtr parent = nullptr);
     void set_icon(const MediaPtr& m, const QIcon &ico);
@@ -81,11 +81,18 @@ private:
     QMap<int, MediaPtr> project_items;
 
     /**
-     * @brief insert Add object into managed map of objects
+     * @brief         Add object into managed map of objects
      * @param item    Object to manage
-     * @return  true==item exists in map
+     * @return        true==item exists in map
      */
     bool insert(const MediaPtr& item);
+
+    /**
+     * @brief         Remove an object from the managed map of objects
+     * @param item    Object to remove
+     * @return        true==item was removed
+     */
+    bool remove(const MediaPtr& item);
 
     QModelIndex create_index(const int row, const int col, const MediaPtr& mda) const;
     QModelIndex create_index(const int row, const MediaPtr& mda) const;

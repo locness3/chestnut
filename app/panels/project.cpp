@@ -489,12 +489,15 @@ void Project::delete_selected_media()
     QVector<MediaPtr> media_items;
     get_all_media_from_table(items, media_items, MediaType::FOOTAGE);
     auto abort = false;
+
     for (auto i=0; (i<media_items.size()) && (!abort); ++i) {
       auto item = media_items.at(i);
       bool confirm_delete = false;
       auto skip = false;
+
       for (auto j=0; j<sequence_items.size() && (!abort) && (!skip); ++j) {
         auto seq = sequence_items.at(j)->object<Sequence>();
+
         for (auto k=0; (k<seq->clips().size()) && (!abort) && (!skip); ++k) {
           const auto& c = seq->clips().at(k);
           if ( (c != nullptr) && (c->timeline_info.media == item) ) {
@@ -579,7 +582,7 @@ void Project::delete_selected_media()
       }//for
     }//for
 
-    for (auto item : items) {
+    for (auto& item : items) {
       if (!item) {
         continue;
       }

@@ -395,16 +395,19 @@ void ProjectModel::moveChild(const MediaPtr& child, MediaPtr to)
   }
 }
 
-void ProjectModel::removeChild(MediaPtr parent, const MediaPtr& m)
+void ProjectModel::removeChild(MediaPtr parent, const MediaPtr& child)
 {
   if (parent == nullptr) {
     parent = project_items.first();
   }
+
   beginRemoveRows(parent == project_items.first() ? QModelIndex() : create_index(parent->row(), parent),
-                  m->row(),
-                  m->row());
-  parent->removeChild(m->row());
+                  child->row(),
+                  child->row());
+  parent->removeChild(child->row());
   endRemoveRows();
+
+  remove(child);
 }
 
 MediaPtr ProjectModel::child(const int index, MediaPtr parent)
@@ -423,19 +426,25 @@ int ProjectModel::childCount(MediaPtr parent)
   return parent->childCount();
 }
 
-/**
- * @brief insert Add object into managed map of objects
- * @param item    Object to manage
- * @return  true==item exists in map
- */
 bool ProjectModel::insert(const MediaPtr& item)
 {
-  auto exists = false;
-
   if (item != nullptr) {
     project_items.insert(item->id(), item);
-    exists = true;
+    return true;
   }
 
-  return exists;
+  return false;
+}
+
+
+bool ProjectModel::remove(const MediaPtr& item)
+{
+  if (item != nullptr) {
+    auto res = project_items.find(item->id());
+    if (res != project_items.end()) {
+      project_items.erase(res);
+      return true;
+    }
+  }
+  return true;
 }
