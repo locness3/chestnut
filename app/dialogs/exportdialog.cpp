@@ -664,8 +664,14 @@ void ExportDialog::setup_ui()
   audiobitrateSpinbox->setMaximum(320);
   audiobitrateSpinbox->setValue(256);
   audioGridLayout->addWidget(audiobitrateSpinbox, row, 1, 1, 1);
+  row++;
+
+
 
   verticalLayout->addWidget(audioGroupbox);
+
+  auto spacer = new QSpacerItem(0,0, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+  verticalLayout->addItem(spacer);
 
   auto progressLayout = new QHBoxLayout();
   progressBar = new QProgressBar(this);
