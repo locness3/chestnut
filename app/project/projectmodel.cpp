@@ -446,5 +446,5 @@ bool ProjectModel::remove(const MediaPtr& item)
       return true;
     }
   }
-  return true;
+  return false;
 }
