@@ -92,7 +92,8 @@ class ExportDialog : public QDialog
     QPushButton* renderCancel;
     QGroupBox* videoGroupbox;
     QGroupBox* audioGroupbox;
-    QComboBox* compressionTypeCombobox;
+    QLabel* compression_type_label_ {nullptr};
+    QComboBox* compressionTypeCombobox {nullptr};
     QLabel* gop_length_label_ {nullptr};
     QSpinBox* gop_length_box_ {nullptr};
     QLabel* closed_gop_label_ {nullptr};
@@ -120,6 +121,8 @@ class ExportDialog : public QDialog
 
     void setupForDNXHD();
     void constrainDNXHD();
+
+    void setupForHuffYUV();
 
     void unconstrain();
 

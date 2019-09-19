@@ -76,7 +76,7 @@ static const FormatCodecs MPEG4_CODECS {{AV_CODEC_ID_MPEG4, AV_CODEC_ID_H264},
                                         {AV_CODEC_ID_AAC, AV_CODEC_ID_AC3, AV_CODEC_ID_MP2, AV_CODEC_ID_MP3}};
 static const FormatCodecs AC3_CODECS {{}, {AV_CODEC_ID_AC3, AV_CODEC_ID_EAC3}};
 static const FormatCodecs MP3_CODECS {{}, {AV_CODEC_ID_MP3}};
-static const FormatCodecs MKV_CODECS {{AV_CODEC_ID_MPEG4, AV_CODEC_ID_H264},
+static const FormatCodecs MKV_CODECS {{AV_CODEC_ID_MPEG4, AV_CODEC_ID_H264, AV_CODEC_ID_HUFFYUV},
                                       {AV_CODEC_ID_AAC, AV_CODEC_ID_AC3, AV_CODEC_ID_EAC3, AV_CODEC_ID_FLAC, AV_CODEC_ID_MP2,
                                       AV_CODEC_ID_MP3, AV_CODEC_ID_OPUS, AV_CODEC_ID_PCM_S16LE, AV_CODEC_ID_VORBIS, AV_CODEC_ID_WAVPACK}};
 
@@ -116,6 +116,7 @@ ExportDialog::ExportDialog(SequencePtr seq, QWidget *parent)
   format_strings[FORMAT_MPEG4] = "MPEG-4 Video";
   format_strings[FORMAT_MKV] = "Matroska MKV";
   format_strings[FORMAT_MOV] = "QuickTime MOV";
+  format_strings[FORMAT_WAV] = "WAVE Audio";
   format_strings[FORMAT_WAV] = "WAVE Audio";
 
   for (int i=0;i<FORMAT_SIZE;i++) {
@@ -392,12 +393,21 @@ void ExportDialog::vcodec_changed(int index)
   Q_ASSERT(profile_box_);
   Q_ASSERT(level_box_);
   Q_ASSERT(formatCombobox);
+  Q_ASSERT(videoBitrateLabel);
+  Q_ASSERT(videobitrateSpinbox);
+  Q_ASSERT(compression_type_label_);
+  Q_ASSERT(compressionTypeCombobox);
 
   if (index < 0) {
     return;
   }
 
+  videoBitrateLabel->setVisible(true);
+  videobitrateSpinbox->setVisible(true);
+  compression_type_label_->setVisible(true);
+  compressionTypeCombobox->setVisible(true);
   compressionTypeCombobox->clear();
+
   if (!format_codecs_.video_.empty() && (format_codecs_.video_.at(index) == AV_CODEC_ID_H264)) {
     compressionTypeCombobox->setEnabled(true);
     compressionTypeCombobox->addItem(tr("Quality-based (Constant Rate Factor)"), static_cast<int>(CompressionType::CFR));
@@ -419,6 +429,9 @@ void ExportDialog::vcodec_changed(int index)
       break;
     case AV_CODEC_ID_MPEG4:
       setupForMpeg4();
+      break;
+    case AV_CODEC_ID_HUFFYUV:
+      setupForHuffYUV();
       break;
   }
 }
@@ -567,7 +580,8 @@ void ExportDialog::setup_ui()
   videoGridLayout->addWidget(framerate_box_, row, 1, 1, 1);
   row++;
 
-  videoGridLayout->addWidget(new QLabel(tr("Compression Type:")), row, 0, 1, 1);
+  compression_type_label_ = new QLabel(tr("Compression Type:"));
+  videoGridLayout->addWidget(compression_type_label_, row, 0, 1, 1);
   compressionTypeCombobox = new QComboBox(videoGroupbox);
   videoGridLayout->addWidget(compressionTypeCombobox, row, 1, 1, 1);
   row++;
@@ -959,6 +973,34 @@ void ExportDialog::constrainDNXHD()
   subsampling_ = constraint.subsampling;
 }
 
+
+void ExportDialog::setupForHuffYUV()
+{
+  Q_ASSERT(profile_box_label_);
+  Q_ASSERT(profile_box_);
+  Q_ASSERT(level_box_label_);
+  Q_ASSERT(level_box_);
+  Q_ASSERT(videoBitrateLabel);
+  Q_ASSERT(videobitrateSpinbox);
+  Q_ASSERT(compression_type_label_);
+  Q_ASSERT(compressionTypeCombobox);
+  Q_ASSERT(widthSpinbox);
+  Q_ASSERT(heightSpinbox);
+
+  const bool visibility = false;
+  setGOPWidgetsVisible(visibility);
+  profile_box_label_->setVisible(visibility);
+  profile_box_->setVisible(visibility);
+  level_box_label_->setVisible(visibility);
+  level_box_->setVisible(visibility);
+  videoBitrateLabel->setVisible(visibility);
+  videobitrateSpinbox->setVisible(visibility);
+  compression_type_label_->setVisible(visibility);
+  compressionTypeCombobox->setVisible(visibility);
+
+  widthSpinbox->setMaximum(MAX_WIDTH);
+  heightSpinbox->setMaximum(MAX_HEIGHT);
+}
 
 void ExportDialog::unconstrain()
 {
