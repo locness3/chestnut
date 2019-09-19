@@ -117,7 +117,6 @@ ExportDialog::ExportDialog(SequencePtr seq, QWidget *parent)
   format_strings[FORMAT_MKV] = "Matroska MKV";
   format_strings[FORMAT_MOV] = "QuickTime MOV";
   format_strings[FORMAT_WAV] = "WAVE Audio";
-  format_strings[FORMAT_WAV] = "WAVE Audio";
 
   for (int i=0;i<FORMAT_SIZE;i++) {
     formatCombobox->addItem(format_strings[i]);
@@ -381,7 +380,8 @@ void ExportDialog::update_progress_bar(int value, qint64 remaining_ms)
   progressBar->setValue(value);
 }
 
-void ExportDialog::cancel_render() {
+void ExportDialog::cancel_render()
+{
   et->continue_encode_ = false;
   cancelled = true;
   et->wake();
@@ -433,6 +433,26 @@ void ExportDialog::vcodec_changed(int index)
     case AV_CODEC_ID_HUFFYUV:
       setupForHuffYUV();
       break;
+  }
+}
+
+
+void ExportDialog::acodecChanged(int index)
+{
+  if (index < 0) {
+    return;
+  }
+
+  Q_ASSERT(audio_bitrate_label_);
+  Q_ASSERT(audiobitrateSpinbox);
+
+  const auto codecs = format_codecs_.audio_;
+  if (!codecs.empty() && (codecs.at(index) == AV_CODEC_ID_WAVPACK) ) {
+    audio_bitrate_label_->setVisible(false);
+    audiobitrateSpinbox->setVisible(false);
+  } else {
+    audio_bitrate_label_->setVisible(true);
+    audiobitrateSpinbox->setVisible(true);
   }
 }
 
@@ -638,7 +658,8 @@ void ExportDialog::setup_ui()
   audioGridLayout->addWidget(samplingRateSpinbox, row, 1, 1, 1);
   row++;
 
-  audioGridLayout->addWidget(new QLabel(tr("Bitrate (Kbps/CBR):")), row, 0, 1, 1);
+  audio_bitrate_label_ = new QLabel(tr("Bitrate (Kbps/CBR):"));
+  audioGridLayout->addWidget(audio_bitrate_label_, row, 0, 1, 1);
   audiobitrateSpinbox = new QSpinBox(audioGroupbox);
   audiobitrateSpinbox->setMaximum(320);
   audiobitrateSpinbox->setValue(256);
@@ -684,6 +705,7 @@ void ExportDialog::setup_ui()
   connect(formatCombobox, SIGNAL(currentIndexChanged(int)), this, SLOT(format_changed(int)));
   connect(compressionTypeCombobox, SIGNAL(currentIndexChanged(int)), this, SLOT(comp_type_changed(int)));
   connect(vcodecCombobox, SIGNAL(currentIndexChanged(int)), this, SLOT(vcodec_changed(int)));
+  connect(acodecCombobox, SIGNAL(currentIndexChanged(int)), this, SLOT(acodecChanged(int)));
   connect(profile_box_, SIGNAL(currentIndexChanged(int)), this, SLOT(profile_changed(int)));
   connect(level_box_, SIGNAL(currentIndexChanged(int)), this, SLOT(level_changed(int)));
 }

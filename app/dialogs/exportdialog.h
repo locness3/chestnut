@@ -59,6 +59,7 @@ class ExportDialog : public QDialog
     void cancel_render();
     void render_thread_finished();
     void vcodec_changed(int index);
+    void acodecChanged(int index);
     void comp_type_changed(int index);
     void profile_changed(int index);
     void level_changed(int index);
@@ -83,6 +84,7 @@ class ExportDialog : public QDialog
     QComboBox* vcodecCombobox;
     QComboBox* acodecCombobox;
     QSpinBox* samplingRateSpinbox;
+    QLabel* audio_bitrate_label_ {nullptr};
     QSpinBox* audiobitrateSpinbox;
     QProgressBar* progressBar;
     QComboBox* formatCombobox;
