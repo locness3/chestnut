@@ -51,6 +51,7 @@ constexpr auto X264_PRESET = "slow";
 
 using panels::PanelManager;
 
+constexpr int WAIT_TIMEOUT_MILLIS = 10000;
 constexpr auto ERR_LEN = 256;
 
 namespace  {
@@ -483,8 +484,9 @@ void ExportThread::run()
       do {
         // TODO optimize by rendering the next frame while encoding the last
         renderer->start_render(nullptr, global::sequence, false, video_frame->data[0]);
-        waitCond.wait(&mutex);
-        if (!continue_encode_){
+        continue_encode_ = waitCond.wait(&mutex, WAIT_TIMEOUT_MILLIS);
+        if (!continue_encode_) {
+          qCritical() << "Timeout occured waiting for RenderThread";
           break;
         }
       } while (renderer->did_texture_fail());
@@ -587,7 +589,7 @@ void ExportThread::run()
     }
 
     auto ret = av_write_trailer(fmt_ctx);
-    if (ret < 0) {      
+    if (ret < 0) {
       av_strerror(ret, err.data(), ERR_LEN);
       qCritical() << "Could not write output file trailer, code=" << err.data();
       ed->export_error = tr("could not write output file trailer (%1)").arg(QString::number(ret));
@@ -707,7 +709,7 @@ void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_pa
     ctx.intra_dc_precision = 11;
   } else if (video_params.profile_ == MPEG2_422_PROFILE) {
     ctx.profile = FF_PROFILE_MPEG2_422;
-    ctx.intra_dc_precision = 11;    
+    ctx.intra_dc_precision = 11;
     // Technically can be 4:2:2 or 4:2:0 but it's the only separable difference between it and "high"
     ctx.pix_fmt = AV_PIX_FMT_YUV422P;
   }
