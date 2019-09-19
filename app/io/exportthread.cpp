@@ -42,6 +42,16 @@ extern "C" {
 
 using panels::PanelManager;
 
+constexpr int WAIT_TIMEOUT_MILLIS = 10000;
+constexpr auto ERR_LEN = 256;
+
+namespace  {
+  std::array<char, ERR_LEN> err;
+  std::pair<double, AVRational> NTSC_24P {23.976, {24000, 1001}};
+  std::pair<double, AVRational> NTSC_30P {29.97, {30000, 1001}};
+  std::pair<double, AVRational> NTSC_60P {59.94, {60000, 1001}};
+}
+
 ExportThread::ExportThread()
   : QThread(nullptr)
 {
@@ -391,8 +401,9 @@ void ExportThread::run()
       do {
         // TODO optimize by rendering the next frame while encoding the last
         renderer->start_render(nullptr, global::sequence, false, video_frame->data[0]);
-        waitCond.wait(&mutex);
-        if (!continue_encode_){
+        continue_encode_ = waitCond.wait(&mutex, WAIT_TIMEOUT_MILLIS);
+        if (!continue_encode_) {
+          qCritical() << "Timeout occured waiting for RenderThread";
           break;
         }
       } while (renderer->did_texture_fail());
@@ -496,7 +507,8 @@ void ExportThread::run()
 
     ret = av_write_trailer(fmt_ctx);
     if (ret < 0) {
-      qCritical() << "Could not write output file trailer." << ret;
+      av_strerror(ret, err.data(), ERR_LEN);
+      qCritical() << "Could not write output file trailer, code=" << err.data();
       ed->export_error = tr("could not write output file trailer (%1)").arg(QString::number(ret));
       continue_encode_ = false;
     }
