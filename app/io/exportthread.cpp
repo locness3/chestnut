@@ -43,6 +43,12 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#ifdef QT_DEBUG
+constexpr auto X264_PRESET = "ultrafast";
+#else
+constexpr auto X264_PRESET = "slow";
+#endif
+
 using panels::PanelManager;
 
 constexpr auto ERR_LEN = 256;
@@ -636,28 +642,44 @@ void ExportThread::wake()
 
 void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_params) const
 {
+  int ret = 0;
   switch (video_params.compression_type) {
-    case CompressionType::CFR:
-      av_opt_set(ctx.priv_data,
-                 "crf",
-                 QString::number(static_cast<int>(video_params.bitrate)).toUtf8(),
-                 AV_OPT_SEARCH_CHILDREN);
+    case CompressionType::CRF:
+      ret = av_opt_set(ctx.priv_data,
+                       "crf",
+                       QString::number(static_cast<int>(video_params.bitrate)).toUtf8(),
+                       AV_OPT_SEARCH_CHILDREN);
+      if (ret < 0) {
+        av_strerror(ret, err.data(), ERR_LEN);
+        qWarning() << "Failed to set compression mode to CRF, code=" << err.data();
+      }
       break;
     default:
       qWarning() << "Unhandled h264 compression type" << static_cast<int>(video_params.compression_type);
       break;
   }
 
+  ret = 0;
   // Using ctx.profile does nothing
   if (video_params.profile_ == H264_BASELINE_PROFILE) {
-    av_opt_set(ctx.priv_data, "profile", "baseline", 0);
+    ret = av_opt_set(ctx.priv_data, "profile", "baseline", 0);
   } else if (video_params.profile_ == H264_EXTENDED_PROFILE) {
     // FIXME: fail to open codec with this profile
-    av_opt_set(ctx.priv_data, "profile", "extended", 0);
+    ret = av_opt_set(ctx.priv_data, "profile", "extended", 0);
   } else if (video_params.profile_ == H264_MAIN_PROFILE) {
-    av_opt_set(ctx.priv_data, "profile", "main", 0);
+    ret = av_opt_set(ctx.priv_data, "profile", "main", 0);
   } else if (video_params.profile_ == H264_HIGH_PROFILE) {
-    av_opt_set(ctx.priv_data, "profile", "high", 0);
+    ret = av_opt_set(ctx.priv_data, "profile", "high", 0);
+  }
+  if (ret < 0) {
+    av_strerror(ret, err.data(), ERR_LEN);
+    qWarning() << "Failed to set profile, code=" << err.data();
+  }
+
+  ret = av_opt_set(ctx.priv_data, "preset", X264_PRESET, 0);
+  if (ret < 0) {
+    av_strerror(ret, err.data(), ERR_LEN);
+    qWarning() << "Failed to set preset, code=" << err.data();
   }
 
   try {
