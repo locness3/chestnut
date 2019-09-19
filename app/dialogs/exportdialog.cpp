@@ -1022,6 +1022,8 @@ void ExportDialog::setupForHuffYUV()
 
   widthSpinbox->setMaximum(MAX_WIDTH);
   heightSpinbox->setMaximum(MAX_HEIGHT);
+
+  matchWidgetsToSequence();
 }
 
 void ExportDialog::unconstrain()
