@@ -43,7 +43,7 @@ extern "C" {
 
 enum class CompressionType {
   CBR = 0,
-  CFR,
+  CRF,
   TARGETSIZE,
   TARGETBITRATE,
   UNKNOWN

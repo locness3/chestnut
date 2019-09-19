@@ -410,7 +410,7 @@ void ExportDialog::vcodec_changed(int index)
 
   if (!format_codecs_.video_.empty() && (format_codecs_.video_.at(index) == AV_CODEC_ID_H264)) {
     compressionTypeCombobox->setEnabled(true);
-    compressionTypeCombobox->addItem(tr("Quality-based (Constant Rate Factor)"), static_cast<int>(CompressionType::CFR));
+    compressionTypeCombobox->addItem(tr("Quality-based (Constant Rate Factor)"), static_cast<int>(CompressionType::CRF));
   } else {
     compressionTypeCombobox->addItem(tr("Constant Bitrate"), static_cast<int>(CompressionType::CBR));
     compressionTypeCombobox->setCurrentIndex(0);
@@ -483,7 +483,7 @@ void ExportDialog::comp_type_changed(int)
         videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * sequence_->height()) - 4.5))); // FIXME: magic numbers
       }
       break;
-    case CompressionType::CFR:
+    case CompressionType::CRF:
       videoBitrateLabel->setText(tr("Quality (CRF):"));
       videobitrateSpinbox->setValue(X264_DEFAULT_CRF);
       videobitrateSpinbox->setMinimum(X264_MINIMUM_CRF);
