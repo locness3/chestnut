@@ -479,8 +479,7 @@ void ExportDialog::comp_type_changed(int)
     case CompressionType::TARGETBITRATE:
       videoBitrateLabel->setText(tr("Bitrate (Mbps):"));
       if (!locked_br) {
-        // already constrained
-        videobitrateSpinbox->setValue(qMax(0.5, (double) qRound((0.01528 * sequence_->height()) - 4.5))); // FIXME: magic numbers
+        videobitrateSpinbox->setValue(qMax(0.5, calculateBitrate(sequence_->height())));
       }
       break;
     case CompressionType::CRF:
@@ -1116,4 +1115,16 @@ void ExportDialog::matchWidgetsToSequence()
   if (ix >= 0) {
     framerate_box_->setCurrentIndex(ix);
   }
+
+  const auto compressionType = static_cast<CompressionType>(compressionTypeCombobox->currentData().toInt());
+  if (compressionType == CompressionType::CBR) {
+    videobitrateSpinbox->setValue(calculateBitrate(height));
+  }
+}
+
+
+double ExportDialog::calculateBitrate(const int height)
+{
+  // No idea where these values have originally come from
+  return qRound((0.01528 * height) - 4.5);
 }

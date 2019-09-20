@@ -133,6 +133,8 @@ class ExportDialog : public QDialog
     std::string getCodecLongName(const AVCodecID codec) const;
 
     void matchWidgetsToSequence();
+
+    double calculateBitrate(const int width);
 };
 
 #endif // EXPORTDIALOG_H
