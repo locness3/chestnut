@@ -242,7 +242,7 @@ void ExportDialog::export_action()
     QMessageBox::critical(
           this,
           tr("Invalid dimensions"),
-          tr("Export width and height must both be even numbers/divisible by 2."),
+          tr("Export width and height must both be divisible by 2."),
           QMessageBox::Ok
           );
     return;
@@ -1095,8 +1095,20 @@ std::string ExportDialog::getCodecLongName(const AVCodecID codec) const
 
 void ExportDialog::matchWidgetsToSequence()
 {
+  Q_ASSERT(sequence_);
+  Q_ASSERT(widthSpinbox);
+  Q_ASSERT(heightSpinbox);
+  Q_ASSERT(framerate_box_);
+
+
+  auto dar = static_cast<double>(sequence_->width()) / sequence_->height();
   widthSpinbox->setValue(sequence_->width());
-  heightSpinbox->setValue(sequence_->height());
+  auto height = qRound(widthSpinbox->value() / dar);
+  if (height % 2) {
+    height++;
+  }
+
+  heightSpinbox->setValue(height) ;
   auto frate = QString::number(sequence_->frameRate(), 'g', 4);
   auto ix = framerate_box_->findText(frate);
   if (ix >= 0) {
