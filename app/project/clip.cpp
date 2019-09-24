@@ -54,7 +54,7 @@ int32_t Clip::next_id = 0;
 constexpr size_t ERR_LEN = 256;
 
 namespace  {
-  std::string err(ERR_LEN, '\0');
+  std::array<char, ERR_LEN> err;
 }
 
 
@@ -2049,7 +2049,7 @@ void Clip::cache_video_worker(const long playhead) {
           if (send_it) {
             if ((send_ret = av_buffersrc_add_frame_flags(buffersrc_ctx, send_frame, AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {
               av_strerror(send_ret, err.data(), ERR_LEN);
-              qCritical() << "Failed to add frame to buffer source, msg =" << err.c_str();
+              qCritical() << "Failed to add frame to buffer source, msg =" << err.data();
               break;
             }
           }
@@ -2060,7 +2060,7 @@ void Clip::cache_video_worker(const long playhead) {
             reached_end = true;
           } else {
             av_strerror(read_ret, err.data(), ERR_LEN);
-            qCritical() << "Failed to read frame, msg =" << err.c_str();
+            qCritical() << "Failed to read frame, msg =" << err.data();
           }
           break;
         }
@@ -2071,7 +2071,7 @@ void Clip::cache_video_worker(const long playhead) {
           reached_end = true;
         } else {
           av_strerror(retr_ret, err.data(), ERR_LEN);
-          qCritical() << "Failed to retrieve frame from buffersink, msg =" << err.c_str();
+          qCritical() << "Failed to retrieve frame from buffersink, msg =" << err.data();
         }
         av_frame_free(&frame);
         break;
