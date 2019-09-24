@@ -51,6 +51,11 @@ constexpr AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;
 constexpr int AUDIO_SAMPLES = 2048;
 constexpr int AUDIO_BUFFER_PADDING = 2048;
 int32_t Clip::next_id = 0;
+constexpr size_t ERR_LEN = 256;
+
+namespace  {
+  std::string err(ERR_LEN, '\0');
+}
 
 
 double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sample_rate) {
@@ -2043,7 +2048,8 @@ void Clip::cache_video_worker(const long playhead) {
           bool send_it = true;
           if (send_it) {
             if ((send_ret = av_buffersrc_add_frame_flags(buffersrc_ctx, send_frame, AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {
-              qCritical() << "Failed to add frame to buffer source." << send_ret;
+              av_strerror(send_ret, err.data(), ERR_LEN);
+              qCritical() << "Failed to add frame to buffer source, msg =" << err.c_str();
               break;
             }
           }
@@ -2053,7 +2059,8 @@ void Clip::cache_video_worker(const long playhead) {
           if (read_ret == AVERROR_EOF) {
             reached_end = true;
           } else {
-            qCritical() << "Failed to read frame." << read_ret;
+            av_strerror(read_ret, err.data(), ERR_LEN);
+            qCritical() << "Failed to read frame, msg =" << err.c_str();
           }
           break;
         }
@@ -2063,7 +2070,8 @@ void Clip::cache_video_worker(const long playhead) {
         if (retr_ret == AVERROR_EOF) {
           reached_end = true;
         } else {
-          qCritical() << "Failed to retrieve frame from buffersink." << retr_ret;
+          av_strerror(retr_ret, err.data(), ERR_LEN);
+          qCritical() << "Failed to retrieve frame from buffersink, msg =" << err.c_str();
         }
         av_frame_free(&frame);
         break;
