@@ -447,7 +447,9 @@ void ExportDialog::acodecChanged(int index)
   Q_ASSERT(audiobitrateSpinbox);
 
   const auto codecs = format_codecs_.audio_;
-  if (!codecs.empty() && (codecs.at(index) == AV_CODEC_ID_WAVPACK) ) {
+  if (!codecs.empty() &&
+      ( (codecs.at(index) == AV_CODEC_ID_WAVPACK)
+        || (codecs.at(index) == AV_CODEC_ID_FLAC)) ) {
     audio_bitrate_label_->setVisible(false);
     audiobitrateSpinbox->setVisible(false);
   } else {
