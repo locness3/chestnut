@@ -73,14 +73,14 @@ class ExportThread : public QThread {
         bool enabled = false;
         bool closed_gop_ {false};
         bool subsampling {true};
-    } video_params;
+    } video_params_;
 
     struct {
       int codec = -1;
       int sampling_rate = -1;
       int bitrate = -1;
       bool enabled = false;
-    } audio_params;
+    } audio_params_;
 
     int64_t start_frame;
     int64_t end_frame;
@@ -119,20 +119,20 @@ class ExportThread : public QThread {
     AVPacket audio_pkt;
     SwrContext* swr_ctx = nullptr;
 
-    bool vpkt_alloc = false;
-    bool apkt_alloc = false;
-
     int aframe_bytes;
 
     QMutex mutex;
     QWaitCondition waitCond;
 
+    bool vpkt_alloc = false;
+    bool apkt_alloc = false;
+
     bool setUpContext(RenderThread& rt, Viewer& vwr);
     void setDownContext(RenderThread& rt, Viewer& vwr) const;
-    void setupH264Encoder(AVCodecContext& ctx, const Params& video_params) const;
-    void setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_params) const;
-    void setupMPEG4Encoder(AVCodecContext& ctx, const Params& video_params) const;
-    void setupDNXHDEncoder(AVCodecContext& ctx, const Params& video_params) const;
+    void setupH264Encoder(AVCodecContext& ctx, const Params& video_params_) const;
+    void setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_params_) const;
+    void setupMPEG4Encoder(AVCodecContext& ctx, const Params& video_params_) const;
+    void setupDNXHDEncoder(AVCodecContext& ctx, const Params& video_params_) const;
 
     /**
      * @brief Configure codec frame rate parameter
