@@ -248,10 +248,6 @@ void load_internal_effects()
   em.internal = TRANSITION_INTERNAL_CROSSDISSOLVE;
   Effect::registerMeta(em);
 
-  em.name = "Dip to Colour";
-  em.internal = TRANSITION_INTERNAL_DIPTOCOLOR;
-  Effect::registerMeta(em);
-
   em.subtype = EFFECT_TYPE_AUDIO;
 
   em.name = "Linear Fade";
