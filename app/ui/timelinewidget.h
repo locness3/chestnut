@@ -139,7 +139,7 @@ class TimelineWidget : public QWidget {
     bool applyTransition(ComboAction* ca);
 
     
-    void paintGhosts(QPainter& painter);
+    void paintGhosts(QPainter& painter, QVector<Ghost> ghosts, Timeline& time_line);
     
     void paintSelections(QPainter& painter, Timeline& time_line);
 

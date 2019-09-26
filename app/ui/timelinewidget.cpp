@@ -343,7 +343,8 @@ bool same_sign(int a, int b) {
   return (a < 0) == (b < 0);
 }
 
-void TimelineWidget::dragEnterEvent(QDragEnterEvent *event) {
+void TimelineWidget::dragEnterEvent(QDragEnterEvent *event)
+{
   bool import_init = false;
 
   QVector<MediaPtr> media_list;
@@ -994,12 +995,13 @@ bool TimelineWidget::applyTransition(ComboAction* ca)
 
     PanelManager::timeLine().delete_areas(ca, areas);
 
-    if (move_post){
+    if (move_post) {
       const int64_t in_point = post->timeline_info.in.load();
       post->move(*ca, qMin(transition_start, in_point),
                  post->timeline_info.out, post->timeline_info.clip_in - (in_point - transition_start),
                  post->timeline_info.track_);
     }
+
     if (move_pre) {
       pre->move(*ca, pre->timeline_info.in, qMax(transition_end, pre->timeline_info.out.load()),
                 pre->timeline_info.clip_in, pre->timeline_info.track_);
@@ -2801,57 +2803,53 @@ void TimelineWidget::paintSplitEvent(QPainter& painter, Timeline& time_line) con
   }
 }
 
-void TimelineWidget::paintGhosts(QPainter& painter)
+void TimelineWidget::paintGhosts(QPainter& painter, QVector<Ghost> ghosts, Timeline& time_line)
 {
-  if (PanelManager::timeLine().ghosts.isEmpty()) {
+  if (ghosts.isEmpty()) {
     return;
   }
 
   QVector<int> insert_points;
   long first_ghost = LONG_MAX;
-  for (const auto& g : PanelManager::timeLine().ghosts) {
+  for (const auto& g : ghosts) {
     if (!is_track_visible(g.track)) {
       continue;
     }
 
-    ClipPtr clp = g.clip_.lock();
-    if (clp == nullptr) {
-      qWarning() << "Null Clip instance";
-      continue;
-    }
     first_ghost = qMin(first_ghost, g.in);
-    const int ghost_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(g.in);
+    const int ghost_x = time_line.getTimelineScreenPointFromFrame(g.in);
     int ghost_y = getScreenPointFromTrack(g.track);
-    const long ghost_width = PanelManager::timeLine().getTimelineScreenPointFromFrame(g.out) - ghost_x - 1;
-    int ghost_height = PanelManager::timeLine().calculate_track_height(g.track, -1) - 1;
+    const long ghost_width = time_line.getTimelineScreenPointFromFrame(g.out) - ghost_x - 1;
+    int ghost_height = time_line.calculate_track_height(g.track, -1) - 1;
     if (!g.transition.expired()) {
       // paint ghosts a different height for a transition
       ghost_height = qRound((static_cast<double>(ghost_height)/100.0) * TRANSITION_HEIGHT_PERCENTAGE);
       ghost_y += qRound(static_cast<double>(ghost_height)/2.0);
     }
 
-    insert_points.append(ghost_y + (ghost_height>>1));
+    insert_points.append(ghost_y + (ghost_height / 2));
 
     painter.setPen(GHOST_COLOUR);
     for (int j=0; j < GHOST_THICKNESS; ++j) {
-      painter.drawRect(ghost_x+j, ghost_y+j, ghost_width-j-j, ghost_height-j-j);
+      painter.drawRect(ghost_x + j, ghost_y + j, ghost_width - j - j, ghost_height - j - j);
     }
   }
 
   // draw insert indicator
-  if (PanelManager::timeLine().move_insert && !insert_points.isEmpty()) {
+  if (time_line.move_insert && !insert_points.isEmpty()) {
     painter.setBrush(INSERT_INDICATOR_COLOUR);
     painter.setPen(Qt::NoPen);
-    int insert_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(first_ghost);
-    int tri_size = TRACK_MIN_HEIGHT>>2;
+    const int insert_x = time_line.getTimelineScreenPointFromFrame(first_ghost);
+    constexpr int tri_size = TRACK_MIN_HEIGHT / 4;
 
     for (const auto point : insert_points) {
-      QPoint points[3] = {
-        QPoint(insert_x, point - tri_size),
-        QPoint(insert_x + tri_size, point),
-        QPoint(insert_x, point + tri_size)
+      constexpr auto POINT_COUNT = 3;
+      const QPoint points[POINT_COUNT] = {
+        {insert_x, point - tri_size},
+        {insert_x + tri_size, point},
+        {insert_x, point + tri_size}
       };
-      painter.drawPolygon(points, 3);
+      painter.drawPolygon(points, POINT_COUNT);
     }
   }
 }
@@ -3261,7 +3259,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
   }
 
     // Draw ghosts
-    paintGhosts(painter);
+    paintGhosts(painter, PanelManager::timeLine().ghosts, PanelManager::timeLine());
 
 
   // Draw splitting cursor

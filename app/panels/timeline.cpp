@@ -260,7 +260,8 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
     auto default_clip_in = 0L;
     auto default_clip_out = 0L;
 
-    switch (mda->type()) {
+    switch (mda->type())
+    {
       case MediaType::FOOTAGE:
         ftg = mda->object<Footage>();
         if (ftg != nullptr) {
