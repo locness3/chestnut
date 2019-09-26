@@ -345,7 +345,7 @@ void ExportDialog::export_action()
       et->video_params_.b_frames_ = b_frame_box_->value();
       et->video_params_.profile_ = profile_box_->currentText();
       et->video_params_.level_ = level_box_->currentText();
-      et->video_params_.subsampling = subsampling_;
+      et->video_params_.pix_fmts_ = pix_fmts_;
     }
     et->audio_params_.enabled = audioGroupbox->isChecked();
     if (et->audio_params_.enabled) {
@@ -761,7 +761,7 @@ void ExportDialog::constrainMpeg2Video()
     max_b_frames = std::numeric_limits<int>::max();
   }
 
-  LevelConstraints constraint;
+  Constraints constraint;
   const auto level = level_box_->currentText();
   if (level == MPEG2_LOW_LEVEL) {
     constraint = MPEG2_LL_CONSTRAINTS;
@@ -776,12 +776,12 @@ void ExportDialog::constrainMpeg2Video()
     return;
   }
 
-  heightSpinbox->setMaximum(constraint.max_height);
-  widthSpinbox->setMaximum(constraint.max_width);
-  videobitrateSpinbox->setMaximum(constraint.max_bitrate);
+  heightSpinbox->setMaximum(constraint.max_height.value_or(MAX_HEIGHT));
+  widthSpinbox->setMaximum(constraint.max_width.value_or(MAX_WIDTH));
+  videobitrateSpinbox->setMaximum(constraint.max_bitrate.value_or(INT_MAX));
   b_frame_box_->setMaximum(max_b_frames);
   framerate_box_->clear();
-  framerate_box_->addItems(constraint.framerates);
+  framerate_box_->addItems(constraint.framerates.value());
 
   matchWidgetsToSequence();
 }
@@ -818,7 +818,7 @@ void ExportDialog::constrainMPEG4()
   Q_ASSERT(heightSpinbox);
   Q_ASSERT(sequence_);
 
-  LevelConstraints constraint;
+  Constraints constraint;
   const auto level = level_box_->currentText();
   if (level == MPEG4_SSTP_1_LEVEL) {
     constraint = MPEG4_SSTP_1_CONSTRAINTS;
@@ -834,14 +834,14 @@ void ExportDialog::constrainMPEG4()
     constraint = MPEG4_SSTP_6_CONSTRAINTS;
   }
 
-  widthSpinbox->setMaximum(constraint.max_width);
-  heightSpinbox->setMaximum(constraint.max_height);
-  if (constraint.max_bitrate > 0) {
-    const auto mb_brate = constraint.max_bitrate / 1E6;
+  widthSpinbox->setMaximum(constraint.max_width.value_or(MAX_WIDTH));
+  heightSpinbox->setMaximum(constraint.max_height.value_or(MAX_HEIGHT));
+  if (constraint.max_bitrate) {
+    const auto mb_brate = constraint.max_bitrate.value() / 1E6;
     videobitrateSpinbox->setMaximum(mb_brate);
   }
   framerate_box_->clear();
-  framerate_box_->addItems(constraint.framerates);
+  framerate_box_->addItems(constraint.framerates.value_or(ALL_FRATES));
 
   matchWidgetsToSequence();
 }
@@ -961,7 +961,7 @@ void ExportDialog::constrainDNXHD()
   Q_ASSERT(videobitrateSpinbox);
 
   auto profile = profile_box_->currentText();
-  LevelConstraints constraint;
+  Constraints constraint;
   if (profile == "440x") {
     constraint = DNXHD_440X_CONSTRAINTS;
   } else if (profile == "440") {
@@ -992,16 +992,20 @@ void ExportDialog::constrainDNXHD()
     return;
   }
 
-  widthSpinbox->setMaximum(constraint.max_width);
-  widthSpinbox->setMinimum(constraint.max_width);
-  heightSpinbox->setMaximum(constraint.max_height);
-  heightSpinbox->setMinimum(constraint.max_height);
-  const auto mb_brate = constraint.max_bitrate / 1E6;
-  videobitrateSpinbox->setMaximum(mb_brate);
-  videobitrateSpinbox->setMinimum(mb_brate);
+  widthSpinbox->setMaximum(constraint.max_width.value_or(MAX_WIDTH));
+  widthSpinbox->setMinimum(constraint.max_width.value_or(MAX_WIDTH));
+  heightSpinbox->setMaximum(constraint.max_height.value_or(MAX_HEIGHT));
+  heightSpinbox->setMinimum(constraint.max_height.value_or(MAX_HEIGHT));
+  if (constraint.max_bitrate) {
+    const auto mb_brate = constraint.max_bitrate.value() / 1E6;
+    videobitrateSpinbox->setMaximum(mb_brate);
+    videobitrateSpinbox->setMinimum(mb_brate);
+  }
   framerate_box_->clear();
-  framerate_box_->addItems(constraint.framerates);
-  subsampling_ = constraint.subsampling;
+  framerate_box_->addItems(constraint.framerates.value());
+  if (constraint.pix_fmts) {
+    pix_fmts_ = constraint.pix_fmts.value();
+  }
 }
 
 

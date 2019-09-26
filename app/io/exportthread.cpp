@@ -41,6 +41,7 @@ extern "C" {
 #include <libavutil/opt.h>
 #include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
+#include <libavcodec/avcodec.h>
 }
 
 #ifdef QT_DEBUG
@@ -662,20 +663,21 @@ void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_par
   }
 
   ret = 0;
-  // Using ctx.profile does nothing
+  // FIXME: neither ctx.profile nor av_opt_set does anything
   if (video_params.profile_ == H264_BASELINE_PROFILE) {
-    ret = av_opt_set(ctx.priv_data, "profile", "baseline", 0);
-  } else if (video_params.profile_ == H264_EXTENDED_PROFILE) {
-    // FIXME: fail to open codec with this profile
-    ret = av_opt_set(ctx.priv_data, "profile", "extended", 0);
+    ctx.profile = FF_PROFILE_H264_BASELINE;
   } else if (video_params.profile_ == H264_MAIN_PROFILE) {
-    ret = av_opt_set(ctx.priv_data, "profile", "main", 0);
+    ctx.profile = FF_PROFILE_H264_MAIN;
   } else if (video_params.profile_ == H264_HIGH_PROFILE) {
-    ret = av_opt_set(ctx.priv_data, "profile", "high", 0);
-  }
-  if (ret < 0) {
-    av_strerror(ret, err.data(), ERR_LEN);
-    qWarning() << "Failed to set profile, code=" << err.data();
+    ctx.profile = FF_PROFILE_H264_HIGH;
+  } else if (video_params.profile_ == H264_HIGH10_PROFILE) {
+    ctx.profile = FF_PROFILE_H264_HIGH_10;
+  } else if (video_params.profile_ == H264_HIGH422_PROFILE) {
+    ctx.profile = FF_PROFILE_H264_HIGH_422;
+  } else if (video_params.profile_ == H264_HIGH444_PROFILE) {
+    ctx.profile = FF_PROFILE_H264_HIGH_444;
+  } else {
+    qWarning() << "Unknown H264 profile" << video_params.profile_;
   }
 
   ret = av_opt_set(ctx.priv_data, "preset", X264_PRESET, 0);
@@ -767,13 +769,26 @@ void ExportThread::setupMPEG4Encoder(AVCodecContext& ctx, const Params& video_pa
 void ExportThread::setupDNXHDEncoder(AVCodecContext& ctx, const Params& video_params) const
 {
   ctx.profile = FF_PROFILE_DNXHD;
+  // FIXME: DNXHDEncContext.pb needs setting up somehow
 
   if (video_params.profile_.endsWith("x")) {
     // dnxhdenc will deduce this as 10bits
-    if (!video_params.subsampling) {
-      ctx.pix_fmt = AV_PIX_FMT_YUV444P10;
-    } else {
-      ctx.pix_fmt = AV_PIX_FMT_YUV422P10;
+    if (!video_params.pix_fmts_.empty())
+    {
+      auto fmt = video_params.pix_fmts_.front();
+      switch (fmt)
+      {
+        case PixelFormat::YUV444:
+          ctx.pix_fmt = AV_PIX_FMT_YUV444P10;
+          break;
+        case PixelFormat::YUV422:
+          ctx.pix_fmt = AV_PIX_FMT_YUV422P10;
+          break;
+        case PixelFormat::YUV420:
+          // this may not be in any profile
+          ctx.pix_fmt = AV_PIX_FMT_YUV420P10;
+          break;
+      }
     }
   }
 }

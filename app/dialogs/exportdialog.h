@@ -30,6 +30,7 @@
 
 #include "io/exportthread.h"
 #include "project/sequence.h"
+#include "coderconstants.h"
 
 struct FormatCodecs
 {
@@ -106,7 +107,7 @@ class ExportDialog : public QDialog
     QComboBox* profile_box_ {nullptr};
     QLabel* level_box_label_ {nullptr};
     QComboBox* level_box_ {nullptr};
-    bool subsampling_ {true};
+    PixFmtList pix_fmts_;
 
 
     void setup_ui();

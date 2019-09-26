@@ -26,6 +26,7 @@
 
 #include "ui/renderthread.h"
 #include "panels/viewer.h"
+#include "coderconstants.h"
 
 class ExportDialog;
 struct AVFormatContext;
@@ -70,9 +71,9 @@ class ExportThread : public QThread {
         int b_frames_{};
         QString profile_;
         QString level_;
+        PixFmtList pix_fmts_;
         bool enabled = false;
         bool closed_gop_ {false};
-        bool subsampling {true};
     } video_params_;
 
     struct {
