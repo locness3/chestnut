@@ -60,7 +60,7 @@ class Clip;
 class Footage;
 class FootageStream;
 
-int getScreenPointFromFrame(double zoom, long frame);
+int getScreenPointFromFrame(double zoom, int64_t frame);
 long getFrameFromScreenPoint(double zoom, int x);
 bool selection_contains_transition(const Selection& s, ClipPtr c, int type);
 void ripple_clips(ComboAction *ca, SequencePtr  s, long point, long length, const QVector<int>& ignore = QVector<int>());
@@ -133,7 +133,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void create_ghosts_from_media(SequencePtr& seq, const long entry_point, QVector<MediaPtr> &media_list);
     void add_clips_from_ghosts(ComboAction *ca, SequencePtr s);
 
-    int getTimelineScreenPointFromFrame(long frame);
+    int getTimelineScreenPointFromFrame(int64_t frame);
     long getTimelineFrameFromScreenPoint(int x);
     int getDisplayScreenPointFromFrame(long frame);
     long getDisplayFrameFromScreenPoint(int x);
@@ -151,7 +151,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void delete_selection(QVector<Selection> &selections, bool ripple);
     void select_all();
 
-    void scroll_to_frame(long frame);
+    void scroll_to_frame(int64_t frame);
     void select_from_playhead();
 
     // shared information

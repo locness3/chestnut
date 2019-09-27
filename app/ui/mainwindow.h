@@ -90,9 +90,11 @@ class MainWindow : public QMainWindow {
     void go_to_in();
     void go_to_out();
     void go_to_start();
+    void prevFrameFast();
     void prev_frame();
     void playpause();
     void next_frame();
+    void nextFrameFast();
     void go_to_end();
     void prev_cut();
     void next_cut();

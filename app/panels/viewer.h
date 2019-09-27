@@ -39,7 +39,7 @@ class LabelSlider;
 
 bool frame_rate_is_droppable(const double rate);
 long timecode_to_frame(const QString& s, int view, double frame_rate);
-QString frame_to_timecode(long frame, const int view, const double frame_rate);
+QString frame_to_timecode(int64_t frame, const int view, const double frame_rate);
 
 class Viewer : public QDockWidget, public ui::MarkerDockWidget
 {
@@ -69,7 +69,7 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     void set_panel_name(const QString& name);
 
     // playback functions
-    void seek(long p);
+    void seek(const int64_t p);
     void play();
     void pause();
     bool playing;
@@ -104,8 +104,10 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     void go_to_start();
     void go_to_in();
     void previous_frame();
+    void previousFrameFast();
     void toggle_play();
     void next_frame();
+    void nextFrameFast();
     void go_to_out();
     void go_to_end();
     void close_media();
@@ -125,8 +127,8 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     void set_zoom_value(double d);
     void set_sb_max();
 
-    long get_seq_in();
-    long get_seq_out();
+    int64_t get_seq_in() const;
+    int64_t get_seq_out() const;
 
     void setup_ui();
 
@@ -156,7 +158,7 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     bool cue_recording_internal;
     QTimer recording_flasher;
 
-    long previous_playhead;
+    int64_t previous_playhead;
     SequencePtr createFootageSequence(const MediaPtr& mda) const;
 };
 

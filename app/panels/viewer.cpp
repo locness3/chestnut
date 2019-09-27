@@ -68,6 +68,8 @@ constexpr int MEDIA_FRAME_RATE = 30;
 constexpr const char* const PANEL_NAME = "Viewer";
 constexpr const char* const PANEL_TITLE_FORMAT = "%1: %2";
 
+constexpr int FAST_SEEK_STEP = 5;
+
 
 namespace {
   const QColor PAUSE_COLOR(128,192,128); // RGB
@@ -205,7 +207,7 @@ long timecode_to_frame(const QString& s, int view, double frame_rate) {
   return f;
 }
 
-QString frame_to_timecode(long frame, const int view, const double frame_rate)
+QString frame_to_timecode(int64_t frame, const int view, const double frame_rate)
 {
   if (qFuzzyCompare(frame_rate, 0)) {
     return "NaN";
@@ -280,7 +282,7 @@ bool frame_rate_is_droppable(const double rate)
   return (qFuzzyCompare(rate, NTSC_24) || qFuzzyCompare(rate, NTSC_30) || qFuzzyCompare(rate, NTSC_60));
 }
 
-void Viewer::seek(long p)
+void Viewer::seek(const int64_t p)
 {
   if (seq == nullptr) {
     qDebug() << "No assigned sequence";
@@ -302,34 +304,64 @@ void Viewer::seek(long p)
   update_parents(update_fx);
 }
 
-void Viewer::go_to_start() {
-  if (seq != nullptr) seek(0);
-}
-
-void Viewer::go_to_end() {
-  if (seq != nullptr) seek(seq->endFrame());
-}
-
-void Viewer::close_media() {
-  set_media(nullptr);
-}
-
-void Viewer::go_to_in() {
+void Viewer::go_to_start()
+{
   if (seq != nullptr) {
-    if (seq->workarea_.using_ && seq->workarea_.enabled_) {
-      seek(seq->workarea_.in_);
-    } else {
-      go_to_start();
-    }
+    seek(0);
   }
 }
 
-void Viewer::previous_frame() {
-  if (seq != nullptr && seq->playhead_ > 0) seek(seq->playhead_-1);
+void Viewer::go_to_end()
+{
+  if (seq != nullptr) {
+    seek(seq->endFrame());
+  }
 }
 
-void Viewer::next_frame() {
-  if (seq != nullptr) seek(seq->playhead_+1);
+void Viewer::close_media()
+{
+  set_media(nullptr);
+}
+
+void Viewer::go_to_in()
+{
+  if (seq == nullptr) {
+    return;
+  }
+  if (seq->workarea_.using_ && seq->workarea_.enabled_) {
+    seek(seq->workarea_.in_);
+  } else {
+    go_to_start();
+  }
+}
+
+void Viewer::previous_frame()
+{
+  if ((seq != nullptr) && (seq->playhead_ > 0)) {
+    seek(seq->playhead_ - 1);
+  }
+}
+
+
+void Viewer::previousFrameFast()
+{
+  if ( (seq != nullptr) && (seq->playhead_ > 0) ) {
+    seek(seq->playhead_ - FAST_SEEK_STEP);
+  }
+}
+
+void Viewer::next_frame()
+{
+  if (seq != nullptr) {
+    seek(seq->playhead_+ 1);
+  }
+}
+
+void Viewer::nextFrameFast()
+{
+  if (seq != nullptr) {
+    seek(seq->playhead_+ FAST_SEEK_STEP);
+  }
 }
 
 void Viewer::go_to_out() {
@@ -455,7 +487,8 @@ void Viewer::update_playhead_timecode(long p) {
   currentTimecode->set_value(p, false);
 }
 
-void Viewer::update_end_timecode() {
+void Viewer::update_end_timecode()
+{
   endTimecode->setText((seq == nullptr) ? frame_to_timecode(0, e_config.timecode_view, 30)
                                         : frame_to_timecode(seq->endFrame(), e_config.timecode_view, seq->frameRate()));
 }
@@ -524,21 +557,24 @@ void Viewer::update_viewer() {
   update_end_timecode();
 }
 
-void Viewer::clear_in() {
+void Viewer::clear_in()
+{
   if (seq->workarea_.using_) {
     e_undo_stack.push(new SetTimelineInOutCommand(seq, true, 0, seq->workarea_.out_));
     update_parents();
   }
 }
 
-void Viewer::clear_out() {
+void Viewer::clear_out()
+{
   if (seq->workarea_.using_) {
     e_undo_stack.push(new SetTimelineInOutCommand(seq, true, seq->workarea_.in_, seq->endFrame()));
     update_parents();
   }
 }
 
-void Viewer::clear_inout_point() {
+void Viewer::clear_inout_point()
+{
   if (seq->workarea_.using_) {
     e_undo_stack.push(new SetTimelineInOutCommand(seq, false, 0, 0));
     update_parents();
@@ -552,21 +588,25 @@ void Viewer::toggle_enable_inout() {
   }
 }
 
-void Viewer::set_in_point() {
+void Viewer::set_in_point()
+{
   headers->set_in_point(seq->playhead_);
 }
 
-void Viewer::set_out_point() {
+void Viewer::set_out_point()
+{
   headers->set_out_point(seq->playhead_);
 }
 
-void Viewer::set_zoom(bool in) {
+void Viewer::set_zoom(bool in)
+{
   if (seq != nullptr) {
-    set_zoom_value(in ? headers->get_zoom()*2 : qMax(minimum_zoom, headers->get_zoom()*0.5));
+    set_zoom_value(in ? headers->get_zoom() * 2 : qMax(minimum_zoom, headers->get_zoom() * 0.5));
   }
 }
 
-void Viewer::set_panel_name(const QString &n) {
+void Viewer::set_panel_name(const QString &n)
+{
   panel_name = n;
   update_window_title();
 }
@@ -581,39 +621,47 @@ void Viewer::update_window_title() {
   setWindowTitle(QString("%1: %2").arg(panel_name, name));
 }
 
-void Viewer::set_zoom_value(double d) {
+void Viewer::set_zoom_value(double d)
+{
   headers->update_zoom(d);
   if (viewer_widget->waveform) {
     viewer_widget->waveform_zoom = d;
     viewer_widget->update();
   }
-  if (seq != nullptr) {
-    set_sb_max();
-    if (!horizontal_bar->is_resizing())
-      center_scroll_to_playhead(horizontal_bar, headers->get_zoom(), seq->playhead_);
+
+  if (seq == nullptr) {
+    return;
   }
+    set_sb_max();
+    if (!horizontal_bar->is_resizing()) {
+      center_scroll_to_playhead(horizontal_bar, headers->get_zoom(), seq->playhead_);
+    }
 }
 
-void Viewer::set_sb_max() {
+void Viewer::set_sb_max()
+{
   headers->set_scrollbar_max(horizontal_bar, seq->endFrame(), headers->width());
 }
 
-long Viewer::get_seq_in() {
+int64_t Viewer::get_seq_in() const
+{
   return (seq->workarea_.using_ && seq->workarea_.enabled_)
       ? seq->workarea_.in_
       : 0;
 }
 
-long Viewer::get_seq_out() {
+int64_t Viewer::get_seq_out() const
+{
   return (seq->workarea_.using_ && seq->workarea_.enabled_ && previous_playhead < seq->workarea_.out_)
       ? seq->workarea_.out_
       : seq->endFrame();
 }
 
-void Viewer::setup_ui() {
-  QWidget* contents = new QWidget();
+void Viewer::setup_ui()
+{
+  auto contents = new QWidget();
 
-  QVBoxLayout* layout = new QVBoxLayout(contents);
+  auto layout = new QVBoxLayout(contents);
   layout->setSpacing(0);
   layout->setMargin(0);
 
@@ -629,23 +677,23 @@ void Viewer::setup_ui() {
   horizontal_bar->setOrientation(Qt::Horizontal);
   layout->addWidget(horizontal_bar);
 
-  QWidget* lower_controls = new QWidget(contents);
+  auto lower_controls = new QWidget(contents);
 
-  QHBoxLayout* lower_control_layout = new QHBoxLayout(lower_controls);
+  auto lower_control_layout = new QHBoxLayout(lower_controls);
   lower_control_layout->setMargin(0);
 
   // current time code
-  QWidget* current_timecode_container = new QWidget(lower_controls);
-  QHBoxLayout* current_timecode_container_layout = new QHBoxLayout(current_timecode_container);
+  auto current_timecode_container = new QWidget(lower_controls);
+  auto current_timecode_container_layout = new QHBoxLayout(current_timecode_container);
   current_timecode_container_layout->setSpacing(0);
   current_timecode_container_layout->setMargin(0);
   currentTimecode = new LabelSlider(current_timecode_container);
   current_timecode_container_layout->addWidget(currentTimecode);
   lower_control_layout->addWidget(current_timecode_container);
 
-  QWidget* playback_controls = new QWidget(lower_controls);
+  auto playback_controls = new QWidget(lower_controls);
 
-  QHBoxLayout* playback_control_layout = new QHBoxLayout(playback_controls);
+  auto playback_control_layout = new QHBoxLayout(playback_controls);
   playback_control_layout->setSpacing(0);
   playback_control_layout->setMargin(0);
 
@@ -690,9 +738,9 @@ void Viewer::setup_ui() {
 
   lower_control_layout->addWidget(playback_controls);
 
-  QWidget* end_timecode_container = new QWidget(lower_controls);
+  auto end_timecode_container = new QWidget(lower_controls);
 
-  QHBoxLayout* end_timecode_layout = new QHBoxLayout(end_timecode_container);
+  auto end_timecode_layout = new QHBoxLayout(end_timecode_container);
   end_timecode_layout->setSpacing(0);
   end_timecode_layout->setMargin(0);
 
@@ -810,11 +858,13 @@ void Viewer::reset()
   //TODO:
 }
 
-void Viewer::update_playhead() {
+void Viewer::update_playhead()
+{
   seek(currentTimecode->value());
 }
 
-void Viewer::timer_update() {
+void Viewer::timer_update()
+{
   previous_playhead = seq->playhead_;
 
   seq->playhead_ = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * seq->frameRate()));
@@ -823,23 +873,24 @@ void Viewer::timer_update() {
   }
   update_parents(e_config.seek_also_selects);
 
-  long end_frame = get_seq_out();
+  int64_t end_frame = get_seq_out();
   if (!recording
       && playing
-      && seq->playhead_ >= end_frame
-      && previous_playhead < end_frame) {
+      && (seq->playhead_ >= end_frame)
+      && (previous_playhead < end_frame) ) {
     if (!e_config.pause_at_out_point && e_config.loop) {
       seek(get_seq_in());
       play();
     } else if (e_config.pause_at_out_point || !main_sequence) {
       pause();
     }
-  } else if (recording && recording_start != recording_end && seq->playhead_ >= recording_end) {
+  } else if (recording && (recording_start != recording_end) && (seq->playhead_ >= recording_end) ) {
     pause();
   }
 }
 
-void Viewer::recording_flasher_update() {
+void Viewer::recording_flasher_update()
+{
   if (btnPlay->styleSheet().isEmpty()) {
     btnPlay->setStyleSheet("background: red;");
   } else {
@@ -847,11 +898,13 @@ void Viewer::recording_flasher_update() {
   }
 }
 
-void Viewer::resize_move(double d) {
-  set_zoom_value(headers->get_zoom()*d);
+void Viewer::resize_move(double d)
+{
+  set_zoom_value(headers->get_zoom() * d);
 }
 
-void Viewer::clean_created_seq() {
+void Viewer::clean_created_seq()
+{
   viewer_widget->waveform = false;
 
   if (created_sequence) {
@@ -865,7 +918,8 @@ void Viewer::clean_created_seq() {
   }
 }
 
-void Viewer::set_sequence(bool main, SequencePtr s) {
+void Viewer::set_sequence(bool main, SequencePtr s)
+{
   pause();
 
   reset_all_audio();
@@ -911,6 +965,7 @@ void Viewer::set_sequence(bool main, SequencePtr s) {
   update();
 }
 
-void Viewer::set_playpause_icon(bool play) {
+void Viewer::set_playpause_icon(bool play)
+{
   btnPlay->setIcon(play ? playIcon : QIcon(":/icons/pause.png"));
 }

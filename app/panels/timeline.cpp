@@ -594,7 +594,8 @@ void Timeline::select_all()
   repaint_timeline();
 }
 
-void Timeline::scroll_to_frame(long frame) {
+void Timeline::scroll_to_frame(int64_t frame)
+{
   scroll_to_frame_internal(horizontalScrollBar, frame, zoom, timeline_area->width());
 }
 
@@ -653,8 +654,8 @@ void Timeline::delete_selection(QVector<Selection>& selections, bool ripple_dele
     delete_areas(ca, selections);
 
     if (ripple_delete) {
-      long ripple_point = selections.at(0).in;
-      long ripple_length = selections.at(0).out - selections.at(0).in;
+      int64_t ripple_point = selections.at(0).in;
+      int64_t ripple_length = selections.at(0).out - selections.at(0).in;
 
       // retrieve ripple_point and ripple_length from current selection
       for (int i=1;i<selections.size();i++) {
@@ -891,7 +892,7 @@ void Timeline::copy(bool del)
   bool cleared = false;
   bool copied = false;
 
-  long min_in = 0;
+  int64_t min_in = 0;
 
 
   for (const auto& c : sequence_->clips()) {
@@ -1494,7 +1495,8 @@ void Timeline::deselect()
   repaint_timeline();
 }
 
-long getFrameFromScreenPoint(double zoom, int x) {
+long getFrameFromScreenPoint(double zoom, int x)
+{
   long f = qCeil(double(x) / zoom);
   if (f < 0) {
     return 0;
@@ -1502,44 +1504,48 @@ long getFrameFromScreenPoint(double zoom, int x) {
   return f;
 }
 
-int getScreenPointFromFrame(double zoom, long frame) {
+int getScreenPointFromFrame(double zoom, int64_t frame)
+{
   return qFloor(double(frame)*zoom);
 }
 
-long Timeline::getTimelineFrameFromScreenPoint(int x) {
+long Timeline::getTimelineFrameFromScreenPoint(int x)
+{
   return getFrameFromScreenPoint(zoom, x + scroll);
 }
 
-int Timeline::getTimelineScreenPointFromFrame(long frame) {
+int Timeline::getTimelineScreenPointFromFrame(int64_t frame)
+{
   return getScreenPointFromFrame(zoom, frame) - scroll;
 }
 
-void Timeline::add_btn_click() {
+void Timeline::add_btn_click()
+{
   QMenu add_menu(this);
 
-  QAction* titleMenuItem = new QAction(&add_menu);
+  auto titleMenuItem = new QAction(&add_menu);
   titleMenuItem->setText(tr("Title..."));
   titleMenuItem->setData(static_cast<int>(AddObjectType::TITLE));
   add_menu.addAction(titleMenuItem);
 
-  QAction* solidMenuItem = new QAction(&add_menu);
+  auto solidMenuItem = new QAction(&add_menu);
   solidMenuItem->setText(tr("Solid Color..."));
   solidMenuItem->setData(static_cast<int>(AddObjectType::SOLID));
   add_menu.addAction(solidMenuItem);
 
-  QAction* barsMenuItem = new QAction(&add_menu);
+  auto barsMenuItem = new QAction(&add_menu);
   barsMenuItem->setText(tr("Bars..."));
   barsMenuItem->setData(static_cast<int>(AddObjectType::BARS));
   add_menu.addAction(barsMenuItem);
 
   add_menu.addSeparator();
 
-  QAction* toneMenuItem = new QAction(&add_menu);
+  auto toneMenuItem = new QAction(&add_menu);
   toneMenuItem->setText(tr("Tone..."));
   toneMenuItem->setData(static_cast<int>(AddObjectType::TONE));
   add_menu.addAction(toneMenuItem);
 
-  QAction* noiseMenuItem = new QAction(&add_menu);
+  auto noiseMenuItem = new QAction(&add_menu);
   noiseMenuItem->setText(tr("Noise..."));
   noiseMenuItem->setData(static_cast<int>(AddObjectType::NOISE));
   add_menu.addAction(noiseMenuItem);
@@ -1555,7 +1561,8 @@ void Timeline::add_menu_item(QAction* action)
   creating_object = static_cast<AddObjectType>(action->data().toInt());
 }
 
-void Timeline::setScroll(int s) {
+void Timeline::setScroll(int s)
+{
   scroll = s;
   headers->set_scroll(s);
   repaint_timeline();

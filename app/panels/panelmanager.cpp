@@ -41,7 +41,7 @@ Viewer* PanelManager::footage_viewer_ = nullptr;
 MarkersViewer* PanelManager::markers_viewer_ = nullptr;
 
 //FIXME:?
-void scroll_to_frame_internal(QScrollBar* bar, const long frame, const double zoom, const int area_width)
+void scroll_to_frame_internal(QScrollBar* bar, const int64_t frame, const double zoom, const int area_width)
 {
   const int screen_point = getScreenPointFromFrame(zoom, frame) - bar->value();
   const auto min_x = static_cast<int>(area_width * 0.1);

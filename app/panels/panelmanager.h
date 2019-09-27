@@ -28,7 +28,7 @@
 #include "panels/viewer.h"
 #include "ui/Forms/markersviewer.h"
 
-void scroll_to_frame_internal(QScrollBar* bar, const long frame, const double zoom, const int area_width);
+void scroll_to_frame_internal(QScrollBar* bar, const int64_t frame, const double zoom, const int area_width);
 
 namespace panels {
 

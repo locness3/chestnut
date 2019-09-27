@@ -863,8 +863,10 @@ void MainWindow::setup_menus() {
 
   playback_menu->addAction(tr("Go to Start"), this, SLOT(go_to_start()), QKeySequence("Home"))->setProperty("id", "gotostart");
   playback_menu->addAction(tr("Previous Frame"), this, SLOT(prev_frame()), QKeySequence("Left"))->setProperty("id", "prevframe");
+  playback_menu->addAction(tr("Previous Frame+++"), this, SLOT(prevFrameFast()), QKeySequence("Shift+Left"))->setProperty("id", "prevframefast");
   playback_menu->addAction(tr("Play/Pause"), this, SLOT(playpause()), QKeySequence("Space"))->setProperty("id", "playpause");
   playback_menu->addAction(tr("Next Frame"), this, SLOT(next_frame()), QKeySequence("Right"))->setProperty("id", "nextframe");
+  playback_menu->addAction(tr("Next Frame+++"), this, SLOT(nextFrameFast()), QKeySequence("Shift+Right"))->setProperty("id", "nextframefast");
   playback_menu->addAction(tr("Go to End"), this, SLOT(go_to_end()), QKeySequence("End"))->setProperty("id", "gotoend");
   playback_menu->addSeparator();
   playback_menu->addAction(tr("Go to Previous Cut"), this, SLOT(prev_cut()), QKeySequence("Up"))->setProperty("id", "prevcut");
@@ -1277,6 +1279,15 @@ void MainWindow::go_to_start()
   }
 }
 
+
+void MainWindow::prevFrameFast()
+{
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
+  Viewer& vwr = focused_panel == &PanelManager::footageViewer() ? PanelManager::footageViewer()
+                                                                : PanelManager::sequenceViewer();
+  vwr.previousFrameFast();
+}
+
 void MainWindow::prev_frame()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
@@ -1295,6 +1306,14 @@ void MainWindow::next_frame()
   } else {
     PanelManager::sequenceViewer().next_frame();
   }
+}
+
+void MainWindow::nextFrameFast()
+{
+  QDockWidget* focused_panel = PanelManager::getFocusedPanel();
+  Viewer& vwr = (focused_panel == &PanelManager::footageViewer()) ? PanelManager::footageViewer()
+                                                                  : PanelManager::sequenceViewer();
+  vwr.nextFrameFast();
 }
 
 void MainWindow::go_to_end()
