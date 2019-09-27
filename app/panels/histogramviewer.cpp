@@ -108,13 +108,6 @@ void HistogramViewer::setup()
   connect(blue_button_, &QToolButton::clicked, this, &HistogramViewer::buttonChecked);
   button_layout->addWidget(blue_button_);
 
-  clip_button_ = new QToolButton();
-  clip_button_->setCheckable(true);
-  clip_button_->setChecked(false);
-  clip_button_->setText("Show Clipped");
-  connect(clip_button_, &QToolButton::clicked, this, &HistogramViewer::buttonChecked);
-  button_layout->addWidget(clip_button_);
-
   auto h_spacer = new QSpacerItem(0,0, QSizePolicy::Expanding, QSizePolicy::Minimum);
   button_layout->addSpacerItem(h_spacer);
 
