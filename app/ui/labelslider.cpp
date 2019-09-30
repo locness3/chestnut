@@ -25,6 +25,9 @@
 #include <QMouseEvent>
 #include <QInputDialog>
 #include <QApplication>
+#include <QRegularExpression>
+
+constexpr auto TIMECODE_REGEX = "^[0-9]+:[0-9]+:[0-9]+[:;][0-9]+";
 
 LabelSlider::LabelSlider(QWidget* parent) : QLabel(parent) {
   frame_rate = 30;
@@ -42,16 +45,19 @@ LabelSlider::LabelSlider(QWidget* parent) : QLabel(parent) {
   set_default_value(0);
 }
 
-void LabelSlider::set_frame_rate(double d) {
+void LabelSlider::set_frame_rate(double d)
+{
   frame_rate = d;
 }
 
-void LabelSlider::set_display_type(SliderType type) {
+void LabelSlider::set_display_type(SliderType type)
+{
   display_type = type;
   setText(valueToString(internal_value));
 }
 
-void LabelSlider::set_value(const double val, const bool userSet) {
+void LabelSlider::set_value(const double val, const bool userSet)
+{
   set = true;
   if (!qFuzzyCompare(val, internal_value)) {
     if (min_enabled && val < min_value) {
@@ -69,15 +75,18 @@ void LabelSlider::set_value(const double val, const bool userSet) {
   }
 }
 
-bool LabelSlider::is_set() {
+bool LabelSlider::is_set()
+{
   return set;
 }
 
-bool LabelSlider::is_dragging() {
+bool LabelSlider::is_dragging()
+{
   return drag_proc;
 }
 
-QString LabelSlider::valueToString(double v) {
+QString LabelSlider::valueToString(double v)
+{
   if (qIsNaN(v)) {
     return "---";
   } else {
@@ -92,24 +101,31 @@ QString LabelSlider::valueToString(double v) {
   }
 }
 
-double LabelSlider::getPreviousValue() {
+double LabelSlider::getPreviousValue()
+{
   return previous_value;
 }
 
-void LabelSlider::set_previous_value() {
+void LabelSlider::set_previous_value()
+{
   previous_value = internal_value;
 }
 
-void LabelSlider::set_color(QString c) {
-  if (c.isEmpty()) c = "#ffc000";
+void LabelSlider::set_color(QString c)
+{
+  if (c.isEmpty()) {
+    c = "#ffc000";
+  }
   setStyleSheet("QLabel{color:" + c + ";text-decoration:underline;}QLabel:disabled{color:#808080;}");
 }
 
-double LabelSlider::value() {
+double LabelSlider::value()
+{
   return internal_value;
 }
 
-void LabelSlider::set_default_value(double v) {
+void LabelSlider::set_default_value(double v)
+{
   default_value = v;
   if (!set) {
     set_value(v, false);
@@ -118,12 +134,14 @@ void LabelSlider::set_default_value(double v) {
   }
 }
 
-void LabelSlider::set_minimum_value(double v) {
+void LabelSlider::set_minimum_value(double v)
+{
   min_value = v;
   min_enabled = true;
 }
 
-void LabelSlider::set_maximum_value(double v) {
+void LabelSlider::set_maximum_value(double v)
+{
   max_value = v;
   max_enabled = true;
 }
@@ -135,7 +153,8 @@ void LabelSlider::set_step_value(const double v)
   step_enabled_ = true;
 }
 
-void LabelSlider::mousePressEvent(QMouseEvent *ev) {
+void LabelSlider::mousePressEvent(QMouseEvent *ev)
+{
   drag_start_value = internal_value;
   if (ev->modifiers() & Qt::AltModifier) {
     if (!qFuzzyCompare(internal_value, default_value) && !qIsNaN(default_value)) {
@@ -143,7 +162,9 @@ void LabelSlider::mousePressEvent(QMouseEvent *ev) {
       set_value(default_value, true);
     }
   } else {
-    if (qIsNaN(internal_value)) internal_value = 0;
+    if (qIsNaN(internal_value)) {
+      internal_value = 0;
+    }
 
     qApp->setOverrideCursor(Qt::BlankCursor);
     drag_start = true;
@@ -153,7 +174,8 @@ void LabelSlider::mousePressEvent(QMouseEvent *ev) {
   emit clicked();
 }
 
-void LabelSlider::mouseMoveEvent(QMouseEvent* event) {
+void LabelSlider::mouseMoveEvent(QMouseEvent* event)
+{
   if (drag_start) {
     drag_proc = true;
     double diff = (cursor().pos().x()-drag_start_x) + (drag_start_y-cursor().pos().y());
@@ -171,7 +193,8 @@ void LabelSlider::mouseMoveEvent(QMouseEvent* event) {
   }
 }
 
-void LabelSlider::mouseReleaseEvent(QMouseEvent*) {
+void LabelSlider::mouseReleaseEvent(QMouseEvent*)
+{
   if (drag_start) {
     qApp->restoreOverrideCursor();
     drag_start = false;
@@ -182,15 +205,20 @@ void LabelSlider::mouseReleaseEvent(QMouseEvent*) {
     } else {
       double d = internal_value;
       if (display_type == SliderType::FRAMENUMBER) {
-        QString s = QInputDialog::getText(
+        QString set_value(QInputDialog::getText(
                       this,
                       tr("Set Value"),
                       tr("New value:"),
                       QLineEdit::Normal,
                       valueToString(internal_value)
-                      );
-        if (s.isEmpty()) return;
-        d = timecode_to_frame(s, e_config.timecode_view, frame_rate); // string to frame number
+                      ));
+
+        const QRegularExpression regex(TIMECODE_REGEX);
+        auto matched = regex.match(set_value);
+        if (set_value.isEmpty() || matched.capturedRef().isEmpty()) {
+          return;
+        }
+        d = timecode_to_frame(set_value, e_config.timecode_view, frame_rate); // string to frame number
       } else {
         bool ok;
         d = QInputDialog::getDouble(
@@ -203,8 +231,12 @@ void LabelSlider::mouseReleaseEvent(QMouseEvent*) {
               decimal_places,
               &ok
               );
-        if (!ok) return;
-        if (display_type == SliderType::PERCENT) d *= 0.01;
+        if (!ok) {
+          return;
+        }
+        if (display_type == SliderType::PERCENT) {
+          d *= 0.01;
+        }
       }
       if (!qFuzzyCompare(d, internal_value)) {
         set_previous_value();
