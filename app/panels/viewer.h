@@ -90,7 +90,6 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
 
     ViewerWidget* viewer_widget;
 
-    void resizeEvent(QResizeEvent *event);
 
     MediaPtr getMedia();
     SequencePtr getSequence();
@@ -98,6 +97,10 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
      * Create a new marker of an object in the widget
      */
     virtual void setMarker() const override;
+
+
+  protected:
+    void resizeEvent(QResizeEvent *event) override;
 
   public slots:
     void play_wake();
