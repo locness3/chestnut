@@ -159,9 +159,7 @@ Project::Project(QWidget *parent) :
   verticalLayout->addWidget(toolbar_widget);
 
   // tree view
-  tree_view_ = new SourceTable(dockWidgetContents);
-  tree_view_->project_parent_ = this;
-  tree_view_->setModel(sorter);
+  tree_view_ = new SourceTable(sorter, this, dockWidgetContents);
   verticalLayout->addWidget(tree_view_);
 
   // icon view
@@ -794,7 +792,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
     if (imported) {
       e_undo_stack.push(ca);
 
-      for (MediaPtr mda : last_imported_media){
+      for (MediaPtr& mda : last_imported_media){
         // generate waveform/thumbnail in another thread
         start_preview_generator(mda, replace != nullptr);
       }
@@ -804,7 +802,8 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
   }
 }
 
-MediaPtr Project::get_selected_folder() {
+MediaPtr Project::get_selected_folder()
+{
   // if one item is selected and it's a folder, return it
   QModelIndexList selected_items = get_current_selected();
   if (selected_items.size() == 1) {
@@ -820,7 +819,8 @@ MediaPtr Project::get_selected_folder() {
   return nullptr;
 }
 
-bool Project::reveal_media(MediaPtr media, QModelIndex parent) {
+bool Project::reveal_media(MediaPtr media, QModelIndex parent)
+{
   for (int i=0;i<Project::model().rowCount(parent);i++) {
     const QModelIndex& item = Project::model().index(i, 0, parent);
     MediaPtr m = Project::model().getItem(item);

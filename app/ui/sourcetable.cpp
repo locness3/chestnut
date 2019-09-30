@@ -40,8 +40,11 @@
 #include "debug.h"
 
 
-SourceTable::SourceTable(QWidget* parent) : QTreeView(parent)
+SourceTable::SourceTable(QAbstractItemModel* model, Project* proj_parent, QWidget* parent)
+  : QTreeView(parent),
+    project_parent_(proj_parent)
 {
+  setModel(model);
   setSortingEnabled(true);
   setAcceptDrops(true);
   sortByColumn(0, Qt::AscendingOrder);
@@ -49,17 +52,29 @@ SourceTable::SourceTable(QWidget* parent) : QTreeView(parent)
   setEditTriggers(QAbstractItemView::NoEditTriggers);
   setDragDropMode(QAbstractItemView::DragDrop);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
-  connect(this, SIGNAL(clicked(const QModelIndex&)), this, SLOT(item_click(const QModelIndex&)));
-  connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu()));
+  connect(this, SIGNAL(clicked(const QModelIndex&)), this, SLOT(itemClick(const QModelIndex&)));
+  connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu()));
+  header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
-void SourceTable::show_context_menu()
+SourceTable::~SourceTable()
 {
+  project_parent_ = nullptr;
+}
+
+void SourceTable::showContextMenu()
+{
+  Q_ASSERT(project_parent_);
+  Q_ASSERT(project_parent_->sources_common);
   project_parent_->sources_common->show_context_menu(this, selectionModel()->selectedRows());
 }
 
-void SourceTable::item_click(const QModelIndex& index)
+
+
+void SourceTable::itemClick(const QModelIndex& index)
 {
+  Q_ASSERT(project_parent_);
+  Q_ASSERT(project_parent_->sources_common);
   if ((selectionModel()->selectedRows().size() == 1) && (index.column() == 0)) {
     project_parent_->sources_common->item_click(project_parent_->item_to_media(index), index);
   }
@@ -75,9 +90,9 @@ void SourceTable::mousePressEvent(QMouseEvent* event)
 
 void SourceTable::mouseDoubleClickEvent(QMouseEvent* event)
 {
-  if ( (project_parent_ != nullptr) && (project_parent_->sources_common != nullptr) ){
-    project_parent_->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
-  }
+  Q_ASSERT(project_parent_);
+  Q_ASSERT(project_parent_->sources_common);
+  project_parent_->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
 }
 
 void SourceTable::dragEnterEvent(QDragEnterEvent *event)

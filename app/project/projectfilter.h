@@ -3,7 +3,8 @@
 
 #include <QSortFilterProxyModel>
 
-class ProjectFilter : public QSortFilterProxyModel {
+class ProjectFilter : public QSortFilterProxyModel
+{
     Q_OBJECT
   public:
     explicit ProjectFilter(QObject *parent = nullptr);

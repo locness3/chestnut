@@ -1,7 +1,7 @@
 /* 
  * Olive. Olive is a free non-linear video editor for Windows, macOS, and Linux.
  * Copyright (C) 2018  {{ organization }}
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -28,22 +28,29 @@ class Media;
 class SourceTable : public QTreeView
 {
     Q_OBJECT
-public:
-    explicit SourceTable(QWidget* parent = nullptr);
+  public:
+    SourceTable(QAbstractItemModel *model, Project* proj_parent, QWidget* parent);
+    ~SourceTable() override;
 
+    SourceTable() = delete;
     SourceTable(const SourceTable& ) = delete;
     SourceTable& operator=(const SourceTable&) = delete;
-    
-    Project* project_parent_;
-protected:
+    SourceTable(const SourceTable&& ) = delete;
+    SourceTable& operator=(const SourceTable&&) = delete;
+
+  protected:
     void mousePressEvent(QMouseEvent*) override;
     void mouseDoubleClickEvent(QMouseEvent *) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
-private slots:
-    void item_click(const QModelIndex& index);
-    void show_context_menu();
+  private slots:
+
+    void itemClick(const QModelIndex& index);
+    void showContextMenu();
+  private:
+
+    Project* project_parent_ {nullptr};
 };
 
 #endif // SOURCETABLE_H
