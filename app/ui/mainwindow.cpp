@@ -82,7 +82,7 @@ constexpr auto FILE_AUTORECOVERY("autorecovery.nut");
 constexpr auto APP_STYLE("Fusion");
 
 
-constexpr auto DIR_LAYOUT("/layout");
+constexpr auto PANEL_CFG_FILE("/layout");
 constexpr auto DIR_PREVIEWS("/previews");
 constexpr auto DIR_RECENTS("/recents");
 constexpr auto FILE_CONFIG("config.xml");
@@ -136,8 +136,10 @@ void MainWindow::setup_layout(bool reset)
 #endif
 
   // load panels from file
-  if (!reset) {
-    QFile panel_config(get_config_path() + DIR_LAYOUT);
+  QFile panel_config(get_config_path() + PANEL_CFG_FILE);
+  if (reset) {
+    panel_config.remove();
+  } else {
     if (panel_config.exists() && panel_config.open(QFile::ReadOnly)) {
       restoreState(panel_config.readAll(), 0);
       panel_config.close();
@@ -1246,6 +1248,7 @@ void MainWindow::sequenceLoaded(const SequencePtr& new_sequence)
 
 void MainWindow::reset_layout()
 {
+
   setup_layout(true);
 }
 
