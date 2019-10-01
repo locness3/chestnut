@@ -34,15 +34,15 @@ jobs:
           command: 'make -j4'
 
       # Could be done in parallel with build
-      - run:
-          name: Setup Sonar Scanner
-          command: 'pushd scripts && chmod +x setupSonarScanner.sh && ./setupSonarScanner.sh && popd'
+      #- run:
+      #    name: Setup Sonar Scanner
+      #    command: 'pushd scripts && chmod +x setupSonarScanner.sh && ./setupSonarScanner.sh && popd'
 
-      - run:
-          name: Run Static Analysis
-          command: './scripts/static_analysis.sh'
+      #- run:
+      #    name: Run Static Analysis
+      #    command: './scripts/static_analysis.sh'
 
-      # parralelise this
+      # parallelise this
       - run: 
           name: AppImage Build
           command: 'cd packaging/appimage/ && cp ../../third_party/pkg2appimage . && chmod u+x pkg2appimage && ./pkg2appimage chestnut.yml'
