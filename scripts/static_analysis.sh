@@ -3,7 +3,7 @@ set +e
 
 PLATFORM="x86-64"
 
-SONAR_VER="3.3.0.1492-linux"
+SONAR_VER="4.2.0.1873-linux"
 BUILD_WRAPPER_VER="3.11"
 
 BUILD_WRAPPER="scripts/sonar_scanner_unzip/build-wrapper-${BUILD_WRAPPER_VER}/linux-${PLATFORM}/"

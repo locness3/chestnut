@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-SONAR_SCANNER_URL="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip"
+SONAR_SCANNER_URL="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.2.0.1873-linux.zip"
 SONAR_SCANNER_FILE="sonarscanner.zip"
 SONAR_SCANNER_DIR="sonar_scanner_unzip"
 BUILDWRAPPER_FILE="../third_party/SonarQube/build-wrapper-3.11.zip"
