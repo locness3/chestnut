@@ -1776,15 +1776,17 @@ void MainWindow::nest()
   }
 }
 
-void MainWindow::paste_insert() {
+void MainWindow::paste_insert()
+{
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::timeLine() && global::sequence != nullptr) {
     PanelManager::timeLine().paste(true);
   }
 }
 
-void MainWindow::toggle_bool_action() {
-  auto action = static_cast<QAction*>(sender());
+void MainWindow::toggle_bool_action()
+{
+  auto action = dynamic_cast<QAction*>(sender());
   bool* variable = reinterpret_cast<bool*>(action->data().value<quintptr>());
   *variable = !(*variable);
   PanelManager::refreshPanels(false);
@@ -1792,7 +1794,7 @@ void MainWindow::toggle_bool_action() {
 
 void MainWindow::set_autoscroll()
 {
-  auto action = static_cast<QAction*>(sender());
+  auto action = dynamic_cast<QAction*>(sender());
   e_config.autoscroll = action->data().toInt();
 }
 
@@ -1806,14 +1808,16 @@ void MainWindow::menu_click_button()
     reinterpret_cast<QPushButton*>(static_cast<QAction*>(sender())->data().value<quintptr>())->click();
 }
 
-void MainWindow::toggle_panel_visibility() {
-  auto action = static_cast<QAction*>(sender());
+void MainWindow::toggle_panel_visibility()
+{
+  auto action = dynamic_cast<QAction*>(sender());
   auto w = reinterpret_cast<QDockWidget*>(action->data().value<quintptr>());
   w->setVisible(!w->isVisible());
 }
 
-void MainWindow::set_timecode_view() {
-  auto action = static_cast<QAction*>(sender());
+void MainWindow::set_timecode_view()
+{
+  auto action = dynamic_cast<QAction*>(sender());
   e_config.timecode_view = action->data().toInt();
   PanelManager::refreshPanels(false);
 }

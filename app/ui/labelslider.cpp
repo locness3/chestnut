@@ -29,29 +29,23 @@
 
 constexpr auto TIMECODE_REGEX = "^[0-9]+:[0-9]+:[0-9]+[:;][0-9]+";
 constexpr auto NUMBER_REGEX = "^[0-9]+";
+constexpr auto DEFAULT_LABEL_COLOUR = "#ffc000";
+constexpr auto NAN_REPR = "---";
 
-LabelSlider::LabelSlider(QWidget* parent) : QLabel(parent) {
-  frame_rate = 30;
-  decimal_places = 1;
-  drag_start = false;
-  drag_proc = false;
-  min_enabled = false;
-  max_enabled = false;
+LabelSlider::LabelSlider(QWidget* parent)
+  : QLabel(parent)
+{
   set_color();
   setCursor(Qt::SizeHorCursor);
-  internal_value = -1;
-  set = false;
-  display_type = SliderType::NORMAL;
-
   set_default_value(0);
 }
 
-void LabelSlider::set_frame_rate(double d)
+void LabelSlider::set_frame_rate(const double d)
 {
   frame_rate = d;
 }
 
-void LabelSlider::set_display_type(SliderType type)
+void LabelSlider::set_display_type(const SliderType type)
 {
   display_type = type;
   setText(valueToString(internal_value));
@@ -60,19 +54,17 @@ void LabelSlider::set_display_type(SliderType type)
 void LabelSlider::set_value(const double val, const bool userSet)
 {
   set = true;
-  if (!qFuzzyCompare(val, internal_value)) {
-    if (min_enabled && val < min_value) {
-      internal_value = min_value;
-    } else if (max_enabled && val > max_value) {
-      internal_value = max_value;
-    } else {
-      internal_value = val;
-    }
+  if (min_value && (val < min_value)) {
+    internal_value = min_value.value();
+  } else if (max_value && (val > max_value)) {
+    internal_value = max_value.value();
+  } else {
+    internal_value = val;
+  }
 
-    setText(valueToString(internal_value));
-    if (userSet) {
-      emit valueChanged();
-    }
+  setText(valueToString(internal_value));
+  if (userSet) {
+    emit valueChanged();
   }
 }
 
@@ -86,14 +78,16 @@ bool LabelSlider::is_dragging()
   return drag_proc;
 }
 
-QString LabelSlider::valueToString(double v)
+QString LabelSlider::valueToString(const double v)
 {
   if (qIsNaN(v)) {
-    return "---";
+    return NAN_REPR;
   } else {
     switch (display_type) {
-      case SliderType::FRAMENUMBER: return frame_to_timecode(v, e_config.timecode_view, frame_rate);
-      case SliderType::PERCENT: return QString::number((v*100), 'f', decimal_places) + "%";
+      case SliderType::FRAMENUMBER:
+        return frame_to_timecode(qRound(v), e_config.timecode_view, frame_rate);
+      case SliderType::PERCENT:
+        return QString::number((v * 100), 'f', decimal_places) + "%";
       default:
         // unhandled label slider type
         break;
@@ -115,7 +109,7 @@ void LabelSlider::set_previous_value()
 void LabelSlider::set_color(QString c)
 {
   if (c.isEmpty()) {
-    c = "#ffc000";
+    c = DEFAULT_LABEL_COLOUR;
   }
   setStyleSheet("QLabel{color:" + c + ";text-decoration:underline;}QLabel:disabled{color:#808080;}");
 }
@@ -125,7 +119,7 @@ double LabelSlider::value()
   return internal_value;
 }
 
-void LabelSlider::set_default_value(double v)
+void LabelSlider::set_default_value(const double v)
 {
   default_value = v;
   if (!set) {
@@ -135,23 +129,20 @@ void LabelSlider::set_default_value(double v)
   }
 }
 
-void LabelSlider::set_minimum_value(double v)
+void LabelSlider::set_minimum_value(const double v)
 {
   min_value = v;
-  min_enabled = true;
 }
 
-void LabelSlider::set_maximum_value(double v)
+void LabelSlider::set_maximum_value(const double v)
 {
   max_value = v;
-  max_enabled = true;
 }
 
 
 void LabelSlider::set_step_value(const double v)
 {
   step_value_ = v;
-  step_enabled_ = true;
 }
 
 void LabelSlider::mousePressEvent(QMouseEvent *ev)
@@ -177,75 +168,78 @@ void LabelSlider::mousePressEvent(QMouseEvent *ev)
 
 void LabelSlider::mouseMoveEvent(QMouseEvent* event)
 {
-  if (drag_start) {
-    drag_proc = true;
-    double diff = (cursor().pos().x()-drag_start_x) + (drag_start_y-cursor().pos().y());
-    if (event->modifiers() & Qt::ControlModifier) {
-      diff *= 0.01;
-    }
-    if (display_type == SliderType::PERCENT) {
-      diff *= 0.01;
-    }
-    if (step_enabled_){
-      diff *= step_value_;
-    }
-    set_value(internal_value + diff, true);
-    cursor().setPos(drag_start_x, drag_start_y);
+  if (!drag_start) {
+    return;
   }
+
+  drag_proc = true;
+  double diff = (cursor().pos().x() - drag_start_x) + (drag_start_y - cursor().pos().y());
+  if (event->modifiers() & Qt::ControlModifier) {
+    diff *= 0.01;
+  }
+  if (display_type == SliderType::PERCENT) {
+    diff *= 0.01;
+  }
+  if (step_value_){
+    diff *= step_value_.value();
+  }
+  set_value(internal_value + diff, true);
+  cursor().setPos(drag_start_x, drag_start_y);
 }
 
 void LabelSlider::mouseReleaseEvent(QMouseEvent*)
 {
-  if (drag_start) {
-    qApp->restoreOverrideCursor();
-    drag_start = false;
-    if (drag_proc) {
-      drag_proc = false;
-      previous_value = drag_start_value;
-      emit valueChanged();
-    } else {
-      double d = internal_value;
-      if (display_type == SliderType::FRAMENUMBER) {
-        QString set_value(QInputDialog::getText(
-                      this,
-                      tr("Set Value"),
-                      tr("New value:"),
-                      QLineEdit::Normal,
-                      valueToString(internal_value)
-                      ));
+  if (!drag_start) {
+    return;
+  }
+  qApp->restoreOverrideCursor();
+  drag_start = false;
+  if (drag_proc) {
+    drag_proc = false;
+    previous_value = drag_start_value;
+    emit valueChanged();
+  } else {
+    double d = internal_value;
+    if (display_type == SliderType::FRAMENUMBER) {
+      QString set_value(QInputDialog::getText(
+                          this,
+                          tr("Set Value"),
+                          tr("New value:"),
+                          QLineEdit::Normal,
+                          valueToString(internal_value)
+                          ));
 
-        const QRegularExpression tc_rgx(TIMECODE_REGEX);
-        const QRegularExpression num_rgx(NUMBER_REGEX);
-        auto tc_matched = tc_rgx.match(set_value);
-        auto num_matched = num_rgx.match(set_value);
-        if (set_value.isEmpty() || (tc_matched.capturedRef().isEmpty() && num_matched.capturedRef().isEmpty())) {
-          // ignore invalid entry
-          return;
-        }
-        d = timecode_to_frame(set_value, e_config.timecode_view, frame_rate); // string to frame number
-      } else {
-        bool ok;
-        d = QInputDialog::getDouble(
-              this,
-              tr("Set Value"),
-              tr("New value:"),
-              (display_type == SliderType::PERCENT) ? internal_value * 100 : internal_value,
-              (min_enabled) ? min_value : INT_MIN,
-              (max_enabled) ? max_value : INT_MAX,
-              decimal_places,
-              &ok
-              );
-        if (!ok) {
-          return;
-        }
-        if (display_type == SliderType::PERCENT) {
-          d *= 0.01;
-        }
+      const QRegularExpression tc_rgx(TIMECODE_REGEX);
+      const QRegularExpression num_rgx(NUMBER_REGEX);
+      auto tc_matched = tc_rgx.match(set_value);
+      auto num_matched = num_rgx.match(set_value);
+      if (set_value.isEmpty() || (tc_matched.capturedRef().isEmpty() && num_matched.capturedRef().isEmpty())) {
+        // ignore invalid entry
+        return;
       }
-      if (!qFuzzyCompare(d, internal_value)) {
-        set_previous_value();
-        set_value(d, true);
+      d = timecode_to_frame(set_value, e_config.timecode_view, frame_rate); // string to frame number
+    } else {
+      bool ok;
+      d = QInputDialog::getDouble(
+            this,
+            tr("Set Value"),
+            tr("New value:"),
+            (display_type == SliderType::PERCENT) ? internal_value * 100 : internal_value,
+            (min_value) ? min_value.value() : INT_MIN,
+            (max_value) ? max_value.value() : INT_MAX,
+            decimal_places,
+            &ok
+            );
+      if (!ok) {
+        return;
       }
+      if (display_type == SliderType::PERCENT) {
+        d *= 0.01;
+      }
+    }
+    if (!qFuzzyCompare(d, internal_value)) {
+      set_previous_value();
+      set_value(d, true);
     }
   }
 }

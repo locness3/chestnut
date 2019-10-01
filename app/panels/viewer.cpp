@@ -483,7 +483,8 @@ void Viewer::pause() {
   }
 }
 
-void Viewer::update_playhead_timecode(long p) {
+void Viewer::update_playhead_timecode(long p)
+{
   currentTimecode->set_value(p, false);
 }
 
@@ -548,7 +549,8 @@ void Viewer::setMarker() const
   }
 }
 
-void Viewer::update_viewer() {
+void Viewer::update_viewer()
+{
   update_header_zoom();
   viewer_widget->frame_update();
   if (seq != nullptr) {

@@ -20,6 +20,7 @@
 
 #include <QLabel>
 #include <QUndoCommand>
+#include <optional>
 
 enum class SliderType {
     NORMAL = 0,
@@ -31,49 +32,48 @@ class LabelSlider : public QLabel
 {
     Q_OBJECT
   public:
+    int decimal_places {1};
+
     explicit LabelSlider(QWidget* parent = nullptr);
-    void set_frame_rate(double d);
-    void set_display_type(SliderType type);
+    void set_frame_rate(const double d);
+    void set_display_type(const SliderType type);
     void set_value(const double val, const bool userSet);
-    void set_default_value(double v);
-    void set_minimum_value(double v);
-    void set_maximum_value(double v);
+    void set_default_value(const double v);
+    void set_minimum_value(const double v);
+    void set_maximum_value(const double v);
     void set_step_value(const double v);
     double value();
     bool is_set();
     bool is_dragging();
-    QString valueToString(double v);
+    QString valueToString(const double v);
     double getPreviousValue();
     void set_previous_value();
-    void set_color(QString c = 0);
-    int decimal_places;
+    void set_color(QString c="");
   protected:
     void mousePressEvent(QMouseEvent *ev) override;
     void mouseMoveEvent(QMouseEvent *ev) override;
     void mouseReleaseEvent(QMouseEvent *ev) override;
   private:
+    std::optional<double> min_value;
+    std::optional<double> max_value;
+    std::optional<double> step_value_;
+
     double default_value;
-    double internal_value;
+    double internal_value {-1.0};
     double drag_start_value;
     double previous_value;
+    double frame_rate {30.0};
 
-    bool min_enabled;
-    double min_value;
-    bool max_enabled;
-    double max_value;
-    double step_value_ = 1.0;
-    bool step_enabled_ = false;
-
-    bool drag_start;
-    bool drag_proc;
     int drag_start_x;
     int drag_start_y;
 
-    bool set;
+    SliderType display_type {SliderType::NORMAL};
 
-    SliderType display_type;
+    bool drag_start {false};
+    bool drag_proc {false};
+    bool set {false};
 
-    double frame_rate;
+
   signals:
     void valueChanged();
     void clicked();
