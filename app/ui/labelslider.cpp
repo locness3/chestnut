@@ -28,6 +28,7 @@
 #include <QRegularExpression>
 
 constexpr auto TIMECODE_REGEX = "^[0-9]+:[0-9]+:[0-9]+[:;][0-9]+";
+constexpr auto NUMBER_REGEX = "^[0-9]+";
 
 LabelSlider::LabelSlider(QWidget* parent) : QLabel(parent) {
   frame_rate = 30;
@@ -213,9 +214,12 @@ void LabelSlider::mouseReleaseEvent(QMouseEvent*)
                       valueToString(internal_value)
                       ));
 
-        const QRegularExpression regex(TIMECODE_REGEX);
-        auto matched = regex.match(set_value);
-        if (set_value.isEmpty() || matched.capturedRef().isEmpty()) {
+        const QRegularExpression tc_rgx(TIMECODE_REGEX);
+        const QRegularExpression num_rgx(NUMBER_REGEX);
+        auto tc_matched = tc_rgx.match(set_value);
+        auto num_matched = num_rgx.match(set_value);
+        if (set_value.isEmpty() || (tc_matched.capturedRef().isEmpty() && num_matched.capturedRef().isEmpty())) {
+          // ignore invalid entry
           return;
         }
         d = timecode_to_frame(set_value, e_config.timecode_view, frame_rate); // string to frame number
