@@ -39,7 +39,6 @@ namespace  {
   static const QStringList DNXHD_220_FRATES = {"29.97", "59.94"};
   static const QStringList DNXHD_185_FRATES = {"25", "29.97", "59.94"};
   static const QStringList DNXHD_145_FRATES = {"29.97"};
-  static const QStringList DNXHD_100_FRATES = {"29.97"};
   static const QStringList DNXHD_90_FRATES = {"59.94", "60"};
 }
 
@@ -92,7 +91,7 @@ static const QStringList H264_PROFILES {H264_BASELINE_PROFILE, H264_MAIN_PROFILE
 static const QStringList FRAME_RATES {"10", "12", "15", "23.976", "24", "25", "29.97", "30", "48", "50", "59.94", "60"};
 // TODO: use correct naming convention e.g. DNxHD LB, DNxHD SQ, etc
 static const QStringList DNXHD_PROFILES {"440x", "440", "365x", "365", "350x", "350", "220x", "220", "185x", "185", "145",
-                                         "100", "90"};
+                                         "90"};
 
 
 enum class PixelFormat
@@ -180,7 +179,6 @@ static const Constraints DNXHD_220_CONSTRAINTS {1920, 1080, 220000000, DNXHD_220
 static const Constraints DNXHD_185X_CONSTRAINTS {1920, 1080, 185000000, DNXHD_185_FRATES, {DEPTH_10}};
 static const Constraints DNXHD_185_CONSTRAINTS {1920, 1080, 185000000, DNXHD_185_FRATES, {}};
 static const Constraints DNXHD_145_CONSTRAINTS {1920, 1080, 145000000, DNXHD_145_FRATES, {}};
-static const Constraints DNXHD_100_CONSTRAINTS {1920, 1080, 100000000, DNXHD_100_FRATES, {}};
 static const Constraints DNXHD_90_CONSTRAINTS {1920, 1080, 90000000, DNXHD_90_FRATES, {}};
 
 

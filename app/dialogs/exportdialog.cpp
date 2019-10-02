@@ -984,8 +984,6 @@ void ExportDialog::constrainDNXHD()
     constraint = DNXHD_185_CONSTRAINTS;
   } else if (profile == "145") {
     constraint = DNXHD_145_CONSTRAINTS;
-  } else if (profile == "100") {
-    constraint = DNXHD_100_CONSTRAINTS;
   } else if (profile == "90") {
     constraint = DNXHD_90_CONSTRAINTS;
   } else {
