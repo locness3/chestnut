@@ -146,7 +146,6 @@ bool ExportThread::setupVideo()
   vcodec_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
   vcodec_ctx->width = video_params_.width;
   vcodec_ctx->height = video_params_.height;
-  vcodec_ctx->sample_aspect_ratio = {1, 1};
   vcodec_ctx->pix_fmt = vcodec->pix_fmts[0]; // maybe be breakable code
   setupFrameRate(*vcodec_ctx, video_params_.frame_rate);
   if (video_params_.compression_type == CompressionType::CBR) {
@@ -159,6 +158,7 @@ bool ExportThread::setupVideo()
   video_stream->time_base = vcodec_ctx->time_base;
   vcodec_ctx->gop_size = video_params_.gop_length_;
   vcodec_ctx->thread_count = static_cast<int>(std::thread::hardware_concurrency());
+  vcodec_ctx->thread_type = FF_THREAD_SLICE;
 
   AVDictionary* opts = nullptr;
   if (video_params_.closed_gop_) {
