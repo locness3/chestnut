@@ -131,7 +131,7 @@ class ExportThread : public QThread {
     bool setUpContext(RenderThread& rt, Viewer& vwr);
     void setDownContext(RenderThread& rt, Viewer& vwr) const;
     void setupH264Encoder(AVCodecContext& ctx, const Params& video_params_) const;
-    void setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_params_) const;
+    void setupMPEG2Encoder(AVCodecContext& ctx, AVStream& stream, const Params& video_params_) const;
     void setupMPEG4Encoder(AVCodecContext& ctx, const Params& video_params_) const;
     void setupDNXHDEncoder(AVCodecContext& ctx, const Params& video_params_) const;
 

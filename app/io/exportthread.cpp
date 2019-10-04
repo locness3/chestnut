@@ -149,7 +149,7 @@ bool ExportThread::setupVideo()
   vcodec_ctx->pix_fmt = vcodec->pix_fmts[0]; // maybe be breakable code
   setupFrameRate(*vcodec_ctx, video_params_.frame_rate);
   if (video_params_.compression_type == CompressionType::CBR) {
-    const auto brate = static_cast<int64_t>((video_params_.bitrate * 1E6) + 0.5);
+    const int64_t brate = llround(video_params_.bitrate * 1E6);
     vcodec_ctx->bit_rate = brate;
     vcodec_ctx->rc_min_rate = brate;
     vcodec_ctx->rc_max_rate = brate;
@@ -192,7 +192,7 @@ bool ExportThread::setupVideo()
       setupH264Encoder(*vcodec_ctx, video_params_);
       break;
     case AV_CODEC_ID_MPEG2VIDEO:
-      setupMPEG2Encoder(*vcodec_ctx, video_params_);
+      setupMPEG2Encoder(*vcodec_ctx, *video_stream, video_params_);
       break;
     case AV_CODEC_ID_DNXHD:
       setupDNXHDEncoder(*vcodec_ctx, video_params_);
@@ -696,11 +696,19 @@ void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_par
 }
 
 
-void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, const Params& video_params) const
+void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, AVStream& stream, const Params& video_params) const
 {
-  ctx.rc_buffer_size = qRound(video_params.bitrate * 1E6);
+  const auto brate = qRound(video_params.bitrate * 1E6);
+  // libav complains when using bits as unit. no documentation on what unit actually is
+  ctx.rc_buffer_size = brate / 8;
   ctx.rc_max_available_vbv_use = 1.0;
   ctx.rc_min_vbv_overflow_use = 1.0;
+
+  auto props = reinterpret_cast<AVCPBProperties*>(av_stream_new_side_data(&stream, AV_PKT_DATA_CPB_PROPERTIES, NULL));
+  props->avg_bitrate = brate;
+  props->buffer_size = brate;
+  props->max_bitrate = brate;
+  props->min_bitrate = brate;
 
   if (video_params.profile_ == MPEG2_SIMPLE_PROFILE) {
     ctx.profile = FF_PROFILE_MPEG2_SIMPLE;
