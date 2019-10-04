@@ -778,7 +778,8 @@ void ExportDialog::constrainMpeg2Video()
 
   heightSpinbox->setMaximum(constraint.max_height.value_or(MAX_HEIGHT));
   widthSpinbox->setMaximum(constraint.max_width.value_or(MAX_WIDTH));
-  videobitrateSpinbox->setMaximum(constraint.max_bitrate.value_or(INT_MAX));
+  const double brate = constraint.max_bitrate ? constraint.max_bitrate.value() / 1E6 : INT_MAX;
+  videobitrateSpinbox->setMaximum(brate);
   b_frame_box_->setMaximum(max_b_frames);
   framerate_box_->clear();
   framerate_box_->addItems(constraint.framerates.value());
@@ -836,10 +837,8 @@ void ExportDialog::constrainMPEG4()
 
   widthSpinbox->setMaximum(constraint.max_width.value_or(MAX_WIDTH));
   heightSpinbox->setMaximum(constraint.max_height.value_or(MAX_HEIGHT));
-  if (constraint.max_bitrate) {
-    const auto mb_brate = constraint.max_bitrate.value() / 1E6;
-    videobitrateSpinbox->setMaximum(mb_brate);
-  }
+  const double brate = constraint.max_bitrate ? constraint.max_bitrate.value() / 1E6 : INT_MAX;
+  videobitrateSpinbox->setMaximum(brate);
   framerate_box_->clear();
   framerate_box_->addItems(constraint.framerates.value_or(ALL_FRATES));
 

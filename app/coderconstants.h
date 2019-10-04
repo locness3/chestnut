@@ -135,9 +135,6 @@ struct Constraints
     }
 };
 
-// MPEG2 Profile constraints
-static const Constraints MPEG2_SP_CONSTRAINST{-1, -1, -1, {}, {}, {PixelFormat::YUV420}};
-
 // MPEG2 Level constraints
 static const Constraints MPEG2_LL_CONSTRAINTS {352, 288, 4000000, MPEG2_LOW_LEVEL_FRATES, {}};
 static const Constraints MPEG2_ML_CONSTRAINTS {720, 576, 15000000, MPEG2_MAIN_LEVEL_FRATES, {}};
