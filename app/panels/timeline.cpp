@@ -1461,29 +1461,30 @@ void Timeline::updateTrackAreas()
   audio_track_area_->setHeights(audio_track_heights);
 }
 
-void Timeline::increase_track_height() {
-  for (int i=0;i<video_track_heights.size();i++) {
-    video_track_heights[i] += TRACK_HEIGHT_INCREMENT;
+void change_track_height(QVector<int>& tracks, const int value)
+{
+  if (value == 0) {
+    return;
   }
-  for (int i=0;i<audio_track_heights.size();i++) {
-    audio_track_heights[i] += TRACK_HEIGHT_INCREMENT;
+  for (auto& trk_height : tracks) {
+    trk_height += value;
+    if ((value < 0) && (trk_height < TRACK_MIN_HEIGHT) ) {
+      trk_height = TRACK_MIN_HEIGHT;
+    }
   }
+}
+
+void Timeline::increase_track_height()
+{
+  change_track_height(video_track_heights, TRACK_HEIGHT_INCREMENT);
+  change_track_height(audio_track_heights, TRACK_HEIGHT_INCREMENT);
   repaint_timeline();
 }
 
-void Timeline::decrease_track_height() {
-  for (int i=0;i<video_track_heights.size();i++) {
-    video_track_heights[i] -= TRACK_HEIGHT_INCREMENT;
-    if (video_track_heights[i] < TRACK_MIN_HEIGHT) {
-      video_track_heights[i] = TRACK_MIN_HEIGHT;
-    }
-  }
-  for (int i=0;i<audio_track_heights.size();i++) {
-    audio_track_heights[i] -= TRACK_HEIGHT_INCREMENT;
-    if (audio_track_heights[i] < TRACK_MIN_HEIGHT) {
-      audio_track_heights[i] = TRACK_MIN_HEIGHT;
-    }
-  }
+void Timeline::decrease_track_height()
+{
+  change_track_height(video_track_heights, -TRACK_HEIGHT_INCREMENT);
+  change_track_height(audio_track_heights, -TRACK_HEIGHT_INCREMENT);
   repaint_timeline();
 }
 

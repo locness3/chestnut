@@ -72,20 +72,24 @@ TimelineHeader::TimelineHeader(QWidget *parent) :
   connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(show_context_menu(const QPoint &)));
 }
 
-void TimelineHeader::set_scroll(int s) {
+void TimelineHeader::set_scroll(int s)
+{
   scroll = s;
   update();
 }
 
-long TimelineHeader::getHeaderFrameFromScreenPoint(int x) {
+long TimelineHeader::getHeaderFrameFromScreenPoint(int x)
+{
   return getFrameFromScreenPoint(zoom, x + scroll) + in_visible;
 }
 
-int TimelineHeader::getHeaderScreenPointFromFrame(long frame) {
+int TimelineHeader::getHeaderScreenPointFromFrame(long frame)
+{
   return getScreenPointFromFrame(zoom, frame - in_visible) - scroll;
 }
 
-void TimelineHeader::set_playhead(int mouse_x) {
+void TimelineHeader::set_playhead(int mouse_x)
+{
   long frame = getHeaderFrameFromScreenPoint(mouse_x);
   if (snapping) {
     PanelManager::timeLine().snap_to_timeline(&frame, false, true, true);
@@ -99,12 +103,14 @@ void TimelineHeader::set_playhead(int mouse_x) {
 
 }
 
-void TimelineHeader::set_visible_in(long i) {
+void TimelineHeader::set_visible_in(long i)
+{
   in_visible = i;
   update();
 }
 
-void TimelineHeader::set_in_point(long new_in) {
+void TimelineHeader::set_in_point(long new_in)
+{
   if (auto sqn = viewer->getSequence()) {
     auto new_out = sqn->workarea_.out_;
     if (new_out == new_in) {
