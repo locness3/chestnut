@@ -1450,6 +1450,12 @@ void Timeline::clipLinkage(const bool link)
 
 void Timeline::updateTrackAreas()
 {
+  Q_ASSERT(video_scroll_);
+  Q_ASSERT(videoScrollbar);
+  Q_ASSERT(audio_scroll_);
+  Q_ASSERT(audioScrollbar);
+
+
   if (sequence_ == nullptr) {
     return;
   }
@@ -1459,6 +1465,10 @@ void Timeline::updateTrackAreas()
   video_track_area_->setHeights(video_track_heights);
   audio_track_area_->setTracks(sequence_->audioTracks());
   audio_track_area_->setHeights(audio_track_heights);
+
+  // Update the timelinearea widgets so they align with the tracks
+  video_scroll_->setScroll(videoScrollbar->value());
+  audio_scroll_->setScroll(audioScrollbar->value());
 }
 
 void change_track_height(QVector<int>& tracks, const int value)
