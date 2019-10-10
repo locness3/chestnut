@@ -1471,30 +1471,18 @@ void Timeline::updateTrackAreas()
   audio_scroll_->setScroll(audioScrollbar->value());
 }
 
-void change_track_height(QVector<int>& tracks, const int value)
-{
-  if (value == 0) {
-    return;
-  }
-  for (auto& trk_height : tracks) {
-    trk_height += value;
-    if ((value < 0) && (trk_height < TRACK_MIN_HEIGHT) ) {
-      trk_height = TRACK_MIN_HEIGHT;
-    }
-  }
-}
 
 void Timeline::increase_track_height()
 {
-  change_track_height(video_track_heights, TRACK_HEIGHT_INCREMENT);
-  change_track_height(audio_track_heights, TRACK_HEIGHT_INCREMENT);
+  changeTrackHeight(video_track_heights, TRACK_HEIGHT_INCREMENT);
+  changeTrackHeight(audio_track_heights, TRACK_HEIGHT_INCREMENT);
   repaint_timeline();
 }
 
 void Timeline::decrease_track_height()
 {
-  change_track_height(video_track_heights, -TRACK_HEIGHT_INCREMENT);
-  change_track_height(audio_track_heights, -TRACK_HEIGHT_INCREMENT);
+  changeTrackHeight(video_track_heights, -TRACK_HEIGHT_INCREMENT);
+  changeTrackHeight(audio_track_heights, -TRACK_HEIGHT_INCREMENT);
   repaint_timeline();
 }
 
@@ -1969,8 +1957,9 @@ std::vector<ClipPtr> Timeline::selectedClips()
 }
 
 
-void Timeline::set_tool() {
-  auto button = static_cast<QPushButton*>(sender());
+void Timeline::set_tool()
+{
+  auto button = dynamic_cast<QPushButton*>(sender());
   decheck_tool_buttons(button);
   tool = static_cast<TimelineToolType>(button->property("tool").toInt());
   creating = false;
@@ -2006,3 +1995,15 @@ void Timeline::trackLocked(const bool locked, const int track_number)
   repaint_timeline();
 }
 
+void Timeline::changeTrackHeight(QVector<int>& tracks, const int value) const
+{
+  if (value == 0) {
+    return;
+  }
+  for (auto& trk_height : tracks) {
+    trk_height += value;
+    if ((value < 0) && (trk_height < TRACK_MIN_HEIGHT) ) {
+      trk_height = TRACK_MIN_HEIGHT;
+    }
+  }
+}

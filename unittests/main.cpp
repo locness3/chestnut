@@ -33,6 +33,7 @@
 #include "project/UnitTest/markertest.h"
 #include "panels/unittest/histogramviewertest.h"
 #include "panels/unittest/viewertest.h"
+#include "panels/unittest/timelinetest.h"
 
 namespace
 {
@@ -68,5 +69,6 @@ int main(int argc, char** argv)
   status |= runTest<MarkerTest>();
   status |= runTest<panels::HistogramViewerTest>();
   status |= runTest<ViewerTest>();
+  status |= runTest<TimelineTest>();
   return status;
 }

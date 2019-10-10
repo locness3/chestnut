@@ -268,6 +268,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void newSequenceLoaded(const SequencePtr& new_sequence);
 
   private:
+    friend class TimelineTest;
     QVector<QPushButton*> tool_buttons;
     long last_frame;
     int scroll;
@@ -306,6 +307,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     QWidget* createToolButtonsWidget(QWidget* parent);
     QWidget* createVideoAreaWidget(QWidget* parent);
     QWidget* createAudioAreaWidget(QWidget* parent);
+    void changeTrackHeight(QVector<int>& tracks, const int value) const;
 };
 
 #endif // TIMELINE_H
