@@ -25,7 +25,7 @@ bool VoidEffect::load(QXmlStreamReader &stream)
   qint64 passage_length = end_index - start_index;
   if (passage_length > 0) {
     // store xml data verbatim
-    QFile* device = static_cast<QFile*>(stream.device());
+    auto device = dynamic_cast<QFile*>(stream.device());
 
     QFile passage_get(device->fileName());
     if (passage_get.open(QFile::ReadOnly)) {
