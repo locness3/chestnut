@@ -1805,13 +1805,12 @@ void MainWindow::menu_click_button()
       || focused_panel == &PanelManager::fxControls()
       || focused_panel == &PanelManager::footageViewer()
       || focused_panel == &PanelManager::sequenceViewer())
-    reinterpret_cast<QPushButton*>(static_cast<QAction*>(sender())->data().value<quintptr>())->click();
+    reinterpret_cast<QPushButton*>(dynamic_cast<QAction*>(sender())->data().value<quintptr>())->click();
 }
 
 void MainWindow::toggle_panel_visibility()
 {
-  auto action = dynamic_cast<QAction*>(sender());
-  auto w = reinterpret_cast<QDockWidget*>(action->data().value<quintptr>());
+  auto w = reinterpret_cast<QDockWidget*>(dynamic_cast<QAction*>(sender())->data().value<quintptr>());
   w->setVisible(!w->isVisible());
 }
 

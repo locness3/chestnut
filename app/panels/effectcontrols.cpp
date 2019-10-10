@@ -260,16 +260,16 @@ void EffectControls::clear_effects(bool clear_cache) {
   // clear graph editor
   PanelManager::graphEditor().set_row(nullptr);
 
-  QVBoxLayout* video_layout = static_cast<QVBoxLayout*>(video_effect_area->layout());
-  QVBoxLayout* audio_layout = static_cast<QVBoxLayout*>(audio_effect_area->layout());
+  auto video_layout = dynamic_cast<QVBoxLayout*>(video_effect_area->layout());
+  auto audio_layout = dynamic_cast<QVBoxLayout*>(audio_effect_area->layout());
   QLayoutItem* item;
   while ((item = video_layout->takeAt(0))) {
     item->widget()->setParent(nullptr);
-    disconnect(static_cast<CollapsibleWidget*>(item->widget()), SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
+    disconnect(dynamic_cast<CollapsibleWidget*>(item->widget()), SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
   }
   while ((item = audio_layout->takeAt(0))) {
     item->widget()->setParent(nullptr);
-    disconnect(static_cast<CollapsibleWidget*>(item->widget()), SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
+    disconnect(dynamic_cast<CollapsibleWidget*>(item->widget()), SIGNAL(deselect_others(QWidget*)), this, SLOT(deselect_all_effects(QWidget*)));
   }
   lblMultipleClipsSelected->setVisible(false);
   vcontainer->setVisible(false);
@@ -504,10 +504,10 @@ void EffectControls::load_effects() {
       QVBoxLayout* layout;
       if (c->mediaType() == ClipType::VISUAL) {
         vcontainer->setVisible(true);
-        layout = static_cast<QVBoxLayout*>(video_effect_area->layout());
+        layout = dynamic_cast<QVBoxLayout*>(video_effect_area->layout());
       } else {
         acontainer->setVisible(true);
-        layout = static_cast<QVBoxLayout*>(audio_effect_area->layout());
+        layout = dynamic_cast<QVBoxLayout*>(audio_effect_area->layout());
       }
       if (mode == TA_NO_TRANSITION) {
         for (const auto& eff : c->effects) {

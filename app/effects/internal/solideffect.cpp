@@ -223,7 +223,7 @@ void SolidEffect::setupUi()
   checkerboard_size_field->set_double_default_value(10);
 
   // hacky but eh
-  QComboBox* solid_type_combo = static_cast<QComboBox*>(solid_type->get_ui_element());
+  auto solid_type_combo = dynamic_cast<QComboBox*>(solid_type->get_ui_element());
   QObject::connect(solid_type_combo, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_update(int)));
   ui_update(solid_type_combo->currentIndex());
 }

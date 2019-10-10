@@ -61,7 +61,7 @@ void TextEffect::setupUi()
   Effect::setupUi();
 
   text_val = add_row(tr("Text"))->add_field(EffectFieldType::STRING, "text", 2);
-  QTextEdit* text_widget = static_cast<QTextEdit*>(text_val->ui_element);
+  QTextEdit* text_widget = dynamic_cast<QTextEdit*>(text_val->ui_element);
   text_widget->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(text_widget, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(text_edit_menu()));
 
