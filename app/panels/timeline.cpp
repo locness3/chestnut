@@ -481,7 +481,8 @@ int Timeline::calculate_track_height(const int track, const int value)
   int index = (track < 0) ? qAbs(track + 1) : track;
   const bool video_track = track < 0;
   QVector<int>& heights = video_track ? video_track_heights : audio_track_heights;
-  TimelineTrackArea* area = video_track ? video_track_area_ : audio_track_area_;
+  TimelineTrackArea* const area = video_track ? video_track_area_ : audio_track_area_;
+  Q_ASSERT(area != nullptr);
 
   while ( heights.size() < index+1 ) {
     heights.append(default_track_height);
