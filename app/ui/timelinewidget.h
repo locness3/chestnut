@@ -201,6 +201,8 @@ class TimelineWidget : public QWidget {
     
     void drawRecordingClip(Timeline& time_line, Viewer& sequence_viewer, QPainter& painter) const;
 
+   void drawClips(SequencePtr seq, Timeline& time_line, QPainter& painter);
+   
 public slots:
     void setScroll(int);
 

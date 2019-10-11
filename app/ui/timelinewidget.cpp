@@ -2928,6 +2928,268 @@ void TimelineWidget::drawRecordingClip(Timeline& time_line, Viewer& sequence_vie
   painter.drawPolygon(cue_marker, 3);
 }
 
+void TimelineWidget::drawClips(SequencePtr seq, Timeline& time_line, QPainter& painter)
+{
+  for (auto& clip : seq->clips()) {
+    if (clip == nullptr || !is_track_visible(clip->timeline_info.track_)) {
+      continue;
+    }
+    QRect clip_rect(time_line.getTimelineScreenPointFromFrame(clip->timeline_info.in),
+                    getScreenPointFromTrack(clip->timeline_info.track_),
+                    getScreenPointFromFrame(time_line.zoom, clip->length()),
+                    time_line.calculate_track_height(clip->timeline_info.track_, -1));
+
+    QRect text_rect(clip_rect.left() + CLIP_TEXT_PADDING,
+                    clip_rect.top() + CLIP_TEXT_PADDING,
+                    clip_rect.width() - CLIP_TEXT_PADDING - 1,
+                    clip_rect.height() - CLIP_TEXT_PADDING - 1);
+
+    if ( (clip_rect.left() < width()) && (clip_rect.right() >= 0) && (clip_rect.top() < height()) && (clip_rect.bottom() >= 0) ) {
+      QRect actual_clip_rect = clip_rect;
+      if (actual_clip_rect.x() < 0) {
+        actual_clip_rect.setX(0);
+      }
+      if (actual_clip_rect.right() > width()) {
+        actual_clip_rect.setRight(width());
+      }
+      if (actual_clip_rect.y() < 0) {
+        actual_clip_rect.setY(0);
+      }
+      if (actual_clip_rect.bottom() > height()) {
+        actual_clip_rect.setBottom(height());
+      }
+
+      const auto clip_enabled = clip->timeline_info.enabled && seq->trackEnabled(clip->timeline_info.track_);
+      painter.fillRect(actual_clip_rect, (clip_enabled) ? clip->timeline_info.color : DISABLED_CLIP_COLOR);
+
+      int thumb_x = clip_rect.x() + 1;
+
+      if ( (clip->timeline_info.media != nullptr) &&
+           (clip->timeline_info.media->type() == MediaType::FOOTAGE) ) {
+        bool draw_checkerboard = false;
+        QRect checkerboard_rect(clip_rect);
+        auto ftg = clip->timeline_info.media->object<Footage>();
+        FootageStreamPtr ms;
+        if (clip->mediaType() == ClipType::VISUAL) {
+          ms = ftg->video_stream_from_file_index(clip->timeline_info.media_stream);
+        } else {
+          ms = ftg->audio_stream_from_file_index(clip->timeline_info.media_stream);
+        }
+
+        if (ms == nullptr) {
+          draw_checkerboard = true;
+        } else if (ms->preview_done) {
+          // draw top and tail triangles
+          int triangle_size = TRACK_MIN_HEIGHT >> 2;
+          if (!ms->infinite_length && clip_rect.width() > triangle_size) {
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(QColor(80, 80, 80));
+            if (clip->timeline_info.clip_in == 0
+                && clip_rect.x() + triangle_size > 0
+                && clip_rect.y() + triangle_size > 0
+                && clip_rect.x() < width()
+                && clip_rect.y() < height()) {
+              const QPoint points[3] = {
+                QPoint(clip_rect.x(), clip_rect.y()),
+                QPoint(clip_rect.x() + triangle_size, clip_rect.y()),
+                QPoint(clip_rect.x(), clip_rect.y() + triangle_size)
+              };
+              painter.drawPolygon(points, 3);
+              text_rect.setLeft(text_rect.left() + (triangle_size >> 2));
+            }
+            if (clip->length() == clip->maximumLength()
+                && clip_rect.right() - triangle_size < width()
+                && clip_rect.y() + triangle_size > 0
+                && clip_rect.right() > 0
+                && clip_rect.y() < height()) {
+              const QPoint points[3] = {
+                QPoint(clip_rect.right(), clip_rect.y()),
+                QPoint(clip_rect.right() - triangle_size, clip_rect.y()),
+                QPoint(clip_rect.right(), clip_rect.y() + triangle_size)
+              };
+              painter.drawPolygon(points, 3);
+              text_rect.setRight(text_rect.right() - (triangle_size >> 2));
+            }
+          }
+
+          painter.setBrush(Qt::NoBrush);
+
+          // draw thumbnail/waveform
+          long media_length = clip->maximumLength();
+
+          if (clip->mediaType() == ClipType::VISUAL) {
+            // draw thumbnail
+            int thumb_y = painter.fontMetrics().height() + CLIP_TEXT_PADDING + CLIP_TEXT_PADDING;
+            if (thumb_x < width() && thumb_y < height()) {
+              int space_for_thumb = clip_rect.width()-1;
+              if (auto open_tran = clip->getTransition(ClipTransitionType::OPENING)) {
+                int ot_width = getScreenPointFromFrame(PanelManager::timeLine().zoom,
+                                                       open_tran->get_true_length());
+                thumb_x += ot_width;
+                space_for_thumb -= ot_width;
+              }
+              if (auto close_tran = clip->getTransition(ClipTransitionType::CLOSING)) {
+                space_for_thumb -= getScreenPointFromFrame(PanelManager::timeLine().zoom,
+                                                           close_tran->get_true_length());
+              }
+              int thumb_height = clip_rect.height()-thumb_y;
+              int thumb_width = (thumb_height * (static_cast<double>(ms->video_preview.width())
+                                                 / static_cast<double>(ms->video_preview.height())));
+              if (thumb_x + thumb_width >= 0
+                  && thumb_height > thumb_y
+                  && thumb_y + thumb_height >= 0
+                  && space_for_thumb > MAX_TEXT_WIDTH) {
+                int thumb_clip_width = qMin(thumb_width, space_for_thumb);
+                painter.drawImage(QRect(thumb_x, clip_rect.y()+thumb_y, thumb_clip_width, thumb_height),
+                                  ms->video_preview,
+                                  QRect(0, 0,
+                                        thumb_clip_width * (static_cast<double>(ms->video_preview.width())
+                                                            / static_cast<double>(thumb_width)),
+                                        ms->video_preview.height()));
+              }
+            }
+            if (clip->length() > clip->maximumLength()) {
+              draw_checkerboard = true;
+              checkerboard_rect.setLeft(time_line.getTimelineScreenPointFromFrame(clip->maximumLength()
+                                                                                  + clip->timeline_info.in
+                                                                                  - clip->timeline_info.clip_in));
+            }
+          } else if (clip_rect.height() > TRACK_MIN_HEIGHT) {
+            // draw waveform
+            painter.setPen(QColor(80, 80, 80));
+
+            int waveform_start = -qMin(clip_rect.x(), 0);
+            int waveform_limit = qMin(clip_rect.width(), getScreenPointFromFrame(time_line.zoom,
+                                                                                 media_length - clip->timeline_info.clip_in));
+
+            if ((clip_rect.x() + waveform_limit) > width()) {
+              waveform_limit -= (clip_rect.x() + waveform_limit - width());
+            } else if (waveform_limit < clip_rect.width()) {
+              draw_checkerboard = true;
+              if (waveform_limit > 0) checkerboard_rect.setLeft(checkerboard_rect.left() + waveform_limit);
+            }
+
+            draw_waveform(clip, ms, media_length, painter, clip_rect, waveform_start, waveform_limit, time_line.zoom);
+          }
+        }
+        if (draw_checkerboard) {
+          checkerboard_rect.setLeft(qMax(checkerboard_rect.left(), 0));
+          checkerboard_rect.setRight(qMin(checkerboard_rect.right(), width()));
+          checkerboard_rect.setTop(qMax(checkerboard_rect.top(), 0));
+          checkerboard_rect.setBottom(qMin(checkerboard_rect.bottom(), height()));
+
+          if (checkerboard_rect.left() < width()
+              && checkerboard_rect.right() >= 0
+              && checkerboard_rect.top() < height()
+              && checkerboard_rect.bottom() >= 0) {
+            // draw "error lines" if media stream is missing
+            painter.setPen(QPen(QColor(64, 64, 64), 2));
+            int limit = checkerboard_rect.width();
+            int clip_height = checkerboard_rect.height();
+            for (int j=-clip_height;j<limit;j+=15) {
+              int lines_start_x = checkerboard_rect.left()+j;
+              int lines_start_y = checkerboard_rect.bottom();
+              int lines_end_x = lines_start_x + clip_height;
+              int lines_end_y = checkerboard_rect.top();
+              if (lines_start_x < checkerboard_rect.left()) {
+                lines_start_y -= (checkerboard_rect.left() - lines_start_x);
+                lines_start_x = checkerboard_rect.left();
+              }
+              if (lines_end_x > checkerboard_rect.right()) {
+                lines_end_y -= (checkerboard_rect.right() - lines_end_x);
+                lines_end_x = checkerboard_rect.right();
+              }
+              painter.drawLine(lines_start_x, lines_start_y, lines_end_x, lines_end_y);
+            }
+          }
+        }
+      }
+
+      // draw clip transitions
+      draw_transition(painter, clip, clip_rect, text_rect, TA_OPENING_TRANSITION);
+      draw_transition(painter, clip, clip_rect, text_rect, TA_CLOSING_TRANSITION);
+
+      // top left bevel
+      painter.setPen(Qt::white);
+      if (clip_rect.x() >= 0 && clip_rect.x() < width()) {
+        painter.drawLine(clip_rect.bottomLeft(), clip_rect.topLeft());
+      }
+      if (clip_rect.y() >= 0 && clip_rect.y() < height()) {
+        painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.top()),
+                         QPoint(qMin(width(), clip_rect.right()), clip_rect.top()));
+      }
+
+      // draw text
+      if (text_rect.width() > MAX_TEXT_WIDTH && text_rect.right() > 0 && text_rect.left() < width()) {
+        if (!clip->timeline_info.enabled) {
+          painter.setPen(Qt::gray);
+        } else if (io::color_conversion::rgbToLuma(clip->timeline_info.color.rgb()) > 160) {
+          // set to black if color is bright
+          painter.setPen(Qt::black);
+        }
+        if (!clip->linkedClips().empty()) {
+          int underline_y = CLIP_TEXT_PADDING + painter.fontMetrics().height() + clip_rect.top();
+          int underline_width = qMin(text_rect.width() - 1, painter.fontMetrics().width(clip->name()));
+          painter.drawLine(text_rect.x(), underline_y, text_rect.x() + underline_width, underline_y);
+        }
+        QString name(clip->name());
+        if (!qFuzzyCompare(clip->timeline_info.speed, 1.0) || clip->timeline_info.reverse) {
+          name += " (";
+          if (clip->timeline_info.reverse) {
+            name += "-";
+          }
+          name += QString::number(clip->timeline_info.speed * 100) + "%)";
+        }
+        painter.drawText(text_rect, 0, name, &text_rect);
+      }
+
+      // bottom right gray
+      painter.setPen(QColor(0, 0, 0, 128));
+      if (clip_rect.right() >= 0 && clip_rect.right() < width()) {
+        painter.drawLine(clip_rect.bottomRight(), clip_rect.topRight());
+      }
+      if (clip_rect.bottom() >= 0 && clip_rect.bottom() < height()) {
+        painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.bottom()),
+                         QPoint(qMin(width(), clip_rect.right()), clip_rect.bottom()));
+      }
+
+      // draw transition tool
+      if (time_line.tool == TimelineToolType::TRANSITION
+          && (time_line.transition_tool_pre_clip == clip
+              || time_line.transition_tool_post_clip == clip)) {
+        int type = time_line.transition_tool_type;
+        if (time_line.transition_tool_post_clip == clip) {
+          // invert transition type
+          type = (type == TA_CLOSING_TRANSITION) ? TA_OPENING_TRANSITION : TA_CLOSING_TRANSITION;
+        }
+        QRect transition_tool_rect = clip_rect;
+        if (type == TA_CLOSING_TRANSITION) {
+          if (time_line.transition_tool_post_clip != nullptr) {
+            transition_tool_rect.setLeft(transition_tool_rect.right() - TRANSITION_BETWEEN_RANGE);
+          } else {
+            transition_tool_rect.setLeft(transition_tool_rect.left() + (3*(transition_tool_rect.width()>>2)));
+          }
+        } else {
+          if (time_line.transition_tool_post_clip != nullptr) {
+            transition_tool_rect.setWidth(TRANSITION_BETWEEN_RANGE);
+          } else {
+            transition_tool_rect.setWidth(transition_tool_rect.width()>>2);
+          }
+        }
+        if (transition_tool_rect.left() < width() && transition_tool_rect.right() > 0) {
+          if (transition_tool_rect.left() < 0) {
+            transition_tool_rect.setLeft(0);
+          }
+          if (transition_tool_rect.right() > width()) {
+            transition_tool_rect.setRight(width());
+          }
+          painter.fillRect(transition_tool_rect, QColor(0, 0, 0, 128));
+        }
+      }
+    }
+  }//for
+}
+
 //FIXME: oh god
 void TimelineWidget::paintEvent(QPaintEvent*)
 {
@@ -2965,264 +3227,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
   }
 
   // Draw all the clips
-  for (int i=0;i<global::sequence->clips().size();i++) {
-    ClipPtr clip = global::sequence->clips().at(i);
-    if (clip != nullptr && is_track_visible(clip->timeline_info.track_)) {
-      QRect clip_rect(PanelManager::timeLine().getTimelineScreenPointFromFrame(clip->timeline_info.in),
-                      getScreenPointFromTrack(clip->timeline_info.track_),
-                      getScreenPointFromFrame(PanelManager::timeLine().zoom, clip->length()),
-                      PanelManager::timeLine().calculate_track_height(clip->timeline_info.track_, -1));
-      QRect text_rect(clip_rect.left() + CLIP_TEXT_PADDING,
-                      clip_rect.top() + CLIP_TEXT_PADDING,
-                      clip_rect.width() - CLIP_TEXT_PADDING - 1,
-                      clip_rect.height() - CLIP_TEXT_PADDING - 1);
-
-      if (clip_rect.left() < width() && clip_rect.right() >= 0 && clip_rect.top() < height() && clip_rect.bottom() >= 0) {
-        QRect actual_clip_rect = clip_rect;
-        if (actual_clip_rect.x() < 0) {
-          actual_clip_rect.setX(0);
-        }
-        if (actual_clip_rect.right() > width()) {
-          actual_clip_rect.setRight(width());
-        }
-        if (actual_clip_rect.y() < 0) {
-          actual_clip_rect.setY(0);
-        }
-        if (actual_clip_rect.bottom() > height()) {
-          actual_clip_rect.setBottom(height());
-        }
-
-        const auto clip_enabled = clip->timeline_info.enabled && global::sequence->trackEnabled(clip->timeline_info.track_);
-        painter.fillRect(actual_clip_rect, (clip_enabled) ? clip->timeline_info.color : DISABLED_CLIP_COLOR);
-
-        int thumb_x = clip_rect.x() + 1;
-
-        if ( (clip->timeline_info.media != nullptr) &&
-             (clip->timeline_info.media->type() == MediaType::FOOTAGE) ) {
-          bool draw_checkerboard = false;
-          QRect checkerboard_rect(clip_rect);
-          auto ftg = clip->timeline_info.media->object<Footage>();
-          FootageStreamPtr ms;
-          if (clip->mediaType() == ClipType::VISUAL) {
-            ms = ftg->video_stream_from_file_index(clip->timeline_info.media_stream);
-          } else {
-            ms = ftg->audio_stream_from_file_index(clip->timeline_info.media_stream);
-          }
-
-          if (ms == nullptr) {
-            draw_checkerboard = true;
-          } else if (ms->preview_done) {
-            // draw top and tail triangles
-            int triangle_size = TRACK_MIN_HEIGHT >> 2;
-            if (!ms->infinite_length && clip_rect.width() > triangle_size) {
-              painter.setPen(Qt::NoPen);
-              painter.setBrush(QColor(80, 80, 80));
-              if (clip->timeline_info.clip_in == 0
-                  && clip_rect.x() + triangle_size > 0
-                  && clip_rect.y() + triangle_size > 0
-                  && clip_rect.x() < width()
-                  && clip_rect.y() < height()) {
-                const QPoint points[3] = {
-                  QPoint(clip_rect.x(), clip_rect.y()),
-                  QPoint(clip_rect.x() + triangle_size, clip_rect.y()),
-                  QPoint(clip_rect.x(), clip_rect.y() + triangle_size)
-                };
-                painter.drawPolygon(points, 3);
-                text_rect.setLeft(text_rect.left() + (triangle_size >> 2));
-              }
-              if (clip->length() == clip->maximumLength()
-                  && clip_rect.right() - triangle_size < width()
-                  && clip_rect.y() + triangle_size > 0
-                  && clip_rect.right() > 0
-                  && clip_rect.y() < height()) {
-                const QPoint points[3] = {
-                  QPoint(clip_rect.right(), clip_rect.y()),
-                  QPoint(clip_rect.right() - triangle_size, clip_rect.y()),
-                  QPoint(clip_rect.right(), clip_rect.y() + triangle_size)
-                };
-                painter.drawPolygon(points, 3);
-                text_rect.setRight(text_rect.right() - (triangle_size >> 2));
-              }
-            }
-
-            painter.setBrush(Qt::NoBrush);
-
-            // draw thumbnail/waveform
-            long media_length = clip->maximumLength();
-
-            if (clip->mediaType() == ClipType::VISUAL) {
-              // draw thumbnail
-              int thumb_y = painter.fontMetrics().height() + CLIP_TEXT_PADDING + CLIP_TEXT_PADDING;
-              if (thumb_x < width() && thumb_y < height()) {
-                int space_for_thumb = clip_rect.width()-1;
-                if (auto open_tran = clip->getTransition(ClipTransitionType::OPENING)) {
-                  int ot_width = getScreenPointFromFrame(PanelManager::timeLine().zoom,
-                                                         open_tran->get_true_length());
-                  thumb_x += ot_width;
-                  space_for_thumb -= ot_width;
-                }
-                if (auto close_tran = clip->getTransition(ClipTransitionType::CLOSING)) {
-                  space_for_thumb -= getScreenPointFromFrame(PanelManager::timeLine().zoom,
-                                                             close_tran->get_true_length());
-                }
-                int thumb_height = clip_rect.height()-thumb_y;
-                int thumb_width = (thumb_height * (static_cast<double>(ms->video_preview.width())
-                                                   / static_cast<double>(ms->video_preview.height())));
-                if (thumb_x + thumb_width >= 0
-                    && thumb_height > thumb_y
-                    && thumb_y + thumb_height >= 0
-                    && space_for_thumb > MAX_TEXT_WIDTH) {
-                  int thumb_clip_width = qMin(thumb_width, space_for_thumb);
-                  painter.drawImage(QRect(thumb_x, clip_rect.y()+thumb_y, thumb_clip_width, thumb_height),
-                                    ms->video_preview,
-                                    QRect(0, 0,
-                                          thumb_clip_width * (static_cast<double>(ms->video_preview.width())
-                                                              / static_cast<double>(thumb_width)),
-                                          ms->video_preview.height()));
-                }
-              }
-              if (clip->length() > clip->maximumLength()) {
-                draw_checkerboard = true;
-                checkerboard_rect.setLeft(PanelManager::timeLine()
-                                          .getTimelineScreenPointFromFrame(clip->maximumLength()
-                                                                           + clip->timeline_info.in
-                                                                           - clip->timeline_info.clip_in));
-              }
-            } else if (clip_rect.height() > TRACK_MIN_HEIGHT) {
-              // draw waveform
-              painter.setPen(QColor(80, 80, 80));
-
-              int waveform_start = -qMin(clip_rect.x(), 0);
-              int waveform_limit = qMin(clip_rect.width(), getScreenPointFromFrame(PanelManager::timeLine().zoom,
-                                                                                   media_length - clip->timeline_info.clip_in));
-
-              if ((clip_rect.x() + waveform_limit) > width()) {
-                waveform_limit -= (clip_rect.x() + waveform_limit - width());
-              } else if (waveform_limit < clip_rect.width()) {
-                draw_checkerboard = true;
-                if (waveform_limit > 0) checkerboard_rect.setLeft(checkerboard_rect.left() + waveform_limit);
-              }
-
-              draw_waveform(clip, ms, media_length, painter, clip_rect, waveform_start, waveform_limit, PanelManager::timeLine().zoom);
-            }
-          }
-          if (draw_checkerboard) {
-            checkerboard_rect.setLeft(qMax(checkerboard_rect.left(), 0));
-            checkerboard_rect.setRight(qMin(checkerboard_rect.right(), width()));
-            checkerboard_rect.setTop(qMax(checkerboard_rect.top(), 0));
-            checkerboard_rect.setBottom(qMin(checkerboard_rect.bottom(), height()));
-
-            if (checkerboard_rect.left() < width()
-                && checkerboard_rect.right() >= 0
-                && checkerboard_rect.top() < height()
-                && checkerboard_rect.bottom() >= 0) {
-              // draw "error lines" if media stream is missing
-              painter.setPen(QPen(QColor(64, 64, 64), 2));
-              int limit = checkerboard_rect.width();
-              int clip_height = checkerboard_rect.height();
-              for (int j=-clip_height;j<limit;j+=15) {
-                int lines_start_x = checkerboard_rect.left()+j;
-                int lines_start_y = checkerboard_rect.bottom();
-                int lines_end_x = lines_start_x + clip_height;
-                int lines_end_y = checkerboard_rect.top();
-                if (lines_start_x < checkerboard_rect.left()) {
-                  lines_start_y -= (checkerboard_rect.left() - lines_start_x);
-                  lines_start_x = checkerboard_rect.left();
-                }
-                if (lines_end_x > checkerboard_rect.right()) {
-                  lines_end_y -= (checkerboard_rect.right() - lines_end_x);
-                  lines_end_x = checkerboard_rect.right();
-                }
-                painter.drawLine(lines_start_x, lines_start_y, lines_end_x, lines_end_y);
-              }
-            }
-          }
-        }
-
-        // draw clip transitions
-        draw_transition(painter, clip, clip_rect, text_rect, TA_OPENING_TRANSITION);
-        draw_transition(painter, clip, clip_rect, text_rect, TA_CLOSING_TRANSITION);
-
-        // top left bevel
-        painter.setPen(Qt::white);
-        if (clip_rect.x() >= 0 && clip_rect.x() < width()) {
-          painter.drawLine(clip_rect.bottomLeft(), clip_rect.topLeft());
-        }
-        if (clip_rect.y() >= 0 && clip_rect.y() < height()) {
-          painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.top()),
-                           QPoint(qMin(width(), clip_rect.right()), clip_rect.top()));
-        }
-
-        // draw text
-        if (text_rect.width() > MAX_TEXT_WIDTH && text_rect.right() > 0 && text_rect.left() < width()) {
-          if (!clip->timeline_info.enabled) {
-            painter.setPen(Qt::gray);
-          } else if (io::color_conversion::rgbToLuma(clip->timeline_info.color.rgb()) > 160) {
-            // set to black if color is bright
-            painter.setPen(Qt::black);
-          }
-          if (!clip->linkedClips().empty()) {
-            int underline_y = CLIP_TEXT_PADDING + painter.fontMetrics().height() + clip_rect.top();
-            int underline_width = qMin(text_rect.width() - 1, painter.fontMetrics().width(clip->name()));
-            painter.drawLine(text_rect.x(), underline_y, text_rect.x() + underline_width, underline_y);
-          }
-          QString name(clip->name());
-          if (!qFuzzyCompare(clip->timeline_info.speed, 1.0) || clip->timeline_info.reverse) {
-            name += " (";
-            if (clip->timeline_info.reverse) {
-              name += "-";
-            }
-            name += QString::number(clip->timeline_info.speed * 100) + "%)";
-          }
-          painter.drawText(text_rect, 0, name, &text_rect);
-        }
-
-        // bottom right gray
-        painter.setPen(QColor(0, 0, 0, 128));
-        if (clip_rect.right() >= 0 && clip_rect.right() < width()) {
-          painter.drawLine(clip_rect.bottomRight(), clip_rect.topRight());
-        }
-        if (clip_rect.bottom() >= 0 && clip_rect.bottom() < height()) {
-          painter.drawLine(QPoint(qMax(0, clip_rect.left()), clip_rect.bottom()),
-                           QPoint(qMin(width(), clip_rect.right()), clip_rect.bottom()));
-        }
-
-        // draw transition tool
-        if (PanelManager::timeLine().tool == TimelineToolType::TRANSITION
-            && (PanelManager::timeLine().transition_tool_pre_clip == clip
-                || PanelManager::timeLine().transition_tool_post_clip == clip)) {
-          int type = PanelManager::timeLine().transition_tool_type;
-          if (PanelManager::timeLine().transition_tool_post_clip == clip) {
-            // invert transition type
-            type = (type == TA_CLOSING_TRANSITION) ? TA_OPENING_TRANSITION : TA_CLOSING_TRANSITION;
-          }
-          QRect transition_tool_rect = clip_rect;
-          if (type == TA_CLOSING_TRANSITION) {
-            if (PanelManager::timeLine().transition_tool_post_clip != nullptr) {
-              transition_tool_rect.setLeft(transition_tool_rect.right() - TRANSITION_BETWEEN_RANGE);
-            } else {
-              transition_tool_rect.setLeft(transition_tool_rect.left() + (3*(transition_tool_rect.width()>>2)));
-            }
-          } else {
-            if (PanelManager::timeLine().transition_tool_post_clip != nullptr) {
-              transition_tool_rect.setWidth(TRANSITION_BETWEEN_RANGE);
-            } else {
-              transition_tool_rect.setWidth(transition_tool_rect.width()>>2);
-            }
-          }
-          if (transition_tool_rect.left() < width() && transition_tool_rect.right() > 0) {
-            if (transition_tool_rect.left() < 0) {
-              transition_tool_rect.setLeft(0);
-            }
-            if (transition_tool_rect.right() > width()) {
-              transition_tool_rect.setRight(width());
-            }
-            painter.fillRect(transition_tool_rect, QColor(0, 0, 0, 128));
-          }
-        }
-      }
-    }
-  }
+  drawClips(global::sequence, PanelManager::timeLine(), painter);
 
   // Draw recording clip if recording if valid
   if (PanelManager::sequenceViewer().is_recording_cued()
