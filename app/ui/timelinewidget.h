@@ -26,6 +26,7 @@
 #include "project/sequence.h"
 #include "project/media.h"
 #include "project/undo.h"
+#include "panels/viewer.h"
 
 constexpr int GHOST_THICKNESS = 2;
 constexpr int CLIP_TEXT_PADDING = 3;
@@ -198,7 +199,9 @@ class TimelineWidget : public QWidget {
     
     bool createObjectEvent(ComboAction& ca, const bool ctrl, const bool shift, const SequencePtr& seq, Timeline& time_line);
     
-  public slots:
+    void drawRecordingClip(Timeline& time_line, Viewer& sequence_viewer, QPainter& painter) const;
+
+public slots:
     void setScroll(int);
 
   private slots:
