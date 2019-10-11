@@ -205,6 +205,8 @@ class TimelineWidget : public QWidget {
 
     void drawTrackLines(int& audio_track_limit, int& video_track_limit, QPainter& painter);
 
+    void drawEditCursor(SequencePtr seq, Timeline& time_line, QPainter& painter) const;
+
 public slots:
     void setScroll(int);
 

@@ -3211,6 +3211,20 @@ void TimelineWidget::drawTrackLines(int& audio_track_limit, int& video_track_lim
   }
 }
 
+void TimelineWidget::drawEditCursor(SequencePtr seq, Timeline& time_line, QPainter& painter) const
+{
+  if (seq->trackLocked(time_line.cursor_track)) {
+    // TODO: draw something else to indicate not possible
+  } else {
+    const int cursor_x = time_line.getTimelineScreenPointFromFrame(time_line.cursor_frame);
+    const int cursor_y = getScreenPointFromTrack(time_line.cursor_track);
+
+    painter.setPen(EDIT_CURSOR_COLOR);
+    painter.drawLine(cursor_x, cursor_y, cursor_x,
+                     cursor_y + time_line.calculate_track_height(time_line.cursor_track, -1));
+  }
+}
+
 //FIXME: oh god
 void TimelineWidget::paintEvent(QPaintEvent*)
 {
@@ -3303,18 +3317,8 @@ void TimelineWidget::paintEvent(QPaintEvent*)
 
   // Draw edit cursor
   if (isLiveEditing() && is_track_visible(PanelManager::timeLine().cursor_track)) {
-    if (global::sequence->trackLocked(PanelManager::timeLine().cursor_track)) {
-      // TODO: draw something else to indicate not possible
-    } else {
-      const int cursor_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(PanelManager::timeLine().cursor_frame);
-      const int cursor_y = getScreenPointFromTrack(PanelManager::timeLine().cursor_track);
-
-      painter.setPen(EDIT_CURSOR_COLOR);
-      painter.drawLine(cursor_x, cursor_y, cursor_x,
-                       cursor_y + PanelManager::timeLine().calculate_track_height(PanelManager::timeLine().cursor_track, -1));
-    }
+    drawEditCursor(global::sequence, PanelManager::timeLine(), painter);
   }
-
 }
 
 void TimelineWidget::resizeEvent(QResizeEvent* /*event*/) {
