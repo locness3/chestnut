@@ -3190,6 +3190,27 @@ void TimelineWidget::drawClips(SequencePtr seq, Timeline& time_line, QPainter& p
   }//for
 }
 
+void TimelineWidget::drawTrackLines(int& audio_track_limit, int& video_track_limit, QPainter& painter)
+{
+  painter.setPen(QColor(0, 0, 0, 96));
+  audio_track_limit++;
+  if (video_track_limit == 0) {
+    video_track_limit--;
+  }
+
+  if (bottom_align) {
+    // only draw lines for video tracks
+    for (int i=video_track_limit; i<0; ++i) {
+      paintTrack(painter, i, true);
+    }
+  } else {
+    // only draw lines for audio tracks
+    for (int i=0; i<audio_track_limit; ++i) {
+      paintTrack(painter, i,  false);
+    }
+  }
+}
+
 //FIXME: oh god
 void TimelineWidget::paintEvent(QPaintEvent*)
 {
@@ -3237,23 +3258,7 @@ void TimelineWidget::paintEvent(QPaintEvent*)
 
   // Draw track lines
   if (e_config.show_track_lines) {
-    painter.setPen(QColor(0, 0, 0, 96));
-    audio_track_limit++;
-    if (video_track_limit == 0) {
-      video_track_limit--;
-    }
-
-    if (bottom_align) {
-      // only draw lines for video tracks
-      for (int i=video_track_limit; i<0; ++i) {
-        paintTrack(painter, i, true);
-      }
-    } else {
-      // only draw lines for audio tracks
-      for (int i=0; i<audio_track_limit; ++i) {
-        paintTrack(painter, i,  false);
-      }
-    }
+    drawTrackLines(audio_track_limit, video_track_limit, painter);
   }
 
   // Draw selections
