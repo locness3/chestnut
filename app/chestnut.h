@@ -23,7 +23,7 @@ namespace chestnut {
   namespace version
   {
     constexpr auto MAJOR  = "0";
-    constexpr auto MINOR  = "1";
+    constexpr auto MINOR  = "2";
     constexpr auto PATCH  = "0";
     constexpr auto PREREL = "alpha";
   }
