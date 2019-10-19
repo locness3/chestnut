@@ -122,6 +122,7 @@ SOURCES += \
     project/footagestream.cpp
 
 HEADERS += \
+    chestnut.h \
     coderconstants.h \
     project/objectclip.h \
     project/track.h \

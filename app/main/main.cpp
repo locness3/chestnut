@@ -20,11 +20,9 @@
 #include <iostream>
 #include <QLoggingCategory>
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 
+#include "chestnut.h"
 #include "debug.h"
 #include "project/effect.h"
 #include "panels/panelmanager.h"
@@ -44,7 +42,7 @@ int main(int argc, char *argv[])
 
   av_log_set_level(AV_LOG_PANIC);
 
-  while ((c = getopt(argc, argv, "fhi:l:s")) != -1)
+  while ((c = getopt(argc, argv, "fhi:l:sv")) != -1)
   {
     switch (c) {
       case 'f':
@@ -92,6 +90,13 @@ int main(int argc, char *argv[])
         // Disable shader effects
         shaders_are_enabled = false;
         break;
+      case 'v':
+        std::cout << APP_NAME << "-" << chestnut::version::MAJOR << "." << chestnut::version::MINOR << "." << chestnut::version::PATCH;
+        if (!std::string(chestnut::version::PREREL).empty()) {
+          std::cout << "-" << chestnut::version::PREREL;
+        }
+        std::cout << std::endl;
+        return 0;
       default:
         std::cerr << "Ignoring:" << c << std::endl;
         break;
