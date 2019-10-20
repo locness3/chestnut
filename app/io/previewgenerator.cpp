@@ -498,6 +498,7 @@ void PreviewGenerator::run()
           if (generate_image_thumbnail(ftg)) {
             ftg->ready_lock.unlock();
             ftg->ready = true;
+            ftg->valid = true;
             emit set_icon(ICON_TYPE_IMAGE, replace);
             return;
           }
