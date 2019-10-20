@@ -83,6 +83,7 @@ constexpr int MIN_WIDTH = 320;
 
 constexpr auto VIDEO_FMT_FILTER = "*.avi *.m4v *.mkv *.mov *.mp4 *.mts *.mxf *.ogv *.webm *.wmv";
 constexpr auto AUDIO_FMT_FILTER = "*.aac *.aif *.alac *.flac *.m4a *.mp3 *.ogg *.wav *.wma";
+constexpr auto IMAGE_FMT_FILTER = "*.gif *.jpeg *.jpg *.png *.tiff *.webp";
 constexpr auto TMP_SAVE_FILENAME = "tmpsave.nut";
 
 #ifdef QT_NO_DEBUG
@@ -415,7 +416,7 @@ MediaPtr Project::item_to_media(const QModelIndex &index) {
     return Project::model().get(src);
   }
 
-  return MediaPtr();
+  return {};
 }
 
 void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPtr>& list, const MediaType search_type) {
@@ -641,7 +642,8 @@ void Project::start_preview_generator(MediaPtr item, const bool replacing)
   item->object<Footage>()->preview_gen = pg;
 }
 
-void Project::process_file_list(QStringList& files, bool recursive, MediaPtr replace, MediaPtr parent) {
+void Project::process_file_list(QStringList& files, bool recursive, MediaPtr replace, MediaPtr parent)
+{
   bool imported = false;
 
   QVector<QString> image_sequence_urls;
@@ -858,6 +860,7 @@ void Project::import_dialog()
 {
   QString formats = tr("Video") + "(" + VIDEO_FMT_FILTER + QString(VIDEO_FMT_FILTER).toUpper() + ")";
   formats += ";;" + tr("Audio") + "(" + AUDIO_FMT_FILTER + QString(AUDIO_FMT_FILTER).toUpper() + ")";
+  formats += ";;" + tr("Image") + "(" + IMAGE_FMT_FILTER + QString(IMAGE_FMT_FILTER).toUpper() + ")";
   formats += ";;" + tr("All Files") + "(*)";
   QFileDialog fd(this,
                  tr("Import media..."),

@@ -182,7 +182,8 @@ void SourcesCommon::setCurrentView(QAbstractItemView* currentView)
   view = currentView;
 }
 
-void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& items) {
+void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& items)
+{
   stop_rename_timer();
   if (project_parent == nullptr) {
     return;
