@@ -59,7 +59,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
   bool got_video_values = false;
   bool got_audio_values = false;
   for (const auto& mda : media_list){
-    if (mda == nullptr) {
+     if (mda == nullptr) {
       qCritical() << "Null MediaPtr";
       continue;
     }
@@ -70,6 +70,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
         if (!ftg->ready || got_video_values) {
           break;
         }
+
         for (const auto& ms : ftg->video_tracks) {
           width_ = ms->video_width;
           height_ = ms->video_height;
@@ -109,8 +110,13 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
       default:
         qWarning() << "Unknown media type" << static_cast<int>(mda->type());
     }//switch
-    if (got_video_values && got_audio_values) break;
+
+    if (got_video_values && got_audio_values) {
+      break;
+    }
   } //for
+
+  qDebug() << "Created width=" << width_ << ", height=" << height_ << ", framerate=" << frame_rate_;
 
 }
 

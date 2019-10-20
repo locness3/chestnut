@@ -354,22 +354,29 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event)
   if ( (event->source() == PanelManager::projectViewer().tree_view_)
        || (event->source() == PanelManager::projectViewer().icon_view_) ) {
     auto items = PanelManager::projectViewer().get_current_selected();
-    media_list.resize(items.size());
-    for (auto item : items) {
-      media_list.append(PanelManager::projectViewer().item_to_media(item));
+    for (const auto& item : items) {
+      if (auto mda = PanelManager::projectViewer().item_to_media(item)) {
+        qDebug() << "Dragging from project window to timeline, " << mda->name();
+        media_list.append(mda);
+      } else {
+        qWarning() << "Failed to identify item as media";
+      }
     }
     import_init = true;
   }
-
   // Dragging footage from the media-viewer window
-  if (event->source() == PanelManager::footageViewer().viewer_widget) {
+  else if (event->source() == PanelManager::footageViewer().viewer_widget) {
     auto proposed_seq = PanelManager::footageViewer().getSequence();
     if (proposed_seq != global::sequence) { // don't allow nesting the same sequence
-      media_list.append(PanelManager::footageViewer().getMedia());
-      import_init = true;
+      if (auto mda = PanelManager::footageViewer().getMedia()) {
+        qDebug() << "Dragging from footage viewer to timeline, " << mda->name();
+        media_list.append(mda);
+        import_init = true;
+      }
     }
   }
 
+  // TODO: identify how this is triggered
   if (e_config.enable_drag_files_to_timeline && event->mimeData()->hasUrls()) {
     QList<QUrl> urls = event->mimeData()->urls();
     if (!urls.isEmpty()) {
@@ -382,7 +389,6 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event)
 
       for (int i=0; i < PanelManager::projectViewer().getMediaSize(); i++) {
         // waits for media to have a duration
-        // TODO would be much nicer if this was multithreaded
         if (auto mda = PanelManager::projectViewer().getImportedMedia(i)) {
           if (auto ftg = mda->object<Footage>()) {
             ftg->ready_lock.lock();

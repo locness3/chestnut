@@ -571,6 +571,7 @@ void PreviewGenerator::run()
       media->updateTooltip(errorStr);
       emit set_icon(ICON_TYPE_ERROR, replace);
       ftg->ready_lock.unlock();
+      qCritical() << "Failed to generate preview";
     } else {
       ftg->valid = true;
       media->updateTooltip();

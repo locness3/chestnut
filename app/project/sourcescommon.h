@@ -44,6 +44,8 @@ public:
 
     void item_click(const MediaPtr& m, const QModelIndex &index);
     void setCurrentView(QAbstractItemView* currentView);
+  protected:
+
 private slots:
     void create_seq_from_selected();
     void reveal_in_browser();

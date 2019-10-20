@@ -416,7 +416,7 @@ MediaPtr Project::item_to_media(const QModelIndex &index) {
     return Project::model().get(src);
   }
 
-  return MediaPtr();
+  return {};
 }
 
 void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPtr>& list, const MediaType search_type) {
