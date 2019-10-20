@@ -47,7 +47,7 @@ extern "C" {
 #ifdef QT_DEBUG
 constexpr auto X264_PRESET = "ultrafast";
 #else
-constexpr auto X264_PRESET = "slow";
+constexpr auto X264_PRESET = "medium";
 #endif
 
 using panels::PanelManager;
