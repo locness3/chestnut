@@ -22,7 +22,6 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QMutex>
-
 #include "dialogs/debugdialog.h"
 
 QtMsgType chestnut::debug::debug_level = QtMsgType::QtFatalMsg;
@@ -31,7 +30,10 @@ QMutex debug_mutex;
 QFile debug_file;
 QTextStream debug_stream;
 
-void open_debug_file() {
+
+
+void open_debug_file()
+{
   QDir debug_dir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
   debug_dir.mkpath(".");
   if (debug_dir.exists()) {
@@ -62,22 +64,22 @@ bool shouldPrintMessage(const QtMsgType type)
   switch (type) {
     case QtMsgType::QtFatalMsg:
       return (chestnut::debug::debug_level == QtFatalMsg
-          || chestnut::debug::debug_level == QtCriticalMsg
-          || chestnut::debug::debug_level == QtWarningMsg
-          || chestnut::debug::debug_level == QtInfoMsg
-          || chestnut::debug::debug_level == QtDebugMsg);
+              || chestnut::debug::debug_level == QtCriticalMsg
+              || chestnut::debug::debug_level == QtWarningMsg
+              || chestnut::debug::debug_level == QtInfoMsg
+              || chestnut::debug::debug_level == QtDebugMsg);
     case QtMsgType::QtCriticalMsg:
       return (chestnut::debug::debug_level == QtCriticalMsg
-          || chestnut::debug::debug_level == QtWarningMsg
-          || chestnut::debug::debug_level == QtInfoMsg
-          || chestnut::debug::debug_level == QtDebugMsg);
+              || chestnut::debug::debug_level == QtWarningMsg
+              || chestnut::debug::debug_level == QtInfoMsg
+              || chestnut::debug::debug_level == QtDebugMsg);
     case QtMsgType::QtWarningMsg:
       return (chestnut::debug::debug_level == QtWarningMsg
-          || chestnut::debug::debug_level == QtInfoMsg
-          || chestnut::debug::debug_level == QtDebugMsg);
+              || chestnut::debug::debug_level == QtInfoMsg
+              || chestnut::debug::debug_level == QtDebugMsg);
     case QtMsgType::QtInfoMsg:
       return (chestnut::debug::debug_level == QtInfoMsg
-          || chestnut::debug::debug_level == QtDebugMsg);
+              || chestnut::debug::debug_level == QtDebugMsg);
     case QtMsgType::QtDebugMsg:
       return chestnut::debug::debug_level == QtDebugMsg;
     default:
@@ -92,8 +94,8 @@ void debug_message_handler(QtMsgType type, const QMessageLogContext &context, co
   }
 
   debug_mutex.lock();
-  const QByteArray localMsg = msg.toLocal8Bit();
-  const QDateTime now = QDateTime::currentDateTime();
+  const QByteArray localMsg(msg.toLocal8Bit());
+  const QDateTime now(QDateTime::currentDateTime());
   const QByteArray timeRepr(now.toString(Qt::ISODateWithMs).toLocal8Bit());
   QString msgTag;
   QString fontColor;
