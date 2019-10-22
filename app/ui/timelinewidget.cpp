@@ -391,10 +391,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event)
         // waits for media to have a duration
         if (auto mda = PanelManager::projectViewer().getImportedMedia(i)) {
           if (auto ftg = mda->object<Footage>()) {
-            ftg->ready_lock.lock();
-            ftg->ready_lock.unlock();
-
-            if (ftg->ready) {
+            if (ftg->ready_) {
               media_list.append(mda);
             }
           } else {

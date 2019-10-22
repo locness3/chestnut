@@ -73,6 +73,7 @@ private:
     QString get_waveform_path(const QString& hash,  project::FootageStreamPtr& ms);
 
     bool generate_image_thumbnail(const FootagePtr& ftg) const;
+    void generateImagePreview(FootagePtr ftg);
 };
 
 using PreviewGeneratorPtr = std::shared_ptr<PreviewGenerator>;

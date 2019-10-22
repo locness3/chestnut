@@ -67,7 +67,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
       case MediaType::FOOTAGE:
       {
         auto ftg = mda->object<Footage>();
-        if (!ftg->ready || got_video_values) {
+        if (!ftg->ready_ || got_video_values) {
           break;
         }
 

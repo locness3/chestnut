@@ -21,18 +21,11 @@
 
 #include <QString>
 #include <QVector>
-#include <QMetaType>
-#include <QVariant>
-#include <QMutex>
-#include <QPixmap>
-#include <QIcon>
 #include <QDir>
 
 #include "project/projectitem.h"
 #include "project/ixmlstreamer.h"
 #include "project/footagestream.h"
-
-
 
 
 class Clip;
@@ -62,14 +55,13 @@ public:
   double speed{1.0};
 
   PreviewGenerator* preview_gen{nullptr};
-  QMutex ready_lock;
 
   long in{0};
   long out{0};
   bool using_inout{false};
 
-  bool ready{false};
-  bool valid{false};
+  std::atomic_bool ready_{false};
+  std::atomic_bool has_preview_{false};
 
 
   long get_length_in_frames(const double frame_rate) const;
@@ -87,7 +79,7 @@ private:
   friend class FootageTest;
   project::FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
 
-  std::weak_ptr<Media> parent_mda;
+  std::weak_ptr<Media> parent_mda_;
 
 };
 

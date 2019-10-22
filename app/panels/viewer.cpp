@@ -463,8 +463,6 @@ void Viewer::pause() {
       auto mda = PanelManager::projectViewer().getImportedMedia(0);
       auto ftg = mda->object<Footage>();
 
-      ftg->ready_lock.lock();
-
       clp->timeline_info.media = mda; // latest media
       clp->timeline_info.media_stream = 0;
       clp->timeline_info.in = recording_start;
@@ -473,8 +471,6 @@ void Viewer::pause() {
       clp->timeline_info.track_ = recording_track;
       clp->timeline_info.color = PAUSE_COLOR;
       clp->timeline_info.name_ = mda->name();
-
-      ftg->ready_lock.unlock();
 
       QVector<ClipPtr> add_clips;
       add_clips.append(clp);

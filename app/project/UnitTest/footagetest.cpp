@@ -11,7 +11,7 @@ FootageTest::FootageTest(QObject *parent) : QObject(parent)
 void FootageTest::testCaseIsImage()
 {
   Footage ftg(nullptr);
-  ftg.valid = true;
+  ftg.has_preview_ = true;
   // by default, not an image
   QVERIFY(ftg.isImage() == false);
   // the sole stream is a video-type and is infinitely long
@@ -40,7 +40,7 @@ void FootageTest::testCaseUninitSave()
 void FootageTest::testCaseNullMediaSave()
 {
   Footage ftg(nullptr);
-  ftg.valid = true;
+  ftg.has_preview_ = true;
   QString output;
   QXmlStreamWriter stream(&output);
   QVERIFY(ftg.save(stream) == false);
@@ -53,7 +53,7 @@ void FootageTest::testCaseSave()
 
   auto parent_mda = std::make_shared<Media>(root_mda);
   Footage ftg(parent_mda);
-  ftg.valid = true;
+  ftg.has_preview_ = false;
 
   QString output;
   QXmlStreamWriter stream(&output);
