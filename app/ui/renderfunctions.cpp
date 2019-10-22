@@ -165,55 +165,61 @@ GLuint compose_sequence(Viewer* viewer,
     if ((clp->mediaType() == ClipType::VISUAL) != video) {
       continue;
     }
-      auto clip_is_active = false;
+    auto clip_is_active = false;
 
-      if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
-        auto ftg = clp->timeline_info.media->object<Footage>();
-        if (ftg->valid && !( (clp->timeline_info.track_ >= 0) && !is_audio_device_set())) {
-          if (ftg->ready) {
-            const auto found = ftg->has_stream_from_file_index(clp->timeline_info.media_stream);
+    if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
+      auto ftg = clp->timeline_info.media->object<Footage>();
+      if (!ftg->has_preview_) {
+        // TODO: should the render really be prevented just because the audio waveform preview hasn't been generated?
+        qDebug() << "Waiting on preview (audio/video) to be generated for Footage, fileName =" << ftg->url;
+        continue;
+      }
 
-            if (found && clp->isActive(playhead)) {
-              // if thread is already working, we don't want to touch this,
-              // but we also don't want to hang the UI thread
-              clp->open(!rendering);
-              clip_is_active = true;
-              if (clp->timeline_info.track_ >= 0) {
-                audio_track_count++;
-              }
-            } else if (clp->is_open) {
-              clp->close(false);
+      if (!( (clp->timeline_info.track_ >= 0) && !is_audio_device_set())) {
+        if (ftg->ready_) {
+          const auto found = ftg->has_stream_from_file_index(clp->timeline_info.media_stream);
+
+          if (found && clp->isActive(playhead)) {
+            // if thread is already working, we don't want to touch this,
+            // but we also don't want to hang the UI thread
+            clp->open(!rendering);
+            clip_is_active = true;
+            if (clp->timeline_info.track_ >= 0) {
+              audio_track_count++;
+            }
+          } else if (clp->is_open) {
+            clp->close(false);
           }
         } else {
           qWarning() << "Media '" + ftg->name() + "' was not ready, retrying...";
           texture_failed = true;
         }
-        }
-      } else {
-        if (clp->isActive(playhead)) {
-          clp->open(!rendering);
-          clip_is_active = true;
-        } else if (clp->is_open) {
-          clp->close(false);
-        }
       }
+    } else {
+      if (clp->isActive(playhead)) {
+        clp->open(!rendering);
+        clip_is_active = true;
+      } else if (clp->is_open) {
+        clp->close(false);
+      }
+    }
 
-      if (clip_is_active) {
-        bool added = false;
-        for (int j=0; j<current_clips.size(); ++j) {
-          if (!current_clips.at(j)){
-            qDebug() << "Clip is Null";
-            continue;
-          }
-          if (current_clips.at(j)->timeline_info.track_ < clp->timeline_info.track_) {
-            current_clips.insert(j, clp);
-            added = true;
-            break;
-          }
+    if (clip_is_active) {
+      bool added = false;
+      for (int j=0; j<current_clips.size(); ++j) {
+        if (!current_clips.at(j)){
+          qDebug() << "Clip is Null";
+          continue;
+        }
+        if (current_clips.at(j)->timeline_info.track_ < clp->timeline_info.track_) {
+          current_clips.insert(j, clp);
+          added = true;
+          break;
+        }
       }//for
 
-        if (!added) {
-          current_clips.append(clp);
+      if (!added) {
+        current_clips.append(clp);
       }
     }
   }//for
@@ -471,7 +477,7 @@ GLuint compose_sequence(Viewer* viewer,
           }
 
           glPopMatrix();
-       }
+        }
       } else {
         if (render_audio || (e_config.enable_audio_scrubbing && audio_scrub)) {
           if (clp->timeline_info.media != nullptr && clp->timeline_info.media->type() == MediaType::SEQUENCE) {

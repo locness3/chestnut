@@ -17,9 +17,6 @@
  */
 #include "footage.h"
 
-#include <QDebug>
-#include <QtMath>
-#include <QPainter>
 
 #include "io/previewgenerator.h"
 #include "project/clip.h"
@@ -36,9 +33,8 @@ Footage::Footage() : Footage(nullptr)
 
 }
 
-Footage::Footage(const std::shared_ptr<Media>& parent) : parent_mda(parent)
+Footage::Footage(const std::shared_ptr<Media>& parent) : parent_mda_(parent)
 {
-  ready_lock.lock();
 }
 
 void Footage::reset()
@@ -49,14 +45,13 @@ void Footage::reset()
   }
   video_tracks.clear();
   audio_tracks.clear();
-  ready = false;
+  ready_ = false;
 }
 
 bool Footage::isImage() const
 {
-  return (valid && !video_tracks.empty()) && video_tracks.front()->infinite_length && (audio_tracks.empty());
+  return (has_preview_ && !video_tracks.empty()) && video_tracks.front()->infinite_length && (audio_tracks.empty());
 }
-
 
 bool Footage::load(QXmlStreamReader& stream)
 {
@@ -65,13 +60,13 @@ bool Footage::load(QXmlStreamReader& stream)
     auto name = attr.name().toString().toLower();
     if (name == "folder") {
       folder_ = attr.value().toInt(); // Media::parent.id
-      if (auto par = parent_mda.lock()) {
+      if (auto par = parent_mda_.lock()) {
         auto folder = Project::model().findItemById(folder_);
         par->setParent(folder);
       }
     } else if (name == "id") {
       save_id = attr.value().toInt();
-      if (auto par = parent_mda.lock()) {
+      if (auto par = parent_mda_.lock()) {
         par->setId(save_id);
       }
     } else if (name == "using_inout") {
@@ -138,12 +133,8 @@ bool Footage::load(QXmlStreamReader& stream)
 
 bool Footage::save(QXmlStreamWriter& stream) const
 {
-  if (!valid) {
-    qWarning() << "Footage is not valid. Not saving";
-    return false;
-  }
   stream.writeStartElement("footage");
-  if (auto par = parent_mda.lock()) {
+  if (auto par = parent_mda_.lock()) {
     if (par->parentItem() == nullptr) {
       qCritical() << "Parent Media is unlinked";
       return false;
@@ -163,26 +154,37 @@ bool Footage::save(QXmlStreamWriter& stream) const
   stream.writeTextElement("duration", QString::number(length));
 
   for (const auto& ms : video_tracks) {
-    if (!ms) continue;
+    if (!ms) {
+      continue;
+    }
     ms->save(stream);
   }
 
   for (const auto& ms : audio_tracks) {
-    if (!ms) continue;
+    if (!ms) {
+      continue;
+    }
     ms->save(stream);
   }
 
-  for (auto mark : markers_) {
-    if (!mark) continue;
+  for (auto& mark : markers_) {
+    if (!mark) {
+      continue;
+    }
     mark->save(stream);
   }
   stream.writeEndElement();
   return true;
 }
 
-long Footage::get_length_in_frames(const double frame_rate) const {
+long Footage::get_length_in_frames(const double frame_rate) const
+{
+  Q_ASSERT(!qFuzzyIsNull(speed));
+  Q_ASSERT(AV_TIME_BASE != 0);
+
   if (length >= 0) {
-    return qFloor((static_cast<double>(length) / static_cast<double>(AV_TIME_BASE)) * frame_rate / speed);
+    return static_cast<long>(std::floor( (static_cast<double>(length) / AV_TIME_BASE)
+                                         * (frame_rate / speed) ));
   }
   return 0;
 }

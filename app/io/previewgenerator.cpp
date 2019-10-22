@@ -59,6 +59,7 @@ constexpr auto MIME_VIDEO_PREFIX = "video";
 constexpr auto MIME_AUDIO_PREFIX = "audio";
 constexpr auto MIME_IMAGE_PREFIX = "image";
 constexpr const char* const PREVIEW_DIR = "/previews";
+constexpr auto THUMB_PREVIEW_FORMAT = "png";
 
 namespace {
   QSemaphore sem(3); // only 5 preview generators can run at one time
@@ -235,8 +236,7 @@ bool PreviewGenerator::retrieve_preview(const QString& hash)
 void PreviewGenerator::finalize_media()
 {
   if (auto ftg = footage.lock()) {
-    ftg->ready_lock.unlock();
-    ftg->ready = true;
+    ftg->ready_ = true;
 
     if (!cancelled) {
       if (ftg->video_tracks.empty()) {
@@ -480,6 +480,31 @@ QString PreviewGenerator::get_waveform_path(const QString& hash, FootageStreamPt
   return data_path + "/" + hash + "w" + QString::number(ms->file_index);
 }
 
+void generateAudioPreview()
+{
+  //TODO:
+}
+
+void generateVideoPreview()
+{
+  //TODO:
+}
+
+void PreviewGenerator::generateImagePreview(FootagePtr ftg)
+{
+  sem.acquire();
+  if (generate_image_thumbnail(ftg)) {
+    qDebug() << "Preview generated, fileName =" << ftg->url;
+    ftg->ready_ = true;
+    ftg->has_preview_ = true;
+    emit set_icon(ICON_TYPE_IMAGE, replace);
+    return;
+  }
+
+  qWarning() << "Failed to generate thumbnail for image. path=" << ftg->url;
+  sem.release();
+}
+
 void PreviewGenerator::run()
 {
   Q_ASSERT(media != nullptr);
@@ -491,23 +516,12 @@ void PreviewGenerator::run()
       if (mimeType.isValid()) {
         qDebug() << mimeType.name();
         if (mimeType.name().startsWith(MIME_AUDIO_PREFIX)) {
-          // audio function
+          generateAudioPreview();
         } else if (mimeType.name().startsWith(MIME_IMAGE_PREFIX)) {
-          // image function
-          sem.acquire();
-          if (generate_image_thumbnail(ftg)) {
-            ftg->ready_lock.unlock();
-            ftg->ready = true;
-            ftg->valid = true;
-            emit set_icon(ICON_TYPE_IMAGE, replace);
-            return;
-          }
-
-          qWarning() << "Failed to generate thumbnail for image. path=" << ftg->url;
-          sem.release();
+          generateImagePreview(ftg);
           return;
         } else if (mimeType.name().startsWith(MIME_VIDEO_PREFIX)) {
-          // video function
+          generateVideoPreview();
         }
       }
     }
@@ -535,11 +549,11 @@ void PreviewGenerator::run()
         parse_media();
 
         // see if we already have data for this
-        QFileInfo file_info(ftg->url);
-        QString cache_file = ftg->url.mid(ftg->url.lastIndexOf('/')+1)
+        const QFileInfo file_info(ftg->url);
+        const QString cache_file(ftg->url.mid(ftg->url.lastIndexOf('/')+1)
                              + QString::number(file_info.size())
-                             + QString::number(file_info.lastModified().toMSecsSinceEpoch());
-        QString hash = QCryptographicHash::hash(cache_file.toUtf8(), QCryptographicHash::Md5).toHex();
+                             + QString::number(file_info.lastModified().toMSecsSinceEpoch()));
+        const QString hash(QCryptographicHash::hash(cache_file.toUtf8(), QCryptographicHash::Md5).toHex());
 
         if (!retrieve_preview(hash)) {
           sem.acquire();
@@ -548,17 +562,20 @@ void PreviewGenerator::run()
           generate_waveform();
 
           // save preview to file
-          for (auto ms : ftg->video_tracks) {
+          for (auto& ms : ftg->video_tracks) {
             const auto thumbPath = get_thumbnail_path(hash, ms);
             auto tmp = ms->video_preview;
-            if (!tmp.save(thumbPath, "PNG")) {
+            if (!tmp.save(thumbPath, THUMB_PREVIEW_FORMAT)) {
               qWarning() << "Video Preview did not save." << thumbPath;
             }
           }
-          for (auto ms : ftg->audio_tracks) {
+
+          for (auto& ms : ftg->audio_tracks) {
             QFile f(get_waveform_path(hash, ms));
             f.open(QFile::WriteOnly);
-            f.write(ms->audio_preview.constData(), ms->audio_preview.size());
+            if (f.write(ms->audio_preview.constData(), ms->audio_preview.size()) < 0) {
+              qWarning() << "Error occurred on write of waveform preview";
+            }
             f.close();
           }
 
@@ -571,10 +588,10 @@ void PreviewGenerator::run()
     if (error) {
       media->updateTooltip(errorStr);
       emit set_icon(ICON_TYPE_ERROR, replace);
-      ftg->ready_lock.unlock();
-      qCritical() << "Failed to generate preview";
+      qCritical() << "Failed to generate preview, msg =" << errorStr << ", fileName =" << ftg->url;
     } else {
-      ftg->valid = true;
+      qDebug() << "Preview generated, fileName =" << ftg->url;
+      ftg->has_preview_ = true;
       media->updateTooltip();
     }
   }

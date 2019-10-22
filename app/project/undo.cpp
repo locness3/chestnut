@@ -594,7 +594,6 @@ void ReplaceMediaCommand::replace(QString& filename)
   // replace media
   QStringList files;
   files.append(filename);
-  item->object<Footage>()->ready_lock.lock();
   PanelManager::projectViewer().process_file_list(files, false, item, nullptr);
 }
 

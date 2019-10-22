@@ -265,7 +265,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
       case MediaType::FOOTAGE:
         ftg = mda->object<Footage>();
         if (ftg != nullptr) {
-          can_import = ftg->ready;
+          can_import = ftg->ready_;
           if (ftg->using_inout) {
             auto source_fr = 30.0;
             if ( (!ftg->video_tracks.empty()) && !qIsNull(ftg->video_tracks.front()->video_frame_rate)) {
