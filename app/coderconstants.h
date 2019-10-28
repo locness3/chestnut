@@ -136,47 +136,50 @@ struct Constraints
 };
 
 // MPEG2 Level constraints
-static const Constraints MPEG2_LL_CONSTRAINTS {352, 288, 4000000, MPEG2_LOW_LEVEL_FRATES, {}};
-static const Constraints MPEG2_ML_CONSTRAINTS {720, 576, 15000000, MPEG2_MAIN_LEVEL_FRATES, {}};
-static const Constraints MPEG2_H14_CONSTRAINTS {1440, 1152, 60000000, MPEG2_HIGH1440_LEVEL_FRATES, {}};
-static const Constraints MPEG2_HL_CONSTRAINTS {1920, 1080, 80000000, MPEG2_HIGH_LEVEL_FRATES, {}};
+static const Constraints MPEG2_LL_CONSTRAINTS {352, 288, 4'000'000, MPEG2_LOW_LEVEL_FRATES, {}};
+static const Constraints MPEG2_ML_CONSTRAINTS {720, 576, 15'000'000, MPEG2_MAIN_LEVEL_FRATES, {}};
+static const Constraints MPEG2_H14_CONSTRAINTS {1440, 1152, 60'000'000, MPEG2_HIGH1440_LEVEL_FRATES, {}};
+static const Constraints MPEG2_HL_CONSTRAINTS {1920, 1080, 80'000'000, MPEG2_HIGH_LEVEL_FRATES, {}};
 
 // MPEG4-part2 SSTP level constraints
-static const Constraints MPEG4_SSTP_1_CONSTRAINTS {720, 576, 180000000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10}, {PixelFormat::YUV422}}; //TODO: check NTSC/PAL SDTV
-static const Constraints MPEG4_SSTP_2_CONSTRAINTS {1920, 1080, 600000000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10}, {PixelFormat::YUV422}};
-static const Constraints MPEG4_SSTP_3_CONSTRAINTS {1920, 1080, 900000000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10, DEPTH_12}, {PixelFormat::YUV444}};
-static const Constraints MPEG4_SSTP_4_CONSTRAINTS {2048, 2048, 1350000000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10, DEPTH_12}, {PixelFormat::YUV444}};
-static const Constraints MPEG4_SSTP_5_CONSTRAINTS {3840, 2048, 1800000000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10, DEPTH_12}, {PixelFormat::YUV444}};
-static const Constraints MPEG4_SSTP_6_CONSTRAINTS {3840, 2048, 3600000000, MPEG4_SSTP_6_FRATES, {DEPTH_8, DEPTH_10, DEPTH_12}, {PixelFormat::YUV444}};
+static const Constraints MPEG4_SSTP_1_CONSTRAINTS {720, 576, 180'000'000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10}, {PixelFormat::YUV422}}; //TODO: check NTSC/PAL SDTV
+static const Constraints MPEG4_SSTP_2_CONSTRAINTS {1920, 1080, 600'000'000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10}, {PixelFormat::YUV422}};
+static const Constraints MPEG4_SSTP_3_CONSTRAINTS {1920, 1080, 900'000'000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10, DEPTH_12}, {PixelFormat::YUV444}};
+static const Constraints MPEG4_SSTP_4_CONSTRAINTS {2048, 2048, 1'350'000'000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10, DEPTH_12}, {PixelFormat::YUV444}};
+static const Constraints MPEG4_SSTP_5_CONSTRAINTS {3840, 2048, 1'800'000'000, MPEG4_SSTP_1_5_FRATES, {DEPTH_8, DEPTH_10, DEPTH_12}, {PixelFormat::YUV444}};
+static const Constraints MPEG4_SSTP_6_CONSTRAINTS {3840, 2048, 3'600'000'000, MPEG4_SSTP_6_FRATES, {DEPTH_8, DEPTH_10, DEPTH_12}, {PixelFormat::YUV444}};
 
-static const Constraints H264_20_CONSTRAINTS {-1, -1, 2000000, {}, {}};
-static const Constraints H264_21_CONSTRAINTS {-1, -1, 4000000, {}, {}};
-static const Constraints H264_22_CONSTRAINTS {-1, -1, 4000000, {}, {}};
-static const Constraints H264_30_CONSTRAINTS {-1, -1, 10000000, {}, {}};
-static const Constraints H264_31_CONSTRAINTS {-1, -1, 14000000, {}, {}};
-static const Constraints H264_32_CONSTRAINTS {-1, -1, 20000000, {}, {}};
-static const Constraints H264_40_CONSTRAINTS {-1, -1, 20000000, {}, {}};
-static const Constraints H264_41_CONSTRAINTS {-1, -1, 50000000, {}, {}};
-static const Constraints H264_42_CONSTRAINTS {-1, -1, 50000000, {}, {}};
-static const Constraints H264_50_CONSTRAINTS {-1, -1, 135000000, {}, {}};
-static const Constraints H264_51_CONSTRAINTS {-1, -1, 240000000, {}, {}};
-static const Constraints H264_52_CONSTRAINTS {-1, -1, 240000000, {}, {}};
+static const Constraints H264_20_CONSTRAINTS {-1, -1, 2'000'000, {}, {}};
+static const Constraints H264_21_CONSTRAINTS {-1, -1, 4'000'000, {}, {}};
+static const Constraints H264_22_CONSTRAINTS {-1, -1, 4'000'000, {}, {}};
+static const Constraints H264_30_CONSTRAINTS {-1, -1, 10'000'000, {}, {}};
+static const Constraints H264_31_CONSTRAINTS {-1, -1, 14'000'000, {}, {}};
+static const Constraints H264_32_CONSTRAINTS {-1, -1, 20'000'000, {}, {}};
+static const Constraints H264_40_CONSTRAINTS {-1, -1, 20'000'000, {}, {}};
+static const Constraints H264_41_CONSTRAINTS {-1, -1, 50'000'000, {}, {}};
+static const Constraints H264_42_CONSTRAINTS {-1, -1, 50'000'000, {}, {}};
+static const Constraints H264_50_CONSTRAINTS {-1, -1, 135'000'000, {}, {}};
+static const Constraints H264_51_CONSTRAINTS {-1, -1, 240'000'000, {}, {}};
+static const Constraints H264_52_CONSTRAINTS {-1, -1, 240'000'000, {}, {}};
+static const Constraints H264_60_CONSTRAINTS {-1, -1, 240'000'000, {}, {}};
+static const Constraints H264_61_CONSTRAINTS {-1, -1, 480'000'000, {}, {}};
+static const Constraints H264_62_CONSTRAINTS {-1, -1, 240'000'000, {}, {}};
 
 
 
-static const Constraints DNXHD_440X_CONSTRAINTS {1920, 1080, 440000000, DNXHD_440_FRATES, {DEPTH_10}};
-static const Constraints DNXHD_440_CONSTRAINTS {1920, 1080, 440000000, DNXHD_440_FRATES, {}};
-static const Constraints DNXHD_365X_CONSTRAINTS {1920, 1080, 365000000, DNXHD_365_FRATES, {DEPTH_10}}; // can be 4:4:4 but only @25fps
-static const Constraints DNXHD_365_CONSTRAINTS {1920, 1080, 365000000, DNXHD_365_FRATES, {}};
-static const Constraints DNXHD_350X_CONSTRAINTS {1920, 1080, 350000000, DNXHD_350_FRATES, {DEPTH_10}, {PixelFormat::YUV444}};
-static const Constraints DNXHD_350_CONSTRAINTS {1920, 1080, 350000000, DNXHD_350_FRATES, {}};
-static const Constraints DNXHD_290_CONSTRAINTS {1920, 1080, 290000000, DNXHD_290_FRATES, {}};
-static const Constraints DNXHD_220X_CONSTRAINTS {1920, 1080, 220000000, DNXHD_220_FRATES, {DEPTH_10}};
-static const Constraints DNXHD_220_CONSTRAINTS {1920, 1080, 220000000, DNXHD_220_FRATES, {}};
-static const Constraints DNXHD_185X_CONSTRAINTS {1920, 1080, 185000000, DNXHD_185_FRATES, {DEPTH_10}};
-static const Constraints DNXHD_185_CONSTRAINTS {1920, 1080, 185000000, DNXHD_185_FRATES, {}};
-static const Constraints DNXHD_145_CONSTRAINTS {1920, 1080, 145000000, DNXHD_145_FRATES, {}};
-static const Constraints DNXHD_90_CONSTRAINTS {1920, 1080, 90000000, DNXHD_90_FRATES, {}};
+static const Constraints DNXHD_440X_CONSTRAINTS {1920, 1080, 440'000'000, DNXHD_440_FRATES, {DEPTH_10}};
+static const Constraints DNXHD_440_CONSTRAINTS {1920, 1080, 440'000'000, DNXHD_440_FRATES, {}};
+static const Constraints DNXHD_365X_CONSTRAINTS {1920, 1080, 365'000'000, DNXHD_365_FRATES, {DEPTH_10}}; // can be 4:4:4 but only @25fps
+static const Constraints DNXHD_365_CONSTRAINTS {1920, 1080, 365'000'000, DNXHD_365_FRATES, {}};
+static const Constraints DNXHD_350X_CONSTRAINTS {1920, 1080, 350'000'000, DNXHD_350_FRATES, {DEPTH_10}, {PixelFormat::YUV444}};
+static const Constraints DNXHD_350_CONSTRAINTS {1920, 1080, 350'000'000, DNXHD_350_FRATES, {}};
+static const Constraints DNXHD_290_CONSTRAINTS {1920, 1080, 290'000'000, DNXHD_290_FRATES, {}};
+static const Constraints DNXHD_220X_CONSTRAINTS {1920, 1080, 220'000'000, DNXHD_220_FRATES, {DEPTH_10}};
+static const Constraints DNXHD_220_CONSTRAINTS {1920, 1080, 220'000'000, DNXHD_220_FRATES, {}};
+static const Constraints DNXHD_185X_CONSTRAINTS {1920, 1080, 185'000'000, DNXHD_185_FRATES, {DEPTH_10}};
+static const Constraints DNXHD_185_CONSTRAINTS {1920, 1080, 185'000'000, DNXHD_185_FRATES, {}};
+static const Constraints DNXHD_145_CONSTRAINTS {1920, 1080, 145'000'000, DNXHD_145_FRATES, {}};
+static const Constraints DNXHD_90_CONSTRAINTS {1920, 1080, 90'000'000, DNXHD_90_FRATES, {}};
 
 
 #endif // CODERCONSTANTS_H

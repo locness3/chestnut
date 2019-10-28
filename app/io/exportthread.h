@@ -98,7 +98,7 @@ class ExportThread : public QThread {
 
     QOffscreenSurface surface;
 
-    ExportDialog* ed;
+    ExportDialog* ed {nullptr};
 
     std::atomic_bool continue_encode_{true};
   protected:
@@ -157,6 +157,7 @@ class ExportThread : public QThread {
     constexpr int convertInterpolationType(const InterpolationType interpoltype) const noexcept;
 
 
+    void setupScaler();
 };
 
 #endif // EXPORTTHREAD_H

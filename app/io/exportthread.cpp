@@ -54,6 +54,7 @@ using panels::PanelManager;
 
 constexpr int WAIT_TIMEOUT_MILLIS = 10000;
 constexpr auto ERR_LEN = 256;
+constexpr auto INTERNAL_PIXEL_FORMAT = AV_PIX_FMT_RGBA;
 
 namespace  {
   std::array<char, ERR_LEN> err;
@@ -105,6 +106,40 @@ bool ExportThread::encode(AVFormatContext* ofmt_ctx,
     av_packet_unref(packet);
   }
   return true;
+}
+
+void ExportThread::setupScaler()
+{
+  int interp_meth;
+  // Do not scale if the sequence dimensions are the same as export dimensions. Nothing to do.
+  if ( (global::sequence->width() == video_params_.width_) &&
+       (global::sequence->height() == video_params_.height_) ) {
+    interp_meth = SWS_FAST_BILINEAR;
+  } else {
+    interp_meth = convertInterpolationType(video_params_.interpol_);
+  }
+
+  sws_ctx = sws_getContext(
+              global::sequence->width(),
+              global::sequence->height(),
+              INTERNAL_PIXEL_FORMAT,
+              video_params_.width_,
+              video_params_.height_,
+              vcodec_ctx->pix_fmt,
+              interp_meth,
+              nullptr,
+              nullptr,
+              nullptr
+              );
+
+  Q_ASSERT(sws_ctx);
+  sws_frame = av_frame_alloc();
+  Q_ASSERT(sws_frame);
+  sws_frame->format = vcodec_ctx->pix_fmt;
+  sws_frame->width = video_params_.width_;
+  sws_frame->height = video_params_.height_;
+  av_frame_get_buffer(sws_frame, 0);
+
 }
 
 //FIXME: setup is too naive/basic
@@ -240,24 +275,7 @@ bool ExportThread::setupVideo()
 
   av_init_packet(&video_pkt);
 
-  sws_ctx = sws_getContext(
-              global::sequence->width(),
-              global::sequence->height(),
-              AV_PIX_FMT_RGBA,
-              video_params_.width_,
-              video_params_.height_,
-              vcodec_ctx->pix_fmt,
-              convertInterpolationType(video_params_.interpol_),
-              nullptr,
-              nullptr,
-              nullptr
-              );
-
-  sws_frame = av_frame_alloc();
-  sws_frame->format = vcodec_ctx->pix_fmt;
-  sws_frame->width = video_params_.width_;
-  sws_frame->height = video_params_.height_;
-  av_frame_get_buffer(sws_frame, 0);
+  setupScaler();
 
   return true;
 }

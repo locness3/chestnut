@@ -90,6 +90,7 @@ class ExportDialog : public QDialog
     QProgressBar* progressBar;
     QComboBox* formatCombobox;
     QSpinBox* heightSpinbox;
+    QComboBox* interpolCombobox_ {nullptr};
     QPushButton* export_button;
     QPushButton* cancel_button;
     QPushButton* renderCancel;
@@ -135,7 +136,9 @@ class ExportDialog : public QDialog
 
     void matchWidgetsToSequence();
 
-    double calculateBitrate(const int width);
+    double calculateBitrate(const int width) const noexcept;
+
+    InterpolationType getInterpolType() const;
 };
 
 #endif // EXPORTDIALOG_H

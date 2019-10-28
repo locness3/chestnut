@@ -49,11 +49,16 @@ extern "C" {
 constexpr auto X264_DEFAULT_CRF = 23;
 constexpr auto DEFAULT_B_FRAMES = 2;
 constexpr auto MIN_H264_LEVEL = 2;
-constexpr auto MAX_H264_LEVEL = 5;
+constexpr auto MAX_H264_LEVEL = 6;
 
 constexpr auto MAX_WIDTH = 3840;
 constexpr auto MAX_HEIGHT = 2160;
 
+constexpr auto INTERPOL_STR_FAST_BILINEAR = "Fast Bilinear";
+constexpr auto INTERPOL_STR_BILINEAR      = "Bilinear";
+constexpr auto INTERPOL_STR_BICUBLIN      = "Bicublin";
+constexpr auto INTERPOL_STR_BICUBIC       = "Bicubic";
+constexpr auto INTERPOL_STR_LANCZOS       = "Lanczos";
 
 enum ExportFormats
 {
@@ -346,6 +351,7 @@ void ExportDialog::export_action()
       et->video_params_.profile_ = profile_box_->currentText();
       et->video_params_.level_ = level_box_->currentText();
       et->video_params_.pix_fmts_ = pix_fmts_;
+      et->video_params_.interpol_ = getInterpolType();
     }
     et->audio_params_.enabled = audioGroupbox->isChecked();
     if (et->audio_params_.enabled) {
@@ -593,6 +599,16 @@ void ExportDialog::setup_ui()
   heightSpinbox = new QSpinBox(videoGroupbox);
   heightSpinbox->setMaximum(16777216);
   videoGridLayout->addWidget(heightSpinbox, row, 1, 1, 1);
+  row++;
+
+  videoGridLayout->addWidget(new QLabel(tr("Scaling Method:")), row, 0, 1, 1);
+  interpolCombobox_ = new QComboBox(videoGroupbox);
+  interpolCombobox_->addItem(tr(INTERPOL_STR_FAST_BILINEAR));
+  interpolCombobox_->addItem(tr(INTERPOL_STR_BILINEAR));
+  interpolCombobox_->addItem(tr(INTERPOL_STR_BICUBLIN));
+  interpolCombobox_->addItem(tr(INTERPOL_STR_BICUBIC));
+  interpolCombobox_->addItem(tr(INTERPOL_STR_LANCZOS));
+  videoGridLayout->addWidget(interpolCombobox_, row, 1, 1, 1);
   row++;
 
   videoGridLayout->addWidget(new QLabel(tr("Frame Rate:")), row, 0, 1, 1);
@@ -860,7 +876,7 @@ void ExportDialog::setupForH264()
 
   level_box_->clear();
 
-  for (auto lvl = MIN_H264_LEVEL; lvl < MAX_H264_LEVEL; ++lvl) {
+  for (auto lvl = MIN_H264_LEVEL; lvl <= MAX_H264_LEVEL; ++lvl) {
     for (auto sub = 0; sub <= 2; ++sub) {
       auto level = QString("%1.%2").arg(QString::number(lvl)).arg(QString::number(sub));
       level_box_->addItem(level);
@@ -900,7 +916,7 @@ void ExportDialog::constrainH264()
   //TODO:
 
   const auto level = level_box_->currentText();
-  //TODO: using CRF
+  //TODO: currently only using CRF. Also use target bitrate mode
   //  if (level == "2.0") {
   //    max_bitrate = H264_20_CONSTRAINTS.max_bitrate;
   //  } else if (level == "2.1") {
@@ -1126,8 +1142,33 @@ void ExportDialog::matchWidgetsToSequence()
 }
 
 
-double ExportDialog::calculateBitrate(const int height)
+double ExportDialog::calculateBitrate(const int height) const noexcept
 {
   // No idea where these values have originally come from
   return qRound((0.01528 * height) - 4.5);
+}
+
+
+InterpolationType ExportDialog::getInterpolType() const
+{
+  Q_ASSERT(interpolCombobox_);
+
+  const auto interpol_str(interpolCombobox_->currentText());
+  if (interpol_str == INTERPOL_STR_FAST_BILINEAR) {
+    return InterpolationType::FAST_BILINEAR;
+  }
+  if (interpol_str == INTERPOL_STR_BILINEAR) {
+    return InterpolationType::BILINEAR;
+  }
+  if (interpol_str == INTERPOL_STR_BICUBLIN) {
+    return InterpolationType::BICUBLIN;
+  }
+  if (interpol_str == INTERPOL_STR_BICUBIC) {
+    return InterpolationType::BICUBIC;
+  }
+  if (interpol_str == INTERPOL_STR_LANCZOS) {
+    return InterpolationType::LANCZOS;
+  }
+  const QString exception_msg("Unknown and unhandled interpolation type -- " + interpol_str);
+  throw std::runtime_error(exception_msg.toStdString());
 }
