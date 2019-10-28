@@ -50,6 +50,15 @@ enum class CompressionType {
   UNKNOWN
 };
 
+enum class InterpolationType
+{
+  FAST_BILINEAR,
+  BILINEAR,
+  BICUBIC,
+  BICUBLIN,
+  LANCZOS
+};
+
 class ExportThread : public QThread {
     Q_OBJECT
   public:
@@ -61,17 +70,18 @@ class ExportThread : public QThread {
     // export parameters
     QString filename;
     struct Params {
-        double frame_rate = 0.0;
-        double bitrate = 0.0;
-        int codec = -1;
-        int width = -1;
-        int height = -1;
-        CompressionType compression_type = CompressionType::UNKNOWN;
+        double frame_rate_ {0.0};
+        double bitrate_ {0.0};
+        int codec_ {-1};
+        int width_ {-1};
+        int height_ {-1};
+        CompressionType compression_type_ {CompressionType::UNKNOWN};
         int gop_length_{};
         int b_frames_{};
         QString profile_;
         QString level_;
         PixFmtList pix_fmts_;
+        InterpolationType interpol_{InterpolationType::FAST_BILINEAR};
         bool enabled = false;
         bool closed_gop_ {false};
     } video_params_;
@@ -143,6 +153,10 @@ class ExportThread : public QThread {
      * @param frame_rate  value > 0
      */
     void setupFrameRate(AVCodecContext& ctx, const double frame_rate) const;
+
+    constexpr int convertInterpolationType(const InterpolationType interpoltype) const noexcept;
+
+
 };
 
 #endif // EXPORTTHREAD_H

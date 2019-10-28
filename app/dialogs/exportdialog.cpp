@@ -332,14 +332,14 @@ void ExportDialog::export_action()
     et->filename = filename;
     et->video_params_.enabled = videoGroupbox->isChecked();
     if (et->video_params_.enabled) {
-      et->video_params_.codec = format_codecs_.video_.at(vcodecCombobox->currentIndex());
-      et->video_params_.width = widthSpinbox->value();
-      et->video_params_.height = heightSpinbox->value();
+      et->video_params_.codec_ = format_codecs_.video_.at(vcodecCombobox->currentIndex());
+      et->video_params_.width_ = widthSpinbox->value();
+      et->video_params_.height_ = heightSpinbox->value();
       bool ok;
-      et->video_params_.frame_rate = framerate_box_->currentText().toDouble(&ok);
+      et->video_params_.frame_rate_ = framerate_box_->currentText().toDouble(&ok);
       Q_ASSERT(ok);
-      et->video_params_.compression_type = static_cast<CompressionType>(compressionTypeCombobox->currentData().toInt());
-      et->video_params_.bitrate = videobitrateSpinbox->value();
+      et->video_params_.compression_type_ = static_cast<CompressionType>(compressionTypeCombobox->currentData().toInt());
+      et->video_params_.bitrate_ = videobitrateSpinbox->value();
       et->video_params_.gop_length_ = gop_length_box_->value();
       et->video_params_.closed_gop_ = closed_gop_box_->isChecked();
       et->video_params_.b_frames_ = b_frame_box_->value();

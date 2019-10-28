@@ -111,16 +111,18 @@ bool ExportThread::encode(AVFormatContext* ofmt_ctx,
 bool ExportThread::setupVideo()
 {
   Q_ASSERT(fmt_ctx);
+  Q_ASSERT(global::sequence);
+
   // if video is disabled, no setup necessary
   if (!video_params_.enabled) {
     return true;
   }
 
   // find video encoder
-  vcodec = avcodec_find_encoder(static_cast<AVCodecID>(video_params_.codec));
+  vcodec = avcodec_find_encoder(static_cast<AVCodecID>(video_params_.codec_));
   if (!vcodec) {
     qCritical() << "Could not find video encoder";
-    ed->export_error = tr("could not video encoder for %1").arg(QString::number(video_params_.codec));
+    ed->export_error = tr("could not video encoder for %1").arg(QString::number(video_params_.codec_));
     return false;
   }
 
@@ -142,14 +144,14 @@ bool ExportThread::setupVideo()
   }
 
   // setup context
-  vcodec_ctx->codec_id = static_cast<AVCodecID>(video_params_.codec);
+  vcodec_ctx->codec_id = static_cast<AVCodecID>(video_params_.codec_);
   vcodec_ctx->codec_type = AVMEDIA_TYPE_VIDEO;
-  vcodec_ctx->width = video_params_.width;
-  vcodec_ctx->height = video_params_.height;
+  vcodec_ctx->width = video_params_.width_;
+  vcodec_ctx->height = video_params_.height_;
   vcodec_ctx->pix_fmt = vcodec->pix_fmts[0]; // maybe be breakable code
-  setupFrameRate(*vcodec_ctx, video_params_.frame_rate);
-  if (video_params_.compression_type == CompressionType::CBR) {
-    const int64_t brate = llround(video_params_.bitrate * 1E6);
+  setupFrameRate(*vcodec_ctx, video_params_.frame_rate_);
+  if (video_params_.compression_type_ == CompressionType::CBR) {
+    const int64_t brate = llround(video_params_.bitrate_ * 1E6);
     vcodec_ctx->bit_rate = brate;
     vcodec_ctx->rc_min_rate = brate;
     vcodec_ctx->rc_max_rate = brate;
@@ -242,10 +244,10 @@ bool ExportThread::setupVideo()
               global::sequence->width(),
               global::sequence->height(),
               AV_PIX_FMT_RGBA,
-              video_params_.width,
-              video_params_.height,
+              video_params_.width_,
+              video_params_.height_,
               vcodec_ctx->pix_fmt,
-              SWS_FAST_BILINEAR,
+              convertInterpolationType(video_params_.interpol_),
               nullptr,
               nullptr,
               nullptr
@@ -253,8 +255,8 @@ bool ExportThread::setupVideo()
 
   sws_frame = av_frame_alloc();
   sws_frame->format = vcodec_ctx->pix_fmt;
-  sws_frame->width = video_params_.width;
-  sws_frame->height = video_params_.height;
+  sws_frame->width = video_params_.width_;
+  sws_frame->height = video_params_.height_;
   av_frame_get_buffer(sws_frame, 0);
 
   return true;
@@ -646,11 +648,11 @@ void ExportThread::wake()
 void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_params) const
 {
   int ret = 0;
-  switch (video_params.compression_type) {
+  switch (video_params.compression_type_) {
     case CompressionType::CRF:
       ret = av_opt_set(ctx.priv_data,
                        "crf",
-                       QString::number(static_cast<int>(video_params.bitrate)).toUtf8(),
+                       QString::number(static_cast<int>(video_params.bitrate_)).toUtf8(),
                        AV_OPT_SEARCH_CHILDREN);
       if (ret < 0) {
         av_strerror(ret, err.data(), ERR_LEN);
@@ -658,7 +660,7 @@ void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_par
       }
       break;
     default:
-      qWarning() << "Unhandled h264 compression type" << static_cast<int>(video_params.compression_type);
+      qWarning() << "Unhandled h264 compression type" << static_cast<int>(video_params.compression_type_);
       break;
   }
 
@@ -698,7 +700,7 @@ void ExportThread::setupH264Encoder(AVCodecContext& ctx, const Params& video_par
 
 void ExportThread::setupMPEG2Encoder(AVCodecContext& ctx, AVStream& stream, const Params& video_params) const
 {
-  const auto brate = qRound(video_params.bitrate * 1E6);
+  const auto brate = qRound(video_params.bitrate_ * 1E6);
   // libav complains when using bits as unit. no documentation on what unit actually is
   ctx.rc_buffer_size = brate / 8;
   ctx.rc_max_available_vbv_use = 1.0;
@@ -813,4 +815,31 @@ void ExportThread::setupFrameRate(AVCodecContext& ctx, const double frame_rate) 
   } else {
     ctx.framerate = av_d2q(frame_rate, INT_MAX);
   }
+}
+
+
+constexpr int ExportThread::convertInterpolationType(const InterpolationType interpoltype) const noexcept
+{
+  int conv_type = 0;
+
+  switch (interpoltype) {
+    case InterpolationType::FAST_BILINEAR:
+      conv_type = SWS_FAST_BILINEAR;
+      break;
+    case InterpolationType::BILINEAR:
+      conv_type = SWS_BILINEAR;
+      break;
+    case InterpolationType::BICUBIC:
+      conv_type = SWS_BICUBIC;
+      break;
+    case InterpolationType::BICUBLIN:
+      conv_type = SWS_BICUBLIN;
+      break;
+    case InterpolationType::LANCZOS:
+      break;
+      conv_type = SWS_LANCZOS;
+      break;
+  }
+
+  return conv_type;
 }
