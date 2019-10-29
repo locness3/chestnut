@@ -24,7 +24,7 @@ namespace chestnut {
   {
     constexpr auto MAJOR  = "0";
     constexpr auto MINOR  = "1";
-    constexpr auto PATCH  = "0";
+    constexpr auto PATCH  = "1";
     constexpr auto PREREL = "";
   }
 }
