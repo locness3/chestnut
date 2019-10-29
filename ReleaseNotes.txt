@@ -1,4 +1,27 @@
 -------------
+Version 0.1.1
+-------------
+
+29 October 2019
+
+New:
+    None
+    
+Improvements:
+    - ".nut" project files are registered on the system on install
+    
+Fixes:
+    - Saving projects fail whilst large files previews are being generated #66
+    - A locked track can have a clip dragged into it #67
+    
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - On reverse drag-seek ui-lock #18
+    - Large imported files not playable/viewable until waveform-preview generated #26
+    - Track scrolling inconsistent #60    
+    
+
+-------------
 Version 0.1.0
 -------------
 
