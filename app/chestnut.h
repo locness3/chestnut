@@ -25,7 +25,7 @@ namespace chestnut {
     constexpr auto MAJOR  = "0";
     constexpr auto MINOR  = "2";
     constexpr auto PATCH  = "0";
-    constexpr auto PREREL = "";
+    constexpr auto PREREL = "alpha";
   }
 }
 
