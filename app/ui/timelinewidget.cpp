@@ -84,6 +84,7 @@ namespace {
   const QColor SELECTION_RECT_COLOR(204, 204, 204);
   const QColor SPLIT_CURSOR_COLOR(64, 64, 64);
   const QColor GHOST_COLOUR(255, 255, 0);
+  const QColor BAD_GHOST_COLOUR(255, 0, 0);
   const QColor SELECTION_COLOUR(0, 0, 0, 64);
   const QColor INSERT_INDICATOR_COLOUR(Qt::white);
   const QColor TRANSITION_GRAPH_COLOUR(0, 0, 0, 96);
@@ -429,7 +430,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event)
       PanelManager::timeLine().drag_track_start = bottom_align ? -1 : 0;
     }
 
-    PanelManager::timeLine().create_ghosts_from_media(seq, entry_point, media_list);
+    PanelManager::timeLine().createGhostsFromMedia(seq, entry_point, media_list);
 
     PanelManager::timeLine().importing = true;
   }
@@ -608,7 +609,7 @@ void TimelineWidget::dropEvent(QDropEvent* event) {
       delete_area_under_ghosts(ca);
     }
 
-    PanelManager::timeLine().add_clips_from_ghosts(ca, working_sequence);
+    PanelManager::timeLine().addClipsFromGhosts(ca, working_sequence);
 
     e_undo_stack.push(ca);
 
@@ -2812,6 +2813,7 @@ void TimelineWidget::paintGhosts(QPainter& painter, QVector<Ghost> ghosts, Timel
     return;
   }
 
+
   QVector<int> insert_points;
   long first_ghost = LONG_MAX;
   for (const auto& g : ghosts) {
@@ -2832,7 +2834,8 @@ void TimelineWidget::paintGhosts(QPainter& painter, QVector<Ghost> ghosts, Timel
 
     insert_points.append(ghost_y + (ghost_height / 2));
 
-    painter.setPen(GHOST_COLOUR);
+    const QColor g_color(isTrackLocked(g.track) ? BAD_GHOST_COLOUR : GHOST_COLOUR);
+    painter.setPen(g_color);
     for (int j=0; j < GHOST_THICKNESS; ++j) {
       painter.drawRect(ghost_x + j, ghost_y + j, ghost_width - j - j, ghost_height - j - j);
     }
@@ -3228,7 +3231,6 @@ void TimelineWidget::drawEditCursor(SequencePtr seq, Timeline& time_line, QPaint
   }
 }
 
-//FIXME: oh god
 void TimelineWidget::paintEvent(QPaintEvent*)
 {
   // Draw clips
@@ -3241,25 +3243,26 @@ void TimelineWidget::paintEvent(QPaintEvent*)
   int video_track_limit = 0;
   int audio_track_limit = 0;
   for (const auto& seq_clip : global::sequence->clips()) {
-    if (seq_clip != nullptr) {
-      video_track_limit = qMin(video_track_limit, seq_clip->timeline_info.track_.load());
-      audio_track_limit = qMax(audio_track_limit, seq_clip->timeline_info.track_.load());
+    if (seq_clip == nullptr) {
+      continue;
     }
+    video_track_limit = qMin(video_track_limit, seq_clip->timeline_info.track_.load());
+    audio_track_limit = qMax(audio_track_limit, seq_clip->timeline_info.track_.load());
   }
 
   int panel_height = TRACK_DEFAULT_HEIGHT;
   if (bottom_align) {
-    for (int i=-1;i>=video_track_limit;i--) {
+    for (int i = -1; i >= video_track_limit; --i) {
       panel_height += PanelManager::timeLine().calculate_track_height(i, -1);
     }
   } else {
-    for (int i=0;i<=audio_track_limit;i++) {
+    for (int i = 0; i <= audio_track_limit; ++i) {
       panel_height += PanelManager::timeLine().calculate_track_height(i, -1);
     }
   }
 
   if (bottom_align) {
-    scrollBar->setMinimum(qMin(0, - panel_height + height()));
+    scrollBar->setMinimum(qMin(0, -panel_height + height()));
   } else {
     scrollBar->setMaximum(qMax(0, panel_height - height()));
   }
@@ -3294,7 +3297,6 @@ void TimelineWidget::paintEvent(QPaintEvent*)
 
   // Draw ghosts
   paintGhosts(painter, PanelManager::timeLine().ghosts, PanelManager::timeLine());
-
 
   // Draw splitting cursor
   if (PanelManager::timeLine().splitting) {
@@ -3331,6 +3333,12 @@ void TimelineWidget::resizeEvent(QResizeEvent* /*event*/) {
 bool TimelineWidget::is_track_visible(const int track) const
 {
   return (bottom_align == (track < 0));
+}
+
+bool TimelineWidget::isTrackLocked(const int track) const
+{
+  Q_ASSERT(global::sequence != nullptr);
+  return global::sequence->trackLocked(track);
 }
 
 // **************************************

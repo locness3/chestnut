@@ -57,8 +57,8 @@ void SourcesCommon::create_seq_from_selected() {
     auto seq = std::make_shared<Sequence>(media_list, PanelManager::projectViewer().get_next_sequence_name());
 
     // add clips to it
-    panels::PanelManager::timeLine().create_ghosts_from_media(seq, 0, media_list);
-    panels::PanelManager::timeLine().add_clips_from_ghosts(ca, seq);
+    panels::PanelManager::timeLine().createGhostsFromMedia(seq, 0, media_list);
+    panels::PanelManager::timeLine().addClipsFromGhosts(ca, seq);
 
     project_parent->new_sequence(ca, seq, true, nullptr);
     e_undo_stack.push(ca);

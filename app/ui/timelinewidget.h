@@ -119,6 +119,7 @@ class TimelineWidget : public QWidget {
     void init_ghosts();
     void update_ghosts(const QPoint& mouse_pos, bool lock_frame);
     bool is_track_visible(const int track) const;
+    bool isTrackLocked(const int track) const;
     int getTrackFromScreenPoint(int y);
     int getScreenPointFromTrack(const int track) const;
     int getClipIndexFromCoords(long frame, int track);

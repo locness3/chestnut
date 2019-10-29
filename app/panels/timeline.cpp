@@ -242,7 +242,7 @@ void Timeline::toggle_show_all()
   }
 }
 
-void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point, QVector<MediaPtr>& media_list)
+void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, QVector<MediaPtr>& media_list)
 {
   video_ghosts = false;
   audio_ghosts = false;
@@ -263,18 +263,22 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
     switch (mda->type())
     {
       case MediaType::FOOTAGE:
+      {
         ftg = mda->object<Footage>();
-        if (ftg != nullptr) {
-          can_import = ftg->ready_;
-          if (ftg->using_inout) {
-            auto source_fr = 30.0;
-            if ( (!ftg->video_tracks.empty()) && !qIsNull(ftg->video_tracks.front()->video_frame_rate)) {
-              source_fr = ftg->video_tracks.front()->video_frame_rate * ftg->speed;
-            }
-            default_clip_in = refactor_frame_number(ftg->in, source_fr, seq->frameRate());
-            default_clip_out = refactor_frame_number(ftg->out, source_fr, seq->frameRate());
-          }
+        if (ftg == nullptr) {
+          break;
         }
+        can_import = ftg->ready_;
+        if (!ftg->using_inout) {
+          break;
+        }
+        auto source_fr = 30.0;
+        if ( (!ftg->video_tracks.empty()) && !qIsNull(ftg->video_tracks.front()->video_frame_rate)) {
+          source_fr = ftg->video_tracks.front()->video_frame_rate * ftg->speed;
+        }
+        default_clip_in = refactor_frame_number(ftg->in, source_fr, seq->frameRate());
+        default_clip_out = refactor_frame_number(ftg->out, source_fr, seq->frameRate());
+      }
         break;
       case MediaType::SEQUENCE:
         lcl_seq = mda->object<Sequence>();
@@ -283,10 +287,11 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
           sequence_length = refactor_frame_number(sequence_length, lcl_seq->frameRate(), seq->frameRate());
         }
         can_import = ( (lcl_seq != seq) && (sequence_length != 0) );
-        if (lcl_seq->workarea_.using_) {
-          default_clip_in = refactor_frame_number(lcl_seq->workarea_.in_, lcl_seq->frameRate(), seq->frameRate());
-          default_clip_out = refactor_frame_number(lcl_seq->workarea_.out_, lcl_seq->frameRate(), seq->frameRate());
+        if (!lcl_seq->workarea_.using_) {
+          break;
         }
+        default_clip_in = refactor_frame_number(lcl_seq->workarea_.in_, lcl_seq->frameRate(), seq->frameRate());
+        default_clip_out = refactor_frame_number(lcl_seq->workarea_.out_, lcl_seq->frameRate(), seq->frameRate());
         break;
       default:
         can_import = false;
@@ -317,21 +322,25 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
           }
         }
 
-        for (int j=0;j<ftg->audio_tracks.size();j++) {
-          if (ftg->audio_tracks.at(j)->enabled) {
-            g.track = j;
-            g.media_stream = ftg->audio_tracks.at(j)->file_index;
-            ghosts.append(g);
-            audio_ghosts = true;
+        for (int j = 0; j < ftg->audio_tracks.size(); ++j) {
+          if (!ftg->audio_tracks.at(j)->enabled) {
+            continue;
           }
+          g.track = j;
+          g.media_stream = ftg->audio_tracks.at(j)->file_index;
+          ghosts.append(g);
+          audio_ghosts = true;
         }
-        for (int j=0;j<ftg->video_tracks.size();j++) {
-          if (ftg->video_tracks.at(j)->enabled) {
-            g.track = -1-j;
-            g.media_stream = ftg->video_tracks.at(j)->file_index;
-            ghosts.append(g);
-            video_ghosts = true;
+
+        for (int j = 0; j < ftg->video_tracks.size(); ++j) {
+          if (!ftg->video_tracks.at(j)->enabled) {
+            continue;
           }
+          g.track = -1 - j;
+          qDebug() << "Video Track" << g.track;
+          g.media_stream = ftg->video_tracks.at(j)->file_index;
+          ghosts.append(g);
+          video_ghosts = true;
         }
         break;
       case MediaType::SEQUENCE:
@@ -364,7 +373,7 @@ void Timeline::create_ghosts_from_media(SequencePtr &seq, const long entry_point
   }
 }
 
-void Timeline::add_clips_from_ghosts(ComboAction* ca, SequencePtr s)
+void Timeline::addClipsFromGhosts(ComboAction* ca, SequencePtr s)
 {
   // add clips
   long earliest_point = LONG_MAX;
