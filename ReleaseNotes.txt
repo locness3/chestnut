@@ -1,4 +1,41 @@
 -------------
+Version 0.1.0
+-------------
+
+21 October 2019
+
+New:
+    - export: extra options for various codecs such as profile, level, gop length
+    - export: constrain parameters based on profile/level/codec
+    - timeline: options to disable/enable and lock/unlock individual tracks
+    - timeline: nudge clips by 1 or 5 frames
+    - playback: added option to move playhead by 5 frames at a time
+    - effects: button added that allows an effects parameters to be reset to default
+    - markers: add and edit markers to footage and sequences
+
+Improvements:
+    - various shortcuts in toolbar are disabled/enabled based upon actual availability
+    - simplified and expanded cli options
+    - transition widget manipulations
+
+Fixes:
+    - Changing time viewing mode isn't reflected in Viewer #63
+    - Clip name not correctly visible in Project view #61
+    - Created objects do not render #47
+    - Saving created objects not possible #46
+    - Transition drawing issue on slide tool use #43
+    - Randomly, on playback of files or sequence, the viewer windows are scaled beyond constraints #62
+    - Random pauses when exporting in h264 #27
+    - failures to export a sequence with NTSC framerate
+
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - On reverse drag-seek ui-lock #18
+    - Large imported files not playable/viewable until waveform-preview generated #26
+    - Track scrolling inconsistent #60
+    - Saving projects fail whilst large files previews are being generated #66
+
+-------------
 Version 0.0.4
 -------------
 
