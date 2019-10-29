@@ -373,15 +373,20 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
   }
 }
 
-void Timeline::addClipsFromGhosts(ComboAction* ca, SequencePtr s)
+void Timeline::addClipsFromGhosts(ComboAction* ca, const SequencePtr& seq)
 {
+  Q_ASSERT(seq != nullptr);
   // add clips
   long earliest_point = LONG_MAX;
   QVector<ClipPtr> added_clips;
   for (const auto& g : ghosts) {
+    if (seq->trackLocked(g.track)) {
+      qInfo() << "Not adding clip to locked track, track =" << g.track;
+      continue;
+    }
     earliest_point = qMin(earliest_point, g.in);
 
-    auto clp = std::make_shared<Clip>(s);
+    auto clp = std::make_shared<Clip>(seq);
     clp->timeline_info.media = g.media;
     clp->timeline_info.media_stream = g.media_stream;
     clp->timeline_info.in = g.in;
@@ -411,7 +416,7 @@ void Timeline::addClipsFromGhosts(ComboAction* ca, SequencePtr s)
     clp->recalculateMaxLength();
     added_clips.append(clp);
   }
-  ca->append(new AddClipsCommand(s, added_clips));
+  ca->append(new AddClipsCommand(seq, added_clips));
 
   // link clips from the same media
   for (const auto& c : added_clips) {

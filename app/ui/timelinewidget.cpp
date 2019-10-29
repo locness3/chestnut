@@ -481,18 +481,23 @@ void TimelineWidget::dragLeaveEvent(QDragLeaveEvent* event) {
   }
 }
 
-void delete_area_under_ghosts(ComboAction* ca)
+void deleteAreaUnderGhosts(ComboAction* ca, Timeline& time_line, const SequencePtr& seq)
 {
+  Q_ASSERT(seq != nullptr);
   // delete areas before adding
   QVector<Selection> delete_areas;
-  for (const auto& g : PanelManager::timeLine().ghosts) {
+  for (const auto& g : time_line.ghosts) {
+    if (seq->trackLocked(g.track)){
+      qInfo() << "Not deleting area. Track" << g.track << "is locked";
+      continue;
+    }
     Selection sel;
     sel.in = g.in;
     sel.out = g.out;
     sel.track = g.track;
     delete_areas.append(sel);
   }
-  PanelManager::timeLine().delete_areas(ca, delete_areas);
+  time_line.delete_areas(ca, delete_areas);
 }
 
 void draw_selection_rectangle(QPainter& painter, const QRect& rect)
@@ -502,7 +507,10 @@ void draw_selection_rectangle(QPainter& painter, const QRect& rect)
   painter.drawRect(rect);
 }
 
-void insert_clips(ComboAction* ca) {
+void insert_clips(ComboAction* ca)
+{
+  Q_ASSERT(global::sequence != nullptr);
+
   bool ripple_old_point = true;
 
   long earliest_old_point = LONG_MAX;
@@ -512,9 +520,7 @@ void insert_clips(ComboAction* ca) {
   long latest_new_point = LONG_MIN;
 
   QVector<int> ignore_clips;
-  for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
-    const Ghost& g = PanelManager::timeLine().ghosts.at(i);
-
+  for (const auto& g : PanelManager::timeLine().ghosts) {
     earliest_old_point = qMin(earliest_old_point, g.old_in);
     latest_old_point = qMax(latest_old_point, g.old_out);
     earliest_new_point = qMin(earliest_new_point, g.in);
@@ -530,38 +536,39 @@ void insert_clips(ComboAction* ca) {
 
   QVector<int> split_ids;
 
-  for (int i=0;i<global::sequence->clips().size();i++) {
-    ClipPtr c = global::sequence->clips().at(i);
+  for (auto& c : global::sequence->clips()) {
     if (c == nullptr) {
       qWarning() << "Clip instance is null";
       continue;
     }
 
     // don't split any clips that are moving
-    bool found = false;
-    for (const auto& g : PanelManager::timeLine().ghosts) {
-      if (auto g_c = g.clip_.lock()) {
-        if (g_c == c) {
-          found = true;
-          break;
+    const bool found = std::invoke([&] {
+      for (const auto& g : PanelManager::timeLine().ghosts) {
+        if (auto g_c = g.clip_.lock()) {
+          if (g_c == c) {
+            return true;
+          }
         }
       }
+      return false;
+    });
+
+    if (found) {
+      continue;
+    }
+    if (!split_ids.contains(c->id()) && c->inRange(earliest_new_point)) {
+      ca->append(new SplitClipCommand(c, earliest_new_point));
+      split_ids.append(c->id());
+      split_ids = split_ids + c->linkedClipIds();
     }
 
-    if (!found) {
-      if (!split_ids.contains(c->id()) && c->inRange(earliest_new_point)) {
-        ca->append(new SplitClipCommand(c, earliest_new_point));
-        split_ids.append(c->id());
-        split_ids = split_ids + c->linkedClipIds();
-      }
-
-      // determine if we should close the gap the old clips left behind
-      if (ripple_old_point
-          && !((c->timeline_info.in < earliest_old_point && c->timeline_info.out <= earliest_old_point)
-               || (c->timeline_info.in >= latest_old_point && c->timeline_info.out > latest_old_point))
-          && !ignore_clips.contains(c->id())) {
-        ripple_old_point = false;
-      }
+    // determine if we should close the gap the old clips left behind
+    if (ripple_old_point
+        && !((c->timeline_info.in < earliest_old_point && c->timeline_info.out <= earliest_old_point)
+             || (c->timeline_info.in >= latest_old_point && c->timeline_info.out > latest_old_point))
+        && !ignore_clips.contains(c->id())) {
+      ripple_old_point = false;
     }
   } //for
 
@@ -590,7 +597,8 @@ void insert_clips(ComboAction* ca) {
   }
 }
 
-void TimelineWidget::dropEvent(QDropEvent* event) {
+void TimelineWidget::dropEvent(QDropEvent* event)
+{
   if (PanelManager::timeLine().importing && !PanelManager::timeLine().ghosts.empty()) {
     event->acceptProposedAction();
 
@@ -606,7 +614,7 @@ void TimelineWidget::dropEvent(QDropEvent* event) {
     } else if (event->keyboardModifiers() & Qt::ControlModifier) {
       insert_clips(ca);
     } else {
-      delete_area_under_ghosts(ca);
+      deleteAreaUnderGhosts(ca, PanelManager::timeLine(), working_sequence);
     }
 
     PanelManager::timeLine().addClipsFromGhosts(ca, working_sequence);

@@ -131,7 +131,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void nudgeClips(const int pos);
 
     void createGhostsFromMedia(SequencePtr& seq, const long entry_point, QVector<MediaPtr> &media_list);
-    void addClipsFromGhosts(ComboAction *ca, SequencePtr s);
+    void addClipsFromGhosts(ComboAction *ca, const SequencePtr& seq);
 
     int getTimelineScreenPointFromFrame(int64_t frame);
     long getTimelineFrameFromScreenPoint(int x);
