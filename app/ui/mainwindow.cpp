@@ -1764,8 +1764,8 @@ void MainWindow::nest()
     // add nested sequence to active sequence
     QVector<MediaPtr> media_list;
     media_list.append(m);
-    PanelManager::timeLine().create_ghosts_from_media(global::sequence, earliest_point, media_list);
-    PanelManager::timeLine().add_clips_from_ghosts(ca, global::sequence);
+    PanelManager::timeLine().createGhostsFromMedia(global::sequence, earliest_point, media_list);
+    PanelManager::timeLine().addClipsFromGhosts(ca, global::sequence);
 
     PanelManager::fxControls().clear_effects(true);
     global::sequence->selections_.clear();

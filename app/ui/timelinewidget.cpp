@@ -84,6 +84,7 @@ namespace {
   const QColor SELECTION_RECT_COLOR(204, 204, 204);
   const QColor SPLIT_CURSOR_COLOR(64, 64, 64);
   const QColor GHOST_COLOUR(255, 255, 0);
+  const QColor BAD_GHOST_COLOUR(255, 0, 0);
   const QColor SELECTION_COLOUR(0, 0, 0, 64);
   const QColor INSERT_INDICATOR_COLOUR(Qt::white);
   const QColor TRANSITION_GRAPH_COLOUR(0, 0, 0, 96);
@@ -429,7 +430,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event)
       PanelManager::timeLine().drag_track_start = bottom_align ? -1 : 0;
     }
 
-    PanelManager::timeLine().create_ghosts_from_media(seq, entry_point, media_list);
+    PanelManager::timeLine().createGhostsFromMedia(seq, entry_point, media_list);
 
     PanelManager::timeLine().importing = true;
   }
@@ -480,18 +481,23 @@ void TimelineWidget::dragLeaveEvent(QDragLeaveEvent* event) {
   }
 }
 
-void delete_area_under_ghosts(ComboAction* ca)
+void deleteAreaUnderGhosts(ComboAction* ca, Timeline& time_line, const SequencePtr& seq)
 {
+  Q_ASSERT(seq != nullptr);
   // delete areas before adding
   QVector<Selection> delete_areas;
-  for (const auto& g : PanelManager::timeLine().ghosts) {
+  for (const auto& g : time_line.ghosts) {
+    if (seq->trackLocked(g.track)){
+      qInfo() << "Not deleting area. Track" << g.track << "is locked";
+      continue;
+    }
     Selection sel;
     sel.in = g.in;
     sel.out = g.out;
     sel.track = g.track;
     delete_areas.append(sel);
   }
-  PanelManager::timeLine().delete_areas(ca, delete_areas);
+  time_line.delete_areas(ca, delete_areas);
 }
 
 void draw_selection_rectangle(QPainter& painter, const QRect& rect)
@@ -501,7 +507,10 @@ void draw_selection_rectangle(QPainter& painter, const QRect& rect)
   painter.drawRect(rect);
 }
 
-void insert_clips(ComboAction* ca) {
+void insert_clips(ComboAction* ca)
+{
+  Q_ASSERT(global::sequence != nullptr);
+
   bool ripple_old_point = true;
 
   long earliest_old_point = LONG_MAX;
@@ -511,9 +520,7 @@ void insert_clips(ComboAction* ca) {
   long latest_new_point = LONG_MIN;
 
   QVector<int> ignore_clips;
-  for (int i=0;i<PanelManager::timeLine().ghosts.size();i++) {
-    const Ghost& g = PanelManager::timeLine().ghosts.at(i);
-
+  for (const auto& g : PanelManager::timeLine().ghosts) {
     earliest_old_point = qMin(earliest_old_point, g.old_in);
     latest_old_point = qMax(latest_old_point, g.old_out);
     earliest_new_point = qMin(earliest_new_point, g.in);
@@ -529,38 +536,39 @@ void insert_clips(ComboAction* ca) {
 
   QVector<int> split_ids;
 
-  for (int i=0;i<global::sequence->clips().size();i++) {
-    ClipPtr c = global::sequence->clips().at(i);
+  for (auto& c : global::sequence->clips()) {
     if (c == nullptr) {
       qWarning() << "Clip instance is null";
       continue;
     }
 
     // don't split any clips that are moving
-    bool found = false;
-    for (const auto& g : PanelManager::timeLine().ghosts) {
-      if (auto g_c = g.clip_.lock()) {
-        if (g_c == c) {
-          found = true;
-          break;
+    const bool found = std::invoke([&] {
+      for (const auto& g : PanelManager::timeLine().ghosts) {
+        if (auto g_c = g.clip_.lock()) {
+          if (g_c == c) {
+            return true;
+          }
         }
       }
+      return false;
+    });
+
+    if (found) {
+      continue;
+    }
+    if (!split_ids.contains(c->id()) && c->inRange(earliest_new_point)) {
+      ca->append(new SplitClipCommand(c, earliest_new_point));
+      split_ids.append(c->id());
+      split_ids = split_ids + c->linkedClipIds();
     }
 
-    if (!found) {
-      if (!split_ids.contains(c->id()) && c->inRange(earliest_new_point)) {
-        ca->append(new SplitClipCommand(c, earliest_new_point));
-        split_ids.append(c->id());
-        split_ids = split_ids + c->linkedClipIds();
-      }
-
-      // determine if we should close the gap the old clips left behind
-      if (ripple_old_point
-          && !((c->timeline_info.in < earliest_old_point && c->timeline_info.out <= earliest_old_point)
-               || (c->timeline_info.in >= latest_old_point && c->timeline_info.out > latest_old_point))
-          && !ignore_clips.contains(c->id())) {
-        ripple_old_point = false;
-      }
+    // determine if we should close the gap the old clips left behind
+    if (ripple_old_point
+        && !((c->timeline_info.in < earliest_old_point && c->timeline_info.out <= earliest_old_point)
+             || (c->timeline_info.in >= latest_old_point && c->timeline_info.out > latest_old_point))
+        && !ignore_clips.contains(c->id())) {
+      ripple_old_point = false;
     }
   } //for
 
@@ -589,7 +597,8 @@ void insert_clips(ComboAction* ca) {
   }
 }
 
-void TimelineWidget::dropEvent(QDropEvent* event) {
+void TimelineWidget::dropEvent(QDropEvent* event)
+{
   if (PanelManager::timeLine().importing && !PanelManager::timeLine().ghosts.empty()) {
     event->acceptProposedAction();
 
@@ -605,10 +614,10 @@ void TimelineWidget::dropEvent(QDropEvent* event) {
     } else if (event->keyboardModifiers() & Qt::ControlModifier) {
       insert_clips(ca);
     } else {
-      delete_area_under_ghosts(ca);
+      deleteAreaUnderGhosts(ca, PanelManager::timeLine(), working_sequence);
     }
 
-    PanelManager::timeLine().add_clips_from_ghosts(ca, working_sequence);
+    PanelManager::timeLine().addClipsFromGhosts(ca, working_sequence);
 
     e_undo_stack.push(ca);
 
@@ -2812,6 +2821,7 @@ void TimelineWidget::paintGhosts(QPainter& painter, QVector<Ghost> ghosts, Timel
     return;
   }
 
+
   QVector<int> insert_points;
   long first_ghost = LONG_MAX;
   for (const auto& g : ghosts) {
@@ -2832,7 +2842,8 @@ void TimelineWidget::paintGhosts(QPainter& painter, QVector<Ghost> ghosts, Timel
 
     insert_points.append(ghost_y + (ghost_height / 2));
 
-    painter.setPen(GHOST_COLOUR);
+    const QColor g_color(isTrackLocked(g.track) ? BAD_GHOST_COLOUR : GHOST_COLOUR);
+    painter.setPen(g_color);
     for (int j=0; j < GHOST_THICKNESS; ++j) {
       painter.drawRect(ghost_x + j, ghost_y + j, ghost_width - j - j, ghost_height - j - j);
     }
@@ -3228,7 +3239,6 @@ void TimelineWidget::drawEditCursor(SequencePtr seq, Timeline& time_line, QPaint
   }
 }
 
-//FIXME: oh god
 void TimelineWidget::paintEvent(QPaintEvent*)
 {
   // Draw clips
@@ -3241,25 +3251,26 @@ void TimelineWidget::paintEvent(QPaintEvent*)
   int video_track_limit = 0;
   int audio_track_limit = 0;
   for (const auto& seq_clip : global::sequence->clips()) {
-    if (seq_clip != nullptr) {
-      video_track_limit = qMin(video_track_limit, seq_clip->timeline_info.track_.load());
-      audio_track_limit = qMax(audio_track_limit, seq_clip->timeline_info.track_.load());
+    if (seq_clip == nullptr) {
+      continue;
     }
+    video_track_limit = qMin(video_track_limit, seq_clip->timeline_info.track_.load());
+    audio_track_limit = qMax(audio_track_limit, seq_clip->timeline_info.track_.load());
   }
 
   int panel_height = TRACK_DEFAULT_HEIGHT;
   if (bottom_align) {
-    for (int i=-1;i>=video_track_limit;i--) {
+    for (int i = -1; i >= video_track_limit; --i) {
       panel_height += PanelManager::timeLine().calculate_track_height(i, -1);
     }
   } else {
-    for (int i=0;i<=audio_track_limit;i++) {
+    for (int i = 0; i <= audio_track_limit; ++i) {
       panel_height += PanelManager::timeLine().calculate_track_height(i, -1);
     }
   }
 
   if (bottom_align) {
-    scrollBar->setMinimum(qMin(0, - panel_height + height()));
+    scrollBar->setMinimum(qMin(0, -panel_height + height()));
   } else {
     scrollBar->setMaximum(qMax(0, panel_height - height()));
   }
@@ -3294,7 +3305,6 @@ void TimelineWidget::paintEvent(QPaintEvent*)
 
   // Draw ghosts
   paintGhosts(painter, PanelManager::timeLine().ghosts, PanelManager::timeLine());
-
 
   // Draw splitting cursor
   if (PanelManager::timeLine().splitting) {
@@ -3331,6 +3341,12 @@ void TimelineWidget::resizeEvent(QResizeEvent* /*event*/) {
 bool TimelineWidget::is_track_visible(const int track) const
 {
   return (bottom_align == (track < 0));
+}
+
+bool TimelineWidget::isTrackLocked(const int track) const
+{
+  Q_ASSERT(global::sequence != nullptr);
+  return global::sequence->trackLocked(track);
 }
 
 // **************************************

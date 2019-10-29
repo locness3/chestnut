@@ -51,12 +51,11 @@ constexpr AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;
 constexpr int AUDIO_SAMPLES = 2048;
 constexpr int AUDIO_BUFFER_PADDING = 2048;
 int32_t Clip::next_id = 0;
-constexpr size_t ERR_LEN = 256;
 
 namespace  {
+  constexpr auto ERR_LEN = 256;
   std::array<char, ERR_LEN> err;
 }
-
 
 double bytes_to_seconds(const int nb_bytes, const int nb_channels, const int sample_rate) {
   return (static_cast<double>(nb_bytes >> 1) / nb_channels / sample_rate);
@@ -1653,18 +1652,21 @@ bool Clip::retrieve_next_frame(AVFrame* frame) {
     if (read_ret >= 0) {
       int send_ret = avcodec_send_packet(media_handling_.codec_ctx_, media_handling_.pkt_);
       if (send_ret < 0) {
-        qCritical() << "Failed to send packet to decoder." << send_ret;
+        av_strerror(send_ret, err.data(), ERR_LEN);
+        qCritical() << "Failed to send packet to decoder, msg =" << err.data();
         return send_ret;
       }
     } else {
       if (read_ret == AVERROR_EOF) {
         int send_ret = avcodec_send_packet(media_handling_.codec_ctx_, nullptr);
         if (send_ret < 0) {
-          qCritical() << "Failed to send packet to decoder." << send_ret;
+          av_strerror(send_ret, err.data(), ERR_LEN);
+          qCritical() << "Failed to send packet to decoder, msg =" << err.data();
           return send_ret;
         }
       } else {
-        qCritical() << "Could not read frame." << read_ret;
+        av_strerror(read_ret, err.data(), ERR_LEN);
+        qCritical() << "Could not read frame, msg =" << err.data();
         return read_ret; // skips trying to find a frame at all
       }
     }
@@ -1786,19 +1788,22 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
             while ((ret = av_buffersink_get_frame(buffersink_ctx, av_frame)) == AVERROR(EAGAIN)) {
               ret = retrieve_next_frame(media_handling_.frame_);
               if (ret >= 0) {
-                if ((ret = av_buffersrc_add_frame_flags(buffersrc_ctx, media_handling_.frame_, AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {
-                  dout << "[ERROR] Could not feed filtergraph -" << ret;
+                if ((ret = av_buffersrc_add_frame_flags(buffersrc_ctx,
+                                                        media_handling_.frame_,
+                                                        AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {
+                  av_strerror(ret, err.data(), ERR_LEN);
+                  qCritical() << "Could not feed filtergraph, msg =" << err.data();
                   break;
                 }
               } else {
                 if (ret == AVERROR_EOF) {
-                  // TODO revise usage of reached_end in audio
+                  // TODO: revise usage of reached_end in audio
                   if (!timeline_info.reverse) {
                     reached_end = true;
-                  } else {
                   }
                 } else {
-                  dout << "[WARNING] Raw audio frame data could not be retrieved." << ret;
+                  av_strerror(ret, err.data(), ERR_LEN);
+                  qCritical() << "Raw audio frame data could not be retrieved, msg =" << err.data();
                   reached_end = true;
                 }
                 break;
@@ -1807,7 +1812,8 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
 
             if (ret < 0) {
               if (ret != AVERROR_EOF) {
-                dout << "[ERROR] Could not pull from filtergraph";
+                av_strerror(ret, err.data(), ERR_LEN);
+                qCritical() << "Could not pull from filtergraph, msg =" << err.data();
                 reached_end = true;
                 break;
               }
@@ -1824,11 +1830,15 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
                     rev_frame->nb_samples = 0;
                     rev_frame->pts = media_handling_.frame_->pts;
                   }
-                  int offset = rev_frame->nb_samples * av_get_bytes_per_sample(static_cast<AVSampleFormat>(rev_frame->format)) * rev_frame->channels;
+                  int offset = rev_frame->nb_samples
+                               * av_get_bytes_per_sample(static_cast<AVSampleFormat>(rev_frame->format))
+                               * rev_frame->channels;
                   memcpy(
                         rev_frame->data[0]+offset,
                       av_frame->data[0],
-                      (av_frame->nb_samples * av_get_bytes_per_sample(static_cast<AVSampleFormat>(av_frame->format)) * av_frame->channels)
+                      (av_frame->nb_samples
+                       * av_get_bytes_per_sample(static_cast<AVSampleFormat>(av_frame->format))
+                       * av_frame->channels)
                       );
                 }
 
@@ -2050,6 +2060,7 @@ void Clip::cache_video_worker(const long playhead) {
             if ((send_ret = av_buffersrc_add_frame_flags(buffersrc_ctx, send_frame, AV_BUFFERSRC_FLAG_KEEP_REF)) < 0) {
               av_strerror(send_ret, err.data(), ERR_LEN);
               qCritical() << "Failed to add frame to buffer source, msg =" << err.data();
+              av_frame_unref(media_handling_.frame_);
               break;
             }
           }
@@ -2176,7 +2187,9 @@ void Clip::reset_cache(const long target_frame) {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
     }
 
-    if (ms == nullptr) return;
+    if (ms == nullptr) {
+      return;
+    }
     if (ms->infinite_length) {
       /*avcodec_flush_buffers(media_handling.codec_ctx_);
             av_seek_frame(media_handling.formatCtx, ms.file_index, 0, AVSEEK_FLAG_BACKWARD);*/
@@ -2190,7 +2203,9 @@ void Clip::reset_cache(const long target_frame) {
         int64_t target_ts = seconds_to_timestamp(playhead_to_seconds(target_frame));
         int64_t seek_ts = target_ts;
         int64_t timebase_half_second = qRound64(av_q2d(av_inv_q(media_handling_.stream_->time_base)));
-        if (timeline_info.reverse) seek_ts -= timebase_half_second;
+        if (timeline_info.reverse) {
+          seek_ts -= timebase_half_second;
+        }
 
         while (true) {
           // flush ffmpeg codecs
@@ -2203,7 +2218,8 @@ void Clip::reset_cache(const long target_frame) {
             av_frame_unref(media_handling_.frame_);
             int ret = retrieve_next_frame(media_handling_.frame_);
             if (ret < 0) {
-              dout << "[WARNING] Seeking terminated prematurely";
+              av_strerror(ret, err.data(), ERR_LEN);
+              qCritical() << "Seeking terminated prematurely, msg =" << err.data();
               break;
             }
             if (media_handling_.frame_->pts <= target_ts) {
