@@ -56,7 +56,30 @@ Known issues:
     - On reverse drag-seek ui-lock #18
     - Large imported files not playable/viewable until waveform-preview generated #26
     - Track scrolling inconsistent #60
-    - Saving projects fail whilst large files previews are being generated #66
+
+-------------
+Version 0.0.5
+-------------
+
+14 July 2019
+
+New:
+    - ui: program icon
+
+Improvements:
+    - histogram: performance improvement
+    - effects: temporal smooth performance improvement
+
+Fixes:
+    - scope: missing rgb/luma dropdown option
+    - ui: project view not clearing when starting a new project
+
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - Random pauses when exporting in h264 #27
+    - On reverse drag-seek ui-lock #18
+    - Large imported files not playable/viewable until waveform-preview generated #26
+
 
 -------------
 Version 0.0.4
