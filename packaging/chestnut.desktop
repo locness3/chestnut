@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Chestnut
+Comment=An open-source NLE video editor
+Exec=chestnut
+Icon=chestnut
+Terminal=false
+Type=Application
+Categories=AudioVideo
+MimeType=application/vnd.chestnut-project
+StartupNotify=true
