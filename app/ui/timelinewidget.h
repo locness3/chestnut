@@ -63,6 +63,9 @@ void draw_waveform(ClipPtr& clip, const project::FootageStreamPtr& ms, const lon
 class TimelineWidget : public QWidget {
     Q_OBJECT
   public:
+    QScrollBar* scrollBar{nullptr};
+    bool bottom_align{false};
+
     /**
      * @brief TimelineWidget
      * @param displays_video    true==this widget is displaying video tracks
@@ -72,9 +75,9 @@ class TimelineWidget : public QWidget {
 
     TimelineWidget(const TimelineWidget& ) = delete;
     TimelineWidget& operator=(const TimelineWidget&) = delete;
+    TimelineWidget(const TimelineWidget&& ) = delete;
+    TimelineWidget& operator=(const TimelineWidget&&) = delete;
 
-    QScrollBar* scrollBar{nullptr};
-    bool bottom_align{false};
   protected:
     void paintEvent(QPaintEvent*) override;
 
@@ -93,10 +96,10 @@ class TimelineWidget : public QWidget {
 
     void wheelEvent(QWheelEvent *event) override;
   private:
-    int track_resize_mouse_cache{};
-    int track_resize_old_value{};
-    bool track_resizing{false};
-    int track_target{};
+    int track_resize_mouse_cache {};
+    int track_resize_old_value {};
+    bool track_resizing {false};
+    int track_target {};
 
     QVector<ClipPtr> pre_clips;
     QVector<ClipPtr> post_clips;
@@ -104,17 +107,17 @@ class TimelineWidget : public QWidget {
     SequencePtr self_created_sequence;
 
     // used for "right click ripple"
-    int64_t rc_ripple_min{};
-    int64_t rc_ripple_max{};
-    MediaPtr rc_reveal_media;
+    int64_t rc_ripple_min {};
+    int64_t rc_ripple_max {};
+    MediaPtr rc_reveal_media {nullptr};
 
     QTimer tooltip_timer;
     ClipWPtr tooltip_clip_;
 
-    int scroll{};
+    int scroll {};
 
-    SetSelectionsCommand* selection_command{};
-    bool displays_video_;
+    SetSelectionsCommand* selection_command {nullptr};
+    bool displays_video_ {false};
 
     void init_ghosts();
     void update_ghosts(const QPoint& mouse_pos, bool lock_frame);
@@ -122,10 +125,10 @@ class TimelineWidget : public QWidget {
     bool isTrackLocked(const int track) const;
     int getTrackFromScreenPoint(int y);
     int getScreenPointFromTrack(const int track) const;
-    int getClipIndexFromCoords(long frame, int track);
+    int getClipIndexFromCoords(long frame, int track) const;
 
     ClipPtr getClipFromCoords(const long frame, const int track) const;
-    bool splitClipEvent(const long frame, const QSet<int>& tracks);
+    bool splitClipEvent(const long frame, const QSet<int>& tracks) const;
 
     void mouseMoveSplitEvent(const bool alt_pressed, Timeline& time_line) const;
 

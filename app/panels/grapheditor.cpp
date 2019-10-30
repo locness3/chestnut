@@ -105,7 +105,7 @@ GraphEditor::GraphEditor(QWidget* parent)
   central_layout->setSpacing(0);
   central_layout->setMargin(0);
   header = new TimelineHeader();
-  header->viewer = &panels::PanelManager::sequenceViewer();
+  header->viewer_ = &panels::PanelManager::sequenceViewer();
   central_layout->addWidget(header);
   view = new GraphView();
   central_layout->addWidget(view);

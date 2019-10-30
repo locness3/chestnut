@@ -9,16 +9,19 @@ class ViewerWindow : public QOpenGLWindow {
     Q_OBJECT
   public:
     explicit ViewerWindow(QOpenGLContext* share);
+    ~ViewerWindow() override;
 
     ViewerWindow(const ViewerWindow& ) = delete;
     ViewerWindow& operator=(const ViewerWindow&) = delete;
+    ViewerWindow(const ViewerWindow&& ) = delete;
+    ViewerWindow& operator=(const ViewerWindow&&) = delete;
 
-    void set_texture(GLuint t, double iar, QMutex *imutex);
+    void setTexture(const GLuint t, const double iar, QMutex *imutex);
   private:
     void paintGL() override;
-    GLuint texture;
-    double ar;
-    QMutex* mutex;
+    GLuint texture {0};
+    double ar {0.0};
+    QMutex* mutex {nullptr};
 };
 
 #endif // VIEWERWINDOW_H

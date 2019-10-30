@@ -25,7 +25,7 @@
 
 extern bool e_rendering;
 
-long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate);
+long refactor_frame_number(const long framenumber, const double source_frame_rate, const double target_frame_rate);
 void set_sequence(const SequencePtr& s);
 
 #endif // PLAYBACK_H

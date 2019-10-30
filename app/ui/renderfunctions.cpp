@@ -118,6 +118,8 @@ void process_effect(QOpenGLContext* ctx,
   }
 }
 
+
+// FIXME: refactor this long function
 GLuint compose_sequence(Viewer* viewer,
                         QOpenGLContext* ctx,
                         SequencePtr seq,
@@ -133,7 +135,7 @@ GLuint compose_sequence(Viewer* viewer,
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &current_fbo);
   }
   auto lcl_seq = seq;
-  long playhead = lcl_seq->playhead_;
+  auto playhead = lcl_seq->playhead_;
 
   if (!nests.isEmpty()) {
     for(auto nest_clip : nests) {
@@ -233,11 +235,13 @@ GLuint compose_sequence(Viewer* viewer,
     glOrtho(-half_width, half_width, -half_height, half_height, -1, 10);
   }
 
-  for (int i=0; i<current_clips.size(); ++i) {
-    auto clp = current_clips.at(i);
-
+  for (auto& clp : current_clips) {
+    if (clp == nullptr) {
+      qDebug() << "Null Clip instance";
+      continue;
+    }
     if (!clp->mediaOpen()) {
-      qWarning() << "Tried to display clip" << i << "but it's closed";
+      qWarning() << "Tried to display clip '" << clp->name() << "' but it's closed";
       texture_failed = true;
     } else {
       if (clp->mediaType() == ClipType::VISUAL) {
@@ -245,8 +249,8 @@ GLuint compose_sequence(Viewer* viewer,
         glColor4f(1.0, 1.0, 1.0, 1.0);
 
         GLuint textureID = 0;
-        int video_width = clp->width();
-        int video_height = clp->height();
+        const int video_width = clp->width();
+        const int video_height = clp->height();
 
         if (clp->timeline_info.media != nullptr) {
           switch (clp->timeline_info.media->type()) {
@@ -257,7 +261,7 @@ GLuint compose_sequence(Viewer* viewer,
                 qCritical() << "Media stream is null";
                 break;
               }
-              if ( clp->texture == nullptr) {
+              if (clp->texture == nullptr) {
                 clp->texture = std::make_unique<QOpenGLTexture>(QOpenGLTexture::Target2D);
                 clp->texture->setSize(clp->media_handling_.stream_->codecpar->width,
                                       clp->media_handling_.stream_->codecpar->height);
@@ -346,31 +350,31 @@ GLuint compose_sequence(Viewer* viewer,
           coords.texture_[2].x_ = 1.0;
 
           // set up autoscale
-          if (clp->timeline_info.autoscale && (video_width != lcl_seq->width() && video_height != lcl_seq->height())) {
-            auto width_multiplier = static_cast<GLfloat>(lcl_seq->width()) / static_cast<GLfloat>(video_width);
-            auto height_multiplier = static_cast<GLfloat>(lcl_seq->height()) / static_cast<GLfloat>(video_height);
+          if (clp->timeline_info.autoscale && ( (video_width != lcl_seq->width()) && (video_height != lcl_seq->height()))) {
+            auto width_multiplier = static_cast<GLfloat>(lcl_seq->width()) / video_width;
+            auto height_multiplier = static_cast<GLfloat>(lcl_seq->height()) / video_height;
             auto scale_multiplier = qMin(width_multiplier, height_multiplier);
             glScalef(scale_multiplier, scale_multiplier, 1);
           }
 
           // EFFECT CODE START
-          double timecode = clp->timecode(playhead);
+          const double timecode = clp->timecode(playhead);
 
           EffectPtr first_gizmo_effect = nullptr;
           EffectPtr selected_effect = nullptr;
 
-          for (auto e : clp->effects) {
-            if (!e) {
+          for (auto& eff : clp->effects) {
+            if (!eff) {
               continue;
             }
-            process_effect(ctx, clp, e, timecode, coords, composite_texture, fbo_switcher, texture_failed, TA_NO_TRANSITION);
+            process_effect(ctx, clp, eff, timecode, coords, composite_texture, fbo_switcher, texture_failed, TA_NO_TRANSITION);
 
-            if (e->are_gizmos_enabled()) {
+            if (eff->are_gizmos_enabled()) {
               if (first_gizmo_effect == nullptr) {
-                first_gizmo_effect = e;
+                first_gizmo_effect = eff;
               }
-              if (e->container->selected) {
-                selected_effect = e;
+              if (eff->container->selected) {
+                selected_effect = eff;
               }
             }
           }//for
@@ -382,21 +386,21 @@ GLuint compose_sequence(Viewer* viewer,
           }
 
           if (clp->openingTransition() != nullptr) {
-            int transition_progress = playhead - clp->timelineInWithTransition();
+            const int transition_progress = playhead - clp->timelineInWithTransition();
             if (transition_progress < clp->openingTransition()->get_length()) {
               EffectPtr trans(clp->openingTransition());
               process_effect(ctx, clp, trans,
-                             (double)transition_progress/(double)clp->openingTransition()->get_length(),
+                             static_cast<double>(transition_progress) / clp->openingTransition()->get_length(),
                              coords, composite_texture, fbo_switcher, texture_failed, TA_OPENING_TRANSITION);
             }
           }
 
           if (clp->closingTransition() != nullptr) {
-            int transition_progress = playhead - (clp->timelineOutWithTransition() - clp->closingTransition()->get_length());
-            if (transition_progress >= 0 && transition_progress < clp->closingTransition()->get_length()) {
+            const int transition_progress = playhead - (clp->timelineOutWithTransition() - clp->closingTransition()->get_length());
+            if ( (transition_progress >= 0) && (transition_progress < clp->closingTransition()->get_length()) ) {
               EffectPtr trans(clp->closingTransition());
               process_effect(ctx, clp, trans,
-                             (double)transition_progress/(double)clp->closingTransition()->get_length(),
+                             static_cast<double>(transition_progress) / clp->closingTransition()->get_length(),
                              coords, composite_texture, fbo_switcher, texture_failed, TA_CLOSING_TRANSITION);
             }
           }
@@ -415,7 +419,7 @@ GLuint compose_sequence(Viewer* viewer,
           glBegin(GL_QUADS);
 
           if (coords.grid_size <= 1) {
-            const auto z = 0;
+            constexpr auto z = 0;
             glTexCoord2f(coords.texture_[0].x_, coords.texture_[0].y_); // top left
             glVertex3i(coords.vertices_[0].x_, coords.vertices_[0].y_, z); // top left
             glTexCoord2f(coords.texture_[1].x_, coords.texture_[1].y_); // top right
@@ -428,12 +432,12 @@ GLuint compose_sequence(Viewer* viewer,
             const auto rows = coords.grid_size;
             const auto cols = coords.grid_size;
 
-            for (auto k=0; k<rows; ++k) {
-              auto row_prog = static_cast<float>(k)/rows;
-              auto next_row_prog = static_cast<float>(k+1)/rows;
-              for (auto j=0; j<cols; ++j) {
+            for (auto k = 0; k < rows; ++k) {
+              const auto row_prog = static_cast<float>(k)/rows;
+              const auto next_row_prog = static_cast<float>(k+1)/rows;
+              for (auto j = 0; j < cols; ++j) {
                 const auto col_prog = static_cast<float>(j)/cols;
-                const auto next_col_prog = static_cast<float>(j+1)/cols;
+                const auto next_col_prog = static_cast<float>(j + 1)/cols;
 
                 const auto vertexTLX = float_lerp(coords.vertices_[0].x_, coords.vertices_[3].x_, row_prog);
                 const auto vertexTRX = float_lerp(coords.vertices_[1].x_, coords.vertices_[2].x_, row_prog);
@@ -496,18 +500,19 @@ GLuint compose_sequence(Viewer* viewer,
         // visually update all the keyframe values
         if (clp->sequence == seq) { // only if you can currently see them
           double ts = (playhead - clp->timelineInWithTransition() + clp->clipInWithTransition()) / lcl_seq->frameRate();
-          for (auto efct : clp->effects) {
-            for (int j=0; j<efct->row_count(); ++j) {
-              auto efctRow = efct->row(j);
-              for (int k=0; k<efctRow->fieldCount(); ++k) {
-                efctRow->field(k)->validate_keyframe_data(ts);
+          for (const auto& eff : clp->effects) {
+            Q_ASSERT(eff);
+            for (int j=0; j < eff->row_count(); ++j) {
+              const auto eff_row = eff->row(j);
+              for (int k = 0; k < eff_row->fieldCount(); ++k) {
+                eff_row->field(k)->validate_keyframe_data(ts);
               }
             }
-          }
+          }//for
         }
       }
     }
-  }
+  }//for
 
   if (audio_track_count == 0 && viewer != nullptr) {
     viewer->play_wake();
@@ -517,7 +522,7 @@ GLuint compose_sequence(Viewer* viewer,
     glPopMatrix();
   }
 
-  if (!nests.isEmpty() && nests.last()->fbo != nullptr) {
+  if (!nests.isEmpty() && (nests.last()->fbo != nullptr) ) {
     // returns nested clip's texture
     return nests.last()->fbo[0]->texture();
   }
@@ -525,7 +530,8 @@ GLuint compose_sequence(Viewer* viewer,
   return 0;
 }
 
-void compose_audio(Viewer* viewer, SequencePtr seq, bool render_audio) {
+void compose_audio(Viewer* viewer, SequencePtr seq, bool render_audio)
+{
   //FIXME: ......
   QVector<ClipPtr> nests;
   bool texture_failed;

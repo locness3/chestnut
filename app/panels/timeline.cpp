@@ -105,7 +105,7 @@ Timeline::Timeline(QWidget *parent) :
 
   default_track_height = qRound((QGuiApplication::primaryScreen()->logicalDotsPerInch() / 96) * TRACK_DEFAULT_HEIGHT);
 
-  headers->viewer = &PanelManager::sequenceViewer();
+  headers->viewer_ = &PanelManager::sequenceViewer();
 
   video_area->bottom_align = true;
   video_area->scrollBar = videoScrollbar;
@@ -780,30 +780,32 @@ void Timeline::snapping_clicked(bool checked) {
   snapping = checked;
 }
 
-void Timeline::clean_up_selections(QVector<Selection>& areas) {
+void Timeline::clean_up_selections(QVector<Selection>& areas)
+{
   for (int i=0;i<areas.size();i++) {
     Selection& s = areas[i];
     for (int j=0;j<areas.size();j++) {
-      if (i != j) {
-        Selection& ss = areas[j];
-        if (s.track == ss.track) {
-          bool remove = false;
-          if (s.in < ss.in && s.out > ss.out) {
-            // do nothing
-          } else if (s.in >= ss.in && s.out <= ss.out) {
-            remove = true;
-          } else if (s.in <= ss.out && s.out > ss.out) {
-            ss.out = s.out;
-            remove = true;
-          } else if (s.out >= ss.in && s.in < ss.in) {
-            ss.in = s.in;
-            remove = true;
-          }
-          if (remove) {
-            areas.removeAt(i);
-            i--;
-            break;
-          }
+      if (i == j) {
+        continue;
+      }
+      Selection& ss = areas[j];
+      if (s.track == ss.track) {
+        bool remove = false;
+        if (s.in < ss.in && s.out > ss.out) {
+          // do nothing
+        } else if (s.in >= ss.in && s.out <= ss.out) {
+          remove = true;
+        } else if (s.in <= ss.out && s.out > ss.out) {
+          ss.out = s.out;
+          remove = true;
+        } else if (s.out >= ss.in && s.in < ss.in) {
+          ss.in = s.in;
+          remove = true;
+        }
+        if (remove) {
+          areas.removeAt(i);
+          i--;
+          break;
         }
       }
     }
@@ -1204,7 +1206,9 @@ void Timeline::ripple_to_in_point(bool in, bool ripple) {
     } else {
       // set up deletion areas based on track count
       Selection s;
-      if (in) seek = prev_cut;
+      if (in) {
+        seek = prev_cut;
+      }
       s.in = in ? prev_cut : sequence_->playhead_;
       s.out = in ? sequence_->playhead_ : next_cut;
 
@@ -1374,27 +1378,33 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
 
     // snap to in/out
     if (use_workarea && sequence_->workarea_.using_) {
-      if (snap_to_point(sequence_->workarea_.in_, l)) return true;
-      if (snap_to_point(sequence_->workarea_.out_, l)) return true;
+      if (snap_to_point(sequence_->workarea_.in_, l)) {
+        return true;
+      }
+      if (snap_to_point(sequence_->workarea_.out_, l)) {
+        return true;
+      }
     }
 
     // snap to clip/transition
-    for (int i=0;i<sequence_->clips().size();i++) {
-      ClipPtr c = sequence_->clips().at(i);
-      if (c != nullptr) {
-        if (snap_to_point(c->timeline_info.in, l)) {
-          return true;
-        } else if (snap_to_point(c->timeline_info.out, l)) {
-          return true;
-        } else if (c->getTransition(ClipTransitionType::OPENING) != nullptr
-                   && snap_to_point(c->timeline_info.in
-                                    + c->getTransition(ClipTransitionType::OPENING)->get_true_length(), l)) {
-          return true;
-        } else if (c->getTransition(ClipTransitionType::CLOSING) != nullptr
-                   && snap_to_point(c->timeline_info.out
-                                    - c->getTransition(ClipTransitionType::CLOSING)->get_true_length(), l)) {
-          return true;
-        }
+//    for (int i=0;i<sequence_->clips().size();i++) {
+//      ClipPtr c = sequence_->clips().at(i);
+    for (const auto& c : sequence_->clips()) {
+      if (c == nullptr) {
+        continue;
+      }
+      if (snap_to_point(c->timeline_info.in, l)) {
+        return true;
+      } else if (snap_to_point(c->timeline_info.out, l)) {
+        return true;
+      } else if (c->getTransition(ClipTransitionType::OPENING) != nullptr
+                 && snap_to_point(c->timeline_info.in
+                                  + c->getTransition(ClipTransitionType::OPENING)->get_true_length(), l)) {
+        return true;
+      } else if (c->getTransition(ClipTransitionType::CLOSING) != nullptr
+                 && snap_to_point(c->timeline_info.out
+                                  - c->getTransition(ClipTransitionType::CLOSING)->get_true_length(), l)) {
+        return true;
       }
     }
   }
@@ -1980,6 +1990,7 @@ void Timeline::set_tool()
   creating = false;
   switch (tool) {
     case TimelineToolType::EDIT:
+      [[fallthrough]];
     case TimelineToolType::RAZOR:
       timeline_area->setCursor(Qt::IBeamCursor);
       break;

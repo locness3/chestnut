@@ -46,10 +46,21 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     Q_OBJECT
 
   public:
+    bool playing {false};
+    long playhead_start {-1};
+    qint64 start_msecs {-1};
+    QTimer playback_updater;
+    bool just_played {false};
+    long recording_start {-1};
+    long recording_end {-1};
+    int recording_track {-1};
+    ViewerWidget* viewer_widget {nullptr};
+
+
     explicit Viewer(QWidget *parent = nullptr);
 
-    bool is_focused();
-    bool is_main_sequence();
+    bool is_focused() const;
+    bool is_main_sequence() const noexcept;
     void set_main_sequence();
     void set_media(const MediaPtr& m);
     void reset();
@@ -72,23 +83,14 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     void seek(const int64_t p);
     void play();
     void pause();
-    bool playing;
-    long playhead_start;
-    qint64 start_msecs;
-    QTimer playback_updater;
-    bool just_played;
 
     void cue_recording(long start, long end, int track);
     void uncue_recording();
     bool is_recording_cued();
-    long recording_start;
-    long recording_end;
-    int recording_track;
 
     void reset_all_audio();
     void update_parents(bool reload_fx = false);
 
-    ViewerWidget* viewer_widget;
 
 
     MediaPtr getMedia();
@@ -135,33 +137,34 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
 
     void setup_ui();
 
-    SequencePtr seq;
-    MediaPtr media;
+    SequencePtr seq {nullptr};
+    MediaPtr media {nullptr};
 
-    bool main_sequence;
-    bool created_sequence;
-    long cached_end_frame = 0;
+    bool main_sequence {false};
+    bool created_sequence {false};
+    long cached_end_frame {0};
     QString panel_name;
-    double minimum_zoom;
+    double minimum_zoom {1.0};
 
     QIcon playIcon;
 
-    TimelineHeader* headers;
-    ResizableScrollBar* horizontal_bar;
-    ViewerContainer* viewer_container;
-    LabelSlider* currentTimecode;
-    QLabel* endTimecode;
+    TimelineHeader* headers {nullptr};
+    ResizableScrollBar* horizontal_bar {nullptr};
+    ViewerContainer* viewer_container {nullptr};
+    LabelSlider* currentTimecode {nullptr};
+    QLabel* endTimecode {nullptr};
 
-    QPushButton* btnSkipToStart;
-    QPushButton* btnRewind;
-    QPushButton* btnPlay;
-    QPushButton* btnFastForward;
-    QPushButton* btnSkipToEnd;
+    QPushButton* btnSkipToStart {nullptr};
+    QPushButton* btnRewind {nullptr};
+    QPushButton* btnPlay {nullptr};
+    QPushButton* btnFastForward {nullptr};
+    QPushButton* btnSkipToEnd {nullptr};
 
-    bool cue_recording_internal;
+    bool cue_recording_internal {false};
     QTimer recording_flasher;
 
-    int64_t previous_playhead;
+    int64_t previous_playhead {-1};
+
     SequencePtr createFootageSequence(const MediaPtr& mda) const;
 };
 

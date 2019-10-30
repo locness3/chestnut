@@ -19,6 +19,9 @@
 #define VIEWERCONTAINER_H
 
 #include <QScrollArea>
+
+#include "chestnut.h"
+
 class Viewer;
 class ViewerWidget;
 
@@ -26,26 +29,26 @@ class ViewerContainer : public QScrollArea
 {
     Q_OBJECT
   public:
+    bool fit {true};
+    double zoom {1.0};
+    Viewer* viewer {nullptr};
+    ViewerWidget* child {nullptr};
+
     explicit ViewerContainer(QWidget *parent = nullptr);
 
-    void dragScrollPress(const QPoint&);
-    void dragScrollMove(const QPoint&);
+    void dragScrollPress(const QPoint& p);
+    void dragScrollMove(const QPoint& p);
     void adjust();
 
-    bool fit;
-    double zoom;
-    Viewer* viewer;
-    ViewerWidget* child;
 
   protected:
     void resizeEvent(QResizeEvent *event) override;
 
   private:
-    QWidget* area;
-    int drag_start_x;
-    int drag_start_y;
-    int horiz_start;
-    int vert_start;
+    QWidget* area {nullptr};
+    chestnut::Coordinate_T drag_start_;
+    int horiz_start {0};
+    int vert_start {0};
 };
 
 #endif // VIEWERCONTAINER_H

@@ -14,6 +14,10 @@
 class RenderThread : public QThread {
     Q_OBJECT
   public:
+    QMutex mutex;
+    GLuint texColorBuffer {0};
+    EffectPtr gizmos {nullptr};
+
     RenderThread();
     virtual ~RenderThread() override;
 
@@ -22,10 +26,6 @@ class RenderThread : public QThread {
     RenderThread& operator=(const RenderThread&) = delete;
     RenderThread& operator=(const RenderThread&&) = delete;
 
-    QMutex mutex;
-    GLuint frameBuffer;
-    GLuint texColorBuffer;
-    EffectPtr gizmos;
     void paint();
     void start_render(QOpenGLContext* share, SequenceWPtr s, const bool grab=false, GLvoid *pixel_buffer=nullptr);
     bool did_texture_fail();
@@ -35,7 +35,7 @@ class RenderThread : public QThread {
   public slots:
     // cleanup functions
     void delete_ctx();
-    void drawClippedPixels(const bool state);
+    void drawClippedPixels(const bool state) noexcept;
   signals:
     void ready();
     void frameGrabbed(const QImage& img);
@@ -44,18 +44,19 @@ class RenderThread : public QThread {
     void delete_texture();
     void delete_fbo();
 
+    GLuint frameBuffer {0};
     QWaitCondition waitCond;
     QOffscreenSurface surface;
-    QOpenGLContext* share_ctx;
-    QOpenGLContext* ctx;
+    QOpenGLContext* share_ctx {nullptr};
+    QOpenGLContext* ctx {nullptr};
     SequenceWPtr seq;
-    int divider{};
-    int tex_width;
-    int tex_height;
-    bool queued;
-    bool texture_failed;
-    bool running;
-    bool frame_grabbing_{};
+    int divider {0};
+    int tex_width {-1};
+    int tex_height {-1};
+    bool queued {false};
+    bool texture_failed {false};
+    bool running {true};
+    bool frame_grabbing_ {false};
     std::atomic_bool draw_clipped_{false};
     GLvoid* pix_buf_{nullptr};
 };

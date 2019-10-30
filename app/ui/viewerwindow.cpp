@@ -1,68 +1,76 @@
 #include "viewerwindow.h"
 
 #include <QMutex>
+#include <QMutexLocker>
 
 ViewerWindow::ViewerWindow(QOpenGLContext *share) :
-	QOpenGLWindow(share),
-	texture(0),
-	mutex(nullptr)
-{}
+  QOpenGLWindow(share)
+{
 
-void ViewerWindow::set_texture(GLuint t, double iar, QMutex* imutex) {
-	texture = t;
-	ar = iar;
-	mutex = imutex;
-	update();
 }
 
-void ViewerWindow::paintGL() {
-	if (texture > 0) {
-		if (mutex != nullptr) mutex->lock();
+ViewerWindow::~ViewerWindow()
+{
+  mutex = nullptr;
+}
 
-		glClearColor(0.0, 0.0, 0.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+void ViewerWindow::setTexture(const GLuint t, const double iar, QMutex* imutex)
+{
+  texture = t;
+  ar = iar;
+  mutex = imutex;
+  update();
+}
 
-		glEnable(GL_TEXTURE_2D);
+void ViewerWindow::paintGL()
+{
+  if (texture <= 0) {
+    return;
+  }
 
-		glBindTexture(GL_TEXTURE_2D, texture);
+  QMutexLocker locker(mutex);
 
-		glLoadIdentity();
-		glOrtho(0, 1, 0, 1, -1, 1);
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT);
 
-		glBegin(GL_QUADS);
+  glEnable(GL_TEXTURE_2D);
 
-		double top = 0;
-		double left = 0;
-		double right = 1;
-		double bottom = 1;
+  glBindTexture(GL_TEXTURE_2D, texture);
 
-		double widget_ar = double(width()) / double(height());
+  glLoadIdentity();
+  glOrtho(0, 1, 0, 1, -1, 1);
 
-		if (widget_ar > ar) {
-			double width = 1.0 * ar / widget_ar;
-			left = (1.0 - width)*0.5;
-			right = left + width;
-		} else {
-			double height = 1.0 / ar * widget_ar;
-			top = (1.0 - height)*0.5;
-			bottom = top + height;
-		}
+  glBegin(GL_QUADS);
 
-		glVertex2d(left, top);
-		glTexCoord2d(0, 0);
-		glVertex2d(left, bottom);
-		glTexCoord2d(1, 0);
-		glVertex2d(right, bottom);
-		glTexCoord2d(1, 1);
-		glVertex2d(right, top);
-		glTexCoord2d(0, 1);
+  double top = 0;
+  double left = 0;
+  double right = 1;
+  double bottom = 1;
 
-		glEnd();
+  const double widget_ar = static_cast<double>(width()) / height();
 
-		glBindTexture(GL_TEXTURE_2D, 0);
+  if (widget_ar > ar) {
+    const double width = 1.0 * ar / widget_ar;
+    left = (1.0 - width) * 0.5;
+    right = left + width;
+  } else {
+    const double height = 1.0 / ar * widget_ar;
+    top = (1.0 - height) * 0.5;
+    bottom = top + height;
+  }
 
-		glDisable(GL_TEXTURE_2D);
+  glVertex2d(left, top);
+  glTexCoord2d(0, 0);
+  glVertex2d(left, bottom);
+  glTexCoord2d(1, 0);
+  glVertex2d(right, bottom);
+  glTexCoord2d(1, 1);
+  glVertex2d(right, top);
+  glTexCoord2d(0, 1);
 
-		if (mutex != nullptr) mutex->unlock();
-	}
+  glEnd();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glDisable(GL_TEXTURE_2D);
 }

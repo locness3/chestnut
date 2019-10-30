@@ -30,6 +30,10 @@
 
 #include "project/effect.h"
 #include "project/clip.h"
+#include "chestnut.h"
+
+
+constexpr double DEFAULT_WAVEFORM_ZOOM = 1.0;
 
 class Viewer;
 class Clip;
@@ -45,6 +49,14 @@ class ViewerWidget : public QOpenGLWidget, QOpenGLFunctions
 {
     Q_OBJECT
 public:
+    Viewer* viewer {nullptr};
+    ViewerContainer* container {nullptr};
+    bool waveform {false};
+    ClipPtr waveform_clip {nullptr};
+    project::FootageStreamWPtr waveform_ms;
+    double waveform_zoom {DEFAULT_WAVEFORM_ZOOM};
+    int waveform_scroll {0};
+
     explicit ViewerWidget(QWidget *parent = nullptr);
     virtual ~ViewerWidget() override;
     ViewerWidget() = delete;
@@ -57,17 +69,9 @@ public:
     void close_window();
 
     void initializeGL() override;
-    Viewer* viewer;
-    ViewerContainer* container;
-
-    bool waveform;
-    ClipPtr waveform_clip;
-    project::FootageStreamWPtr waveform_ms;
-    double waveform_zoom;
-    int waveform_scroll;
 
     void frame_update();
-    RenderThread* get_renderer();
+    RenderThread* get_renderer() noexcept;
 public slots:
     void set_waveform_scroll(int s);
 protected:
@@ -76,16 +80,14 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
 private:
-    bool dragging;
-    EffectPtr gizmos;
-    int drag_start_x;
-    int drag_start_y;
-    int gizmo_x_mvmt;
-    int gizmo_y_mvmt;
-    EffectGizmoPtr selected_gizmo;
-    RenderThread* renderer;
-    ViewerWindow* window;
-    QString frame_file_name_{};
+    bool dragging {false};
+    EffectPtr gizmos {nullptr};
+    chestnut::Coordinate_T drag_start_;
+    chestnut::Coordinate_T gizmo_mvmt_;
+    EffectGizmoPtr selected_gizmo {nullptr};
+    RenderThread* renderer {nullptr};
+    ViewerWindow* window {nullptr};
+    QString frame_file_name_;
     bool save_frame_{false};
 
     void draw_waveform_func();
@@ -95,9 +97,9 @@ private:
     void move_gizmos(QMouseEvent *event, bool done);
     void seek_from_click(int x);
 
-    void drawDot(const EffectGizmoPtr& g);
-    void drawLines(const EffectGizmoPtr& g);
-    void drawTarget(const EffectGizmoPtr& g);
+    void drawDot(const EffectGizmoPtr& g) const;
+    void drawLines(const EffectGizmoPtr& g) const;
+    void drawTarget(const EffectGizmoPtr& g) const;
 
 private slots:
     void context_destroy();

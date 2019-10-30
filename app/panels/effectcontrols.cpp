@@ -60,7 +60,7 @@ EffectControls::EffectControls(QWidget *parent) :
   setup_ui();
 
   clear_effects(false);
-  headers->viewer = &PanelManager::sequenceViewer();
+  headers->viewer_ = &PanelManager::sequenceViewer();
   headers->snapping = false;
 
   effects_area->parent_widget = scrollArea;

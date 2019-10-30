@@ -52,9 +52,9 @@ using panels::PanelManager;
 bool e_texture_failed = false;
 bool e_rendering = false;
 
-long refactor_frame_number(long framenumber, double source_frame_rate, double target_frame_rate)
+long refactor_frame_number(const long framenumber, const double source_frame_rate, const double target_frame_rate)
 {
-    return qRound((double(framenumber)/source_frame_rate)*target_frame_rate);
+    return qRound((static_cast<double>(framenumber) / source_frame_rate) * target_frame_rate);
 }
 
 

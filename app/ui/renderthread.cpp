@@ -3,22 +3,13 @@
 #include <QApplication>
 #include <QImage>
 #include <QOpenGLFunctions>
-#include <QDebug>
+#include <QMutexLocker>
 
 #include "ui/renderfunctions.h"
 #include "playback/playback.h"
 #include "project/sequence.h"
 
-RenderThread::RenderThread() :
-  frameBuffer(0),
-  texColorBuffer(0),
-  share_ctx(nullptr),
-  ctx(nullptr),
-  tex_width(-1),
-  tex_height(-1),
-  queued(false),
-  texture_failed(false),
-  running(true)
+RenderThread::RenderThread()
 {
   surface.create();
 }
@@ -28,9 +19,9 @@ RenderThread::~RenderThread()
   surface.destroy();
 }
 
-void RenderThread::run() {
-  mutex.lock();
-
+void RenderThread::run()
+{
+  QMutexLocker locker(&mutex);
   while (running) {
     if (!queued) {
       waitCond.wait(&mutex);
@@ -39,7 +30,6 @@ void RenderThread::run() {
       break;
     }
     queued = false;
-
 
     if (share_ctx != nullptr) {
       if (ctx != nullptr) {
@@ -103,8 +93,6 @@ void RenderThread::run() {
   }
 
   delete_ctx();
-
-  mutex.unlock();
 }
 
 void RenderThread::paint()
@@ -148,7 +136,6 @@ void RenderThread::paint()
       pix_buf_ = nullptr;
     }
 
-
     glDisable(GL_DEPTH);
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
@@ -179,17 +166,20 @@ void RenderThread::start_render(QOpenGLContext *share, SequenceWPtr s, const boo
   waitCond.wakeAll();
 }
 
-bool RenderThread::did_texture_fail() {
+bool RenderThread::did_texture_fail()
+{
   return texture_failed;
 }
 
-void RenderThread::cancel() {
+void RenderThread::cancel()
+{
   running = false;
   waitCond.wakeAll();
   wait();
 }
 
-void RenderThread::delete_texture() {
+void RenderThread::delete_texture()
+{
   if (texColorBuffer > 0) {
     ctx->functions()->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
     glDeleteTextures(1, &texColorBuffer);
@@ -197,14 +187,16 @@ void RenderThread::delete_texture() {
   texColorBuffer = 0;
 }
 
-void RenderThread::delete_fbo() {
+void RenderThread::delete_fbo()
+{
   if (frameBuffer > 0) {
     ctx->functions()->glDeleteFramebuffers(1, &frameBuffer);
   }
   frameBuffer = 0;
 }
 
-void RenderThread::delete_ctx() {
+void RenderThread::delete_ctx()
+{
   if (ctx != nullptr) {
     delete_texture();
     delete_fbo();
@@ -214,7 +206,8 @@ void RenderThread::delete_ctx() {
   ctx = nullptr;
 }
 
-void RenderThread::drawClippedPixels(const bool state)
+// FIXME: this does nothing
+void RenderThread::drawClippedPixels(const bool state) noexcept
 {
   draw_clipped_ = state;
 }

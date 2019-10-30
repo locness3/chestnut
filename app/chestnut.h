@@ -27,6 +27,11 @@ namespace chestnut {
     constexpr auto PATCH  = "0";
     constexpr auto PREREL = "alpha";
   }
+
+  struct Coordinate_T {
+      int x_ {0};
+      int y_ {0};
+  };
 }
 
 #endif // CHESTNUT_H

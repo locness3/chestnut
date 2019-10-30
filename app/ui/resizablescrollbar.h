@@ -25,22 +25,22 @@ class ResizableScrollBar : public QScrollBar
     Q_OBJECT
 public:
     explicit ResizableScrollBar(QWidget * parent = nullptr);
-    bool is_resizing();
+    bool is_resizing() const noexcept;
 signals:
     void resize_move(double i);
 protected:
-    void resizeEvent(QResizeEvent *event) override;
-    void mousePressEvent(QMouseEvent *) override;
-    void mouseMoveEvent(QMouseEvent *) override;
-    void mouseReleaseEvent(QMouseEvent *) override;
+    void resizeEvent(QResizeEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
 private:
-    bool resize_init;
-    bool resize_proc;
-    bool resize_top;
-    int resize_start;
+    bool resize_init {false};
+    bool resize_proc {false};
+    bool resize_top {false};
+    int resize_start {0};
 
-    int resize_start_max;
-    int resize_start_width;
+    int resize_start_max {0};
+    int resize_start_width {0};
 };
 
 #endif // RESIZABLESCROLLBAR_H

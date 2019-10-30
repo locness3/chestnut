@@ -29,9 +29,7 @@
 
 // enforces aspect ratio
 ViewerContainer::ViewerContainer(QWidget *parent) :
-  QScrollArea(parent),
-  fit(true),
-  child(nullptr)
+  QScrollArea(parent)
 {
   setFrameShadow(QFrame::Plain);
   setFrameShape(QFrame::NoFrame);
@@ -46,22 +44,22 @@ ViewerContainer::ViewerContainer(QWidget *parent) :
 
 void ViewerContainer::dragScrollPress(const QPoint &p)
 {
-  drag_start_x = p.x();
-  drag_start_y = p.y();
+  drag_start_.x_ = p.x();
+  drag_start_.y_ = p.y();
   horiz_start = horizontalScrollBar()->value();
   vert_start = verticalScrollBar()->value();
 }
 
 void ViewerContainer::dragScrollMove(const QPoint &p)
 {
-  int true_x = p.x() + (horiz_start - horizontalScrollBar()->value());
-  int true_y = p.y() + (vert_start - verticalScrollBar()->value());
+  const int true_x = p.x() + (horiz_start - horizontalScrollBar()->value());
+  const int true_y = p.y() + (vert_start - verticalScrollBar()->value());
 
-  horizontalScrollBar()->setValue(horizontalScrollBar()->value() + (drag_start_x - true_x));
-  verticalScrollBar()->setValue(verticalScrollBar()->value() + (drag_start_y - true_y));
+  horizontalScrollBar()->setValue(horizontalScrollBar()->value() + (drag_start_.x_ - true_x));
+  verticalScrollBar()->setValue(verticalScrollBar()->value() + (drag_start_.y_ - true_y));
 
-  drag_start_x = true_x;
-  drag_start_y = true_y;
+  drag_start_.x_ = true_x;
+  drag_start_.y_ = true_y;
 }
 
 void ViewerContainer::adjust()
@@ -71,13 +69,13 @@ void ViewerContainer::adjust()
       child->move(0, 0);
       child->resize(size());
     } else if (fit) {
-      const auto aspect_ratio = static_cast<double>(sqn->width())/static_cast<double>(sqn->height());
+      const auto aspect_ratio = static_cast<double>(sqn->width()) / sqn->height();
 
       auto widget_x = 0;
       auto widget_y = 0;
       auto widget_width = width();
       auto widget_height = height();
-      const auto widget_ar = static_cast<double>(widget_width) / static_cast<double>(widget_height);
+      const auto widget_ar = static_cast<double>(widget_width) / widget_height;
 
       const bool widget_is_wider_than_sequence = widget_ar > aspect_ratio;
 
@@ -92,7 +90,7 @@ void ViewerContainer::adjust()
       child->move(widget_x, widget_y);
       child->resize(widget_width, widget_height);
 
-      zoom = static_cast<double>(widget_width) / static_cast<double>(sqn->width());
+      zoom = static_cast<double>(widget_width) / sqn->width();
     } else {
       const auto zoomed_width = qRound(viewer->getSequence()->width() * zoom);
       const auto zoomed_height = qRound(viewer->getSequence()->height() * zoom);
@@ -115,6 +113,7 @@ void ViewerContainer::adjust()
 
 void ViewerContainer::resizeEvent(QResizeEvent *event)
 {
+  Q_ASSERT(event != nullptr);
   event->accept();
   adjust();
 }

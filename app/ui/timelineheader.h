@@ -29,10 +29,17 @@ class TimelineHeader : public QWidget
 {
     Q_OBJECT
   public:
+    Viewer* viewer_{nullptr};
+    bool snapping {false};
+
+
     explicit TimelineHeader(QWidget *parent = nullptr);
+    ~TimelineHeader() override;
 
     TimelineHeader(const TimelineHeader& ) = delete;
     TimelineHeader& operator=(const TimelineHeader&) = delete;
+    TimelineHeader(const TimelineHeader&& ) = delete;
+    TimelineHeader& operator=(const TimelineHeader&&) = delete;
 
     void set_in_point(long p);
     void set_out_point(long p);
@@ -41,9 +48,6 @@ class TimelineHeader : public QWidget
     double get_zoom();
     void delete_markers();
     void set_scrollbar_max(QScrollBar* bar, long sequence_end_frame, int offset);
-
-    Viewer* viewer{nullptr};
-    bool snapping;
 
   public slots:
     void update_zoom(double z);
@@ -60,38 +64,39 @@ class TimelineHeader : public QWidget
     void focusOutEvent(QFocusEvent*) override;
 
   private:
-    void update_parents();
 
-    bool dragging;
+    bool dragging {false};
 
-    bool resizing_workarea;
-    bool resizing_workarea_in;
-    long temp_workarea_in;
-    long temp_workarea_out;
-    long sequence_end;
+    bool resizing_workarea {false};
+    bool resizing_workarea_in {false};
+    long temp_workarea_in {0};
+    long temp_workarea_out {0};
+    long sequence_end {0};
 
-    double zoom;
+    double zoom {1.0};
 
-    long in_visible;
+    long in_visible {0};
 
-    void set_playhead(int mouse_x);
 
     QFontMetrics fm;
 
-    int drag_start;
-    bool dragging_markers;
+    int drag_start {0};
+    bool dragging_markers {false};
     QVector<int> selected_markers;
     QVector<long> selected_marker_original_times;
 
+    int scroll {0};
+
+    int height_actual {0};
+    bool text_enabled {false};
+
+
+    void update_parents();
+
+    void set_playhead(int mouse_x);
+
     long getHeaderFrameFromScreenPoint(int x);
     int getHeaderScreenPointFromFrame(long frame);
-
-    int scroll;
-
-    int height_actual;
-    bool text_enabled;
-
-  signals:
 };
 
 #endif // TIMELINEHEADER_H

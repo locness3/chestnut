@@ -67,20 +67,12 @@ extern "C" {
 
 constexpr int SURFACE_DEPTH = 24;
 constexpr int SURFACE_SAMPLES = 16;
-constexpr double DEFAULT_WAVEFORM_ZOOM = 1.0;
 constexpr float GIZMO_Z = 0.0;
 
 using panels::PanelManager;
 
 ViewerWidget::ViewerWidget(QWidget *parent) :
-  QOpenGLWidget(parent),
-  waveform(false),
-  waveform_zoom(DEFAULT_WAVEFORM_ZOOM),
-  waveform_scroll(0),
-  dragging(false),
-  gizmos(nullptr),
-  selected_gizmo(nullptr),
-  window(nullptr)
+  QOpenGLWidget(parent)
 {
   setMouseTracking(true);
   setFocusPolicy(Qt::ClickFocus);
@@ -298,7 +290,8 @@ void ViewerWidget::frame_update()
   }
 }
 
-RenderThread *ViewerWidget::get_renderer() {
+RenderThread* ViewerWidget::get_renderer() noexcept
+{
   return renderer;
 }
 
@@ -365,19 +358,19 @@ void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
   if (selected_gizmo != nullptr) {
     const auto multiplier = static_cast<double>(viewer->getSequence()->width()) / static_cast<double>(width());
 
-    const auto x_movement = qRound((event->pos().x() - drag_start_x)*multiplier);
-    const auto y_movement = qRound((event->pos().y() - drag_start_y)*multiplier);
+    const auto x_movement = qRound((event->pos().x() - drag_start_.x_)*multiplier);
+    const auto y_movement = qRound((event->pos().y() - drag_start_.y_)*multiplier);
 
     gizmos->gizmo_move(selected_gizmo,
                        x_movement, y_movement,
                        gizmos->parent_clip->timecode(gizmos->parent_clip->sequence->playhead_),
                        done);
 
-    gizmo_x_mvmt += x_movement;
-    gizmo_y_mvmt += y_movement;
+    gizmo_mvmt_.x_ += x_movement;
+    gizmo_mvmt_.y_ += y_movement;
 
-    drag_start_x = event->pos().x();
-    drag_start_y = event->pos().y();
+    drag_start_.x_ = event->pos().x();
+    drag_start_.y_ = event->pos().y();
 
     gizmos->field_changed();
   }
@@ -389,11 +382,11 @@ void ViewerWidget::mousePressEvent(QMouseEvent* event) {
   } else if (event->buttons() & Qt::MiddleButton || PanelManager::timeLine().tool == TimelineToolType::HAND) {
     container->dragScrollPress(event->pos());
   } else {
-    drag_start_x = event->pos().x();
-    drag_start_y = event->pos().y();
+    drag_start_.x_ = event->pos().x();
+    drag_start_.y_ = event->pos().y();
 
-    gizmo_x_mvmt = 0;
-    gizmo_y_mvmt = 0;
+    gizmo_mvmt_.x_ = 0;
+    gizmo_mvmt_.y_ = 0;
 
     selected_gizmo = get_gizmo_from_mouse(event->pos().x(), event->pos().y());
 
@@ -539,7 +532,7 @@ void ViewerWidget::draw_title_safe_area() {
   glEnd();
 }
 
-void ViewerWidget::drawDot(const EffectGizmoPtr& g)
+void ViewerWidget::drawDot(const EffectGizmoPtr& g) const
 {
   const float dot_size = GIZMO_DOT_SIZE / width() * viewer->getSequence()->width();
   glBegin(GL_QUADS);
@@ -550,7 +543,7 @@ void ViewerWidget::drawDot(const EffectGizmoPtr& g)
   glEnd();
 }
 
-void ViewerWidget::drawLines(const EffectGizmoPtr& g)
+void ViewerWidget::drawLines(const EffectGizmoPtr& g) const
 {
   glBegin(GL_LINES);
   for (int k=1;k<g->get_point_count();k++) {
@@ -562,7 +555,7 @@ void ViewerWidget::drawLines(const EffectGizmoPtr& g)
   glEnd();
 }
 
-void ViewerWidget::drawTarget(const EffectGizmoPtr& g)
+void ViewerWidget::drawTarget(const EffectGizmoPtr& g) const
 {
   const float target_size = GIZMO_TARGET_SIZE / width() * viewer->getSequence()->width();
   glBegin(GL_LINES);
@@ -677,7 +670,7 @@ void ViewerWidget::paintGL()
     glDisable(GL_TEXTURE_2D);
 
     if (window != nullptr && window->isVisible()) {
-      window->set_texture(renderer->texColorBuffer, double(viewer->getSequence()->width())/double(viewer->getSequence()->height()), &renderer->mutex);
+      window->setTexture(renderer->texColorBuffer, double(viewer->getSequence()->width())/double(viewer->getSequence()->height()), &renderer->mutex);
     }
 
     renderer->mutex.unlock();

@@ -76,20 +76,13 @@ namespace {
 }
 
 Viewer::Viewer(QWidget *parent) :
-  QDockWidget(parent),
-  playing(false),
-  just_played(false),
-  seq(nullptr),
-  media(nullptr),
-  created_sequence(false),
-  minimum_zoom(1.0),
-  cue_recording_internal(false)
+  QDockWidget(parent)
 {
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   setup_ui();
 
-  headers->viewer = this;
+  headers->viewer_ = this;
   headers->snapping = false;
   headers->show_text(false);
   viewer_container->viewer = this;
@@ -117,7 +110,7 @@ Viewer::Viewer(QWidget *parent) :
 }
 
 
-bool Viewer::is_focused() {
+bool Viewer::is_focused() const {
   return headers->hasFocus()
       || viewer_widget->hasFocus()
       || btnSkipToStart->hasFocus()
@@ -127,20 +120,23 @@ bool Viewer::is_focused() {
       || btnSkipToEnd->hasFocus();
 }
 
-bool Viewer::is_main_sequence() {
+bool Viewer::is_main_sequence() const noexcept
+{
   return main_sequence;
 }
 
-void Viewer::set_main_sequence() {
+void Viewer::set_main_sequence()
+{
   clean_created_seq();
   set_sequence(true, global::sequence);
 }
 
-void Viewer::reset_all_audio() {
+void Viewer::reset_all_audio()
+{
   // reset all clip audio
   if (seq != nullptr) {
     audio_ibuffer_frame = seq->playhead_;
-    audio_ibuffer_timecode = (double) audio_ibuffer_frame / seq->frameRate();
+    audio_ibuffer_timecode = static_cast<double> (audio_ibuffer_frame) / seq->frameRate();
 
     for (const auto& c : seq->clips()) {
       if (c != nullptr) {
@@ -151,7 +147,8 @@ void Viewer::reset_all_audio() {
   clear_audio_ibuffer();
 }
 
-long timecode_to_frame(const QString& s, int view, double frame_rate) {
+long timecode_to_frame(const QString& s, int view, double frame_rate)
+{
   QList<QString> list = s.split(QRegExp("[:;]"));
 
   if (view == TIMECODE_FRAMES || (list.size() == 1 && view != TIMECODE_MILLISECONDS)) {
@@ -364,7 +361,8 @@ void Viewer::nextFrameFast()
   }
 }
 
-void Viewer::go_to_out() {
+void Viewer::go_to_out()
+{
   if (seq != nullptr) {
     if (seq->workarea_.using_ && seq->workarea_.enabled_) {
       seek(seq->workarea_.out_);
@@ -384,17 +382,20 @@ void Viewer::cue_recording(long start, long end, int track)
   recording_flasher.start();
 }
 
-void Viewer::uncue_recording() {
+void Viewer::uncue_recording()
+{
   cue_recording_internal = false;
   recording_flasher.stop();
   btnPlay->setStyleSheet(QString());
 }
 
-bool Viewer::is_recording_cued() {
+bool Viewer::is_recording_cued()
+{
   return cue_recording_internal;
 }
 
-void Viewer::toggle_play() {
+void Viewer::toggle_play()
+{
   if (playing) {
     pause();
   } else {
@@ -432,7 +433,8 @@ void Viewer::play()
   }
 }
 
-void Viewer::play_wake() {
+void Viewer::play_wake()
+{
   if (just_played) {
     start_msecs = QDateTime::currentMSecsSinceEpoch();
     playback_updater.start();
@@ -441,7 +443,8 @@ void Viewer::play_wake() {
   }
 }
 
-void Viewer::pause() {
+void Viewer::pause()
+{
   playing = false;
   just_played = false;
   set_playpause_icon(true);
@@ -481,31 +484,35 @@ void Viewer::pause() {
 
 void Viewer::update_playhead_timecode(long p)
 {
+  Q_ASSERT(currentTimecode);
   currentTimecode->set_value(p, false);
 }
 
 void Viewer::update_end_timecode()
 {
+  Q_ASSERT(endTimecode);
   endTimecode->setText((seq == nullptr) ? frame_to_timecode(0, e_config.timecode_view, 30)
                                         : frame_to_timecode(seq->endFrame(), e_config.timecode_view, seq->frameRate()));
 }
 
 void Viewer::update_header_zoom()
 {
-  if (seq != nullptr) {
-    long sequenceEndFrame = seq->endFrame();
-    if (cached_end_frame != sequenceEndFrame) {
-      minimum_zoom = (sequenceEndFrame > 0) ? ((double) headers->width() / (double) sequenceEndFrame) : 1;
-      headers->update_zoom(qMax(headers->get_zoom(), minimum_zoom));
-      set_sb_max();
-      viewer_widget->waveform_zoom = headers->get_zoom();
-    } else {
-      headers->update();
-    }
+  if (seq == nullptr) {
+    return;
+  }
+  const long sequenceEndFrame = seq->endFrame();
+  if (cached_end_frame != sequenceEndFrame) {
+    minimum_zoom = (sequenceEndFrame > 0) ? ( static_cast<double>(headers->width()) / sequenceEndFrame) : 1;
+    headers->update_zoom(qMax(headers->get_zoom(), minimum_zoom));
+    set_sb_max();
+    viewer_widget->waveform_zoom = headers->get_zoom();
+  } else {
+    headers->update();
   }
 }
 
-void Viewer::update_parents(bool reload_fx) {
+void Viewer::update_parents(bool reload_fx)
+{
   if (main_sequence) {
     PanelManager::refreshPanels(reload_fx);
   } else {
@@ -513,7 +520,8 @@ void Viewer::update_parents(bool reload_fx) {
   }
 }
 
-void Viewer::resizeEvent(QResizeEvent *) {
+void Viewer::resizeEvent(QResizeEvent *)
+{
   if (seq != nullptr) {
     set_sb_max();
   }
@@ -609,13 +617,9 @@ void Viewer::set_panel_name(const QString &n)
   update_window_title();
 }
 
-void Viewer::update_window_title() {
-  QString name;
-  if (seq == nullptr) {
-    name = tr("(none)");
-  } else {
-    name = seq->name();
-  }
+void Viewer::update_window_title()
+{
+  const QString name(seq == nullptr  ? tr("(none)") : seq->name());
   setWindowTitle(QString("%1: %2").arg(panel_name, name));
 }
 
@@ -871,7 +875,7 @@ void Viewer::timer_update()
   }
   update_parents(e_config.seek_also_selects);
 
-  int64_t end_frame = get_seq_out();
+  const int64_t end_frame = get_seq_out();
   if (!recording
       && playing
       && (seq->playhead_ >= end_frame)
@@ -927,9 +931,9 @@ void Viewer::set_sequence(bool main, SequencePtr s)
   }
 
   main_sequence = main;
-  seq = (main) ? global::sequence : s;
+  seq = main ? global::sequence : s;
 
-  bool null_sequence = (seq == nullptr);
+  const bool null_sequence = (seq == nullptr);
 
   headers->setEnabled(!null_sequence);
   currentTimecode->setEnabled(!null_sequence);

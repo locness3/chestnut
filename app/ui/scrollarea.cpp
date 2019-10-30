@@ -28,14 +28,15 @@ ScrollArea::ScrollArea(QWidget* parent) : QScrollArea(parent)
 
 }
 
-void ScrollArea::wheelEvent(QWheelEvent *e)
+void ScrollArea::wheelEvent(QWheelEvent *event)
 {
+  Q_ASSERT(event);
   if (e_config.scroll_zooms) {
-    e->ignore();
-    if (e->angleDelta().y() != 0) {
-      panels::PanelManager::timeLine().set_zoom(e->angleDelta().y() > 0);
+    event->ignore();
+    if (event->angleDelta().y() != 0) {
+      panels::PanelManager::timeLine().set_zoom(event->angleDelta().y() > 0);
     }
   } else {
-    QScrollArea::wheelEvent(e);
+    QScrollArea::wheelEvent(event);
   }
 }
