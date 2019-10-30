@@ -38,6 +38,9 @@ void TrackAreaWidget::initialise()
   Q_ASSERT(ui->lockButton != nullptr);
   Q_ASSERT(ui->enableButton != nullptr);
 
+  ui->lockButton->setToolTip(tr("Toggle track lock"));
+  ui->enableButton->setToolTip(tr("Toggle track output"));
+
   QObject::connect(ui->lockButton, &QPushButton::toggled, this, &TrackAreaWidget::lockTrack);
   QObject::connect(ui->enableButton, &QPushButton::toggled, this, &TrackAreaWidget::enableTrack);
 }
