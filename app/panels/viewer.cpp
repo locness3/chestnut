@@ -690,6 +690,7 @@ void Viewer::setup_ui()
   current_timecode_container_layout->setSpacing(0);
   current_timecode_container_layout->setMargin(0);
   currentTimecode = new LabelSlider(current_timecode_container);
+  currentTimecode->setToolTip(tr("Playhead position"));
   current_timecode_container_layout->addWidget(currentTimecode);
   lower_control_layout->addWidget(current_timecode_container);
 
@@ -700,6 +701,7 @@ void Viewer::setup_ui()
   playback_control_layout->setMargin(0);
 
   btnSkipToStart = new QPushButton(playback_controls);
+  btnSkipToStart->setToolTip(tr("Go to In"));
   QIcon goToStartIcon;
   goToStartIcon.addFile(QStringLiteral(":/icons/prev.png"), QSize(), QIcon::Normal, QIcon::Off);
   goToStartIcon.addFile(QStringLiteral(":/icons/prev-disabled.png"), QSize(), QIcon::Disabled, QIcon::Off);
@@ -708,6 +710,7 @@ void Viewer::setup_ui()
   playback_control_layout->addWidget(btnSkipToStart);
 
   btnRewind = new QPushButton(playback_controls);
+  btnRewind->setToolTip(tr("Step back 1 frame"));
   QIcon rewindIcon;
   rewindIcon.addFile(QStringLiteral(":/icons/rew.png"), QSize(), QIcon::Normal, QIcon::Off);
   rewindIcon.addFile(QStringLiteral(":/icons/rew-disabled.png"), QSize(), QIcon::Disabled, QIcon::Off);
@@ -716,6 +719,7 @@ void Viewer::setup_ui()
   playback_control_layout->addWidget(btnRewind);
 
   btnPlay = new QPushButton(playback_controls);
+  btnPlay->setToolTip(tr("Toggle playback"));
   playIcon.addFile(QStringLiteral(":/icons/play.png"), QSize(), QIcon::Normal, QIcon::On);
   playIcon.addFile(QStringLiteral(":/icons/play-disabled.png"), QSize(), QIcon::Disabled, QIcon::On);
   btnPlay->setIcon(playIcon);
@@ -723,6 +727,7 @@ void Viewer::setup_ui()
   playback_control_layout->addWidget(btnPlay);
 
   btnFastForward = new QPushButton(playback_controls);
+  btnFastForward->setToolTip(tr("Step forward 1 frame"));
   QIcon ffIcon;
   ffIcon.addFile(QStringLiteral(":/icons/ff.png"), QSize(), QIcon::Normal, QIcon::On);
   ffIcon.addFile(QStringLiteral(":/icons/ff-disabled.png"), QSize(), QIcon::Disabled, QIcon::Off);
@@ -731,6 +736,7 @@ void Viewer::setup_ui()
   playback_control_layout->addWidget(btnFastForward);
 
   btnSkipToEnd = new QPushButton(playback_controls);
+  btnSkipToEnd->setToolTip(tr("Go to Out"));
   QIcon nextIcon;
   nextIcon.addFile(QStringLiteral(":/icons/next.png"), QSize(), QIcon::Normal, QIcon::Off);
   nextIcon.addFile(QStringLiteral(":/icons/next-disabled.png"), QSize(), QIcon::Disabled, QIcon::Off);
@@ -747,6 +753,7 @@ void Viewer::setup_ui()
   end_timecode_layout->setMargin(0);
 
   endTimecode = new QLabel(end_timecode_container);
+  endTimecode->setToolTip(tr("In/Out duration"));
   endTimecode->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
 
   end_timecode_layout->addWidget(endTimecode);
