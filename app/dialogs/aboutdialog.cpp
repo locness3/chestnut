@@ -21,6 +21,8 @@
 #include <QLabel>
 #include <QDialogButtonBox>
 
+#include "chestnut.h"
+
 AboutDialog::AboutDialog(QWidget *parent) :
   QDialog(parent)
 {
@@ -31,8 +33,16 @@ AboutDialog::AboutDialog(QWidget *parent) :
   layout->setSpacing(20);
   setLayout(layout);
 
-  QLabel* label =
+  const QString fmt(strlen(chestnut::version::PREREL) > 0 ? "%1.%2.%3-%4" : "%1.%2.%3");
+
+  const QString version(fmt.arg(chestnut::version::MAJOR)
+                        .arg(chestnut::version::MINOR)
+                        .arg(chestnut::version::PATCH)
+                        .arg(chestnut::version::PREREL));
+
+  auto label =
       new QLabel("<html><head/><body>"
+                 "<h1>Chestnut " + version + "</h1>"
                  "<p><a href=\"https://github.com/jonno85uk/chestnut\">"
                  "<span style=\" text-decoration: underline; color:#007af4;\">"
                  "https://github.com/jonno85uk/chestnut"
