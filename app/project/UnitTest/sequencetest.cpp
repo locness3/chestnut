@@ -410,3 +410,77 @@ void SequenceTest::testCaseAddSelectionNotLocked()
   sqn.addSelection(sel);
   QVERIFY(sqn.selections_.size() == 1);
 }
+
+
+void SequenceTest::testCaseEndFrameEmptySequence()
+{
+  Sequence sqn;
+  QVERIFY(sqn.endFrame() == 0);
+}
+
+
+void SequenceTest::testCaseEndFramePopulatedSequence()
+{
+  Sequence sqn;
+  auto c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 1;
+  c->timeline_info.in = 0;
+  c->timeline_info.out = 10;
+  sqn.addClip(c);
+  QVERIFY(sqn.endFrame() == 10);
+
+  c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 3;
+  c->timeline_info.in = 100;
+  c->timeline_info.out = 101;
+  sqn.addClip(c);
+  QVERIFY(sqn.endFrame() == 101);
+}
+
+void SequenceTest::testCaseActiveLengthEmptySequence()
+{
+  Sequence sqn;
+  QVERIFY(sqn.activeLength() == 0);
+}
+
+
+void SequenceTest::testCaseActiveLengthPopulatedSequence()
+{
+  Sequence sqn;
+  auto c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 1;
+  c->timeline_info.in = 0;
+  c->timeline_info.out = 10;
+  sqn.addClip(c);
+
+  c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 3;
+  c->timeline_info.in = 100;
+  c->timeline_info.out = 101;
+  sqn.addClip(c);
+
+  QVERIFY(sqn.activeLength() == 101);
+}
+
+
+void SequenceTest::testCaseActiveLengthPopulatedSequenceInOutSet()
+{
+  Sequence sqn;
+  auto c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 1;
+  c->timeline_info.in = 0;
+  c->timeline_info.out = 10;
+  sqn.addClip(c);
+
+  c = std::make_shared<Clip>(nullptr);
+  c->timeline_info.track_ = 3;
+  c->timeline_info.in = 100;
+  c->timeline_info.out = 101;
+  sqn.addClip(c);
+
+  sqn.workarea_.using_ = true;
+  sqn.workarea_.in_ = 50;
+  sqn.workarea_.out_ = 75;
+
+  QVERIFY(sqn.activeLength() == 25);
+}

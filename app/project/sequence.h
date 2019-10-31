@@ -54,7 +54,12 @@ public:
 
     std::shared_ptr<Sequence> copy();
     std::pair<int64_t,int64_t> trackLimits() const;
-    int64_t endFrame() const;
+    /**
+     * @brief   Obtain the frame at where the last clip ends in the timeline
+     * @return  frame number
+     */
+    int64_t endFrame() const noexcept;
+
     void hardDeleteTransition(const ClipPtr& c, const int32_t type);
 
     bool setWidth(const int32_t val);
@@ -162,6 +167,12 @@ public:
      * @param sel   The selection
      */
     void addSelection(const Selection& sel);
+
+    /**
+     * @brief   Obtain the active length of the sequence, i.e. between in and out points
+     * @return  length in frames
+     */
+    int64_t activeLength() const noexcept;
 
     QVector<project::Track> audioTracks();
     QVector<project::Track> videoTracks();
