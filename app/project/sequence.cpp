@@ -42,7 +42,12 @@ constexpr int       DEFAULT_AUDIO_FREQUENCY    = 48000;
 constexpr int       DEFAULT_LAYOUT             = AV_CH_LAYOUT_STEREO;
 
 
-Sequence::Sequence(const std::shared_ptr<Media>& parent) : parent_mda(parent)
+
+// static variable for the currently active sequence
+SequencePtr global::sequence;
+
+
+Sequence::Sequence(std::shared_ptr<Media> parent) : parent_mda(std::move(parent))
 {
 
 }
@@ -268,7 +273,7 @@ bool Sequence::setAudioFrequency(const int32_t frequency)
  * @brief getAudioLayout from ffmpeg libresample
  * @return AV_CH_LAYOUT_*
  */
-int32_t Sequence::audioLayout() const
+int32_t Sequence::audioLayout() const noexcept
 {
   return audio_layout_;
 }
@@ -276,7 +281,7 @@ int32_t Sequence::audioLayout() const
  * @brief setAudioLayout using ffmpeg libresample
  * @param layout AV_CH_LAYOUT_* value from libavutil/channel_layout.h
  */
-void Sequence::setAudioLayout(const int32_t layout)
+void Sequence::setAudioLayout(const int32_t layout) noexcept
 {
   audio_layout_ = layout;
 }
@@ -385,7 +390,9 @@ QVector<ClipPtr> Sequence::clips()
 
 void Sequence::closeActiveClips(const int32_t depth)
 {
-  if (depth > RECURSION_LIMIT) return;
+  if (depth > RECURSION_LIMIT) {
+    return;
+  }
   for (const auto& c : clips_) {
     if (!c) {
       qWarning() << "Null Clip ptr";
@@ -721,9 +728,6 @@ std::pair<int64_t, int64_t> Sequence::trackLimits() const
       audio_limit = clp->timeline_info.track_;
     }
   }//for
-  return std::make_pair(video_limit, audio_limit);
+  return {video_limit, audio_limit};
 }
 
-
-// static variable for the currently active sequence
-SequencePtr global::sequence;

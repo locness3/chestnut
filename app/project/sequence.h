@@ -48,11 +48,30 @@ Q_DECLARE_METATYPE(SequencePtr)
 class Sequence : public std::enable_shared_from_this<Sequence>, public project::ProjectItem {
 public:
 
+    QVector<Selection> selections_;
+    int32_t save_id_ = 0; //FIXME: fudge
+    struct {
+        bool using_ {false};
+        bool enabled_ {true};
+        int64_t in_ {0};
+        int64_t out_ {0};
+    } workarea_;
+
+    QVector<TransitionPtr> transitions_;
+    int64_t playhead_ = 0;
+    bool wrapper_sequence_ = false;
+    std::weak_ptr<Media> parent_mda{};
+
     Sequence() = default;
-    explicit Sequence(const std::shared_ptr<Media>& parent);
+    explicit Sequence(std::shared_ptr<Media> parent);
     Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& sequenceName);
 
     std::shared_ptr<Sequence> copy();
+    /**
+     * @brief Obtain the track extents of a sequence,
+     * i.e. last populated video-track on track1, last populated audio-track on track4
+     * @return video-limit, audio-limit
+     */
     std::pair<int64_t,int64_t> trackLimits() const;
     /**
      * @brief   Obtain the frame at where the last clip ends in the timeline
@@ -70,16 +89,17 @@ public:
     bool setFrameRate(const double frameRate);
     int32_t audioFrequency() const;
     bool setAudioFrequency(const int32_t frequency);
+
     /**
      * @brief audioLayout from ffmpeg libresample
      * @return AV_CH_LAYOUT_*
      */
-    int32_t audioLayout() const;
+    int32_t audioLayout() const noexcept;
     /**
      * @brief setAudioLayout using ffmpeg libresample
      * @param layout AV_CH_LAYOUT_* value from libavutil/channel_layout.h
      */
-    void setAudioLayout(const int32_t layout);
+    void setAudioLayout(const int32_t layout) noexcept;
 
     /**
      * @brief         Obtain the track count in the sequence. This includes empty tracks e.g. between populated tracks
@@ -176,20 +196,6 @@ public:
 
     QVector<project::Track> audioTracks();
     QVector<project::Track> videoTracks();
-
-    QVector<Selection> selections_;
-    int32_t save_id_ = 0; //FIXME: fudge
-    struct {
-        bool using_ = false;
-        bool enabled_ = true;
-        int64_t in_ = 0;
-        int64_t out_ = 0;
-    } workarea_;
-
-    QVector<TransitionPtr> transitions_;
-    int64_t playhead_ = 0;
-    bool wrapper_sequence_ = false;
-    std::weak_ptr<Media> parent_mda{};
 
 private:
     friend class SequenceTest;
