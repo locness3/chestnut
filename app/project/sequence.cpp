@@ -144,14 +144,23 @@ std::shared_ptr<Sequence> Sequence::copy()
   return sqn;
 }
 
-int64_t Sequence::endFrame() const
+int64_t Sequence::endFrame() const noexcept
 {
   auto end = 0L;
-  for (const auto& clp : clips_) {
-    if (clp && (clp->timeline_info.out > end) ) {
-      end = clp->timeline_info.out;
+
+  try {
+    for (const auto& clp : clips_) {
+      if (clp && (clp->timeline_info.out > end) ) {
+        end = clp->timeline_info.out;
+      }
     }
   }
+  catch (const std::exception& ex) {
+    qWarning() << "Caught an exception, ex =" << ex.what();
+  } catch (...) {
+    qWarning() << "Caught an unknown exception";
+  }
+
   return end;
 }
 
@@ -642,6 +651,14 @@ void Sequence::addSelection(const Selection& sel)
   } else {
     selections_.append(sel);
   }
+}
+
+int64_t Sequence::activeLength() const noexcept
+{
+  if (workarea_.using_) {
+    return workarea_.out_ - workarea_.in_;
+  }
+  return endFrame();
 }
 
 

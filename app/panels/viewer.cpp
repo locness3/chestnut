@@ -492,7 +492,7 @@ void Viewer::update_end_timecode()
 {
   Q_ASSERT(endTimecode);
   endTimecode->setText((seq == nullptr) ? frame_to_timecode(0, e_config.timecode_view, 30)
-                                        : frame_to_timecode(seq->endFrame(), e_config.timecode_view, seq->frameRate()));
+                                        : frame_to_timecode(seq->activeLength(), e_config.timecode_view, seq->frameRate()));
 }
 
 void Viewer::update_header_zoom()

@@ -67,6 +67,17 @@ private slots:
     void testCaseAddSelectionLocked();
 
     void testCaseAddSelectionNotLocked();
+
+    void testCaseEndFrameEmptySequence();
+
+    void testCaseEndFramePopulatedSequence();
+
+    void testCaseActiveLengthEmptySequence();
+
+    void testCaseActiveLengthPopulatedSequence();
+
+    void testCaseActiveLengthPopulatedSequenceInOutSet();
+
 };
 
 #endif // SEQUENCETEST_H
