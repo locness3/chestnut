@@ -963,8 +963,8 @@ bool TimelineWidget::applyTransition(ComboAction* ca)
   if (g.in == g.out) {
     return false;
   }
-  long transition_start = qMin(g.in, g.out);
-  long transition_end = qMax(g.in, g.out);
+  int64_t transition_start = qMin(g.in, g.out);
+  int64_t transition_end = qMax(g.in, g.out);
 
   ClipPtr pre = g.clip_.lock();
   ClipPtr post = pre;

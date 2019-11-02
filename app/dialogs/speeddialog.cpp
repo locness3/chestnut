@@ -311,7 +311,7 @@ void SpeedDialog::frame_rate_update() {
   duration->set_value((len_val == -1) ? qSNaN() : len_val, false);
 }
 
-void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, int64_t& ep, long& lr)
+void set_speed(ComboAction* ca, ClipPtr c, double speed, bool ripple, int64_t& ep, int64_t& lr)
 {
   panels::PanelManager::timeLine().deselect_area(c->timeline_info.in, c->timeline_info.out, c->timeline_info.track_);
 
@@ -348,8 +348,8 @@ void SpeedDialog::accept() {
   SetSelectionsCommand* sel_command = new SetSelectionsCommand(global::sequence);
   sel_command->old_data = global::sequence->selections_;
 
-  long earliest_point = LONG_MAX;
-  long longest_ripple = LONG_MIN;
+  int64_t earliest_point = LONG_MAX;
+  int64_t longest_ripple = LONG_MIN;
 
   for (int i=0;i<clips.size();i++) {
     ClipPtr c = clips.at(i);
