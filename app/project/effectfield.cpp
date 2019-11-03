@@ -447,8 +447,7 @@ bool EffectField::save(QXmlStreamWriter& stream) const
 
   for (const auto& key : keyframes) {
     if (!key.save(stream)) {
-      qCritical() << "Failed to save EffectKeyFrame";
-      return false;
+      chestnut::throwAndLog("Failed to save EffectKeyFrame");
     }
   }
 

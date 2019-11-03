@@ -511,7 +511,7 @@ bool Media::save(QXmlStreamWriter& stream) const
       }
       break;
     default:
-      qCritical() << "Unhandled media type";
+      chestnut::throwAndLog("Unhandled media type");
   }
 
   return false;

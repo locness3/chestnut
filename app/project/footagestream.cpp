@@ -109,8 +109,7 @@ bool FootageStream::save(QXmlStreamWriter& stream) const
       stream.writeEndElement();
       return true;
     default:
-      qWarning() << "Unknown stream type. Not saving";
-      break;
+      chestnut::throwAndLog("Unknown stream type. Not saving");
   }
   return false;
 }

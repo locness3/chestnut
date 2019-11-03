@@ -156,7 +156,7 @@ public:
      * @param type  Only 1 transition type i.e. opening or closing
      * @return ptr or null
      */
-  TransitionPtr getTransition(const ClipTransitionType type);
+  TransitionPtr getTransition(const ClipTransitionType type) const;
   /**
      * @brief Split this clip at a sequence frame.
      * If possible to split, a new clip starting after the split is returned and the current clip is modified.

@@ -344,13 +344,13 @@ bool ProjectModel::save(QXmlStreamWriter& stream) const
 
   //TODO: if saving is slow, pass a copy of project_items to each function which whittles it down
   if (!saveFolders(stream)) {
-    return false;
+    chestnut::throwAndLog("Failure saving folder(s)");
   }
   if (!saveMedia(stream)) {
-    return false;
+    chestnut::throwAndLog("Failure saving media");
   }
   if (!saveSequences(stream)) {
-    return false;
+    chestnut::throwAndLog("Failure saving sequence(s)");
   }
 
   stream.writeEndElement(); //project

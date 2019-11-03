@@ -20,6 +20,14 @@
 #define IXMLSTREAMER_H
 
 #include <QXmlStreamReader>
+#include "debug.h"
+
+namespace chestnut {
+  [[noreturn]] inline void throwAndLog(const char* const msg) {
+    qCritical() << msg;
+    throw std::runtime_error(msg);
+  }
+}
 
 namespace project {
   class IXMLStreamer {

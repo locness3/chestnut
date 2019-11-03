@@ -662,7 +662,7 @@ void Clip::deleteTransition(const ClipTransitionType type)
 }
 
 
-TransitionPtr Clip::getTransition(const ClipTransitionType type)
+TransitionPtr Clip::getTransition(const ClipTransitionType type) const
 {
   switch (type) {
     case ClipTransitionType::OPENING:
@@ -1226,7 +1226,7 @@ bool Clip::save(QXmlStreamWriter& stream) const
 
   stream.writeStartElement("clip");
   // "Create" clips (e.g. titles) are defined as -1 source
-  const QString source_id = (timeline_info.media != nullptr) ? QString::number(timeline_info.media->id()) : "-1";
+  const QString source_id((timeline_info.media != nullptr) ? QString::number(timeline_info.media->id()) : "-1");
   stream.writeAttribute("source", source_id);
   stream.writeAttribute("id", QString::number(id_));
 
@@ -1234,15 +1234,14 @@ bool Clip::save(QXmlStreamWriter& stream) const
   stream.writeTextElement("created_object", this->isCreatedObject() ? "true" : "false");
 
   if (!timeline_info.save(stream)) {
-    qCritical() << "Failed to save timeline info";
-    return false;
+    chestnut::throwAndLog("Failed to save timeline info");
   }
 
   stream.writeStartElement("opening_transition");
   auto length = -1;
   QString trans_name;
   int secondary_id = -1;
-  if (auto trans = openingTransition()) {
+  if (auto trans = getTransition(ClipTransitionType::OPENING)) {
     length = trans->get_true_length();
     trans_name = trans->meta.name;
     if (auto scnd = trans->secondaryClip()) {
@@ -1258,7 +1257,7 @@ bool Clip::save(QXmlStreamWriter& stream) const
   length = -1;
   trans_name.clear();
   secondary_id = -1;
-  if (auto trans = closingTransition()) {
+  if (auto trans = getTransition(ClipTransitionType::CLOSING)) {
     length = trans->get_true_length();
     trans_name = trans->meta.name;
     if (auto scnd = trans->secondaryClip()) {
@@ -1271,15 +1270,14 @@ bool Clip::save(QXmlStreamWriter& stream) const
   stream.writeEndElement();
 
   stream.writeStartElement("links");
-  for (const auto link : linked) {
+  for (const auto& link : linked) {
     stream.writeTextElement("link", QString::number(link));
   }
   stream.writeEndElement(); // links
 
   for (const auto& eff : effects) {
     if (!eff->save(stream)) {
-      qCritical() << "Failed to save effect";
-      return false;
+      chestnut::throwAndLog("Failed to save effect");
     }
   }
 

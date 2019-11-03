@@ -105,8 +105,7 @@ bool EffectRow::save(QXmlStreamWriter& stream) const
 
   for (const auto& field : fields) {
     if (!field->save(stream)) {
-      qCritical() << "Failed to save EffectField";
-      return false;
+      chestnut::throwAndLog("Failed to save EffectField");
     }
   }
   stream.writeEndElement();
