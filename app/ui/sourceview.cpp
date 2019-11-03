@@ -81,10 +81,21 @@ bool SourceView::onDropEvent(QDropEvent& event) const
 
 void SourceView::addSubclipToProject(const QDropEvent& event) const
 {
-  // TODO: make folder-aware rather than putting subclip at the same level as source clip
-  auto& viewer = panels::PanelManager::footageViewer();
-  const auto orig_media = viewer.getMedia();
-  auto mda = std::make_shared<Media>(*orig_media);
+  auto& viewer(panels::PanelManager::footageViewer());
+  const auto orig_media(viewer.getMedia());
+
+  const auto drop_item(this->viewIndex(event.pos()));
+  const auto parent_mda(std::invoke([&]{
+    const auto mda(project_parent_.item_to_media(drop_item));
+    if (drop_item.isValid() && (mda->type() != MediaType::FOLDER) ) {
+      return orig_media->parentItem();
+    }
+    return mda;
+  }));
+
+
+
+  auto mda(std::make_shared<Media>(*orig_media));
   const QDateTime now(QDateTime::currentDateTime());
   const QString fmt("%1-subclip-%2");
   mda->setName(fmt.arg(mda->name()).arg(now.toString(Qt::ISODate)));
@@ -93,7 +104,7 @@ void SourceView::addSubclipToProject(const QDropEvent& event) const
     ftg->setParent(mda);
   }
 
-  Project::model().appendChild(orig_media->parentItem(), mda);
+  Project::model().appendChild(parent_mda, mda);
 }
 
 
