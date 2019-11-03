@@ -135,7 +135,7 @@ private:
     QWidget* icon_view_container;
     QPushButton* directory_up;
     QVector<MediaPtr> last_imported_media;
-    static std::unique_ptr<ProjectModel> model_;
+    inline static std::unique_ptr<ProjectModel> model_ {nullptr};
 
     void list_all_sequences_worker(QVector<MediaPtr> &list, MediaPtr parent); //TODO: recursive depth limit
     QString get_file_name_from_path(const QString &path) const;

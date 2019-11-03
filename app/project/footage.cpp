@@ -62,8 +62,14 @@ Footage::Footage(const std::shared_ptr<Media>& parent) : parent_mda_(parent)
 void Footage::reset()
 {
   if (preview_gen != nullptr) {
-    preview_gen->cancel();
-    preview_gen->wait();
+    try {
+      preview_gen->cancel();
+      preview_gen->wait();
+    } catch (const std::exception& ex) {
+      qCritical() << "Caught an exception, msg =" << ex.what();
+    } catch (...) {
+      qCritical() << "Caught an unknown exception";
+    }
   }
   video_tracks.clear();
   audio_tracks.clear();
@@ -164,14 +170,12 @@ bool Footage::save(QXmlStreamWriter& stream) const
   stream.writeStartElement("footage");
   if (auto par = parent_mda_.lock()) {
     if (par->parentItem() == nullptr) {
-      qCritical() << "Parent Media is unlinked";
-      return false;
+      chestnut::throwAndLog("Parent Media is unlinked");
     }
     stream.writeAttribute("id", QString::number(par->id()));
     stream.writeAttribute("folder", QString::number(par->parentItem()->id()));
   } else {
-    qCritical() << "Null Media parent";
-    return false;
+    chestnut::throwAndLog("Null Media parent");
   }
   stream.writeAttribute("using_inout", using_inout ? "true" : "false");
   stream.writeAttribute("in", QString::number(in));

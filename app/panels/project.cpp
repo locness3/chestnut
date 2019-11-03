@@ -65,8 +65,6 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-std::unique_ptr<ProjectModel> Project::model_{nullptr};
-
 using panels::PanelManager;
 
 QString autorecovery_filename;
@@ -1002,15 +1000,14 @@ void Project::save_project(const bool autorecovery)
   sequence_id = 1;
 
   // save to a temporary file first
-  QString tmp_path = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+  const QString tmp_path(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
   if (tmp_path.size() < 1) {
     qCritical() << "Unable to write temporary files";
     return;
   }
 
-  QFile o_file; //(TMP_SAVE_FILENAME);
+  QFile o_file(TMP_SAVE_FILENAME);
   QDir::setCurrent(tmp_path);
-  o_file.setFileName(TMP_SAVE_FILENAME);
   if (!o_file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
     qCritical() << "Could not open file";
     return;
@@ -1022,12 +1019,33 @@ void Project::save_project(const bool autorecovery)
   stream.setAutoFormatting(XML_SAVE_FORMATTING);
   stream.writeStartDocument(); // doc
 
-  if (!PanelManager::projectViewer().model().save(stream)) {
-    // by saving to a temporary, the original project file is untouched
-    save_success = false;
-    qWarning() << "Failed to save project file:" << o_file.fileName();
-    //FIXME: visualize this
+  save_success = false;
+  const QString fmt("Failed to save project file : %1\nReason : %2");
+  try {
+    if (PanelManager::projectViewer().model().save(stream)) {
+      save_success = true;
+    } else {
+      // by saving to a temporary, the original project file is untouched
+      const QString msg(fmt.arg(o_file.fileName()).arg(tr("Unknown")));
+      qCritical() << msg;
+      QMessageBox::critical(this,
+                            tr("Save failure"),
+                            tr(msg.toStdString().c_str()));
+    }
+  } catch (const std::exception& ex) {
+    const QString msg(fmt.arg(o_file.fileName()).arg(ex.what()));
+    qCritical() << msg;
+    QMessageBox::critical(this,
+                          tr("Save failure"),
+                          tr(msg.toStdString().c_str()));
+  } catch (...) {
+    const QString msg(fmt.arg(o_file.fileName().arg(tr("Unknown"))));
+    qCritical() << msg;
+    QMessageBox::critical(this,
+                          tr("Save failure"),
+                          tr(msg.toStdString().c_str()));
   }
+
 
   stream.writeEndDocument(); // doc
 
@@ -1035,9 +1053,11 @@ void Project::save_project(const bool autorecovery)
 
   if (save_success) {
     // move temp to desired location
-    QString final_path = autorecovery ? autorecovery_filename : project_url;
+    const QString final_path(autorecovery ? autorecovery_filename : project_url);
     QDir().remove(final_path);
-    if (!QDir().rename(o_file.fileName(), final_path)) {
+    if (QDir().rename(o_file.fileName(), final_path)) {
+      qInfo() << "Successfully saved project, fileName =" << final_path;
+    } else {
       qCritical() << "Failed to save project";
     }
   }

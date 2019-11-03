@@ -518,8 +518,7 @@ bool Sequence::save(QXmlStreamWriter& stream) const
     stream.writeAttribute("id", QString::number(par->id()));
     stream.writeAttribute("folder", QString::number(par->parentItem()->id()));
   } else {
-    qCritical() << "Null parent Media";
-    return false;
+    chestnut::throwAndLog("Null parent Media");
   }
   stream.writeAttribute("open", this == global::sequence.get() ? "true" : "false");
 
@@ -547,8 +546,7 @@ bool Sequence::save(QXmlStreamWriter& stream) const
       continue;
     }
     if (!clp->save(stream)) {
-      qCritical() << "Failed to save clip";
-      return false;
+      chestnut::throwAndLog("Failed to save clip");
     }
   }
 
@@ -558,8 +556,7 @@ bool Sequence::save(QXmlStreamWriter& stream) const
       continue;
     }
     if (!mark->save(stream)) {
-      qCritical() << "Failed to save marker";
-      return false;
+      chestnut::throwAndLog("Failed to save marker");
     }
   }
 
