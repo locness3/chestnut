@@ -39,47 +39,50 @@ using FootageWPtr = std::weak_ptr<Footage>;
 
 
 class Footage : public project::ProjectItem {
-public:
-  Footage();
-  explicit Footage(const std::shared_ptr<Media>& parent);
+  public:
+    QString url;
+    int64_t length{0};
+    QVector<project::FootageStreamPtr> video_tracks;
+    QVector<project::FootageStreamPtr> audio_tracks;
 
-  QString url;
-  int64_t length{0};
-  QVector<project::FootageStreamPtr> video_tracks;
-  QVector<project::FootageStreamPtr> audio_tracks;
+    QDir proj_dir_{};
+    int save_id{-1};
+    int folder_{-1};
 
-  QDir proj_dir_{};
-  int save_id{-1};
-  int folder_{-1};
+    double speed{1.0};
 
-  double speed{1.0};
+    PreviewGenerator* preview_gen{nullptr};
 
-  PreviewGenerator* preview_gen{nullptr};
+    // workarea
+    long in{0};
+    long out{0};
+    bool using_inout{false}; // TODO: could be inferred if in/out were optional
 
-  long in{0};
-  long out{0};
-  bool using_inout{false};
+    std::atomic_bool ready_{false};
+    std::atomic_bool has_preview_{false};
 
-  std::atomic_bool ready_{false};
-  std::atomic_bool has_preview_{false};
+    Footage();
+    explicit Footage(const std::shared_ptr<Media>& parent);
+    Footage(const Footage& cpy);
 
+    long get_length_in_frames(const double frame_rate) const;
 
-  long get_length_in_frames(const double frame_rate) const;
+    project::FootageStreamPtr video_stream_from_file_index(const int index);
+    project::FootageStreamPtr audio_stream_from_file_index(const int index);
+    bool has_stream_from_file_index(const int index);
+    bool has_video_stream_from_file_index(const int index);
+    bool has_audio_stream_from_file_index(const int index) const;
+    void reset();
+    bool isImage() const;
+    void setParent(std::shared_ptr<Media> mda);
 
-  project::FootageStreamPtr video_stream_from_file_index(const int index);
-  project::FootageStreamPtr audio_stream_from_file_index(const int index);
-  bool has_stream_from_file_index(const int index);
-  bool has_video_stream_from_file_index(const int index);
-  bool has_audio_stream_from_file_index(const int index) const;
-  void reset();
-  bool isImage() const;
-  virtual bool load(QXmlStreamReader& stream) override;
-  virtual bool save(QXmlStreamWriter& stream) const override;
-private:
-  friend class FootageTest;
-  project::FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
+    virtual bool load(QXmlStreamReader& stream) override;
+    virtual bool save(QXmlStreamWriter& stream) const override;
+  private:
+    friend class FootageTest;
+    project::FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
 
-  std::weak_ptr<Media> parent_mda_;
+    std::weak_ptr<Media> parent_mda_;
 
 };
 

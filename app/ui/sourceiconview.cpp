@@ -25,78 +25,48 @@
 #include "project/sourcescommon.h"
 #include "debug.h"
 
-SourceIconView::SourceIconView(Project *projParent, QWidget *parent)
+SourceIconView::SourceIconView(Project& projParent, QWidget *parent)
   : QListView(parent),
-    project_parent(projParent)
+    chestnut::ui::SourceView(projParent)
 {
   setSelectionMode(QAbstractItemView::ExtendedSelection);
   setResizeMode(QListView::Adjust);
   setContextMenuPolicy(Qt::CustomContextMenu);
+  setAcceptDrops(true);
   connect(this, SIGNAL(clicked(const QModelIndex&)), this, SLOT(item_click(const QModelIndex&)));
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_context_menu()));
 }
 
-SourceIconView::~SourceIconView()
-{
-  project_parent = nullptr;
-}
 
 void SourceIconView::show_context_menu()
 {
-  project_parent->sources_common->show_context_menu(this, selectedIndexes());
+  Q_ASSERT(project_parent_.sources_common);
+  project_parent_.sources_common->show_context_menu(this, selectedIndexes());
 }
 
 void SourceIconView::item_click(const QModelIndex& index)
 {
+  Q_ASSERT(project_parent_.sources_common);
   if ( (selectedIndexes().size() == 1) && (index.column() == 0) ) {
-    project_parent->sources_common->item_click(project_parent->item_to_media(index), index);
+    project_parent_.sources_common->item_click(project_parent_.item_to_media(index), index);
   }
 }
 
 void SourceIconView::mousePressEvent(QMouseEvent* event)
 {
-  project_parent->sources_common->mousePressEvent(event);
+  Q_ASSERT(project_parent_.sources_common);
+  project_parent_.sources_common->mousePressEvent(event);
   if (!indexAt(event->pos()).isValid()) {
     selectionModel()->clear();
   }
   QListView::mousePressEvent(event);
 }
 
-void SourceIconView::dragEnterEvent(QDragEnterEvent *event)
-{
-  Q_ASSERT(event);
-  if (event->mimeData()->hasUrls()) {
-    event->acceptProposedAction();
-  } else {
-    QListView::dragEnterEvent(event);
-  }
-}
-
-void SourceIconView::dragMoveEvent(QDragMoveEvent *event)
-{
-  Q_ASSERT(event);
-  if (event->mimeData()->hasUrls()) {
-    event->acceptProposedAction();
-  } else {
-    QListView::dragMoveEvent(event);
-  }
-}
-
-void SourceIconView::dropEvent(QDropEvent* event)
-{
-  Q_ASSERT(event);
-  QModelIndex drop_item = indexAt(event->pos());
-  if (!drop_item.isValid()) {
-    drop_item = rootIndex();
-  }
-  project_parent->sources_common->dropEvent(this, event, drop_item, selectedIndexes());
-}
-
 void SourceIconView::mouseDoubleClickEvent(QMouseEvent *event)
 {
   bool default_behavior = true;
   if (selectedIndexes().size() == 1) {
-    if (auto m = project_parent->item_to_media(selectedIndexes().front())) {
+    if (auto m = project_parent_.item_to_media(selectedIndexes().front())) {
       if (m->type() == MediaType::FOLDER) {
         default_behavior = false;
         setRootIndex(selectedIndexes().at(0));
@@ -107,6 +77,43 @@ void SourceIconView::mouseDoubleClickEvent(QMouseEvent *event)
     }
   }
   if (default_behavior) {
-    project_parent->sources_common->mouseDoubleClickEvent(event, selectedIndexes());
+    Q_ASSERT(project_parent_.sources_common);
+    project_parent_.sources_common->mouseDoubleClickEvent(event, selectedIndexes());
   }
+}
+
+void SourceIconView::dragEnterEvent(QDragEnterEvent *event)
+{
+  Q_ASSERT(event);
+  if (!onDragEnterEvent(*event)) {
+    QListView::dragEnterEvent(event); //TODO: identify if this is truly needed
+  }
+}
+
+void SourceIconView::dragMoveEvent(QDragMoveEvent *event)
+{
+  Q_ASSERT(event);
+  if (!onDragMoveEvent(*event)) {
+    QListView::dragMoveEvent(event);//TODO: identify if this is truly needed
+  }
+}
+
+void SourceIconView::dropEvent(QDropEvent* event)
+{
+  Q_ASSERT(event);
+  onDropEvent(*event);
+}
+
+QModelIndex SourceIconView::viewIndex(const QPoint& pos) const
+{
+  auto index = indexAt(pos);
+  if (!index.isValid()) {
+    index = rootIndex();
+  }
+  return index;
+}
+
+QModelIndexList SourceIconView::selectedItems() const
+{
+  return selectedIndexes();
 }

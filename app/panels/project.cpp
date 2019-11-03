@@ -160,7 +160,7 @@ Project::Project(QWidget *parent) :
   verticalLayout->addWidget(toolbar_widget);
 
   // tree view
-  tree_view_ = new SourceTable(sorter, this, dockWidgetContents);
+  tree_view_ = new SourceTable(sorter, *this, dockWidgetContents);
   verticalLayout->addWidget(tree_view_);
 
   // icon view
@@ -194,7 +194,7 @@ Project::Project(QWidget *parent) :
 
   icon_view_container_layout->addLayout(icon_view_controls);
 
-  icon_view_ = new SourceIconView(this, dockWidgetContents);
+  icon_view_ = new SourceIconView(*this, dockWidgetContents);
   icon_view_->setModel(sorter);
   icon_view_->setIconSize(QSize(100, 100));
   icon_view_->setViewMode(QListView::IconMode);
@@ -1026,6 +1026,7 @@ void Project::save_project(const bool autorecovery)
     // by saving to a temporary, the original project file is untouched
     save_success = false;
     qWarning() << "Failed to save project file:" << o_file.fileName();
+    //FIXME: visualize this
   }
 
   stream.writeEndDocument(); // doc

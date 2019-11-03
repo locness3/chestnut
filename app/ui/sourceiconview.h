@@ -20,13 +20,14 @@
 
 #include <QListView>
 
+#include "ui/sourceview.h"
+
 class Project;
 
-class SourceIconView : public QListView {
+class SourceIconView : public QListView, public chestnut::ui::SourceView {
     Q_OBJECT
 public:
-    SourceIconView(Project* projParent, QWidget* parent = nullptr);
-    virtual ~SourceIconView();
+    SourceIconView(Project& projParent, QWidget* parent = nullptr);
 
     SourceIconView() = delete;
     SourceIconView(const SourceIconView&) = delete;
@@ -34,18 +35,21 @@ public:
     SourceIconView& operator=(const SourceIconView&) = delete;
     SourceIconView& operator=(const SourceIconView&&) = delete;
 
+  protected:
     void mousePressEvent(QMouseEvent* event) final;
     void mouseDoubleClickEvent(QMouseEvent *event) final;
     void dragEnterEvent(QDragEnterEvent *event) final;
     void dragMoveEvent(QDragMoveEvent *event) final;
     void dropEvent(QDropEvent* event) final;
+
+    QModelIndex viewIndex(const QPoint& pos) const override;
+    QModelIndexList selectedItems() const override;
 signals:
     void changed_root();
 private slots:
     void show_context_menu();
     void item_click(const QModelIndex& index);
 private:
-    Project* project_parent;
 };
 
 #endif // SOURCEICONVIEW_H

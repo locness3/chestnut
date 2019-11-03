@@ -22,21 +22,15 @@
 #include <QTimer>
 #include <QUndoCommand>
 
+#include "ui/sourceview.h"
+
 class Project;
 class Media;
 
-class SourceTable : public QTreeView
-{
+class SourceTable : public QTreeView, public chestnut::ui::SourceView {
     Q_OBJECT
   public:
-    SourceTable(QAbstractItemModel *model, Project* proj_parent, QWidget* parent);
-    ~SourceTable() override;
-
-    SourceTable() = delete;
-    SourceTable(const SourceTable& ) = delete;
-    SourceTable& operator=(const SourceTable&) = delete;
-    SourceTable(const SourceTable&& ) = delete;
-    SourceTable& operator=(const SourceTable&&) = delete;
+    SourceTable(QAbstractItemModel *model, Project& proj_parent, QWidget* parent);
 
   protected:
     void mousePressEvent(QMouseEvent*) override;
@@ -44,13 +38,12 @@ class SourceTable : public QTreeView
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
+    QModelIndex viewIndex(const QPoint& pos) const override;
+    QModelIndexList selectedItems() const override;
   private slots:
-
     void itemClick(const QModelIndex& index);
     void showContextMenu();
   private:
-
-    Project* project_parent_ {nullptr};
 };
 
 #endif // SOURCETABLE_H

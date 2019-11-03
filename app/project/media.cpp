@@ -38,6 +38,8 @@ extern "C" {
 using project::ScanMethod;
 using project::FootageStreamPtr;
 
+int32_t Media::nextID = 0;
+
 namespace
 {
   const auto COLUMN_COUNT = 3;
@@ -71,9 +73,6 @@ QString get_channel_layout_name(const int32_t channels, const uint64_t layout)
   }
 }
 
-int32_t Media::nextID = 0;
-
-
 Media::Media() : Media(nullptr)
 {
   // If no parent, this instance is the root
@@ -90,11 +89,31 @@ Media::Media(const MediaPtr& iparent) :
 
 }
 
+
+Media::Media(const Media& cpy) :
+  root_(cpy.root_),
+  type_(cpy.type_),
+  children_(cpy.children_),
+  parent_(cpy.parent_),
+  folder_name_(cpy.folder_name_),
+  tool_tip_(cpy.tool_tip_),
+  icon_(cpy.icon_),
+  id_(nextID++)
+{
+  if (type_ == MediaType::FOOTAGE) {
+    object_ = std::make_shared<Footage>(dynamic_cast<Footage&>(*cpy.object_));
+  } else if (type_ == MediaType::SEQUENCE) {
+    object_ = std::make_shared<Sequence>(dynamic_cast<Sequence&>(*cpy.object_));
+  } else {
+    // No other valid type
+  }
+}
+
 /**
  * @brief Obtain this instance unique-id
  * @return id
  */
-int32_t Media::id() const 
+int32_t Media::id() const noexcept
 {
   return id_;
 }

@@ -32,6 +32,7 @@
 #include "project/projectfilter.h"
 #include "io/config.h"
 #include "ui/mainwindow.h"
+#include "ui/viewerwidget.h"
 
 constexpr int RENAME_INTERVAL = 1000;
 
@@ -39,21 +40,21 @@ using panels::PanelManager;
 
 SourcesCommon::SourcesCommon(Project* parent) :
   QObject(parent),
-  editing_item(nullptr),
   project_parent(parent)
 {
   rename_timer.setInterval(RENAME_INTERVAL);
   connect(&rename_timer, SIGNAL(timeout()), this, SLOT(rename_interval()));
 }
 
-void SourcesCommon::create_seq_from_selected() {
+void SourcesCommon::create_seq_from_selected()
+{
   if (!selected_items.isEmpty()) {
     QVector<MediaPtr> media_list;
     for (const auto& item : selected_items) {
       media_list.append(project_parent->item_to_media(item));
     }
 
-    auto* const ca = new ComboAction();
+    auto ca = new ComboAction();
     auto seq = std::make_shared<Sequence>(media_list, PanelManager::projectViewer().get_next_sequence_name());
 
     // add clips to it
@@ -213,13 +214,21 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& 
   }
 }
 
-void SourcesCommon::dropEvent(QWidget* parent, QDropEvent *event, const QModelIndex& drop_item, const QModelIndexList& items) {
+void SourcesCommon::dropEvent(QWidget* parent,
+                              QDropEvent *event,
+                              const QModelIndex& drop_item,
+                              const QModelIndexList& items)
+{
+  Q_ASSERT(parent);
+  Q_ASSERT(event);
+
   const QMimeData* mimeData = event->mimeData();
   auto m = project_parent->item_to_media(drop_item);
   if (!m) {
     qCritical() << "Null Media ptr";
     return;
   }
+
   if (mimeData->hasUrls()) {
     // drag files in from outside
     QList<QUrl> urls = mimeData->urls();
@@ -314,7 +323,8 @@ void SourcesCommon::reveal_in_browser()
   QDesktopServices::openUrl(QUrl::fromLocalFile(dir));
 }
 
-void SourcesCommon::stop_rename_timer() {
+void SourcesCommon::stop_rename_timer()
+{
   rename_timer.stop();
 }
 

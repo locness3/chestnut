@@ -29,20 +29,22 @@
 #include <QProcess>
 
 #include "panels/project.h"
+#include "panels/panelmanager.h"
 #include "project/footage.h"
 #include "playback/playback.h"
 #include "project/undo.h"
 #include "project/sequence.h"
 #include "ui/mainwindow.h"
+#include "ui/viewerwidget.h"
 #include "io/config.h"
 #include "project/media.h"
 #include "project/sourcescommon.h"
 #include "debug.h"
 
 
-SourceTable::SourceTable(QAbstractItemModel* model, Project* proj_parent, QWidget* parent)
+SourceTable::SourceTable(QAbstractItemModel* model, Project& proj_parent, QWidget* parent)
   : QTreeView(parent),
-    project_parent_(proj_parent)
+    chestnut::ui::SourceView(proj_parent)
 {
   setModel(model);
   setSortingEnabled(true);
@@ -57,68 +59,70 @@ SourceTable::SourceTable(QAbstractItemModel* model, Project* proj_parent, QWidge
   header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
-SourceTable::~SourceTable()
-{
-  project_parent_ = nullptr;
-}
 
 void SourceTable::showContextMenu()
 {
-  Q_ASSERT(project_parent_);
-  Q_ASSERT(project_parent_->sources_common);
-  project_parent_->sources_common->show_context_menu(this, selectionModel()->selectedRows());
+  Q_ASSERT(project_parent_.sources_common);
+  project_parent_.sources_common->show_context_menu(this, selectionModel()->selectedRows());
 }
 
 
 
 void SourceTable::itemClick(const QModelIndex& index)
 {
-  Q_ASSERT(project_parent_);
-  Q_ASSERT(project_parent_->sources_common);
+  Q_ASSERT(project_parent_.sources_common);
   if ((selectionModel()->selectedRows().size() == 1) && (index.column() == 0)) {
-    project_parent_->sources_common->item_click(project_parent_->item_to_media(index), index);
+    project_parent_.sources_common->item_click(project_parent_.item_to_media(index), index);
   }
 }
 
 void SourceTable::mousePressEvent(QMouseEvent* event)
 {
-  Q_ASSERT(project_parent_);
-  Q_ASSERT(project_parent_->sources_common);
-  project_parent_->sources_common->mousePressEvent(event);
+  Q_ASSERT(project_parent_.sources_common);
+  project_parent_.sources_common->mousePressEvent(event);
   QTreeView::mousePressEvent(event);
 }
 
 void SourceTable::mouseDoubleClickEvent(QMouseEvent* event)
 {
-  Q_ASSERT(project_parent_);
-  Q_ASSERT(project_parent_->sources_common);
-  project_parent_->sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
+  Q_ASSERT(project_parent_.sources_common);
+  project_parent_.sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
 }
 
 void SourceTable::dragEnterEvent(QDragEnterEvent *event)
 {
   Q_ASSERT(event);
-  if (event->mimeData()->hasUrls()) {
-    event->acceptProposedAction();
-  } else {
-    QTreeView::dragEnterEvent(event);
+  if (!onDragEnterEvent(*event)) {
+    QTreeView::dragEnterEvent(event); //TODO: identify if this is truly needed
   }
 }
 
 void SourceTable::dragMoveEvent(QDragMoveEvent *event)
 {
   Q_ASSERT(event);
-  if (event->mimeData()->hasUrls()) {
-    event->acceptProposedAction();
-  } else {
-    QTreeView::dragMoveEvent(event);
+  if (!onDragMoveEvent(*event)) {
+    QTreeView::dragMoveEvent(event);//TODO: identify if this is truly needed
   }
 }
 
 void SourceTable::dropEvent(QDropEvent* event)
 {
   Q_ASSERT(event);
-  Q_ASSERT(project_parent_);
-  Q_ASSERT(project_parent_->sources_common);
-  project_parent_->sources_common->dropEvent(this, event, indexAt(event->pos()), selectionModel()->selectedRows());
+  onDropEvent(*event);
+}
+
+
+QModelIndex SourceTable::viewIndex(const QPoint& pos) const
+{
+  auto index = indexAt(pos);
+  if (!index.isValid()) {
+    index = rootIndex();
+  }
+  return index;
+}
+
+
+QModelIndexList SourceTable::selectedItems() const
+{
+  return selectionModel()->selectedRows();
 }

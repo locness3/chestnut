@@ -347,6 +347,7 @@ bool same_sign(int a, int b) {
 
 void TimelineWidget::dragEnterEvent(QDragEnterEvent *event)
 {
+  Q_ASSERT(event);
   bool import_init = false;
 
   QVector<MediaPtr> media_list;
@@ -368,8 +369,7 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event)
   }
   // Dragging footage from the media-viewer window
   else if (event->source() == PanelManager::footageViewer().viewer_widget) {
-    auto proposed_seq = PanelManager::footageViewer().getSequence();
-    if (proposed_seq != global::sequence) { // don't allow nesting the same sequence
+    if (PanelManager::footageViewer().getSequence() != global::sequence) { // don't allow nesting the same sequence
       if (auto mda = PanelManager::footageViewer().getMedia()) {
         qDebug() << "Dragging from footage viewer to timeline, " << mda->name();
         media_list.append(mda);

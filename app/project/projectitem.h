@@ -34,9 +34,6 @@ class ProjectItem : public IXMLStreamer {
 public:
   ProjectItem() = default;
   explicit ProjectItem(const QString& itemName);
-  virtual ~ProjectItem() = default;
-  ProjectItem(const ProjectItem&) = default;
-  ProjectItem& operator=(const ProjectItem&) = default;
 
   void setName(const QString& val);
   const QString& name() const;

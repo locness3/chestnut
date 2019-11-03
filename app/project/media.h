@@ -54,11 +54,15 @@ using MediaPtr = std::shared_ptr<Media>;
 using MediaWPtr = std::weak_ptr<Media>;
 
 
+// FIXME: the confused use of the classes Footage and Sequence for the object_
+// Either template this class or create subclasses inheriting this
 class Media : public std::enable_shared_from_this<Media>, public project::IXMLStreamer
 {
 public:
     Media();
     explicit Media(const MediaPtr& iparent);
+
+    Media(const Media& cpy);
 
     template<typename T>
     auto object() {
@@ -68,7 +72,7 @@ public:
      * @brief Obtain this instance unique-id
      * @return id
      */
-    int32_t id() const;
+    int32_t id() const noexcept;
     void setId(const int32_t id);
     void clearObject();
     bool setFootage(const FootagePtr& ftg);

@@ -52,13 +52,15 @@ private slots:
     void rename_interval();
     void item_renamed(const MediaPtr& item);
 private:
-    QAbstractItemView* view = nullptr;
-    MediaPtr editing_item;
+    QAbstractItemView* view {nullptr};
+    MediaPtr editing_item {nullptr};
     QModelIndex editing_index;
     QModelIndexList selected_items;
-    Project* project_parent;
+    Project* project_parent {nullptr};
     QTimer rename_timer;
+
     void stop_rename_timer();
+    void createSubClipFromFootage();
 };
 
 #endif // SOURCESCOMMON_H

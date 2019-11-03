@@ -33,6 +33,28 @@ Footage::Footage() : Footage(nullptr)
 
 }
 
+
+Footage::Footage(const Footage& cpy)
+  : ProjectItem(cpy),
+    url(cpy.url),
+    length(cpy.length),
+    video_tracks(cpy.video_tracks),
+    audio_tracks(cpy.audio_tracks),
+    proj_dir_(cpy.proj_dir_),
+    save_id(0),
+    folder_(cpy.folder_),
+    speed(cpy.speed),
+    preview_gen(cpy.preview_gen),
+    in(cpy.in),
+    out(cpy.out),
+    using_inout(cpy.using_inout),
+    ready_(cpy.ready_.load()),
+    has_preview_(cpy.has_preview_.load()),
+    parent_mda_(/*cpy.parent_mda_*/) // this parent is of the wrong media object
+{
+
+}
+
 Footage::Footage(const std::shared_ptr<Media>& parent) : parent_mda_(parent)
 {
 }
@@ -51,6 +73,12 @@ void Footage::reset()
 bool Footage::isImage() const
 {
   return (has_preview_ && !video_tracks.empty()) && video_tracks.front()->infinite_length && (audio_tracks.empty());
+}
+
+
+void Footage::setParent(std::shared_ptr<Media> mda)
+{
+  parent_mda_ = mda;
 }
 
 bool Footage::load(QXmlStreamReader& stream)

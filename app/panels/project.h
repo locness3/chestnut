@@ -125,6 +125,8 @@ public slots:
     void replace_selected_file();
     void replace_clip_media();
     void open_properties();
+
+  protected:
 private:
     int folder_id;
     int media_id;
