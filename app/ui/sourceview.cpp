@@ -26,6 +26,7 @@
 #include "project/sourcescommon.h"
 #include "project/projectmodel.h"
 #include "io/config.h"
+#include "Forms/subclipcreatedialog.h"
 
 using panels::PanelManager;
 using chestnut::ui::SourceView;
@@ -93,12 +94,23 @@ void SourceView::addSubclipToProject(const QDropEvent& event) const
     return mda;
   }));
 
-
-
   auto mda(std::make_shared<Media>(*orig_media));
-  const QDateTime now(QDateTime::currentDateTime());
-  const QString fmt("%1-subclip-%2");
-  mda->setName(fmt.arg(mda->name()).arg(now.toString(Qt::ISODate)));
+  QString sub_name;
+  if (event.keyboardModifiers() & Qt::ShiftModifier) {
+    auto dial = SubClipCreateDialog(orig_media->name());
+    dial.exec();
+    sub_name = dial.subClipName();
+    if (sub_name.length() == 0) {
+      qInfo() << "Cancelled creating sub-clip";
+      return;
+    }
+  } else {
+    const QDateTime now(QDateTime::currentDateTime());
+    const QString fmt("%1-subclip-%2");
+    sub_name = fmt.arg(mda->name()).arg(now.toString(Qt::ISODate));
+  }
+
+  mda->setName(sub_name);
   if (auto ftg = mda->object<Footage>()) {
     // FIXME: don't like this one bit. It's linked to how Footage/Sequence/Folder/Media relationships are poorly designed
     ftg->setParent(mda);

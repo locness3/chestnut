@@ -15,6 +15,7 @@ SOURCES += \
     project/objectclip.cpp \
     project/track.cpp \
     ui/Forms/effects.cpp \
+    ui/Forms/subclipcreatedialog.cpp \
     ui/Forms/timelinetrackarea.cpp \
     ui/Forms/trackareawidget.cpp \
     ui/blankscrollarea.cpp \
@@ -128,6 +129,7 @@ HEADERS += \
     project/objectclip.h \
     project/track.h \
     ui/Forms/effects.h \
+    ui/Forms/subclipcreatedialog.h \
     ui/Forms/timelinetrackarea.h \
     ui/Forms/trackareawidget.h \
     ui/blankscrollarea.h \
@@ -257,6 +259,7 @@ FORMS += \
     ui/Forms/effects.ui \
     ui/Forms/markersviewer.ui \
     ui/Forms/markerwidget.ui \
+    ui/Forms/subclipcreatedialog.ui \
     ui/Forms/timelinetrackarea.ui \
     ui/Forms/trackareawidget.ui
 
