@@ -315,7 +315,7 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
         if (ftg->isImage()) {
           g.out = g.in + STILL_IMAGE_FRAMES; //TODO: shouldn't this be calculated to a duration?
         } else {
-          long length = ftg->get_length_in_frames(seq->frameRate());
+          long length = ftg->totalLengthInFrames(seq->frameRate());
           g.out = entry + length - default_clip_in;
           if (ftg->using_inout) {
             g.out -= (length - default_clip_out);
@@ -1387,8 +1387,6 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
     }
 
     // snap to clip/transition
-//    for (int i=0;i<sequence_->clips().size();i++) {
-//      ClipPtr c = sequence_->clips().at(i);
     for (const auto& c : sequence_->clips()) {
       if (c == nullptr) {
         continue;

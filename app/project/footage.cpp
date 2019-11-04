@@ -37,7 +37,7 @@ Footage::Footage() : Footage(nullptr)
 Footage::Footage(const Footage& cpy)
   : ProjectItem(cpy),
     url(cpy.url),
-    length(cpy.length),
+    length_(cpy.length_),
     video_tracks(cpy.video_tracks),
     audio_tracks(cpy.audio_tracks),
     proj_dir_(cpy.proj_dir_),
@@ -130,7 +130,7 @@ bool Footage::load(QXmlStreamReader& stream)
     } else if (elem_name == "url") {
       url = stream.readElementText();
     } else if (elem_name == "duration") {
-      length = stream.readElementText().toLong();
+      length_ = stream.readElementText().toLong();
     } else if (elem_name == "marker"){
       auto mrkr = std::make_shared<Marker>();
       mrkr->load(stream);
@@ -142,26 +142,26 @@ bool Footage::load(QXmlStreamReader& stream)
   }
 
   //TODO: check what this does
-//      if (!QFileInfo::exists(url)) { // if path is not absolute
-//        QString proj_dir_test = proj_dir.absoluteFilePath(url);
-//        QString internal_proj_dir_test = internal_proj_dir.absoluteFilePath(url);
+  //      if (!QFileInfo::exists(url)) { // if path is not absolute
+  //        QString proj_dir_test = proj_dir.absoluteFilePath(url);
+  //        QString internal_proj_dir_test = internal_proj_dir.absoluteFilePath(url);
 
-//        if (QFileInfo::exists(proj_dir_test)) { // if path is relative to the project's current dir
-//          url = proj_dir_test;
-//          qInfo() << "Matched" << attr.value().toString() << "relative to project's current directory";
-//        } else if (QFileInfo::exists(internal_proj_dir_test)) { // if path is relative to the last directory the project was saved in
-//          url = internal_proj_dir_test;
-//          qInfo() << "Matched" << attr.value().toString() << "relative to project's internal directory";
-//        } else if (url.contains('%')) {
-//          // hack for image sequences (qt won't be able to find the URL with %, but ffmpeg may)
-//          url = internal_proj_dir_test;
-//          qInfo() << "Guess image sequence" << attr.value().toString() << "path to project's internal directory";
-//        } else {
-//          qInfo() << "Failed to match" << attr.value().toString() << "to file";
-//        }
-//      } else {
-//        qInfo() << "Matched" << attr.value().toString() << "with absolute path";
-//      }
+  //        if (QFileInfo::exists(proj_dir_test)) { // if path is relative to the project's current dir
+  //          url = proj_dir_test;
+  //          qInfo() << "Matched" << attr.value().toString() << "relative to project's current directory";
+  //        } else if (QFileInfo::exists(internal_proj_dir_test)) { // if path is relative to the last directory the project was saved in
+  //          url = internal_proj_dir_test;
+  //          qInfo() << "Matched" << attr.value().toString() << "relative to project's internal directory";
+  //        } else if (url.contains('%')) {
+  //          // hack for image sequences (qt won't be able to find the URL with %, but ffmpeg may)
+  //          url = internal_proj_dir_test;
+  //          qInfo() << "Guess image sequence" << attr.value().toString() << "path to project's internal directory";
+  //        } else {
+  //          qInfo() << "Failed to match" << attr.value().toString() << "to file";
+  //        }
+  //      } else {
+  //        qInfo() << "Matched" << attr.value().toString() << "with absolute path";
+  //      }
   return true;
 }
 
@@ -183,7 +183,7 @@ bool Footage::save(QXmlStreamWriter& stream) const
 
   stream.writeTextElement("name", name_);
   stream.writeTextElement("url", QDir(url).absolutePath());
-  stream.writeTextElement("duration", QString::number(length));
+  stream.writeTextElement("duration", QString::number(length_));
 
   for (const auto& ms : video_tracks) {
     if (!ms) {
@@ -209,16 +209,33 @@ bool Footage::save(QXmlStreamWriter& stream) const
   return true;
 }
 
-long Footage::get_length_in_frames(const double frame_rate) const
+constexpr long lengthToFrames(const int64_t length, const double frame_rate, const double speed)
 {
-  Q_ASSERT(!qFuzzyIsNull(speed));
   Q_ASSERT(AV_TIME_BASE != 0);
-
   if (length >= 0) {
     return static_cast<long>(std::floor( (static_cast<double>(length) / AV_TIME_BASE)
                                          * (frame_rate / speed) ));
   }
   return 0;
+}
+
+long Footage::totalLengthInFrames(const double frame_rate) const noexcept
+{
+  Q_ASSERT(!qFuzzyIsNull(speed));
+
+  if (length_ >= 0) {
+    return lengthToFrames(length_, frame_rate, speed);
+  }
+  return 0;
+}
+
+
+long Footage::activeLengthInFrames(const double frame_rate) const noexcept
+{
+  if (using_inout) {
+    return qMax(out - in, 0L);
+  }
+  return totalLengthInFrames(frame_rate);
 }
 
 FootageStreamPtr Footage::video_stream_from_file_index(const int index)

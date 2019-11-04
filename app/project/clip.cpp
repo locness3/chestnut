@@ -1379,7 +1379,7 @@ void Clip::recalculateMaxLength()
             if (ms != nullptr && ms->infinite_length) {
               media_handling_.calculated_length_ = LONG_MAX;
             } else {
-              media_handling_.calculated_length_ = ftg->get_length_in_frames(fr);
+              media_handling_.calculated_length_ = ftg->totalLengthInFrames(fr);
             }
           }
         }

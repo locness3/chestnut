@@ -469,7 +469,7 @@ void Viewer::pause()
       clp->timeline_info.media = mda; // latest media
       clp->timeline_info.media_stream = 0;
       clp->timeline_info.in = recording_start;
-      clp->timeline_info.out = recording_start + ftg->get_length_in_frames(seq->frameRate());
+      clp->timeline_info.out = recording_start + ftg->totalLengthInFrames(seq->frameRate());
       clp->timeline_info.clip_in = 0;
       clp->timeline_info.track_ = recording_track;
       clp->timeline_info.color = PAUSE_COLOR;
@@ -597,11 +597,13 @@ void Viewer::toggle_enable_inout() {
 void Viewer::set_in_point()
 {
   headers->set_in_point(seq->playhead_);
+  PanelManager::projectViewer().updatePanel();
 }
 
 void Viewer::set_out_point()
 {
   headers->set_out_point(seq->playhead_);
+  PanelManager::projectViewer().updatePanel();
 }
 
 void Viewer::set_zoom(bool in)
@@ -793,7 +795,7 @@ SequencePtr Viewer::createFootageSequence(const MediaPtr& mda) const
     clp->timeline_info.media        = mda;
     clp->timeline_info.media_stream = video_stream->file_index;
     clp->timeline_info.in           = 0;
-    clp->timeline_info.out          = ftg->get_length_in_frames(sqn->frameRate());
+    clp->timeline_info.out          = ftg->totalLengthInFrames(sqn->frameRate());
     if (clp->timeline_info.out <= 0) {
       clp->timeline_info.out = 150;
     }
@@ -814,7 +816,7 @@ SequencePtr Viewer::createFootageSequence(const MediaPtr& mda) const
     clp->timeline_info.media        = mda;
     clp->timeline_info.media_stream = audio_stream->file_index;
     clp->timeline_info.in           = 0;
-    clp->timeline_info.out          = ftg->get_length_in_frames(sqn->frameRate());
+    clp->timeline_info.out          = ftg->totalLengthInFrames(sqn->frameRate());
     clp->timeline_info.track_       = 0;
     clp->timeline_info.clip_in      = 0;
     clp->recalculateMaxLength();
