@@ -144,7 +144,7 @@ void PreviewGenerator::parse_media()
           ms->video_interlacing = ScanMethod::UNKNOWN;
 
           append = true;
-        } else if (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {          
+        } else if (stream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
           ms->type_ = StreamType::AUDIO;
           ms->audio_channels = stream->codecpar->channels;
           ms->audio_layout = stream->codecpar->channel_layout;
@@ -168,7 +168,7 @@ void PreviewGenerator::parse_media()
         }
       }
     }
-    ftg->length = fmt_ctx->duration;
+    ftg->length_ = fmt_ctx->duration;
 
     if (fmt_ctx->duration == INT64_MIN) {
       retrieve_duration = true;
@@ -452,15 +452,15 @@ void PreviewGenerator::generate_waveform()
       }
     }
     if (retrieve_duration) {
-      ftg->length = 0;
+      ftg->length_ = 0;
       int maximum_stream = 0;
       for (unsigned int i=0; i < media_lengths.size(); ++i) {
         if (media_lengths[i] > media_lengths[maximum_stream]) {
           maximum_stream = i;
         }
       }
-      ftg->length = lround(static_cast<double>(media_lengths[maximum_stream])
-                           / av_q2d(streams[maximum_stream]->avg_frame_rate) * AV_TIME_BASE); // TODO redo with PTS
+      ftg->length_ = lround(static_cast<double>(media_lengths[maximum_stream])
+                            / av_q2d(streams[maximum_stream]->avg_frame_rate) * AV_TIME_BASE); // TODO redo with PTS
       finalize_media();
     }
 
@@ -551,8 +551,8 @@ void PreviewGenerator::run()
         // see if we already have data for this
         const QFileInfo file_info(ftg->url);
         const QString cache_file(ftg->url.mid(ftg->url.lastIndexOf('/')+1)
-                             + QString::number(file_info.size())
-                             + QString::number(file_info.lastModified().toMSecsSinceEpoch()));
+                                 + QString::number(file_info.size())
+                                 + QString::number(file_info.lastModified().toMSecsSinceEpoch()));
         const QString hash(QCryptographicHash::hash(cache_file.toUtf8(), QCryptographicHash::Md5).toHex());
 
         if (!retrieve_preview(hash)) {

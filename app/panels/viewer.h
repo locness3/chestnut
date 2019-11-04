@@ -126,17 +126,6 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
   private:
     friend class ViewerTest;
 
-    void update_window_title();
-    void clean_created_seq();
-    void set_sequence(bool main, SequencePtr s);
-    void set_zoom_value(double d);
-    void set_sb_max();
-
-    int64_t get_seq_in() const;
-    int64_t get_seq_out() const;
-
-    void setup_ui();
-
     SequencePtr seq {nullptr};
     MediaPtr media {nullptr};
 
@@ -164,6 +153,17 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     QTimer recording_flasher;
 
     int64_t previous_playhead {-1};
+
+    void update_window_title();
+    void clean_created_seq();
+    void set_sequence(bool main, SequencePtr s);
+    void set_zoom_value(double d);
+    void set_sb_max();
+
+    int64_t get_seq_in() const;
+    int64_t get_seq_out() const;
+
+    void setup_ui();
 
     SequencePtr createFootageSequence(const MediaPtr& mda) const;
 };

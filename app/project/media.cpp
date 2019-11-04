@@ -190,7 +190,7 @@ void Media::updateTooltip(const QString& error)
     {
       auto ftg = object<Footage>();
       tool_tip_ = QCoreApplication::translate("Media", "Name:") + " " + ftg->name() + "\n"
-                 + QCoreApplication::translate("Media", "Filename:") + " " + ftg->url + "\n";
+                  + QCoreApplication::translate("Media", "Filename:") + " " + ftg->url + "\n";
 
       if (error.isEmpty()) {
         if (!ftg->video_tracks.empty()) {
@@ -200,7 +200,7 @@ void Media::updateTooltip(const QString& error)
               tool_tip_ += ", ";
             }
             tool_tip_ += QString::number(ftg->video_tracks.at(i)->video_width) + "x"
-                        + QString::number(ftg->video_tracks.at(i)->video_height);
+                         + QString::number(ftg->video_tracks.at(i)->video_height);
           }
           tool_tip_ += "\n";
 
@@ -214,9 +214,9 @@ void Media::updateTooltip(const QString& error)
                 tool_tip_ += QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed);
               } else {
                 tool_tip_ += QCoreApplication::translate("Media", "%1 fields (%2 frames)").arg(
-                              QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed * 2),
-                              QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed)
-                              );
+                               QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed * 2),
+                               QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed)
+                               );
               }
             }
             tool_tip_ += "\n";
@@ -249,7 +249,7 @@ void Media::updateTooltip(const QString& error)
               tool_tip_ += ", ";
             }
             tool_tip_ += get_channel_layout_name(ftg->audio_tracks.at(i)->audio_channels,
-                                                ftg->audio_tracks.at(i)->audio_layout);
+                                                 ftg->audio_tracks.at(i)->audio_layout);
           }
           // tooltip += "\n";
         }
@@ -263,17 +263,17 @@ void Media::updateTooltip(const QString& error)
       auto sqn = object<Sequence>();
 
       tool_tip_ = QCoreApplication::translate("Media", "Name: %1"
-                                                      "\nVideo Dimensions: %2x%3"
-                                                      "\nFrame Rate: %4"
-                                                      "\nAudio Frequency: %5"
-                                                      "\nAudio Layout: %6").arg(
-                   sqn->name(),
-                   QString::number(sqn->width()),
-                   QString::number(sqn->height()),
-                   QString::number(sqn->frameRate()),
-                   QString::number(sqn->audioFrequency()),
-                   get_channel_layout_name(av_get_channel_layout_nb_channels(sqn->audioLayout()), sqn->audioLayout())
-                   );
+                                                       "\nVideo Dimensions: %2x%3"
+                                                       "\nFrame Rate: %4"
+                                                       "\nAudio Frequency: %5"
+                                                       "\nAudio Layout: %6").arg(
+                    sqn->name(),
+                    QString::number(sqn->width()),
+                    QString::number(sqn->height()),
+                    QString::number(sqn->frameRate()),
+                    QString::number(sqn->audioFrequency()),
+                    get_channel_layout_name(av_get_channel_layout_nb_channels(sqn->audioLayout()), sqn->audioLayout())
+                    );
     }
       break;
     default:
@@ -292,7 +292,7 @@ const QString &Media::name()  const
   switch (type_) {
     case MediaType::FOOTAGE:
       [[fallthrough]];
-    case MediaType::SEQUENCE: 
+    case MediaType::SEQUENCE:
       return object_->name();
     default: return folder_name_;
   }
@@ -409,7 +409,7 @@ QVariant Media::data(const int32_t column, const int32_t role)
         if (type() == MediaType::FOOTAGE) {
           FootagePtr f = object<Footage>();
           if ( (!f->video_tracks.empty())
-              && f->video_tracks.front()->preview_done) {
+               && f->video_tracks.front()->preview_done) {
             return f->video_tracks.front()->video_preview_square;
           }
         }
@@ -419,22 +419,23 @@ QVariant Media::data(const int32_t column, const int32_t role)
       break;
     case Qt::DisplayRole:
       switch (column) {
-        case 0: return (root_) ? QCoreApplication::translate("Media", "Name") : name();
+        case 0:
+          return (root_) ? QCoreApplication::translate("Media", "Name") : name();
         case 1:
         {
           if (root_) {
             return QCoreApplication::translate("Media", "Duration");
           }
           if (type() == MediaType::SEQUENCE) {
-            SequencePtr s = object<Sequence>();
-            return frame_to_timecode(s->endFrame(), e_config.timecode_view, s->frameRate());
+            auto seq = object<Sequence>();
+            return frame_to_timecode(seq->endFrame(), e_config.timecode_view, seq->frameRate());
           }
           if (type() == MediaType::FOOTAGE) {
-            FootagePtr f = object<Footage>();
-            double r = 30;
+            auto ftg = object<Footage>();
+            double rate = 30;
 
-            if ( (!f->video_tracks.empty()) && !qIsNull(f->video_tracks.front()->video_frame_rate)) {
-              r = f->video_tracks.front()->video_frame_rate * f->speed;
+            if ( (!ftg->video_tracks.empty()) && !qIsNull(ftg->video_tracks.front()->video_frame_rate)) {
+              rate = ftg->video_tracks.front()->video_frame_rate * ftg->speed;
             }
 
             if (const auto len = ftg->activeLengthInFrames(rate); len > 0) {
@@ -444,10 +445,15 @@ QVariant Media::data(const int32_t column, const int32_t role)
         }
           break;
         case 2:
-          if (root_) return QCoreApplication::translate("Media", "Rate");
-          if (type() == MediaType::SEQUENCE) return QString::number(frameRate(),
-                                                                    FRAME_RATE_ARG_FORMAT,
-                                                                    FRAME_RATE_DECIMAL_POINTS) + " FPS";
+        {
+          if (root_) {
+            return QCoreApplication::translate("Media", "Rate");
+          }
+          if (type() == MediaType::SEQUENCE) {
+            return QString::number(frameRate(),
+                                   FRAME_RATE_ARG_FORMAT,
+                                   FRAME_RATE_DECIMAL_POINTS) + " FPS";
+          }
           if (type() == MediaType::FOOTAGE) {
             auto ftg = object<Footage>();
             const double rate = frameRate();
@@ -459,6 +465,7 @@ QVariant Media::data(const int32_t column, const int32_t role)
             }
             return ret_str;
           }
+        }
           break;
         default:
           // There's only 3 columns

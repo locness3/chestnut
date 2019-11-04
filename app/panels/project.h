@@ -58,6 +58,13 @@ QString get_interlacing_name(const project::ScanMethod interlacing);
 class Project : public QDockWidget {
     Q_OBJECT
 public:
+    SourceTable* tree_view_{nullptr};
+    SourceIconView* icon_view_ {nullptr};
+    SourcesCommon* sources_common_ {nullptr};
+    ProjectFilter* sorter_ {nullptr};
+    QWidget* toolbar_widget_ {nullptr};
+
+
     explicit Project(QWidget *parent = nullptr);
     virtual ~Project();
 
@@ -114,12 +121,6 @@ public:
      * @brief Force an widget redraw of the Project panel
      */
     void updatePanel();
-
-    SourceTable* tree_view_;
-    SourceIconView* icon_view_;
-    SourcesCommon* sources_common;
-    ProjectFilter* sorter;
-    QWidget* toolbar_widget;
 
 public slots:
     void import_dialog();

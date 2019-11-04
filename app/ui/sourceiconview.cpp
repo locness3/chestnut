@@ -40,22 +40,22 @@ SourceIconView::SourceIconView(Project& projParent, QWidget *parent)
 
 void SourceIconView::show_context_menu()
 {
-  Q_ASSERT(project_parent_.sources_common);
-  project_parent_.sources_common->show_context_menu(this, selectedIndexes());
+  Q_ASSERT(project_parent_.sources_common_);
+  project_parent_.sources_common_->show_context_menu(this, selectedIndexes());
 }
 
 void SourceIconView::item_click(const QModelIndex& index)
 {
-  Q_ASSERT(project_parent_.sources_common);
+  Q_ASSERT(project_parent_.sources_common_);
   if ( (selectedIndexes().size() == 1) && (index.column() == 0) ) {
-    project_parent_.sources_common->item_click(project_parent_.item_to_media(index), index);
+    project_parent_.sources_common_->item_click(project_parent_.item_to_media(index), index);
   }
 }
 
 void SourceIconView::mousePressEvent(QMouseEvent* event)
 {
-  Q_ASSERT(project_parent_.sources_common);
-  project_parent_.sources_common->mousePressEvent(event);
+  Q_ASSERT(project_parent_.sources_common_);
+  project_parent_.sources_common_->mousePressEvent(event);
   if (!indexAt(event->pos()).isValid()) {
     selectionModel()->clear();
   }
@@ -77,8 +77,8 @@ void SourceIconView::mouseDoubleClickEvent(QMouseEvent *event)
     }
   }
   if (default_behavior) {
-    Q_ASSERT(project_parent_.sources_common);
-    project_parent_.sources_common->mouseDoubleClickEvent(event, selectedIndexes());
+    Q_ASSERT(project_parent_.sources_common_);
+    project_parent_.sources_common_->mouseDoubleClickEvent(event, selectedIndexes());
   }
 }
 

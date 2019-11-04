@@ -93,10 +93,8 @@ void TimelineHeader::set_playhead(int mouse_x)
   if (snapping) {
     PanelManager::timeLine().snap_to_timeline(&frame, false, true, true);
   }
-  if (auto sqn = viewer_->getSequence()) {
-    if (frame != sqn->playhead_) {
-      viewer_->seek(frame);
-    }
+  if (auto sqn = viewer_->getSequence(); sqn->playhead_ != frame) {
+    viewer_->seek(frame);
   }
 }
 

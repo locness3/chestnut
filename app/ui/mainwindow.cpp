@@ -1471,10 +1471,10 @@ void MainWindow::new_folder()
   QModelIndex index = Project::model().add(m);
   switch (e_config.project_view_type) {
   case ProjectView::TREE:
-    PanelManager::projectViewer().tree_view_->edit(PanelManager::projectViewer().sorter->mapFromSource(index));
+    PanelManager::projectViewer().tree_view_->edit(PanelManager::projectViewer().sorter_->mapFromSource(index));
     break;
   case ProjectView::ICON:
-    PanelManager::projectViewer().icon_view_->edit(PanelManager::projectViewer().sorter->mapFromSource(index));
+    PanelManager::projectViewer().icon_view_->edit(PanelManager::projectViewer().sorter_->mapFromSource(index));
     break;
   default:
     qWarning() << "Unhandled Project View type";

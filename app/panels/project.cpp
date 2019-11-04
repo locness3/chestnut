@@ -103,18 +103,18 @@ Project::Project(QWidget *parent) :
 
   setWidget(dockWidgetContents);
 
-  sources_common = new SourcesCommon(this);
+  sources_common_ = new SourcesCommon(this);
 
-  sorter = new ProjectFilter(this);
-  sorter->setSourceModel(&Project::model());
+  sorter_ = new ProjectFilter(this);
+  sorter_->setSourceModel(&Project::model());
 
   // optional toolbar
-  toolbar_widget = new QWidget();
-  toolbar_widget->setVisible(e_config.show_project_toolbar);
+  toolbar_widget_ = new QWidget();
+  toolbar_widget_->setVisible(e_config.show_project_toolbar);
   QHBoxLayout* toolbar = new QHBoxLayout();
   toolbar->setMargin(0);
   toolbar->setSpacing(0);
-  toolbar_widget->setLayout(toolbar);
+  toolbar_widget_->setLayout(toolbar);
 
   auto toolbar_new = new QPushButton("New");
   toolbar_new->setIcon(QIcon(":/icons/tri-down.png"));
@@ -155,10 +155,10 @@ Project::Project(QWidget *parent) :
   connect(toolbar_icon_view, SIGNAL(clicked(bool)), this, SLOT(set_icon_view()));
   toolbar->addWidget(toolbar_icon_view);
 
-  verticalLayout->addWidget(toolbar_widget);
+  verticalLayout->addWidget(toolbar_widget_);
 
   // tree view
-  tree_view_ = new SourceTable(sorter, *this, dockWidgetContents);
+  tree_view_ = new SourceTable(sorter_, *this, dockWidgetContents);
   verticalLayout->addWidget(tree_view_);
 
   // icon view
@@ -193,7 +193,7 @@ Project::Project(QWidget *parent) :
   icon_view_container_layout->addLayout(icon_view_controls);
 
   icon_view_ = new SourceIconView(*this, dockWidgetContents);
-  icon_view_->setModel(sorter);
+  icon_view_->setModel(sorter_);
   icon_view_->setIconSize(QSize(100, 100));
   icon_view_->setViewMode(QListView::IconMode);
   icon_view_->setUniformItemSizes(true);
@@ -214,8 +214,8 @@ Project::Project(QWidget *parent) :
 
 Project::~Project()
 {
-  delete sorter;
-  delete sources_common;
+  delete sorter_;
+  delete sources_common_;
 }
 
 
@@ -409,8 +409,8 @@ MediaPtr Project::newFolder(const QString &name)
 }
 
 MediaPtr Project::item_to_media(const QModelIndex &index) {
-  if (sorter != nullptr) {
-    const auto src = sorter->mapToSource(index);
+  if (sorter_ != nullptr) {
+    const auto src = sorter_->mapToSource(index);
     return Project::model().get(src);
   }
 
@@ -466,7 +466,7 @@ void Project::delete_selected_media()
   auto selected_items = get_current_selected();
   QVector<MediaPtr> items;
 
-  for (auto idx : selected_items) {
+  for (const auto& idx : selected_items) {
     auto mda = item_to_media(idx);
     if (mda == nullptr) {
       qCritical() << "Null Media Ptr";
@@ -493,70 +493,66 @@ void Project::delete_selected_media()
     get_all_media_from_table(items, media_items, MediaType::FOOTAGE);
     auto abort = false;
 
-    for (auto i=0; (i<media_items.size()) && (!abort); ++i) {
-      auto item = media_items.at(i);
+    for (const auto& item: media_items) {
       bool confirm_delete = false;
       auto skip = false;
+      for (const auto& seq_item : sequence_items) {
+        const auto seq = seq_item->object<Sequence>();
+        for (const auto& c : seq->clips()) {
+          if (c == nullptr || c->timeline_info.media != item) {
+            continue;
+          }
+          if (!confirm_delete) {
+            auto ftg = item->object<Footage>();
+            // we found a reference, so we know we'll need to ask if the user wants to delete it
+            QMessageBox confirm(this);
+            confirm.setWindowTitle(tr("Delete media in use?"));
+            confirm.setText(tr("The media '%1' is currently used in '%2'. Deleting it will remove all instances in the sequence."
+                               "Are you sure you want to do this?").arg(ftg ->name(), seq->name()));
+            const auto yes_button = confirm.addButton(QMessageBox::Yes);
+            QAbstractButton* skip_button = nullptr;
+            if (!items.empty()) {
+              skip_button = confirm.addButton("Skip", QMessageBox::NoRole);
+            }
+            auto abort_button = confirm.addButton(QMessageBox::Cancel);
+            confirm.exec();
 
-      for (auto j=0; j<sequence_items.size() && (!abort) && (!skip); ++j) {
-        auto seq = sequence_items.at(j)->object<Sequence>();
-
-        for (auto k=0; (k<seq->clips().size()) && (!abort) && (!skip); ++k) {
-          const auto& c = seq->clips().at(k);
-          if ( (c != nullptr) && (c->timeline_info.media == item) ) {
-            if (!confirm_delete) {
-              auto ftg = item->object<Footage>();
-              // we found a reference, so we know we'll need to ask if the user wants to delete it
-              QMessageBox confirm(this);
-              confirm.setWindowTitle(tr("Delete media in use?"));
-              confirm.setText(tr("The media '%1' is currently used in '%2'. Deleting it will remove all instances in the sequence."
-                                 "Are you sure you want to do this?").arg(ftg ->name(), seq->name()));
-              auto yes_button = confirm.addButton(QMessageBox::Yes);
-              QAbstractButton* skip_button = nullptr;
-              if (items.size() > 1) {
-                skip_button = confirm.addButton("Skip", QMessageBox::NoRole);
-              }
-              auto abort_button = confirm.addButton(QMessageBox::Cancel);
-              confirm.exec();
-              if (confirm.clickedButton() == yes_button) {
-                // remove all clips referencing this media
-                confirm_delete = true;
-                redraw = true;
-              } else if (confirm.clickedButton() == skip_button) {
-                // remove media item and any folders containing it from the remove list
-                auto parent = item;
-                while (parent) {
-                  parents.append(parent);
-                  // re-add item's siblings
-                  for (int m=0; m < parent->childCount();m++) {
-                    auto child = parent->child(m);
-                    bool found = false;
-                    for (int n=0; n<items.size(); n++) {
-                      if (items.at(n) == child) {
-                        found = true;
-                        break;
-                      }
-                    }
-                    if (!found) {
-                      items.append(child);
+            if (confirm.clickedButton() == yes_button) {
+              // remove all clips referencing this media
+              confirm_delete = true;
+              redraw = true;
+            } else if (confirm.clickedButton() == skip_button) {
+              // remove media item and any folders containing it from the remove list
+              auto parent = item;
+              while (parent) {
+                parents.append(parent);
+                // re-add item's siblings
+                for (int m = 0; m < parent->childCount(); m++) {
+                  auto child = parent->child(m);
+                  bool found = false;
+                  for (const auto& n : items) {
+                    if (n == child) {
+                      found = true;
+                      break;
                     }
                   }
-
-                  parent = parent->parentItem();
-                }//while
-
-                skip = true;
-              } else if (confirm.clickedButton() == abort_button) {
-                // break out of loop
-                abort = true;
-                remove = false;
-              } else {
-                // TODO: anything expected to be done here?
-              }
+                  if (!found) {
+                    items.append(child);
+                  }
+                }//for
+                parent = parent->parentItem();
+              }//while
+              skip = true;
+            } else if (confirm.clickedButton() == abort_button) {
+              // break out of loop
+              abort = true;
+              remove = false;
+            } else {
+              // TODO: anything expected to be done here?
             }
-            if (confirm_delete) {
-              ca->append(new DeleteClipAction(c));
-            }
+          }
+          if (confirm_delete) {
+            ca->append(new DeleteClipAction(c));
           }
         }//for
       }//for
@@ -593,7 +589,6 @@ void Project::delete_selected_media()
 
       if (item->type() == MediaType::SEQUENCE) {
         redraw = true;
-
         auto s = item->object<Sequence>();
 
         if (s == global::sequence) {
@@ -605,7 +600,7 @@ void Project::delete_selected_media()
         }
       } else if (item->type() == MediaType::FOOTAGE) {
         if (PanelManager::footageViewer().getSequence()) {
-          for (auto clp : PanelManager::footageViewer().getSequence()->clips()) {
+          for (const auto& clp : PanelManager::footageViewer().getSequence()->clips()) {
             if (!clp) {
               continue;
             }
@@ -835,7 +830,7 @@ bool Project::reveal_media(MediaPtr media, QModelIndex parent)
       if (reveal_media(media, item)) return true;
     } else if (m == media) {
       // expand all folders leading to this media
-      QModelIndex sorted_index = sorter->mapFromSource(item);
+      QModelIndex sorted_index = sorter_->mapFromSource(item);
 
       QModelIndex hierarchy = sorted_index.parent();
 
@@ -869,7 +864,7 @@ void Project::import_dialog()
   QFileDialog fd(this,
                  tr("Import media..."),
                  "",
-                formats);
+                 formats);
   fd.setFileMode(QFileDialog::ExistingFiles);
 
   if (fd.exec()) {
@@ -893,7 +888,7 @@ void Project::delete_clips_using_selected_media()
       if (del_clip == nullptr) {
         continue;
       }
-        for (auto item : items) {
+      for (auto item : items) {
         MediaPtr m = item_to_media(item);
         if (del_clip->parentMedia() == m) {
           ca->append(new DeleteClipAction(del_clip));
@@ -1081,10 +1076,10 @@ void Project::update_view_type()
 
   switch (e_config.project_view_type) {
     case ProjectView::TREE:
-      sources_common->setCurrentView(tree_view_);
+      sources_common_->setCurrentView(tree_view_);
       break;
     case ProjectView::ICON:
-      sources_common->setCurrentView(icon_view_);
+      sources_common_->setCurrentView(icon_view_);
       break;
     default:
       qWarning() << "Unhandled Project View type" << static_cast<int>(e_config.project_view_type);

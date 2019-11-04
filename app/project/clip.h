@@ -92,19 +92,19 @@ public:
      */
   bool usesCacher() const;
   /**
-     * @brief open_worker
-     * @return true==success
-     */
+   * @brief open_worker
+   * @return true==success
+   */
   bool openWorker();
   /**
-     * @brief Free resources made via libav
-     */
+   * @brief Free resources made via libav
+   */
   void closeWorker();
   /**
-     * @brief Open clip and allocate necessary resources
-     * @param open_multithreaded
-     * @return true==success
-     */
+   * @brief Open clip and allocate necessary resources
+   * @param open_multithreaded
+   * @return true==success
+   */
   bool open(const bool open_multithreaded);
   /**
    * @brief mediaOpen
@@ -112,75 +112,75 @@ public:
    */
   virtual bool mediaOpen() const;
   /**
-     * @brief Close this clip and free up resources
-     * @param wait  Wait on cache?
-     */
+   * @brief Close this clip and free up resources
+   * @param wait  Wait on cache?
+   */
   void close(const bool wait);
   /**
-     * @brief Close this clip and free up resources whilst waiting
-     */
+   * @brief Close this clip and free up resources whilst waiting
+   */
   void closeWithWait();
   /**
-     * @brief Cache the clip at a certain point
-     * @param playhead
-     * @param reset
-     * @param scrubbing
-     * @param nests
-     * @return  true==cached
-     */
+   * @brief Cache the clip at a certain point
+   * @param playhead
+   * @param reset
+   * @param scrubbing
+   * @param nests
+   * @return  true==cached
+   */
   bool cache(const long playhead, const bool do_reset, const bool scrubbing, QVector<ClipPtr>& nests);
   /**
-     * @brief Nudge the clip
-     * @param pos The amount + direction to nudge the clip
-     * @return true==clips position nudged
-     */
+   * @brief Nudge the clip
+   * @param pos The amount + direction to nudge the clip
+   * @return true==clips position nudged
+   */
   bool nudge(const int pos);
   /**
-     * @brief         Set the transition effect(s) to the clip if none already
-     * @param meta    Information about the Transition effect
-     * @param type    opening, closing or both transitions
-     * @param length  Length of the transition in frames
-     * @return  bool==success
-     */
+   * @brief         Set the transition effect(s) to the clip if none already
+   * @param meta    Information about the Transition effect
+   * @param type    opening, closing or both transitions
+   * @param length  Length of the transition in frames
+   * @return  bool==success
+   */
   bool setTransition(const EffectMeta& meta,
                      const ClipTransitionType type,
                      const long length,
                      const ClipPtr& secondary=nullptr);
   /**
-     * @brief Delete the Clip's transition(s)
-     * @param type  opening, closing or both transitions
-     */
+   * @brief Delete the Clip's transition(s)
+   * @param type  opening, closing or both transitions
+   */
   void deleteTransition(const ClipTransitionType type);
   /**
-     * @brief Obtain this clip transition
-     * @param type  Only 1 transition type i.e. opening or closing
-     * @return ptr or null
-     */
+   * @brief Obtain this clip transition
+   * @param type  Only 1 transition type i.e. opening or closing
+   * @return ptr or null
+   */
   TransitionPtr getTransition(const ClipTransitionType type) const;
   /**
-     * @brief Split this clip at a sequence frame.
-     * If possible to split, a new clip starting after the split is returned and the current clip is modified.
-     * @param frame   Sequence playhead
-     * @return  The Clip after the split or nullptr
-     */
+   * @brief Split this clip at a sequence frame.
+   * If possible to split, a new clip starting after the split is returned and the current clip is modified.
+   * @param frame   Sequence playhead
+   * @return  The Clip after the split or nullptr
+   */
   ClipPtr split(const long frame);
   /**
-     * @brief             Merge in a clip that was created in a split
-     * @param split_clip
-     * @return            true==split clip was merged to this clip
-     */
+   * @brief             Merge in a clip that was created in a split
+   * @param split_clip
+   * @return            true==split clip was merged to this clip
+   */
   bool merge(const Clip& split_clip);
   /**
-     * @brief         Split this clip and it's linked clips, ensuring the splits are linked afterwards
-     * @param frame   Sequence playhead
-     * @return        A list of linked, split clips
-     */
+   * @brief         Split this clip and it's linked clips, ensuring the splits are linked afterwards
+   * @param frame   Sequence playhead
+   * @return        A list of linked, split clips
+   */
   QVector<ClipPtr> splitAll(const long frame);
 
   /**
-     * @brief The length in frames of the clip
-     * @return
-     */
+   * @brief The length in frames of the clip
+   * @return
+   */
   int64_t length() const;
 
   void resetAudio();

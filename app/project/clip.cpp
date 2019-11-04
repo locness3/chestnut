@@ -860,12 +860,12 @@ void Clip::removeEarliestFromQueue() {
 
 TransitionPtr Clip::openingTransition() const
 {
-  return transition_.opening_;
+  return getTransition(ClipTransitionType::OPENING);
 }
 
 TransitionPtr Clip::closingTransition() const
 {
-  return transition_.closing_;
+  return getTransition(ClipTransitionType::CLOSING);
 }
 
 /**
@@ -1386,8 +1386,7 @@ void Clip::recalculateMaxLength()
           break;
         case MediaType::SEQUENCE:
         {
-          SequencePtr s = timeline_info.media->object<Sequence>();
-          if (s != nullptr) {
+          if (SequencePtr s = timeline_info.media->object<Sequence>()) {
             media_handling_.calculated_length_ = refactor_frame_number(s->endFrame(), s->frameRate(), fr);
           }
         }

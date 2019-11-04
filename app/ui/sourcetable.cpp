@@ -62,31 +62,31 @@ SourceTable::SourceTable(QAbstractItemModel* model, Project& proj_parent, QWidge
 
 void SourceTable::showContextMenu()
 {
-  Q_ASSERT(project_parent_.sources_common);
-  project_parent_.sources_common->show_context_menu(this, selectionModel()->selectedRows());
+  Q_ASSERT(project_parent_.sources_common_);
+  project_parent_.sources_common_->show_context_menu(this, selectionModel()->selectedRows());
 }
 
 
 
 void SourceTable::itemClick(const QModelIndex& index)
 {
-  Q_ASSERT(project_parent_.sources_common);
+  Q_ASSERT(project_parent_.sources_common_);
   if ((selectionModel()->selectedRows().size() == 1) && (index.column() == 0)) {
-    project_parent_.sources_common->item_click(project_parent_.item_to_media(index), index);
+    project_parent_.sources_common_->item_click(project_parent_.item_to_media(index), index);
   }
 }
 
 void SourceTable::mousePressEvent(QMouseEvent* event)
 {
-  Q_ASSERT(project_parent_.sources_common);
-  project_parent_.sources_common->mousePressEvent(event);
+  Q_ASSERT(project_parent_.sources_common_);
+  project_parent_.sources_common_->mousePressEvent(event);
   QTreeView::mousePressEvent(event);
 }
 
 void SourceTable::mouseDoubleClickEvent(QMouseEvent* event)
 {
-  Q_ASSERT(project_parent_.sources_common);
-  project_parent_.sources_common->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
+  Q_ASSERT(project_parent_.sources_common_);
+  project_parent_.sources_common_->mouseDoubleClickEvent(event, selectionModel()->selectedRows());
 }
 
 void SourceTable::dragEnterEvent(QDragEnterEvent *event)
