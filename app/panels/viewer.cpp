@@ -581,6 +581,7 @@ void Viewer::clear_inout_point()
   if (seq->workarea_.using_) {
     e_undo_stack.push(new SetTimelineInOutCommand(seq, false, 0, 0));
     update_parents();
+    PanelManager::projectViewer().updatePanel();
   }
 }
 
