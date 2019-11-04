@@ -110,6 +110,10 @@ public:
      */
     void refresh();
 
+    /**
+     * @brief Force an widget redraw of the Project panel
+     */
+    void updatePanel();
 
     SourceTable* tree_view_;
     SourceIconView* icon_view_;

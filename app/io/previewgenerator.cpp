@@ -168,7 +168,7 @@ void PreviewGenerator::parse_media()
         }
       }
     }
-    ftg->length = fmt_ctx->duration;
+    ftg->length_ = fmt_ctx->duration;
 
     if (fmt_ctx->duration == INT64_MIN) {
       retrieve_duration = true;
@@ -452,14 +452,14 @@ void PreviewGenerator::generate_waveform()
       }
     }
     if (retrieve_duration) {
-      ftg->length = 0;
+      ftg->length_ = 0;
       int maximum_stream = 0;
       for (unsigned int i=0; i < media_lengths.size(); ++i) {
         if (media_lengths[i] > media_lengths[maximum_stream]) {
           maximum_stream = i;
         }
       }
-      ftg->length = lround(static_cast<double>(media_lengths[maximum_stream])
+      ftg->length_ = lround(static_cast<double>(media_lengths[maximum_stream])
                            / av_q2d(streams[maximum_stream]->avg_frame_rate) * AV_TIME_BASE); // TODO redo with PTS
       finalize_media();
     }

@@ -402,7 +402,10 @@ QVariant Media::data(const int32_t column, const int32_t role)
       switch (column) {
         case 0: return (root_) ? QCoreApplication::translate("Media", "Name") : name();
         case 1:
-          if (root_) return QCoreApplication::translate("Media", "Duration");
+        {
+          if (root_) {
+            return QCoreApplication::translate("Media", "Duration");
+          }
           if (type() == MediaType::SEQUENCE) {
             SequencePtr s = object<Sequence>();
             return frame_to_timecode(s->endFrame(), e_config.timecode_view, s->frameRate());
@@ -415,9 +418,11 @@ QVariant Media::data(const int32_t column, const int32_t role)
               r = f->video_tracks.front()->video_frame_rate * f->speed;
             }
 
-            long len = f->get_length_in_frames(r);
-            if (len > 0) return frame_to_timecode(len, e_config.timecode_view, r);
+            if (const auto len = f->activeLengthInFrames(r); len > 0) {
+              return frame_to_timecode(len, e_config.timecode_view, r);
+            }
           }
+        }
           break;
         case 2:
           if (root_) return QCoreApplication::translate("Media", "Rate");

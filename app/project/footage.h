@@ -44,7 +44,7 @@ public:
   explicit Footage(const std::shared_ptr<Media>& parent);
 
   QString url;
-  int64_t length{0};
+  int64_t length_{0};
   QVector<project::FootageStreamPtr> video_tracks;
   QVector<project::FootageStreamPtr> audio_tracks;
 
@@ -64,7 +64,19 @@ public:
   std::atomic_bool has_preview_{false};
 
 
-  long get_length_in_frames(const double frame_rate) const;
+    /**
+     * @brief Obtain the length of the footage, ignoring any in/out points
+     * @param frame_rate
+     * @return
+     */
+    long totalLengthInFrames(const double frame_rate) const noexcept;
+
+    /**
+     * @brief  Obtain the length of the footage acknowledging any in/out points
+     * @param frame_rate
+     * @return
+     */
+    long activeLengthInFrames(const double frame_rate) const noexcept;
 
   project::FootageStreamPtr video_stream_from_file_index(const int index);
   project::FootageStreamPtr audio_stream_from_file_index(const int index);

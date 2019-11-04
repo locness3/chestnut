@@ -315,7 +315,7 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
         if (ftg->isImage()) {
           g.out = g.in + STILL_IMAGE_FRAMES; //TODO: shouldn't this be calculated to a duration?
         } else {
-          long length = ftg->get_length_in_frames(seq->frameRate());
+          long length = ftg->totalLengthInFrames(seq->frameRate());
           g.out = entry + length - default_clip_in;
           if (ftg->using_inout) {
             g.out -= (length - default_clip_out);

@@ -440,6 +440,12 @@ void Project::refresh()
   }
 }
 
+void Project::updatePanel()
+{
+  tree_view_->viewport()->update();
+  icon_view_->viewport()->update();
+}
+
 bool delete_clips_in_clipboard_with_media(ComboAction* ca, MediaPtr m) {
   int delete_count = 0;
   if (e_clipboard_type == CLIPBOARD_TYPE_CLIP) {
