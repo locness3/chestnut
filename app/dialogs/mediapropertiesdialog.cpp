@@ -91,7 +91,7 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
       grid->addWidget(new QLabel(tr("Conform to Frame Rate:")), row, 0);
       conform_fr = new QDoubleSpinBox();
       conform_fr->setMinimum(0.01);
-      conform_fr->setValue(ftg->video_tracks.front()->video_frame_rate * ftg->speed);
+      conform_fr->setValue(ftg->video_tracks.front()->video_frame_rate * ftg->speed_);
       grid->addWidget(conform_fr, row, 1);
     }
 
@@ -182,7 +182,7 @@ void MediaPropertiesDialog::accept()
     // set frame rate conform
     if (!ftg->video_tracks.front()->infinite_length && !qFuzzyCompare(conform_fr->value(),
                                                                       ftg->video_tracks.front()->video_frame_rate)) {
-      ca->append(new SetValCommand<double>(ftg->speed, conform_fr->value() / ftg->video_tracks.front()->video_frame_rate));
+      ca->append(new SetValCommand<double>(ftg->speed_, conform_fr->value() / ftg->video_tracks.front()->video_frame_rate));
       refresh_clips = true;
     }
   }

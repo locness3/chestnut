@@ -192,11 +192,11 @@ void Media::updateTooltip(const QString& error)
                 tool_tip_ += ", ";
               }
               if (ftg->video_tracks.at(i)->video_interlacing == ScanMethod::PROGRESSIVE) {
-                tool_tip_ += QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed);
+                tool_tip_ += QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed_);
               } else {
                 tool_tip_ += QCoreApplication::translate("Media", "%1 fields (%2 frames)").arg(
-                              QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed * 2),
-                              QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed)
+                              QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed_ * 2),
+                              QString::number(ftg->video_tracks.at(i)->video_frame_rate * ftg->speed_)
                               );
               }
             }
@@ -220,7 +220,7 @@ void Media::updateTooltip(const QString& error)
             if (i > 0) {
               tool_tip_ += ", ";
             }
-            tool_tip_ += QString::number(ftg->audio_tracks.at(i)->audio_frequency * ftg->speed);
+            tool_tip_ += QString::number(ftg->audio_tracks.at(i)->audio_frequency * ftg->speed_);
           }
           tool_tip_ += "\n";
 
@@ -303,10 +303,10 @@ double Media::frameRate(const int32_t stream)
     {
       if (auto ftg = object<Footage>()) {
         if ( (stream < 0) && !ftg->video_tracks.empty()) {
-          return ftg->video_tracks.front()->video_frame_rate * ftg->speed;
+          return ftg->video_tracks.front()->video_frame_rate * ftg->speed_;
         }
         if (FootageStreamPtr ms = ftg->video_stream_from_file_index(stream)) {
-          return ms->video_frame_rate * ftg->speed;
+          return ms->video_frame_rate * ftg->speed_;
         }
       }
       break;
@@ -330,10 +330,10 @@ int32_t Media::samplingRate(const int32_t stream)
     {
       if (auto ftg = object<Footage>()) {
         if (stream < 0) {
-          return qRound(ftg->audio_tracks.front()->audio_frequency * ftg->speed);
+          return qRound(ftg->audio_tracks.front()->audio_frequency * ftg->speed_);
         }
         if (FootageStreamPtr ms = ftg->audio_stream_from_file_index(stream)) {
-          return qRound(ms->audio_frequency * ftg->speed);
+          return qRound(ms->audio_frequency * ftg->speed_);
         }
       }
       break;
@@ -415,7 +415,7 @@ QVariant Media::data(const int32_t column, const int32_t role)
             double r = 30;
 
             if ( (!f->video_tracks.empty()) && !qIsNull(f->video_tracks.front()->video_frame_rate)) {
-              r = f->video_tracks.front()->video_frame_rate * f->speed;
+              r = f->video_tracks.front()->video_frame_rate * f->speed_;
             }
 
             if (const auto len = f->activeLengthInFrames(r); len > 0) {

@@ -52,7 +52,7 @@ public:
   int save_id{-1};
   int folder_{-1};
 
-  double speed{1.0};
+  double speed_{1.0};
 
   PreviewGenerator* preview_gen{nullptr};
 

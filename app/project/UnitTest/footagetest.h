@@ -24,6 +24,10 @@ class FootageTest : public QObject
      * @brief Test sunny-day scenario save
      */
     void testCaseSave();
+    /**
+     * @brief Save a footage object and load another one with the result
+     */
+    void testCaseSaveAndLoad();
 
 };
 

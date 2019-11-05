@@ -107,6 +107,7 @@
                 <xs:element ref="name"/>
                 <xs:element ref="url"/>
                 <xs:element ref="duration"/>
+                <xs:element name="speed" type="xs:decimal"/>
                 <xs:sequence minOccurs="0" maxOccurs="unbounded">
                     <xs:element ref="video"/>
                 </xs:sequence>

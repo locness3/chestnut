@@ -785,7 +785,7 @@ SequencePtr Viewer::createFootageSequence(const MediaPtr& mda) const
     sqn->setWidth(video_stream->video_width);
     sqn->setHeight(video_stream->video_height);
     if ( (video_stream->video_frame_rate > 0) && (!video_stream->infinite_length) ) { // not image?
-      sqn->setFrameRate(video_stream->video_frame_rate * ftg->speed);
+      sqn->setFrameRate(video_stream->video_frame_rate * ftg->speed_);
     }
 
     auto clp = std::make_shared<Clip>(sqn);
