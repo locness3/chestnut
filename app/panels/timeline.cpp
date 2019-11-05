@@ -274,7 +274,7 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
         }
         auto source_fr = 30.0;
         if ( (!ftg->video_tracks.empty()) && !qIsNull(ftg->video_tracks.front()->video_frame_rate)) {
-          source_fr = ftg->video_tracks.front()->video_frame_rate * ftg->speed;
+          source_fr = ftg->video_tracks.front()->video_frame_rate * ftg->speed_;
         }
         default_clip_in = refactor_frame_number(ftg->in, source_fr, seq->frameRate());
         default_clip_out = refactor_frame_number(ftg->out, source_fr, seq->frameRate());

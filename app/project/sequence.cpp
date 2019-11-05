@@ -80,7 +80,7 @@ Sequence::Sequence(QVector<std::shared_ptr<Media>>& media_list, const QString& s
           width_ = ms->video_width;
           height_ = ms->video_height;
           if (!qFuzzyCompare(ms->video_frame_rate, 0.0)) {
-            frame_rate_ = ms->video_frame_rate * ftg->speed;
+            frame_rate_ = ms->video_frame_rate * ftg->speed_;
 
             if (ms->video_interlacing != ScanMethod::PROGRESSIVE) {
               frame_rate_ *= 2;

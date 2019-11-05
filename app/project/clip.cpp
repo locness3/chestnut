@@ -226,12 +226,12 @@ bool Clip::openWorker() {
       if (e_config.upcoming_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
         max_queue_size += qCeil(e_config.upcoming_queue_size);
       } else {
-        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed * e_config.upcoming_queue_size);
+        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed_ * e_config.upcoming_queue_size);
       }
       if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
         max_queue_size += qCeil(e_config.previous_queue_size);
       } else {
-        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed * e_config.previous_queue_size);
+        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed_ * e_config.previous_queue_size);
       }
     }
 
@@ -375,7 +375,7 @@ bool Clip::openWorker() {
 
       int target_sample_rate = current_audio_freq();
 
-      double playback_speed = timeline_info.speed * ftg->speed;
+      double playback_speed = timeline_info.speed * ftg->speed_;
 
       if (qFuzzyCompare(playback_speed, 1.0)) {
         avfilter_link(buffersrc_ctx, 0, buffersink_ctx, 0);
@@ -1690,7 +1690,7 @@ double Clip::playhead_to_seconds(const long playhead) {
   }
   double secs = (static_cast<double>(clip_frame)/sequence->frameRate()) * timeline_info.speed;
   if (timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
-    secs *= timeline_info.media->object<Footage>()->speed;
+    secs *= timeline_info.media->object<Footage>()->speed_;
   }
   return secs;
 }
@@ -1842,7 +1842,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests) {
                 rev_frame->nb_samples += av_frame->nb_samples;
 
                 if ((media_handling_.frame_->pts >= audio_playback.reverse_target) || (ret == AVERROR_EOF)) {
-                  double playback_speed = timeline_info.speed * timeline_info.media->object<Footage>()->speed;
+                  double playback_speed = timeline_info.speed * timeline_info.media->object<Footage>()->speed_;
                   rev_frame->nb_samples = qRound64(static_cast<double>(audio_playback.reverse_target - rev_frame->pts)
                                                    / media_handling_.stream_->codecpar->sample_rate
                                                    * (current_audio_freq() / playback_speed));

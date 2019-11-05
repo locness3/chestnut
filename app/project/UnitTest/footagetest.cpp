@@ -34,7 +34,7 @@ void FootageTest::testCaseUninitSave()
   Footage ftg(nullptr);
   QString output;
   QXmlStreamWriter stream(&output);
-  QVERIFY(ftg.save(stream) == false);
+  QVERIFY_EXCEPTION_THROWN(ftg.save(stream), std::runtime_error);
 }
 
 void FootageTest::testCaseNullMediaSave()
@@ -43,7 +43,7 @@ void FootageTest::testCaseNullMediaSave()
   ftg.has_preview_ = true;
   QString output;
   QXmlStreamWriter stream(&output);
-  QVERIFY(ftg.save(stream) == false);
+  QVERIFY_EXCEPTION_THROWN(ftg.save(stream), std::runtime_error);
 }
 
 void FootageTest::testCaseSave()
@@ -61,4 +61,41 @@ void FootageTest::testCaseSave()
   QVERIFY(ftg.save(stream) == true);
   QVERIFY(output.startsWith("<footage") == true);
   QVERIFY(output.endsWith("</footage>") == true);
+}
+
+void  FootageTest::testCaseSaveAndLoad()
+{
+  constexpr auto speed = 123.456;
+  constexpr auto url = "/foo/bar/spam.eggs";
+  constexpr auto length = 1'000'000;
+  constexpr auto folder = 1;
+  constexpr auto in_point = 123;
+  constexpr auto out_point = 456;
+  constexpr auto using_inout = true;
+
+  auto root_mda = std::make_shared<Media>();
+
+  auto parent_mda = std::make_shared<Media>(root_mda);
+  Footage ftg(parent_mda);
+  ftg.speed_ = speed;
+  ftg.url = url;
+  ftg.length_ = length;
+  ftg.folder_ = folder;
+  ftg.in = in_point;
+  ftg.out = out_point;
+  ftg.using_inout = using_inout;
+
+  QString output;
+  QXmlStreamWriter stream(&output);
+  QVERIFY(ftg.save(stream) == true);
+  // Try to load what was just saved
+  QXmlStreamReader input(output);
+  QVERIFY(ftg.load(input) == true);
+  QCOMPARE(ftg.speed_, speed);
+  QCOMPARE(ftg.url, url);
+  QCOMPARE(ftg.length_, length);
+  QCOMPARE(ftg.folder_, folder);
+  QCOMPARE(ftg.in, in_point);
+  QCOMPARE(ftg.out, out_point);
+  QCOMPARE(ftg.using_inout, using_inout);
 }

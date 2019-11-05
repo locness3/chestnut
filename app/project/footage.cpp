@@ -115,6 +115,7 @@ bool Footage::load(QXmlStreamReader& stream)
   }
 
   //elements
+  bool okay;
   while (stream.readNextStartElement()) {
     auto elem_name = stream.name().toString().toLower();
     if ( (elem_name == "video") || (elem_name == "audio") ) {
@@ -131,10 +132,14 @@ bool Footage::load(QXmlStreamReader& stream)
       url = stream.readElementText();
     } else if (elem_name == "duration") {
       length_ = stream.readElementText().toLong();
-    } else if (elem_name == "marker"){
+    } else if (elem_name == "marker") {
       auto mrkr = std::make_shared<Marker>();
       mrkr->load(stream);
       markers_.append(mrkr);
+    } else if (elem_name == "speed") {
+      if (speed_ = stream.readElementText().toDouble(&okay); !okay) {
+
+      }
     } else {
       qWarning() << "Unhandled element" << elem_name;
       stream.skipCurrentElement();
@@ -184,6 +189,7 @@ bool Footage::save(QXmlStreamWriter& stream) const
   stream.writeTextElement("name", name_);
   stream.writeTextElement("url", QDir(url).absolutePath());
   stream.writeTextElement("duration", QString::number(length_));
+  stream.writeTextElement("speed", QString::number(speed_));
 
   for (const auto& ms : video_tracks) {
     if (!ms) {
@@ -221,10 +227,10 @@ constexpr long lengthToFrames(const int64_t length, const double frame_rate, con
 
 long Footage::totalLengthInFrames(const double frame_rate) const noexcept
 {
-  Q_ASSERT(!qFuzzyIsNull(speed));
+  Q_ASSERT(!qFuzzyIsNull(speed_));
 
   if (length_ >= 0) {
-    return lengthToFrames(length_, frame_rate, speed);
+    return lengthToFrames(length_, frame_rate, speed_);
   }
   return 0;
 }
