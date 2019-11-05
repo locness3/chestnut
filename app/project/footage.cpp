@@ -43,7 +43,7 @@ Footage::Footage(const Footage& cpy)
     proj_dir_(cpy.proj_dir_),
     save_id(0),
     folder_(cpy.folder_),
-    speed(cpy.speed),
+    speed_(cpy.speed_),
     preview_gen(cpy.preview_gen),
     in(cpy.in),
     out(cpy.out),
