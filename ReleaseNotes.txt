@@ -1,4 +1,33 @@
 -------------
+Version 0.1.2
+-------------
+
+06 November 2019
+
+New:
+    None
+    
+Improvements:
+    - build: add icon to install rule
+    - ui: added application version in About dialog
+    - ui: added missing tooltips to buttons
+    
+Fixes:
+    - A locked track can have a clip dragged into it #67
+    - The sequence duration does not reflect region between in + out points #68
+    - When a save fails, the user is not made aware of this #72     
+    - Duration of clips with in/out is incorrect (in Project viewer) #73 
+    - The speed of footage is not being saved #74 
+    
+Known issues:
+    - "Blink" in sequence viewer during playback #32
+    - On reverse drag-seek ui-lock #18
+    - Large imported files not playable/viewable until waveform-preview generated #26
+    - Track scrolling inconsistent #60   
+    - A created sequence is x2 the fps of the clip used to create it #75
+
+
+-------------
 Version 0.1.1
 -------------
 
