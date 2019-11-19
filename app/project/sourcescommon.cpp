@@ -61,7 +61,7 @@ void SourcesCommon::create_seq_from_selected()
     panels::PanelManager::timeLine().createGhostsFromMedia(seq, 0, media_list);
     panels::PanelManager::timeLine().addClipsFromGhosts(ca, seq);
 
-    project_parent->new_sequence(ca, seq, true, nullptr);
+    project_parent->newSequence(ca, seq, true, nullptr);
     e_undo_stack.push(ca);
   }
 }
@@ -243,7 +243,7 @@ void SourcesCommon::dropEvent(QWidget* parent,
            && drop_item.isValid()
            && (m->type() == MediaType::FOOTAGE)
            && !QFileInfo(paths.front()).isDir()
-           && e_config.drop_on_media_to_replace
+           && global::config.drop_on_media_to_replace
            && QMessageBox::question(
              parent,
              tr("Replace Media"),
@@ -319,7 +319,7 @@ void SourcesCommon::reveal_in_browser()
     return;
   }
 
-  auto dir = QFileInfo(ftg->url).absoluteDir().path();
+  auto dir = QFileInfo(ftg->location()).absoluteDir().path();
   QDesktopServices::openUrl(QUrl::fromLocalFile(dir));
 }
 

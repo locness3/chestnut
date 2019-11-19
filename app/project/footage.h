@@ -22,6 +22,7 @@
 #include <QString>
 #include <QVector>
 #include <QDir>
+#include <mediahandling/imediasource.h>
 
 #include "project/projectitem.h"
 #include "project/ixmlstreamer.h"
@@ -33,17 +34,14 @@ class PreviewGenerator;
 class MediaThrobber;
 class Media;
 
+
 using FootagePtr = std::shared_ptr<Footage>;
 using FootageWPtr = std::weak_ptr<Footage>;
 
 
-
-class Footage : public project::ProjectItem {
+class Footage : public std::enable_shared_from_this<Footage>, public project::ProjectItem {
   public:
-    QString url;
     int64_t length_{0};
-    QVector<project::FootageStreamPtr> video_tracks;
-    QVector<project::FootageStreamPtr> audio_tracks;
 
     QDir proj_dir_{};
     int save_id{-1};
@@ -53,18 +51,23 @@ class Footage : public project::ProjectItem {
 
     PreviewGenerator* preview_gen{nullptr};
 
-    // workarea
     long in{0};
     long out{0};
-    bool using_inout{false}; // TODO: could be inferred if in/out were optional
+    bool using_inout{false};
 
-    std::atomic_bool ready_{false};
-    std::atomic_bool has_preview_{false};
+    std::atomic_bool ready_;
+    std::atomic_bool has_preview_;
 
-    Footage();
+    Footage() = delete;
     explicit Footage(const std::shared_ptr<Media>& parent);
+    Footage(QString url, const std::shared_ptr<Media>& parent, const bool import_as_sequence=false);
     Footage(const Footage& cpy);
 
+    /**
+     * @brief Identify if the Footage is missing its source file
+     * @return true==file is not present/available
+     */
+    bool isMissing() const noexcept;
 
     /**
      * @brief Obtain the length of the footage, ignoring any in/out points
@@ -86,17 +89,40 @@ class Footage : public project::ProjectItem {
     bool has_video_stream_from_file_index(const int index);
     bool has_audio_stream_from_file_index(const int index) const;
     void reset();
+    [[deprecated]]
     bool isImage() const;
+    std::optional<media_handling::StreamType> visualType() const;
+    bool hasAudio() const;
+
     void setParent(std::shared_ptr<Media> mda);
+    /**
+     * @brief   Retrieve the location of the footage's source
+     * @return  Path
+     */
+    QString location() const;
+
+    /**
+     * @brief Read the footage and extract the streams
+     */
+    void parseStreams();
+
+    bool addVideoTrack(project::FootageStreamPtr track);
+    QVector<project::FootageStreamPtr> videoTracks() const;
+    bool addAudioTrack(project::FootageStreamPtr track);
+    QVector<project::FootageStreamPtr> audioTracks() const;
 
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
   private:
     friend class FootageTest;
-    project::FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
-
+    QString url_;
     std::weak_ptr<Media> parent_mda_;
+    media_handling::MediaSourcePtr media_source_ {nullptr};
+    QVector<project::FootageStreamPtr> video_tracks;
+    QVector<project::FootageStreamPtr> audio_tracks;
+    bool import_as_sequence_ {false};
 
+    project::FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
 };
 
 #endif // FOOTAGE_H

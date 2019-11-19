@@ -19,13 +19,26 @@
 #include "footagestream.h"
 
 #include <QPainter>
+#include <mediahandling/imediastream.h>
 
 #include "debug.h"
 
 using project::FootageStream;
+using media_handling::FieldOrder;
+using media_handling::MediaStreamPtr;
+using media_handling::MediaProperty;
+using media_handling::StreamType;
+
+FootageStream::FootageStream(MediaStreamPtr stream_info)
+  : stream_info_(std::move(stream_info))
+{
+  Q_ASSERT(stream_info_);
+  initialise(*stream_info_);
+}
 
 void FootageStream::make_square_thumb()
 {
+  qDebug() << "Making square thumbnail";
   // generate square version for QListView?
   const auto max_dimension = qMax(video_preview.width(), video_preview.height());
   QPixmap pixmap(max_dimension, max_dimension);
@@ -38,6 +51,31 @@ void FootageStream::make_square_thumb()
   video_preview_square = QIcon(pixmap);
 }
 
+
+void FootageStream::setStreamInfo(MediaStreamPtr stream_info)
+{
+  stream_info_ = std::move(stream_info);
+  qDebug() << "Stream Info set, file_index ="  << file_index << this;
+  initialise(*stream_info_);
+}
+
+std::optional<media_handling::FieldOrder> FootageStream::fieldOrder() const
+{
+  if (!stream_info_) {
+    qDebug() << "Stream Info not available, file_index =" << file_index << this;
+    return {};
+  }
+  if (stream_info_->type() == StreamType::IMAGE) {
+    return media_handling::FieldOrder::PROGRESSIVE;
+  }
+  bool isokay = false;
+  const auto f_order(stream_info_->property<FieldOrder>(MediaProperty::FIELD_ORDER, isokay));
+  if (!isokay) {
+    return {};
+  }
+  return f_order;
+}
+
 bool FootageStream::load(QXmlStreamReader& stream)
 {
   auto name = stream.name().toString().toLower();
@@ -45,6 +83,8 @@ bool FootageStream::load(QXmlStreamReader& stream)
     type_ = StreamType::VIDEO;
   } else if (name == "audio") {
     type_ = StreamType::AUDIO;
+  } else if (name == "image") {
+    type_ = StreamType::IMAGE;
   } else {
     qCritical() << "Unknown stream type" << name;
     return false;
@@ -90,7 +130,11 @@ bool FootageStream::save(QXmlStreamWriter& stream) const
 {
   switch (type_) {
     case StreamType::VIDEO:
-      stream.writeStartElement("video");
+      [[fallthrough]];
+    case StreamType::IMAGE:
+    {
+      const auto type_str = type_ == StreamType::VIDEO ? "video" : "image";
+      stream.writeStartElement(type_str);
       stream.writeAttribute("id", QString::number(file_index));
       stream.writeAttribute("infinite", infinite_length ? "true" : "false");
 
@@ -98,6 +142,7 @@ bool FootageStream::save(QXmlStreamWriter& stream) const
       stream.writeTextElement("height", QString::number(video_height));
       stream.writeTextElement("framerate", QString::number(video_frame_rate, 'g', 10));
       stream.writeEndElement();
+    }
       return true;
     case StreamType::AUDIO:
       stream.writeStartElement("audio");
@@ -112,4 +157,56 @@ bool FootageStream::save(QXmlStreamWriter& stream) const
       chestnut::throwAndLog("Unknown stream type. Not saving");
   }
   return false;
+}
+
+
+void FootageStream::initialise(const media_handling::IMediaStream& stream)
+{
+  file_index = stream.sourceIndex();
+  type_ = stream.type();
+
+  bool is_okay = false;
+  if (type_ == StreamType::VIDEO) {
+    const auto frate = stream.property<media_handling::Rational>(MediaProperty::FRAME_RATE, is_okay);
+    if (!is_okay) {
+      constexpr auto msg = "Unable to identify video frame rate";
+      qWarning() << msg;
+      throw std::runtime_error(msg);
+    }
+    video_frame_rate = boost::rational_cast<double>(frate);
+    const auto dimensions = stream.property<media_handling::Dimensions>(MediaProperty::DIMENSIONS, is_okay);
+    if (!is_okay) {
+      constexpr auto msg = "Unable to identify video dimension";
+      qWarning() << msg;
+      throw std::runtime_error(msg);
+    }
+    video_width = dimensions.width;
+    video_height = dimensions.height;
+  } else if (type_ == StreamType::IMAGE) {
+    infinite_length = true;
+    video_frame_rate = 0.0;
+    const auto dimensions = stream.property<media_handling::Dimensions>(MediaProperty::DIMENSIONS, is_okay);
+    if (!is_okay) {
+      constexpr auto msg = "Unable to identify image dimension";
+      qWarning() << msg;
+      throw std::runtime_error(msg);
+    }
+    video_width = dimensions.width;
+    video_height = dimensions.height;
+  } else if (type_ == StreamType::AUDIO) {
+    audio_channels = stream.property<int32_t>(MediaProperty::AUDIO_CHANNELS, is_okay);
+    if (!is_okay) {
+      constexpr auto msg = "Unable to identify audio channel count";
+      qWarning() << msg;
+      throw std::runtime_error(msg);
+    }
+    audio_frequency = stream.property<int32_t>(MediaProperty::AUDIO_SAMPLING_RATE, is_okay);
+    if (!is_okay) {
+      constexpr auto msg = "Unable to identify audio sampling rate";
+      qWarning() << msg;
+      throw std::runtime_error(msg);
+    }
+  } else {
+    qWarning() << "Unhandled Stream type";
+  }
 }

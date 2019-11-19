@@ -173,7 +173,7 @@ GLuint compose_sequence(Viewer* viewer,
       auto ftg = clp->timeline_info.media->object<Footage>();
       if (!ftg->has_preview_) {
         // TODO: should the render really be prevented just because the audio waveform preview hasn't been generated?
-        qInfo() << "Waiting on preview (audio/video) to be generated for Footage, fileName =" << ftg->url;
+        qDebug() << "Waiting on preview (audio/video) to be generated for Footage, fileName =" << ftg->location();
         continue;
       }
 
@@ -483,7 +483,7 @@ GLuint compose_sequence(Viewer* viewer,
           glPopMatrix();
         }
       } else {
-        if (render_audio || (e_config.enable_audio_scrubbing && audio_scrub)) {
+        if (render_audio || (global::config.enable_audio_scrubbing && audio_scrub)) {
           if (clp->timeline_info.media != nullptr && clp->timeline_info.media->type() == MediaType::SEQUENCE) {
             nests.append(clp);
             compose_sequence(viewer, ctx, seq, nests, video, render_audio, gizmos, texture_failed, rendering);

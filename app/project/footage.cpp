@@ -13,33 +13,30 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- *along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "footage.h"
 
-
-#include "io/previewgenerator.h"
-#include "project/clip.h"
-#include "panels/project.h"
+#include <mediahandling/mediahandling.h>
+#include <regex>
 
 extern "C" {
 #include <libavformat/avformat.h>
 }
 
+#include "io/previewgenerator.h"
+#include "project/clip.h"
+#include "panels/project.h"
+
+
 using project::FootageStreamPtr;
-
-Footage::Footage() : Footage(nullptr)
-{
-
-}
+using media_handling::MediaProperty;
 
 
 Footage::Footage(const Footage& cpy)
   : ProjectItem(cpy),
-    url(cpy.url),
     length_(cpy.length_),
-    video_tracks(cpy.video_tracks),
-    audio_tracks(cpy.audio_tracks),
     proj_dir_(cpy.proj_dir_),
     save_id(0),
     folder_(cpy.folder_),
@@ -50,13 +47,35 @@ Footage::Footage(const Footage& cpy)
     using_inout(cpy.using_inout),
     ready_(cpy.ready_.load()),
     has_preview_(cpy.has_preview_.load()),
-    parent_mda_(/*cpy.parent_mda_*/) // this parent is of the wrong media object
+    url_(cpy.url_),
+    parent_mda_(/*cpy.parent_mda_*/), // this parent is of the wrong media object
+    video_tracks(cpy.video_tracks),
+    audio_tracks(cpy.audio_tracks),
+    import_as_sequence_(cpy.import_as_sequence_)
 {
 
 }
 
 Footage::Footage(const std::shared_ptr<Media>& parent) : parent_mda_(parent)
 {
+}
+
+Footage::Footage(QString url, const std::shared_ptr<Media>& parent, const bool import_as_sequence)
+  : url_(std::move(url)),
+    parent_mda_(parent),
+    import_as_sequence_(import_as_sequence)
+{
+  try {
+    // TODO: not keen on this. Revisit.
+    const bool prev_scheme = media_handling::autoDetectImageSequences();
+    media_handling::autoDetectImageSequences(import_as_sequence);
+    media_source_ = media_handling::createSource(url_.toStdString());
+    media_handling::autoDetectImageSequences(prev_scheme);
+  }  catch (const std::exception& ex) {
+    qWarning() << "Unable to create media_handling source, msg=" << ex.what();
+    throw;
+  }
+  parseStreams();
 }
 
 void Footage::reset()
@@ -82,9 +101,99 @@ bool Footage::isImage() const
 }
 
 
+std::optional<media_handling::StreamType> Footage::visualType() const
+{
+  Q_ASSERT(media_source_);
+  if (!media_source_->visualStreams().empty()) {
+    if (auto v_s = media_source_->visualStream(0)) {
+      return v_s->type();
+    }
+  }
+  return {};
+}
+
+bool Footage::hasAudio() const
+{
+  Q_ASSERT(media_source_);
+  return !media_source_->audioStreams().empty();
+}
+
 void Footage::setParent(std::shared_ptr<Media> mda)
 {
   parent_mda_ = mda;
+}
+
+/**
+ * @brief   Retrieve the location of the footage's source
+ * @return  Path
+ */
+QString Footage::location() const
+{
+  if (import_as_sequence_) {
+    if (auto sqn_url = media_handling::utils::generateSequencePattern(url_.toStdString())) {
+      return QString::fromStdString(sqn_url.value());
+    } else {
+      qWarning() << "No sequence pattern found, fileName =" << url_;
+    }
+  }
+  return url_;
+}
+
+
+void Footage::parseStreams()
+{
+  if (!media_source_) {
+    qWarning() << "No media to parse";
+  }
+
+  video_tracks.clear();
+  for (auto[key, stream] : media_source_->visualStreams()) {
+    auto ftg_stream = std::make_shared<project::FootageStream>(stream);
+    video_tracks.insert(key, ftg_stream);
+  }
+
+  audio_tracks.clear();
+
+  for (auto[key, stream] : media_source_->audioStreams()) {
+    auto ftg_stream = std::make_shared<project::FootageStream>(stream);
+    audio_tracks.insert(key, ftg_stream);
+  }
+
+  bool is_okay = false;
+  length_ = media_source_->property<int64_t>(MediaProperty::DURATION, is_okay);
+  if (!is_okay) {
+    constexpr auto msg = "Failed to retrieve footage duration";
+    qCritical() << msg;
+    throw std::runtime_error(msg);
+  }
+}
+
+bool Footage::addVideoTrack(project::FootageStreamPtr track)
+{
+  if (!track) {
+    return false;
+  }
+  video_tracks.append(std::move(track));
+  return true;
+}
+
+QVector<project::FootageStreamPtr> Footage::videoTracks() const
+{
+  return video_tracks;
+}
+
+bool Footage::addAudioTrack(project::FootageStreamPtr track)
+{
+  if (!track) {
+    return false;
+  }
+  audio_tracks.append(std::move(track));
+  return true;
+}
+
+QVector<project::FootageStreamPtr> Footage::audioTracks() const
+{
+  return audio_tracks;
 }
 
 bool Footage::load(QXmlStreamReader& stream)
@@ -118,10 +227,10 @@ bool Footage::load(QXmlStreamReader& stream)
   bool okay;
   while (stream.readNextStartElement()) {
     auto elem_name = stream.name().toString().toLower();
-    if ( (elem_name == "video") || (elem_name == "audio") ) {
+    if ( (elem_name == "video") || (elem_name == "audio") || (elem_name == "image")) {
       auto ms = std::make_shared<project::FootageStream>();
       ms->load(stream);
-      if (elem_name == "video") {
+      if ( (elem_name == "video") || (elem_name == "image") ) {
         video_tracks.append(ms);
       } else {
         audio_tracks.append(ms);
@@ -129,7 +238,12 @@ bool Footage::load(QXmlStreamReader& stream)
     } else if (elem_name == "name") {
       setName(stream.readElementText());
     } else if (elem_name == "url") {
-      url = stream.readElementText();
+      url_ = stream.readElementText();
+      try {
+        media_source_ = media_handling::createSource(url_.toStdString());
+      }  catch (const std::runtime_error& ex) {
+        qWarning() << "Source file failed to load:" << ex.what();
+      }
     } else if (elem_name == "duration") {
       length_ = stream.readElementText().toLong();
     } else if (elem_name == "marker") {
@@ -138,12 +252,30 @@ bool Footage::load(QXmlStreamReader& stream)
       markers_.append(mrkr);
     } else if (elem_name == "speed") {
       if (speed_ = stream.readElementText().toDouble(&okay); !okay) {
-
+        throw std::runtime_error("Failed to extract speed element");
       }
     } else {
       qWarning() << "Unhandled element" << elem_name;
       stream.skipCurrentElement();
     }
+  }
+
+  if (media_source_) {
+    for (int i = 0; i < audio_tracks.size(); ++i) {
+      auto strm(media_source_->audioStream(i));
+      Q_ASSERT(strm);
+      Q_ASSERT(audio_tracks.at(i));
+      audio_tracks.at(i)->setStreamInfo(strm);
+    }
+
+    for (int i = 0; i < video_tracks.size(); ++i) {
+      auto strm(media_source_->visualStream(i));
+      Q_ASSERT(strm);
+      Q_ASSERT(video_tracks.at(i));
+      video_tracks.at(i)->setStreamInfo(strm);
+    }
+  } else {
+    qWarning() << "Unable to set info for footage streams. Missing source file url =" << url_;
   }
 
   //TODO: check what this does
@@ -187,7 +319,7 @@ bool Footage::save(QXmlStreamWriter& stream) const
   stream.writeAttribute("out", QString::number(out));
 
   stream.writeTextElement("name", name_);
-  stream.writeTextElement("url", QDir(url).absolutePath());
+  stream.writeTextElement("url", QDir(url_).absolutePath());
   stream.writeTextElement("duration", QString::number(length_));
   stream.writeTextElement("speed", QString::number(speed_));
 
@@ -223,6 +355,11 @@ constexpr long lengthToFrames(const int64_t length, const double frame_rate, con
                                          * (frame_rate / speed) ));
   }
   return 0;
+}
+
+bool Footage::isMissing() const noexcept
+{
+  return media_source_ == nullptr;
 }
 
 long Footage::totalLengthInFrames(const double frame_rate) const noexcept
@@ -271,7 +408,7 @@ FootageStreamPtr Footage::get_stream_from_file_index(const bool video, const int
 {
   FootageStreamPtr stream;
   auto finder = [index] (auto tracks){
-    for (auto track : tracks) {
+    for (const auto& track : tracks) {
       if (track->file_index == index) {
         return track;
       }

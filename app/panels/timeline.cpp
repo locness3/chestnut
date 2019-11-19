@@ -273,8 +273,8 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
           break;
         }
         auto source_fr = 30.0;
-        if ( (!ftg->video_tracks.empty()) && !qIsNull(ftg->video_tracks.front()->video_frame_rate)) {
-          source_fr = ftg->video_tracks.front()->video_frame_rate * ftg->speed_;
+        if ( (!ftg->videoTracks().empty()) && !qIsNull(ftg->videoTracks().front()->video_frame_rate)) {
+          source_fr = ftg->videoTracks().front()->video_frame_rate * ftg->speed_;
         }
         default_clip_in = refactor_frame_number(ftg->in, source_fr, seq->frameRate());
         default_clip_out = refactor_frame_number(ftg->out, source_fr, seq->frameRate());
@@ -322,23 +322,25 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
           }
         }
 
-        for (int j = 0; j < ftg->audio_tracks.size(); ++j) {
-          if (!ftg->audio_tracks.at(j)->enabled) {
+        for (int j = 0; j < ftg->audioTracks().size(); ++j) {
+          Q_ASSERT(ftg->audioTracks().at(j));
+          if (!ftg->audioTracks().at(j)->enabled) {
             continue;
           }
           g.track = j;
-          g.media_stream = ftg->audio_tracks.at(j)->file_index;
+          g.media_stream = ftg->audioTracks().at(j)->file_index;
           ghosts.append(g);
           audio_ghosts = true;
         }
 
-        for (int j = 0; j < ftg->video_tracks.size(); ++j) {
-          if (!ftg->video_tracks.at(j)->enabled) {
+        for (int j = 0; j < ftg->videoTracks().size(); ++j) {
+          Q_ASSERT(ftg->videoTracks().at(j));
+          if (!ftg->videoTracks().at(j)->enabled) {
             continue;
           }
           g.track = -1 - j;
           qDebug() << "Video Track" << g.track;
-          g.media_stream = ftg->video_tracks.at(j)->file_index;
+          g.media_stream = ftg->videoTracks().at(j)->file_index;
           ghosts.append(g);
           video_ghosts = true;
         }
@@ -395,10 +397,10 @@ void Timeline::addClipsFromGhosts(ComboAction* ca, const SequencePtr& seq)
     clp->timeline_info.track_ = g.track;
     if (clp->timeline_info.media->type() == MediaType::FOOTAGE) {
       auto ftg = clp->timeline_info.media->object<Footage>();
-      if (ftg->video_tracks.empty()) {
+      if (ftg->videoTracks().empty()) {
         // audio only (greenish)
         clp->timeline_info.color = AUDIO_ONLY_COLOR;
-      } else if (ftg->audio_tracks.empty()) {
+      } else if (ftg->audioTracks().empty()) {
         // video only (orangeish)
         clp->timeline_info.color = VIDEO_ONLY_COLOR;
       } else {
@@ -441,7 +443,7 @@ void Timeline::addClipsFromGhosts(ComboAction* ca, const SequencePtr& seq)
       c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_PAN, EFFECT_TYPE_EFFECT)));
     }
   }
-  if (e_config.enable_seek_to_import) {
+  if (global::config.enable_seek_to_import) {
     PanelManager::sequenceViewer().seek(earliest_point);
   }
   PanelManager::timeLine().ghosts.clear();
@@ -559,13 +561,13 @@ void Timeline::repaint_timeline()
       && PanelManager::sequenceViewer().playing
       && !zoom_just_changed) {
     // auto scroll
-    if (e_config.autoscroll == AUTOSCROLL_PAGE_SCROLL) {
+    if (global::config.autoscroll == AUTOSCROLL_PAGE_SCROLL) {
       const int playhead_x = PanelManager::timeLine().getTimelineScreenPointFromFrame(sequence_->playhead_);
       if (playhead_x < 0 || playhead_x > (editAreas->width() - videoScrollbar->width())) {
         horizontalScrollBar->setValue(getScreenPointFromFrame(zoom, sequence_->playhead_));
         draw = false;
       }
-    } else if (e_config.autoscroll == AUTOSCROLL_SMOOTH_SCROLL) {
+    } else if (global::config.autoscroll == AUTOSCROLL_SMOOTH_SCROLL) {
       if (center_scroll_to_playhead(horizontalScrollBar, zoom, sequence_->playhead_)) {
         draw = false;
       }
@@ -1031,7 +1033,7 @@ void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const b
 
   PanelManager::refreshPanels(true);
 
-  if (e_config.paste_seeks) {
+  if (global::config.paste_seeks) {
     PanelManager::sequenceViewer().seek(paste_end);
   }
 }
@@ -1413,7 +1415,7 @@ bool Timeline::snap_to_timeline(long* l, bool use_playhead, bool use_markers, bo
 void Timeline::setMarker() const
 {
   Q_ASSERT(sequence_ != nullptr);
-  bool add_marker = !e_config.set_name_with_marker;
+  bool add_marker = !global::config.set_name_with_marker;
   QString marker_name;
 
   if (!add_marker) {

@@ -72,7 +72,7 @@ Clip::Clip(SequencePtr s) :
   id_(next_id++)
 {
   media_handling_.pkt_ = av_packet_alloc();
-  timeline_info.autoscale = e_config.autoscale_by_default;
+  timeline_info.autoscale = global::config.autoscale_by_default;
   reset();
 }
 
@@ -156,7 +156,8 @@ bool Clip::usesCacher() const
  * @brief open_worker
  * @return true==success
  */
-bool Clip::openWorker() {
+bool Clip::openWorker()
+{
   if (timeline_info.media == nullptr) {
     if (timeline_info.track_ >= 0) {
       media_handling_.frame_ = av_frame_alloc();
@@ -174,7 +175,7 @@ bool Clip::openWorker() {
   } else if (timeline_info.media->type() == MediaType::FOOTAGE) {
     // opens file resource for FFmpeg and prepares Clip struct for playback
     auto ftg = timeline_info.media->object<Footage>();
-    const char* const filename = ftg->url.toUtf8().data();
+    auto filename = ftg->location().toUtf8().data();
 
     FootageStreamPtr ms;
     if (mediaType() == ClipType::VISUAL) {
@@ -223,19 +224,20 @@ bool Clip::openWorker() {
       max_queue_size = 1;
     } else {
       max_queue_size = 0;
-      if (e_config.upcoming_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
-        max_queue_size += qCeil(e_config.upcoming_queue_size);
+      if (global::config.upcoming_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
+        max_queue_size += qCeil(global::config.upcoming_queue_size);
       } else {
-        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed_ * e_config.upcoming_queue_size);
+        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed_ * global::config.upcoming_queue_size);
       }
-      if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
-        max_queue_size += qCeil(e_config.previous_queue_size);
+      if (global::config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
+        max_queue_size += qCeil(global::config.previous_queue_size);
       } else {
-        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed_ * e_config.previous_queue_size);
+        max_queue_size += qCeil(ms->video_frame_rate * ftg->speed_ * global::config.previous_queue_size);
       }
     }
 
-    if (ms->video_interlacing != ScanMethod::PROGRESSIVE) {
+
+    if (ms->fieldOrder() != media_handling::FieldOrder::PROGRESSIVE) {
       max_queue_size *= 2;
     }
 
@@ -250,7 +252,7 @@ bool Clip::openWorker() {
     #else
          )
     #endif
-        || !e_config.disable_multithreading_for_images) {
+        || !global::config.disable_multithreading_for_images) {
       av_dict_set(&media_handling_.opts_, "threads", "auto", 0);
     }
     if (media_handling_.stream_->codecpar->codec_id == AV_CODEC_ID_H264) {
@@ -286,12 +288,21 @@ bool Clip::openWorker() {
 
       AVFilterContext* last_filter = buffersrc_ctx;
 
-      if (ms->video_interlacing != ScanMethod::PROGRESSIVE) {
+      if (ms->fieldOrder() != media_handling::FieldOrder::PROGRESSIVE) {
         AVFilterContext* yadif_filter;
         char yadif_args[100];
-        snprintf(yadif_args, sizeof(yadif_args), "mode=3:parity=%d", ((ms->video_interlacing == ScanMethod::TOP_FIRST) ? 0 : 1));
-        avfilter_graph_create_filter(&yadif_filter, avfilter_get_by_name("yadif"), "yadif", yadif_args, nullptr, filter_graph);
-
+        snprintf(yadif_args,
+                 sizeof(yadif_args),
+                 "mode=3:parity=%d",
+                 ((ms->fieldOrder() == media_handling::FieldOrder::TOP_FIRST) ? 0 : 1));
+        //TODO: check return values
+        constexpr auto deinterlacer = "yadif";
+        avfilter_graph_create_filter(&yadif_filter,
+                                     avfilter_get_by_name(deinterlacer),
+                                     deinterlacer,
+                                     yadif_args,
+                                     nullptr,
+                                     filter_graph);
         avfilter_link(last_filter, 0, yadif_filter, 0);
         last_filter = yadif_filter;
       }
@@ -817,12 +828,14 @@ void Clip::refresh()
 {
   // validates media if it was replaced
   if (replaced && timeline_info.media != nullptr && timeline_info.media->type() == MediaType::FOOTAGE) {
-    FootagePtr m = timeline_info.media->object<Footage>();
+    auto ftg = timeline_info.media->object<Footage>();
 
-    if ((mediaType() == ClipType::VISUAL) && !m->video_tracks.empty())  {
-      timeline_info.media_stream = m->video_tracks.front()->file_index;
-    } else if ((mediaType() == ClipType::AUDIO) && !m->audio_tracks.empty()) {
-      timeline_info.media_stream = m->audio_tracks.front()->file_index;
+    if ((mediaType() == ClipType::VISUAL) && !ftg->videoTracks().empty())  {
+      Q_ASSERT(ftg->videoTracks().front());
+      timeline_info.media_stream = ftg->videoTracks().front()->file_index;
+    } else if ((mediaType() == ClipType::AUDIO) && !ftg->audioTracks().empty()) {
+      Q_ASSERT(ftg->audioTracks().front());
+      timeline_info.media_stream = ftg->audioTracks().front()->file_index;
     }
   }
   replaced = false;
@@ -883,11 +896,13 @@ void Clip::frame(const long playhead, bool& texture_failed)
     } else {
       ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
     }
-    if (ms == nullptr) return;
+    if (ms == nullptr) {
+      return;
+    }
 
     int64_t target_pts = qMax(static_cast<int64_t>(0), playhead_to_timestamp(playhead));
     int64_t second_pts = qRound64(av_q2d(av_inv_q(media_handling_.stream_->time_base)));
-    if (ms->video_interlacing != ScanMethod::PROGRESSIVE) {
+    if (ms->fieldOrder() != media_handling::FieldOrder::PROGRESSIVE) {
       target_pts *= 2;
       second_pts *= 2;
     }
@@ -923,8 +938,8 @@ void Clip::frame(const long playhead, bool& texture_failed)
         int64_t minimum_ts = target_frame->pts;
 
         int previous_frame_count = 0;
-        if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
-          minimum_ts -= qFloor(second_pts * e_config.previous_queue_size);
+        if (global::config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
+          minimum_ts -= qFloor(second_pts * global::config.previous_queue_size);
         }
 
         for (int i=0;i<queue.size();i++) {
@@ -932,7 +947,7 @@ void Clip::frame(const long playhead, bool& texture_failed)
             next_pts = queue.at(i)->pts;
           }
           if (queue.at(i) != target_frame && ((queue.at(i)->pts > minimum_ts) == timeline_info.reverse)) {
-            if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
+            if (global::config.previous_queue_type == FRAME_QUEUE_TYPE_SECONDS) {
               av_frame_free(&queue[i]); // may be a little heavy for the main thread?
               queue.removeAt(i);
               i--;
@@ -943,8 +958,8 @@ void Clip::frame(const long playhead, bool& texture_failed)
           }
         }
 
-        if (e_config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
-          while (previous_frame_count > qCeil(e_config.previous_queue_size)) {
+        if (global::config.previous_queue_type == FRAME_QUEUE_TYPE_FRAMES) {
+          while (previous_frame_count > qCeil(global::config.previous_queue_size)) {
             int smallest = 0;
             for (int i=1;i<queue.size();i++) {
               if (queue.at(i)->pts < queue.at(smallest)->pts) {
@@ -971,7 +986,7 @@ void Clip::frame(const long playhead, bool& texture_failed)
               reached_end = false;
               use_cache = false;
             } else if (target_pts != last_invalid_ts && (target_pts < target_frame->pts || pts_diff > second_pts)) {
-              if (!e_config.fast_seeking) {
+              if (!global::config.fast_seeking) {
                 target_frame = nullptr;
               }
               reset = true;
@@ -1404,8 +1419,9 @@ long Clip::maximumLength() const
   return media_handling_.calculated_length_;
 }
 
-int Clip::width() {
-  if (timeline_info.media == nullptr && sequence != nullptr) {
+int Clip::width()
+{
+  if ( (timeline_info.media == nullptr) && (sequence != nullptr) ) {
     return sequence->width();
   }
 
@@ -1413,13 +1429,11 @@ int Clip::width() {
     case MediaType::FOOTAGE:
     {
       auto ftg = timeline_info.media->object<Footage>();
-      if (!ftg) return 0;
-      FootageStreamPtr ms;
-      if (timeline_info.isVideo()) {
-        ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
-      } else {
-        ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
+      if (!ftg) {
+        return 0;
       }
+      const auto ms = mediaType() == ClipType::VISUAL ? ftg->video_stream_from_file_index(timeline_info.media_stream) :
+                                                        ftg->audio_stream_from_file_index(timeline_info.media_stream);
 
       if (ms != nullptr) {
         return ms->video_width;
@@ -1455,12 +1469,8 @@ int Clip::height() {
       if (!ftg) {
         return 0;
       }
-      FootageStreamPtr ms;
-      if (timeline_info.isVideo()) {
-        ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
-      } else {
-        ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
-      }
+      const auto ms(timeline_info.isVideo() ? ftg->video_stream_from_file_index(timeline_info.media_stream)
+                                            : ftg->audio_stream_from_file_index(timeline_info.media_stream));
 
       if (ms != nullptr) {
         return ms->video_height;

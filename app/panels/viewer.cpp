@@ -288,7 +288,7 @@ void Viewer::seek(const int64_t p)
   if (main_sequence) {
     PanelManager::timeLine().scroll_to_frame(p);
     PanelManager::fxControls().scroll_to_frame(p);
-    if (e_config.seek_also_selects) {
+    if (global::config.seek_also_selects) {
       PanelManager::timeLine().select_from_playhead();
       update_fx = true;
     }
@@ -412,7 +412,7 @@ void Viewer::play()
   if (seq != nullptr) {
     if (!is_recording_cued()
         && seq->playhead_ >= get_seq_out()
-        && (e_config.loop || !main_sequence)) {
+        && (global::config.loop || !main_sequence)) {
       seek(get_seq_in());
     }
 
@@ -488,8 +488,8 @@ void Viewer::update_playhead_timecode(long p)
 void Viewer::update_end_timecode()
 {
   Q_ASSERT(endTimecode);
-  endTimecode->setText((seq == nullptr) ? frame_to_timecode(0, e_config.timecode_view, 30)
-                                        : frame_to_timecode(seq->activeLength(), e_config.timecode_view, seq->frameRate()));
+  endTimecode->setText((seq == nullptr) ? frame_to_timecode(0, global::config.timecode_view, 30)
+                                        : frame_to_timecode(seq->activeLength(), global::config.timecode_view, seq->frameRate()));
 }
 
 void Viewer::update_header_zoom()
@@ -537,7 +537,7 @@ SequencePtr Viewer::getSequence()
 
 void Viewer::setMarker() const
 {
-  bool add_marker = !e_config.set_name_with_marker;
+  bool add_marker = !global::config.set_name_with_marker;
   QString marker_name;
 
   if (!add_marker) {
@@ -781,50 +781,52 @@ SequencePtr Viewer::createFootageSequence(const MediaPtr& mda) const
 
   sqn->setFrameRate(MEDIA_FRAME_RATE);
 
-  if (!ftg->video_tracks.empty()) {
-    const auto video_stream = ftg->video_tracks.front();
-    sqn->setWidth(video_stream->video_width);
-    sqn->setHeight(video_stream->video_height);
-    if ( (video_stream->video_frame_rate > 0) && (!video_stream->infinite_length) ) { // not image?
-      sqn->setFrameRate(video_stream->video_frame_rate * ftg->speed_);
-    }
+  if (!ftg->videoTracks().empty()) {
+    if (const auto video_stream = ftg->videoTracks().front()) {
+      sqn->setWidth(video_stream->video_width);
+      sqn->setHeight(video_stream->video_height);
+      if ( (video_stream->video_frame_rate > 0) && (!video_stream->infinite_length) ) { // not image?
+        sqn->setFrameRate(video_stream->video_frame_rate * ftg->speed_);
+      }
 
-    auto clp = std::make_shared<Clip>(sqn);
-    clp->timeline_info.media        = mda;
-    clp->timeline_info.media_stream = video_stream->file_index;
-    clp->timeline_info.in           = 0;
-    clp->timeline_info.out          = ftg->totalLengthInFrames(sqn->frameRate());
-    if (clp->timeline_info.out <= 0) {
-      clp->timeline_info.out = 150;
+      auto clp = std::make_shared<Clip>(sqn);
+      clp->timeline_info.media        = mda;
+      clp->timeline_info.media_stream = video_stream->file_index;
+      clp->timeline_info.in           = 0;
+      clp->timeline_info.out          = ftg->totalLengthInFrames(sqn->frameRate());
+      if (clp->timeline_info.out <= 0) {
+        clp->timeline_info.out = 150;
+      }
+      clp->timeline_info.track_ = -1;
+      clp->timeline_info.clip_in  = 0;
+      clp->recalculateMaxLength();
+      sqn->addClip(clp);
     }
-    clp->timeline_info.track_ = -1;
-    clp->timeline_info.clip_in  = 0;
-    clp->recalculateMaxLength();
-    sqn->addClip(clp);
   } else {
     sqn->setWidth(MEDIA_WIDTH);
     sqn->setHeight(MEDIA_HEIGHT);
   }
 
-  if (!ftg->audio_tracks.empty()) {
-    const auto audio_stream = ftg->audio_tracks.front();
-    sqn->setAudioFrequency(audio_stream->audio_frequency);
+  if (!ftg->audioTracks().empty()) {
+    if (const auto audio_stream = ftg->audioTracks().front()) {
+      sqn->setAudioFrequency(audio_stream->audio_frequency);
 
-    auto clp = std::make_shared<Clip>(sqn);
-    clp->timeline_info.media        = mda;
-    clp->timeline_info.media_stream = audio_stream->file_index;
-    clp->timeline_info.in           = 0;
-    clp->timeline_info.out          = ftg->totalLengthInFrames(sqn->frameRate());
-    clp->timeline_info.track_       = 0;
-    clp->timeline_info.clip_in      = 0;
-    clp->recalculateMaxLength();
-    sqn->addClip(clp);
+      auto clp = std::make_shared<Clip>(sqn);
+      clp->timeline_info.media        = mda;
+      clp->timeline_info.media_stream = audio_stream->file_index;
+      clp->timeline_info.in           = 0;
+      clp->timeline_info.out          = ftg->totalLengthInFrames(sqn->frameRate());
+      clp->timeline_info.track_       = 0;
+      clp->timeline_info.clip_in      = 0;
+      clp->recalculateMaxLength();
+      sqn->addClip(clp);
 
-    if (ftg->video_tracks.empty()) {
-      viewer_widget->waveform         = true;
-      viewer_widget->waveform_clip    = clp;
-      viewer_widget->waveform_ms      = audio_stream;
-      viewer_widget->frame_update();
+      if (ftg->videoTracks().empty()) {
+        viewer_widget->waveform         = true;
+        viewer_widget->waveform_clip    = clp;
+        viewer_widget->waveform_ms      = audio_stream;
+        viewer_widget->frame_update();
+      }
     }
   } else {
     sqn->setAudioFrequency(MEDIA_AUDIO_FREQUENCY);
@@ -877,20 +879,20 @@ void Viewer::timer_update()
   previous_playhead = seq->playhead_;
 
   seq->playhead_ = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * seq->frameRate()));
-  if (e_config.seek_also_selects) {
+  if (global::config.seek_also_selects) {
     PanelManager::timeLine().select_from_playhead();
   }
-  update_parents(e_config.seek_also_selects);
+  update_parents(global::config.seek_also_selects);
 
   const int64_t end_frame = get_seq_out();
   if (!recording
       && playing
       && (seq->playhead_ >= end_frame)
       && (previous_playhead < end_frame) ) {
-    if (!e_config.pause_at_out_point && e_config.loop) {
+    if (!global::config.pause_at_out_point && global::config.loop) {
       seek(get_seq_in());
       play();
-    } else if (e_config.pause_at_out_point || !main_sequence) {
+    } else if (global::config.pause_at_out_point || !main_sequence) {
       pause();
     }
   } else if (recording && (recording_start != recording_end) && (seq->playhead_ >= recording_end) ) {

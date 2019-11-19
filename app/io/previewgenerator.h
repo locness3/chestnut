@@ -57,6 +57,7 @@ private:
      * @brief retrieve pre-existing (file-system) previews
      * @param hash used to generate file_path
      * @return  true==already exists and loaded in FootageStream of Media (groan)
+     * @return
      */
     bool retrieve_preview(const QString &hash);
     void generate_waveform();
@@ -64,7 +65,6 @@ private:
     AVFormatContext* fmt_ctx;
     MediaPtr media;
     FootageWPtr footage;
-    bool retrieve_duration;
     bool contains_still_image;
     bool replace;
     bool cancelled;
