@@ -69,6 +69,8 @@ constexpr int SURFACE_DEPTH = 24;
 constexpr int SURFACE_SAMPLES = 16;
 constexpr double DEFAULT_WAVEFORM_ZOOM = 1.0;
 constexpr float GIZMO_Z = 0.0;
+constexpr auto FRAME_NAME_FILTER = "Portable Network Graphic (*.png);;JPEG (*.jpg);;Windows Bitmap (*.bmp);;"
+                                   "Portable Pixmap (*.ppm);;X11 Bitmap (*.xbm);;X11 Pixmap (*.xpm)";
 
 using panels::PanelManager;
 
@@ -129,7 +131,8 @@ void ViewerWidget::set_waveform_scroll(int s) {
   }
 }
 
-void ViewerWidget::show_context_menu() {
+void ViewerWidget::show_context_menu()
+{
   QMenu menu(this);
 
   QAction* save_frame_as_image = menu.addAction(tr("Save Frame as Image..."));
@@ -140,17 +143,19 @@ void ViewerWidget::show_context_menu() {
   if (window != nullptr && window->isVisible()) {
     fullscreen_menu->addAction(tr("Disable"));
   }
-  for (int i=0;i<screens.size();i++) {
+  for (int i = 0; i < screens.size(); i++) {
     QAction* screen_action = fullscreen_menu->addAction(tr("Screen %1: %2x%3").arg(
                                                           QString::number(i),
                                                           QString::number(screens.at(i)->size().width()),
                                                           QString::number(screens.at(i)->size().height())));
+    Q_ASSERT(screen_action);
     screen_action->setData(i);
   }
   connect(fullscreen_menu, SIGNAL(triggered(QAction*)), this, SLOT(fullscreen_menu_action(QAction*)));
 
   QMenu zoom_menu(tr("Zoom"));
   QAction* fit_zoom = zoom_menu.addAction(tr("Fit"));
+  Q_ASSERT(fit_zoom);
   connect(fit_zoom, SIGNAL(triggered(bool)), this, SLOT(set_fit_zoom()));
   zoom_menu.addAction("10%")->setData(0.1);
   zoom_menu.addAction("25%")->setData(0.25);
@@ -161,6 +166,7 @@ void ViewerWidget::show_context_menu() {
   zoom_menu.addAction("200%")->setData(2.0);
   zoom_menu.addAction("400%")->setData(4.0);
   QAction* custom_zoom = zoom_menu.addAction(tr("Custom"));
+  Q_ASSERT(custom_zoom);
   connect(custom_zoom, SIGNAL(triggered(bool)), this, SLOT(set_custom_zoom()));
   connect(&zoom_menu, SIGNAL(triggered(QAction*)), this, SLOT(set_menu_zoom(QAction*)));
   menu.addMenu(&zoom_menu);
@@ -178,11 +184,11 @@ void ViewerWidget::save_frame()
   fd.setAcceptMode(QFileDialog::AcceptSave);
   fd.setFileMode(QFileDialog::AnyFile);
   fd.setWindowTitle(tr("Save Frame"));
-  fd.setNameFilter("Portable Network Graphic (*.png);;JPEG (*.jpg);;Windows Bitmap (*.bmp);;Portable Pixmap (*.ppm);;X11 Bitmap (*.xbm);;X11 Pixmap (*.xpm)");
+  fd.setNameFilter(FRAME_NAME_FILTER);
 
   if (fd.exec()) {
     frame_file_name_ = fd.selectedFiles().front();
-    QString selected_ext = fd.selectedNameFilter().mid(fd.selectedNameFilter().indexOf(QRegExp("\\*.[a-z][a-z][a-z]")) + 1, 4);
+    const QString selected_ext(fd.selectedNameFilter().mid(fd.selectedNameFilter().indexOf(QRegExp("\\*.[a-z][a-z][a-z]")) + 1, 4));
     if (!frame_file_name_.endsWith(selected_ext,  Qt::CaseInsensitive)) {
       frame_file_name_ += selected_ext;
     }
@@ -196,9 +202,10 @@ void ViewerWidget::queue_repaint()
   update();
 }
 
-void ViewerWidget::fullscreen_menu_action(QAction *action) {
+void ViewerWidget::fullscreen_menu_action(QAction *action)
+{
   if (window == nullptr) {
-    QMessageBox::critical(this, "Error", "Failed to create viewer window");
+    QMessageBox::critical(this, tr("Error"), tr("Failed to create viewer window"));
   } else {
     if (action->data().isNull()) {
       window->hide();
@@ -218,7 +225,8 @@ void ViewerWidget::set_fit_zoom() {
   container->adjust();
 }
 
-void ViewerWidget::set_custom_zoom() {
+void ViewerWidget::set_custom_zoom()
+{
   bool ok;
   double d = QInputDialog::getDouble(this,
                                      tr("Viewer Zoom"),
@@ -226,12 +234,13 @@ void ViewerWidget::set_custom_zoom() {
                                      container->zoom*100, 0, 2147483647, 2, &ok);
   if (ok) {
     container->fit = false;
-    container->zoom = d*0.01;
+    container->zoom = d * 0.01;
     container->adjust();
   }
 }
 
-void ViewerWidget::set_menu_zoom(QAction* action) {
+void ViewerWidget::set_menu_zoom(QAction* action)
+{
   const QVariant& actionData = action->data();
   if (!actionData.isNull()) {
     container->fit = false;
@@ -298,16 +307,19 @@ void ViewerWidget::frame_update()
   }
 }
 
-RenderThread *ViewerWidget::get_renderer() {
+RenderThread *ViewerWidget::get_renderer()
+{
   return renderer;
 }
 
-void ViewerWidget::seek_from_click(int x) {
-  viewer->seek(getFrameFromScreenPoint(waveform_zoom, x+waveform_scroll));
+void ViewerWidget::seek_from_click(int x)
+{
+  viewer->seek(getFrameFromScreenPoint(waveform_zoom, x + waveform_scroll));
 }
 
 
-void ViewerWidget::context_destroy() {
+void ViewerWidget::context_destroy()
+{
   makeCurrent();
   if ((viewer->getSequence() != nullptr) && viewer->getSequence()) {
     viewer->getSequence()->closeActiveClips();
@@ -320,53 +332,58 @@ void ViewerWidget::context_destroy() {
   doneCurrent();
 }
 
-EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(int x, int y) {
-  if (gizmos != nullptr) {
-    double multiplier = double(viewer->getSequence()->width()) / double(width());
-    QPoint mouse_pos(qRound(x*multiplier), qRound((height()-y)*multiplier));
-    int dot_size = 2 * qRound(GIZMO_DOT_SIZE * multiplier);
-    int target_size = 2 * qRound(GIZMO_TARGET_SIZE * multiplier);
-    for (int i=0;i<gizmos->gizmo_count();i++) {
-      EffectGizmoPtr g = gizmos->gizmo(i);
+EffectGizmoPtr ViewerWidget::get_gizmo_from_mouse(int x, int y)
+{
+  if (gizmos == nullptr) {
+    return nullptr;
+  }
 
-      switch (g->get_type()) {
-        case GizmoType::DOT:
-          if (mouse_pos.x() > g->screen_pos[0].x() - dot_size
-              && mouse_pos.y() > g->screen_pos[0].y() - dot_size
-              && mouse_pos.x() < g->screen_pos[0].x() + dot_size
-              && mouse_pos.y() < g->screen_pos[0].y() + dot_size) {
-            return g;
-          }
-          break;
-        case GizmoType::POLY:
-          if (QPolygon(g->screen_pos).containsPoint(mouse_pos, Qt::OddEvenFill)) {
-            return g;
-          }
-          break;
-        case GizmoType::TARGET:
-          if (mouse_pos.x() > g->screen_pos[0].x() - target_size
-              && mouse_pos.y() > g->screen_pos[0].y() - target_size
-              && mouse_pos.x() < g->screen_pos[0].x() + target_size
-              && mouse_pos.y() < g->screen_pos[0].y() + target_size) {
-            return g;
-          }
-          break;
-        default:
-          qWarning() << "Unhandled Gizmo type" << static_cast<int>(g->get_type());
-          break;
-      }
+  double multiplier = static_cast<double>(viewer->getSequence()->width()) / width();
+  QPoint mouse_pos(qRound(x * multiplier), qRound((height() - y) * multiplier));
+  int dot_size = 2 * qRound(GIZMO_DOT_SIZE * multiplier);
+  int target_size = 2 * qRound(GIZMO_TARGET_SIZE * multiplier);
+  for (int i = 0; i < gizmos->gizmo_count(); i++) {
+    EffectGizmoPtr g = gizmos->gizmo(i);
+    Q_ASSERT(g);
 
+    switch (g->get_type()) {
+      case GizmoType::DOT:
+        if (mouse_pos.x() > g->screen_pos[0].x() - dot_size
+            && mouse_pos.y() > g->screen_pos[0].y() - dot_size
+            && mouse_pos.x() < g->screen_pos[0].x() + dot_size
+            && mouse_pos.y() < g->screen_pos[0].y() + dot_size) {
+          return g;
+        }
+        break;
+      case GizmoType::POLY:
+        if (QPolygon(g->screen_pos).containsPoint(mouse_pos, Qt::OddEvenFill)) {
+          return g;
+        }
+        break;
+      case GizmoType::TARGET:
+        if (mouse_pos.x() > g->screen_pos[0].x() - target_size
+            && mouse_pos.y() > g->screen_pos[0].y() - target_size
+            && mouse_pos.x() < g->screen_pos[0].x() + target_size
+            && mouse_pos.y() < g->screen_pos[0].y() + target_size) {
+          return g;
+        }
+        break;
+      default:
+        qWarning() << "Unhandled Gizmo type" << static_cast<int>(g->get_type());
+        break;
     }
+
   }
   return nullptr;
 }
 
-void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
+void ViewerWidget::move_gizmos(QMouseEvent *event, bool done)
+{
   if (selected_gizmo != nullptr) {
-    const auto multiplier = static_cast<double>(viewer->getSequence()->width()) / static_cast<double>(width());
+    const auto multiplier = static_cast<double>(viewer->getSequence()->width()) / width();
 
-    const auto x_movement = qRound((event->pos().x() - drag_start_x)*multiplier);
-    const auto y_movement = qRound((event->pos().y() - drag_start_y)*multiplier);
+    const auto x_movement = qRound((event->pos().x() - drag_start_x) * multiplier);
+    const auto y_movement = qRound((event->pos().y() - drag_start_y) * multiplier);
 
     gizmos->gizmo_move(selected_gizmo,
                        x_movement, y_movement,
@@ -383,10 +400,12 @@ void ViewerWidget::move_gizmos(QMouseEvent *event, bool done) {
   }
 }
 
-void ViewerWidget::mousePressEvent(QMouseEvent* event) {
+void ViewerWidget::mousePressEvent(QMouseEvent* event)
+{
+  Q_ASSERT(event);
   if (waveform) {
     seek_from_click(event->x());
-  } else if (event->buttons() & Qt::MiddleButton || PanelManager::timeLine().tool == TimelineToolType::HAND) {
+  } else if ( (event->buttons() & Qt::MiddleButton) || (PanelManager::timeLine().tool == TimelineToolType::HAND) ) {
     container->dragScrollPress(event->pos());
   } else {
     drag_start_x = event->pos().x();
@@ -407,19 +426,22 @@ void ViewerWidget::mousePressEvent(QMouseEvent* event) {
   }
 }
 
-void ViewerWidget::mouseMoveEvent(QMouseEvent* event) {
+void ViewerWidget::mouseMoveEvent(QMouseEvent* event)
+{
+  Q_ASSERT(event);
   unsetCursor();
   if (PanelManager::timeLine().tool == TimelineToolType::HAND) {
     setCursor(Qt::OpenHandCursor);
   }
+
   if (dragging) {
     if (waveform) {
       seek_from_click(event->x());
     } else if ( (event->buttons() & Qt::MiddleButton) || PanelManager::timeLine().tool == TimelineToolType::HAND) {
       container->dragScrollMove(event->pos());
     } else if (gizmos == nullptr) {
-      QDrag* drag = new QDrag(this);
-      QMimeData* mimeData = new QMimeData;
+      auto drag = new QDrag(this);
+      auto mimeData = new QMimeData;
       mimeData->setText("h"); // QMimeData will fail without some kind of data
       drag->setMimeData(mimeData);
       drag->exec();
@@ -427,28 +449,32 @@ void ViewerWidget::mouseMoveEvent(QMouseEvent* event) {
     } else {
       move_gizmos(event, false);
     }
-  } else {
-    EffectGizmoPtr g = get_gizmo_from_mouse(event->pos().x(), event->pos().y());
-    if (g != nullptr) {
-      if (g->get_cursor() > -1) {
-        setCursor(static_cast<enum Qt::CursorShape>(g->get_cursor()));
-      }
+  } else if (EffectGizmoPtr g = get_gizmo_from_mouse(event->pos().x(), event->pos().y())) {
+    if (g->get_cursor() > -1) {
+      setCursor(static_cast<enum Qt::CursorShape>(g->get_cursor()));
     }
   }
 }
 
-void ViewerWidget::mouseReleaseEvent(QMouseEvent *event) {
-  if (dragging && gizmos != nullptr && !(event->button() == Qt::MiddleButton || PanelManager::timeLine().tool == TimelineToolType::HAND)) {
+void ViewerWidget::mouseReleaseEvent(QMouseEvent *event)
+{
+  Q_ASSERT(event);
+  if (dragging && (gizmos != nullptr) && !( (event->button() == Qt::MiddleButton)
+                                            || (PanelManager::timeLine().tool == TimelineToolType::HAND))) {
     move_gizmos(event, true);
   }
   dragging = false;
 }
 
-void ViewerWidget::close_window() {
-  if (window != nullptr) window->hide();
+void ViewerWidget::close_window()
+{
+  if (window != nullptr) {
+    window->hide();
+  }
 }
 
-void ViewerWidget::draw_waveform_func() {
+void ViewerWidget::draw_waveform_func()
+{
   QPainter p(this);
   if (viewer->getSequence()->workarea_.using_) {
     int in_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->workarea_.in_) - waveform_scroll;
@@ -468,23 +494,25 @@ void ViewerWidget::draw_waveform_func() {
     qCritical() << "No stream to draw waveform";
     return;
   }
-  draw_waveform(waveform_clip, stream, waveform_clip->timeline_info.out, p, wr, waveform_scroll, width()+waveform_scroll, waveform_zoom);
+  draw_waveform(waveform_clip, stream, waveform_clip->timeline_info.out, p, wr,
+                waveform_scroll, width() + waveform_scroll, waveform_zoom);
   p.setPen(Qt::red);
   const auto playhead_x = getScreenPointFromFrame(waveform_zoom, viewer->getSequence()->playhead_) - waveform_scroll;
   p.drawLine(playhead_x, 0, playhead_x, height());
 }
 
-void ViewerWidget::draw_title_safe_area() {
+void ViewerWidget::draw_title_safe_area()
+{
   double halfWidth = 0.5;
   double halfHeight = 0.5;
-  double viewportAr = static_cast<double>(width()) / static_cast<double>(height());
+  double viewportAr = static_cast<double>(width()) / height();
   double halfAr = viewportAr*0.5;
 
-  if (e_config.use_custom_title_safe_ratio && e_config.custom_title_safe_ratio > 0) {
+  if (e_config.use_custom_title_safe_ratio && (e_config.custom_title_safe_ratio > 0) ) {
     if (e_config.custom_title_safe_ratio > viewportAr) {
-      halfHeight = (e_config.custom_title_safe_ratio/viewportAr)*0.5;
+      halfHeight = (e_config.custom_title_safe_ratio / viewportAr) * 0.5;
     } else {
-      halfWidth = (viewportAr/e_config.custom_title_safe_ratio)*0.5;
+      halfWidth = (viewportAr / e_config.custom_title_safe_ratio) * 0.5;
     }
   }
 
@@ -546,21 +574,21 @@ void ViewerWidget::drawDot(const EffectGizmoPtr& g)
 {
   const float dot_size = GIZMO_DOT_SIZE / width() * viewer->getSequence()->width();
   glBegin(GL_QUADS);
-  glVertex3f(g->screen_pos[0].x()-dot_size, g->screen_pos[0].y()-dot_size, GIZMO_Z);
-  glVertex3f(g->screen_pos[0].x()+dot_size, g->screen_pos[0].y()-dot_size, GIZMO_Z);
-  glVertex3f(g->screen_pos[0].x()+dot_size, g->screen_pos[0].y()+dot_size, GIZMO_Z);
-  glVertex3f(g->screen_pos[0].x()-dot_size, g->screen_pos[0].y()+dot_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() - dot_size, g->screen_pos[0].y()-dot_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() + dot_size, g->screen_pos[0].y()-dot_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() + dot_size, g->screen_pos[0].y()+dot_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() - dot_size, g->screen_pos[0].y()+dot_size, GIZMO_Z);
   glEnd();
 }
 
 void ViewerWidget::drawLines(const EffectGizmoPtr& g)
 {
   glBegin(GL_LINES);
-  for (int k=1;k<g->get_point_count();k++) {
-    glVertex3f(g->screen_pos[k-1].x(), g->screen_pos[k-1].y(), GIZMO_Z);
+  for (int k = 1; k < g->get_point_count(); k++) {
+    glVertex3f(g->screen_pos[k-1].x(), g->screen_pos[k - 1].y(), GIZMO_Z);
     glVertex3f(g->screen_pos[k].x(), g->screen_pos[k].y(), GIZMO_Z);
   }
-  glVertex3f(g->screen_pos[g->get_point_count()-1].x(), g->screen_pos[g->get_point_count()-1].y(), GIZMO_Z);
+  glVertex3f(g->screen_pos[g->get_point_count() - 1].x(), g->screen_pos[g->get_point_count() - 1].y(), GIZMO_Z);
   glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y(), GIZMO_Z);
   glEnd();
 }
@@ -569,23 +597,23 @@ void ViewerWidget::drawTarget(const EffectGizmoPtr& g)
 {
   const float target_size = GIZMO_TARGET_SIZE / width() * viewer->getSequence()->width();
   glBegin(GL_LINES);
-  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()-target_size, GIZMO_Z);
-  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()-target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() - target_size, g->screen_pos[0].y() - target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() + target_size, g->screen_pos[0].y() - target_size, GIZMO_Z);
 
-  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()-target_size, GIZMO_Z);
-  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()+target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() + target_size, g->screen_pos[0].y()-  target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() + target_size, g->screen_pos[0].y() + target_size, GIZMO_Z);
 
-  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y()+target_size, GIZMO_Z);
-  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()+target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() + target_size, g->screen_pos[0].y() + target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() - target_size, g->screen_pos[0].y() + target_size, GIZMO_Z);
 
-  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()+target_size, GIZMO_Z);
-  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y()-target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() - target_size, g->screen_pos[0].y() + target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() - target_size, g->screen_pos[0].y() - target_size, GIZMO_Z);
 
-  glVertex3f(g->screen_pos[0].x()-target_size, g->screen_pos[0].y(), GIZMO_Z);
-  glVertex3f(g->screen_pos[0].x()+target_size, g->screen_pos[0].y(), GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() - target_size, g->screen_pos[0].y(), GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x() + target_size, g->screen_pos[0].y(), GIZMO_Z);
 
-  glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y()-target_size, GIZMO_Z);
-  glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y()+target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y() - target_size, GIZMO_Z);
+  glVertex3f(g->screen_pos[0].x(), g->screen_pos[0].y() + target_size, GIZMO_Z);
   glEnd();
 }
 
@@ -680,7 +708,9 @@ void ViewerWidget::paintGL()
     glDisable(GL_TEXTURE_2D);
 
     if (window != nullptr && window->isVisible()) {
-      window->set_texture(renderer->texColorBuffer, double(viewer->getSequence()->width())/double(viewer->getSequence()->height()), &renderer->mutex);
+      window->set_texture(renderer->texColorBuffer,
+                          static_cast<double>(viewer->getSequence()->width()) / viewer->getSequence()->height(),
+                          &renderer->mutex);
     }
 
     renderer->mutex.unlock();
