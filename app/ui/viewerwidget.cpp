@@ -401,7 +401,10 @@ void ViewerWidget::mousePressEvent(QMouseEvent* event) {
       selected_gizmo->set_previous_value();
     }
   }
-  dragging = true;
+
+  if (event->buttons() & Qt::LeftButton) {
+    dragging = true;
+  }
 }
 
 void ViewerWidget::mouseMoveEvent(QMouseEvent* event) {
