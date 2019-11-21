@@ -46,6 +46,7 @@
 #include "io/math.h"
 #include "transition.h"
 #include "io/path.h"
+#include "database.h"
 
 #include "effects/internal/transformeffect.h"
 #include "effects/internal/texteffect.h"
@@ -412,18 +413,6 @@ void Effect::clearCapability(const Capability flag)
   capabilities_.erase(flag);
 }
 
-QSqlDatabase Effect::database()
-{
-  if (!db_.isOpen()) {
-    db_ = QSqlDatabase::addDatabase("QSQLITE");
-    auto path = QDir(chestnut::paths::dataPath()).filePath("chestnut.db");
-    db_.setDatabaseName(path);
-    Q_ASSERT(db_.open());
-  }
-  return db_;
-}
-
-
 void Effect::copy_field_keyframes(const std::shared_ptr<Effect>& e)
 {
   for (int i=0; i<rows.size(); ++i) {
@@ -588,7 +577,7 @@ void Effect::reset()
 void Effect::displayPresets()
 {
   QMenu menu(container->preset_button_);
-  auto db = database();
+  auto db = chestnut::Database::instance();
   // TODO: pull preset names from db
   menu.addSeparator();
   auto store_action = menu.addAction(tr("Store new preset"));
@@ -603,7 +592,8 @@ void Effect::storePreset()
   dial.setWindowTitle(tr("Edit new preset"));
   dial.setLabelText("Preset name");
   dial.exec();
-  qInfo() << dial.textValue();
+  chestnut::EffectPreset preset {meta.name, dial.textValue(), {}};
+  chestnut::Database::instance()->addNewPreset(preset);
 }
 
 /**

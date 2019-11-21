@@ -26,6 +26,8 @@
 #include "debug.h"
 #include "project/effect.h"
 #include "panels/panelmanager.h"
+#include "io/path.h"
+#include "database.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -33,6 +35,7 @@ extern "C" {
 }
 
 constexpr auto APP_NAME = "Chestnut";
+constexpr auto DB_FILENAME = "chestnut.db";
 
 int main(int argc, char *argv[])
 {
@@ -116,6 +119,9 @@ int main(int argc, char *argv[])
 
   QApplication a(argc, argv);
   QApplication::setWindowIcon(QIcon(":/icons/chestnut.png"));
+
+  const auto path(QDir(chestnut::paths::dataPath()).filePath(DB_FILENAME));
+  Q_ASSERT(chestnut::Database::instance(path) != nullptr);
 
   const QString name(APP_NAME);
   MainWindow& w = MainWindow::instance(nullptr, name);

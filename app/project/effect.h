@@ -31,8 +31,6 @@
 #include <memory>
 #include <random>
 #include <set>
-#include <QtSql>
-#include <QSqlDatabase>
 
 #include "effectfield.h"
 #include "effectrow.h"
@@ -201,7 +199,6 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     ClipPtr parent_clip; //TODO: make weak
     EffectMeta meta{};
     int id{-1};
-    QString name_{};
     CollapsibleWidget* container{nullptr};
     // glsl effect
     struct {
@@ -252,8 +249,6 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
       return distribution(generator);
     }
 
-    static QSqlDatabase database();
-
 
   private:
     friend class EffectTest;
@@ -270,7 +265,6 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     bool bound_{false};
 
     static QMap<QString, EffectMeta> registered;
-    inline static QSqlDatabase db_ {};
 
     bool valueHasChanged(const double timecode);
     int get_index_in_clip();
