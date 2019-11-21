@@ -30,6 +30,8 @@
 #include <QApplication>
 #include <thread>
 #include <utility>
+#include <QMenu>
+#include <QInputDialog>
 
 #include "panels/panelmanager.h"
 #include "ui/viewerwidget.h"
@@ -43,6 +45,7 @@
 #include "ui/mainwindow.h"
 #include "io/math.h"
 #include "transition.h"
+#include "io/path.h"
 
 #include "effects/internal/transformeffect.h"
 #include "effects/internal/texteffect.h"
@@ -153,8 +156,8 @@ QList<QString> get_effects_paths()
 {
   QList<QString> effects_paths;
   // Ensure the ordering remains, local, system, env
-  effects_paths.append(get_app_dir() + "/" + LOCAL_EFFECT_PATH);
-  effects_paths.append(get_app_dir() + "/" + SYSTEM_EFFECT_PATH);
+  effects_paths.append(chestnut::paths::appDir() + "/" + LOCAL_EFFECT_PATH);
+  effects_paths.append(chestnut::paths::appDir() + "/" + SYSTEM_EFFECT_PATH);
   QString env_path(get_system_effects_path());
   if (!env_path.isEmpty()) {
     effects_paths.append(env_path);
@@ -409,6 +412,17 @@ void Effect::clearCapability(const Capability flag)
   capabilities_.erase(flag);
 }
 
+QSqlDatabase Effect::database()
+{
+  if (!db_.isOpen()) {
+    db_ = QSqlDatabase::addDatabase("QSQLITE");
+    auto path = QDir(chestnut::paths::dataPath()).filePath("chestnut.db");
+    db_.setDatabaseName(path);
+    Q_ASSERT(db_.open());
+  }
+  return db_;
+}
+
 
 void Effect::copy_field_keyframes(const std::shared_ptr<Effect>& e)
 {
@@ -568,6 +582,28 @@ void Effect::reset()
 
   e_undo_stack.push(command);
   PanelManager::refreshPanels(true);
+}
+
+
+void Effect::displayPresets()
+{
+  QMenu menu(container->preset_button_);
+  auto db = database();
+  // TODO: pull preset names from db
+  menu.addSeparator();
+  auto store_action = menu.addAction(tr("Store new preset"));
+  connect(store_action, &QAction::triggered, this, &Effect::storePreset);
+  menu.exec(QCursor::pos());
+}
+
+
+void Effect::storePreset()
+{
+  QInputDialog dial(container->preset_button_);
+  dial.setWindowTitle(tr("Edit new preset"));
+  dial.setLabelText("Preset name");
+  dial.exec();
+  qInfo() << dial.textValue();
 }
 
 /**
@@ -966,6 +1002,7 @@ void Effect::setupUi()
   // set up base UI
   connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
   connect(container->reset_button_, &QPushButton::clicked, this, &Effect::reset);
+  connect(container->preset_button_, &QPushButton::clicked, this, &Effect::displayPresets);
   ui = new QWidget();
   ui_layout = new QGridLayout();
   ui_layout->setSpacing(4);

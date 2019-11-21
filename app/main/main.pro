@@ -1,6 +1,6 @@
 include(../../project-settings.pri)
 
-QT += core gui multimedia opengl svg
+QT += core gui multimedia opengl svg sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

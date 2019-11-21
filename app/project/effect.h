@@ -31,6 +31,8 @@
 #include <memory>
 #include <random>
 #include <set>
+#include <QtSql>
+#include <QSqlDatabase>
 
 #include "effectfield.h"
 #include "effectrow.h"
@@ -226,6 +228,8 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     void move_up();
     void move_down();
     void reset();
+    void displayPresets();
+    void storePreset();
   protected:
     // superimpose functions
     virtual void redraw(double timecode);
@@ -248,6 +252,7 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
       return distribution(generator);
     }
 
+    static QSqlDatabase database();
 
 
   private:
@@ -263,7 +268,9 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     std::set<Capability> capabilities_;
     bool is_open_{false};
     bool bound_{false};
+
     static QMap<QString, EffectMeta> registered;
+    inline static QSqlDatabase db_ {};
 
     bool valueHasChanged(const double timecode);
     int get_index_in_clip();

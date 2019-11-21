@@ -52,17 +52,28 @@ CollapsibleWidget::CollapsibleWidget(QWidget* parent) : QWidget(parent) {
   collapse_button->setStyleSheet("QPushButton { border: none; }");
   setText(tr("<untitled>"));
 
+
+  preset_button_ = new QPushButton();
+  preset_button_->setToolTip(tr("Presets"));
+  preset_button_->setFlat(true);
+  preset_button_->setText("P");
+  preset_button_->setMinimumSize(16, 16);
+  preset_button_->setMaximumSize(16, 16);
+
   reset_button_ = new QPushButton();
   reset_button_->setToolTip(tr("Reset parameters to default"));
   reset_button_->setFlat(true);
   reset_button_->setText("R");
-  reset_button_->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  reset_button_->setMinimumSize(16, 16);
+  reset_button_->setMaximumSize(16, 16);
 
   title_bar_layout->addWidget(collapse_button);
   title_bar_layout->addWidget(enabled_check);
+  title_bar_layout->addWidget(preset_button_);
   title_bar_layout->addWidget(reset_button_);
+  auto spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);
+  title_bar_layout->addSpacerItem(spacer);
   title_bar_layout->addWidget(header);
-  title_bar_layout->addStretch();
 
   layout->addWidget(title_bar);
 

@@ -76,7 +76,7 @@ PreviewGenerator::PreviewGenerator(MediaPtr item, const FootagePtr& ftg, const b
   replace(replacing),
   cancelled(false)
 {
-  data_path = get_data_path() + PREVIEW_DIR;
+  data_path = chestnut::paths::dataPath() + PREVIEW_DIR;
   QDir data_dir(data_path);
   if (!data_dir.exists()) {
     data_dir.mkpath(".");

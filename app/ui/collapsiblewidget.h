@@ -43,6 +43,13 @@ class CollapsibleWidget : public QWidget
 {
     Q_OBJECT
   public:
+    CheckboxEx* enabled_check {nullptr};
+    QPushButton* preset_button_ {nullptr};
+    QPushButton* reset_button_ {nullptr};
+    bool selected;
+    QWidget* contents {nullptr};
+    CollapsibleWidgetHeader* title_bar {nullptr};
+
     explicit CollapsibleWidget(QWidget* parent = nullptr);
     virtual ~CollapsibleWidget() override;
     CollapsibleWidget(const CollapsibleWidget& ) = delete;
@@ -55,17 +62,12 @@ class CollapsibleWidget : public QWidget
     bool is_focused();
     bool is_expanded();
 
-    CheckboxEx* enabled_check;
-    QPushButton* reset_button_ = nullptr;
-    bool selected;
-    QWidget* contents;
-    CollapsibleWidgetHeader* title_bar;
   private:
-    QLabel* header;
-    QVBoxLayout* layout;
-    QPushButton* collapse_button;
-    QFrame* line;
-    QHBoxLayout* title_bar_layout;
+    QLabel* header {nullptr};
+    QVBoxLayout* layout {nullptr};
+    QPushButton* collapse_button {nullptr};
+    QFrame* line {nullptr};
+    QHBoxLayout* title_bar_layout {nullptr};
     void set_button_icon(bool open);
 
   signals:

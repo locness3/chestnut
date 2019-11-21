@@ -20,8 +20,11 @@
 
 #include <QString>
 
-QString get_app_dir();
-QString get_data_path();
-QString get_config_path();
+namespace chestnut::paths
+{
+  QString appDir();
+  QString dataPath();
+  QString configPath();
+}
 
 #endif // PATH_H

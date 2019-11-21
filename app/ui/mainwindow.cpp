@@ -136,7 +136,7 @@ void MainWindow::setup_layout(bool reset)
 #endif
 
   // load panels from file
-  QFile panel_config(get_config_path() + PANEL_CFG_FILE);
+  QFile panel_config(chestnut::paths::configPath() + PANEL_CFG_FILE);
   if (reset) {
     panel_config.remove();
   } else {
@@ -204,7 +204,7 @@ void MainWindow::initialise()
 
   layout()->invalidate();
 
-  QString data_dir = get_data_path();
+  const QString data_dir(chestnut::paths::dataPath());
   if (!data_dir.isEmpty()) {
     QDir dir(data_dir);
     dir.mkpath(".");
@@ -264,7 +264,7 @@ void MainWindow::initialise()
       }
     }
   }
-  QString config_path = get_config_path();
+  const QString config_path(chestnut::paths::configPath());
   if (!config_path.isEmpty()) {
     QDir config_dir(config_path);
     config_dir.mkpath(".");
@@ -279,7 +279,7 @@ void MainWindow::initialise()
   }
 
   auto statusBar = new QStatusBar(this);
-  statusBar->showMessage("Welcome to " + app_name);
+  statusBar->showMessage(tr("Welcome to ") + app_name);
   setStatusBar(statusBar);
 
   setup_menus();
@@ -1100,7 +1100,7 @@ void MainWindow::setup_menus() {
 
   help_menu->addAction(tr("&About..."), this, SLOT(show_about()))->setProperty("id", "about");
 
-  load_shortcuts(get_config_path() + "/shortcuts", true);
+  load_shortcuts(chestnut::paths::configPath() + "/shortcuts", true);
 }
 
 void MainWindow::set_bool_action_checked(QAction *a) {
@@ -1136,8 +1136,8 @@ void MainWindow::closeEvent(QCloseEvent *e) {
 
     PanelManager::footageViewer().set_main_sequence();
 
-    QString data_dir = get_data_path();
-    QString config_dir = get_config_path();
+    const QString data_dir(chestnut::paths::dataPath());
+    const QString config_dir(chestnut::paths::configPath());
     if (!data_dir.isEmpty() && !autorecovery_filename.isEmpty()) {
       if (QFile::exists(autorecovery_filename)) {
         QFile::rename(autorecovery_filename, autorecovery_filename + "." + QDateTime::currentDateTimeUtc().toString("yyyyMMddHHmmss"));
