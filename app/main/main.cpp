@@ -117,6 +117,8 @@ int main(int argc, char *argv[])
   avfilter_register_all();
 #endif
 
+
+
   QApplication a(argc, argv);
   QApplication::setWindowIcon(QIcon(":/icons/chestnut.png"));
 

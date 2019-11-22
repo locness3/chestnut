@@ -17,9 +17,9 @@
  */
 #include "texteditex.h"
 
-#include <QDebug>
 
-TextEditEx::TextEditEx(QWidget *parent) : QTextEdit(parent) {
+TextEditEx::TextEditEx(QWidget *parent) : QTextEdit(parent)
+{
   setUndoRedoEnabled(false);
   connect(this, SIGNAL(textChanged()), this, SLOT(updateInternals()));
   connect(this, SIGNAL(updateSelf()), this, SLOT(updateText()));
@@ -30,7 +30,18 @@ QString TextEditEx::getPlainTextEx()
   return text;
 }
 
-void TextEditEx::setPlainTextEx(const QString &t) {
+QVariant TextEditEx::getValue() const
+{
+  return text;
+}
+
+void TextEditEx::setValue(QVariant val)
+{
+  text = val.toString();
+}
+
+void TextEditEx::setPlainTextEx(const QString &t)
+{
   previousText = text;
   text = t;
   emit updateSelf();
@@ -41,15 +52,17 @@ QString TextEditEx::getPreviousValue()
   return previousText;
 }
 
-void TextEditEx::updateInternals() {
+void TextEditEx::updateInternals()
+{
   previousText = text;
   text = toPlainText();
 }
 
-void TextEditEx::updateText() {
+void TextEditEx::updateText()
+{
   blockSignals(true);
 
-  int pos = textCursor().position();
+  const int pos = textCursor().position();
 
   setPlainText(text);
 

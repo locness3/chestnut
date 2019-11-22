@@ -415,9 +415,9 @@ void Effect::clearCapability(const Capability flag)
 
 void Effect::copy_field_keyframes(const std::shared_ptr<Effect>& e)
 {
-  for (int i=0; i<rows.size(); ++i) {
-    EffectRowPtr row(rows.at(i));
-    EffectRowPtr copy_row(e->rows.at(i));
+  for (int i=0; i<rows_.size(); ++i) {
+    EffectRowPtr row(rows_.at(i));
+    EffectRowPtr copy_row(e->rows_.at(i));
     copy_row->setKeyframing(row->isKeyframing());
     for (int j=0;j<row->fieldCount();j++) {
       EffectField* field = row->field(j);
@@ -432,21 +432,21 @@ EffectRowPtr Effect::add_row(const QString& name, bool savable, bool keyframable
 {
   EffectRowPtr row;
   if (ui_layout != nullptr) {
-    row = std::make_shared<EffectRow>(this, savable, *ui_layout, name, rows.size(), keyframable);
-    rows.append(row);
+    row = std::make_shared<EffectRow>(this, savable, *ui_layout, name, rows_.size(), keyframable);
+    rows_.append(row);
   }
   return row;
 }
 
 EffectRowPtr Effect::row(const int i)
 {
-  return rows.at(i);
+  return rows_.at(i);
 }
 
 
 EffectRowPtr Effect::row(const QString& name)
 {
-  for (auto row : rows) {
+  for (auto row : rows_) {
     if (row != nullptr && (row->name.toLower() == name.toLower()) ) {
       return row;
     }
@@ -457,12 +457,12 @@ EffectRowPtr Effect::row(const QString& name)
 
 const QVector<EffectRowPtr> &Effect::getRows() const
 {
-  return rows;
+  return rows_;
 }
 
 int Effect::row_count()
 {
-  return rows.size();
+  return rows_.size();
 }
 
 /**
@@ -558,7 +558,7 @@ void Effect::move_down()
 void Effect::reset()
 {
   auto command = new ResetEffectCommand();
-  for (const auto& row : rows) {
+  for (const auto& row : rows_) {
     for (auto i=0; i < row->fieldCount(); ++i) {
       auto field = row->field(i);
       if (field == nullptr) {
@@ -593,6 +593,21 @@ void Effect::storePreset()
   dial.setLabelText("Preset name");
   dial.exec();
   chestnut::EffectPreset preset {meta.name, dial.textValue(), {}};
+  QVector<QMap<QString, QVector<QPair<QString, QVariant>>>> params;
+
+  for (const auto& row : rows_) {
+    Q_ASSERT(row);
+    QMap<QString, QVector<QPair<QString, QVariant>>> row_map;
+    auto row_name = row->get_name();
+    for (const auto& field : row->getFields()) {
+      Q_ASSERT(field);
+      auto val = field->get_current_data();
+      auto pair = QPair<QString, QVariant>(field->name(), val);
+      row_map[row_name].append(pair);
+    }
+    params.append(row_map);
+  }
+  preset.parameters_ = params;
   chestnut::Database::instance()->addNewPreset(preset);
 }
 
@@ -712,7 +727,7 @@ bool Effect::save(QXmlStreamWriter& stream) const
   stream.writeAttribute("name", meta.name);
   stream.writeAttribute("enabled", is_enabled() ? "true" : "false");
 
-  for (const auto& row : rows) {
+  for (const auto& row : rows_) {
     row->save(stream);
   }
   stream.writeEndElement(); //effect
@@ -842,28 +857,28 @@ void Effect::process_shader(const double timecode, GLTextureCoords& /*coords*/, 
   glsl_.program_->setUniformValue("time", static_cast<GLfloat>(timecode));
   glsl_.program_->setUniformValue("iteration", iteration);
 
-  for (const auto& row: rows) {
+  for (const auto& row: rows_) {
     for (int j=0;j<row->fieldCount();j++) {
       EffectField* field = row->field(j);
-      if (!field->id.isEmpty()) {
+      if (!field->name().isEmpty()) {
         switch (field->type) {
           case EffectFieldType::DOUBLE:
-            glsl_.program_->setUniformValue(field->id.toUtf8().constData(),
+            glsl_.program_->setUniformValue(field->name().toUtf8().constData(),
                                             static_cast<GLfloat>(field->get_double_value(timecode)));
             break;
           case EffectFieldType::COLOR:
             glsl_.program_->setUniformValue(
-                  field->id.toUtf8().constData(),
+                  field->name().toUtf8().constData(),
                   static_cast<GLfloat>(field->get_color_value(timecode).redF()),
                   static_cast<GLfloat>(field->get_color_value(timecode).greenF()),
                   static_cast<GLfloat>(field->get_color_value(timecode).blueF())
                   );
             break;
           case EffectFieldType::BOOL:
-            glsl_.program_->setUniformValue(field->id.toUtf8().constData(), field->get_bool_value(timecode));
+            glsl_.program_->setUniformValue(field->name().toUtf8().constData(), field->get_bool_value(timecode));
             break;
           case EffectFieldType::COMBO:
-            glsl_.program_->setUniformValue(field->id.toUtf8().constData(), field->get_combo_index(timecode));
+            glsl_.program_->setUniformValue(field->name().toUtf8().constData(), field->get_combo_index(timecode));
             break;
           case EffectFieldType::FONT:
             [[fallthrough]];

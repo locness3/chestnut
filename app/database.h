@@ -12,7 +12,7 @@ namespace chestnut
   {
     QString effect_name_;
     QString preset_name_;
-    QVector<QPair<QString, QVariant>> parameters_;
+    QVector<QMap<QString, QVector<QPair<QString, QVariant>>>> parameters_;
   };
 
   class Database
@@ -32,6 +32,12 @@ namespace chestnut
       const QSqlResult* query(const QString& statement);
 
       int effectId(const QString& name, const bool recurse=true);
+      int effectRowId(const QString& name, const int effect_id, const bool recurse=true);
+      int presetId(const QString& name);
+
+      bool addNewParameterPreset(const int preset_id, const int row_id, QString name, QVariant value);
+
+      QString variantAsString(QVariant val) const;
   };
 }
 

@@ -2,10 +2,12 @@
 #define EMBEDDEDFILECHOOSER_H
 
 #include <QWidget>
+#include <QLabel>
 
-class QLabel;
+#include "ui/IEffectFieldWidget.h"
 
-class EmbeddedFileChooser : public QWidget {
+class EmbeddedFileChooser : public QWidget, chestnut::ui::IEffectFieldWidget
+{
     Q_OBJECT
   public:
     explicit EmbeddedFileChooser(QWidget* parent = nullptr);
@@ -13,9 +15,12 @@ class EmbeddedFileChooser : public QWidget {
     EmbeddedFileChooser(const EmbeddedFileChooser& ) = delete;
     EmbeddedFileChooser& operator=(const EmbeddedFileChooser&) = delete;
 
-    const QString& getFilename();
-    const QString& getPreviousValue();
-    void setFilename(const QString& s);
+    QString getFilename() const;
+    QString getPreviousValue() const;
+    void setFilename(QString name);
+
+    QVariant getValue() const override;
+    void setValue(QVariant val) override;
   signals:
     void changed();
   private:

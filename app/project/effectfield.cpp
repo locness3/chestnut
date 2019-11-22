@@ -69,7 +69,7 @@ EffectField::EffectField(EffectRow *parent, const EffectFieldType t, const QStri
   QObject(parent),
   parent_row(parent),
   type(t),
-  id(i)
+  id_(i)
 {
   switch (t) {
     case EffectFieldType::DOUBLE:
@@ -423,6 +423,18 @@ bool EffectField::setValue(const QVariant& value)
 }
 
 
+QVariant EffectField::value() const
+{
+  Q_ASSERT(ui_element);
+  if (type == EffectFieldType::BOOL) {
+    return dynamic_cast<QCheckBox*>(ui_element)->isChecked();
+  } else {
+    auto elem = reinterpret_cast<chestnut::ui::IEffectFieldWidget*>(ui_element);
+    auto val = elem->getValue();
+    return val;
+  }
+}
+
 bool EffectField::load(QXmlStreamReader& stream)
 {
   while (stream.readNextStartElement()) {
@@ -442,7 +454,7 @@ bool EffectField::load(QXmlStreamReader& stream)
 bool EffectField::save(QXmlStreamWriter& stream) const
 {
   stream.writeStartElement("field");
-  stream.writeTextElement("name", id);
+  stream.writeTextElement("name", id_);
   stream.writeTextElement("value", fieldTypeValueToString(type, get_current_data()));
 
   for (const auto& key : keyframes) {

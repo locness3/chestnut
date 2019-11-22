@@ -114,6 +114,16 @@ void LabelSlider::set_color(QString c)
   setStyleSheet("QLabel{color:" + c + ";text-decoration:underline;}QLabel:disabled{color:#808080;}");
 }
 
+QVariant LabelSlider::getValue() const
+{
+  return internal_value;
+}
+
+void LabelSlider::setValue(QVariant val)
+{
+  internal_value = val.toDouble();
+}
+
 double LabelSlider::value()
 {
   return internal_value;

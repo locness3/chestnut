@@ -19,19 +19,24 @@
 #define COMBOBOXEX_H
 
 #include <QComboBox>
-#include <QDebug>
 
-class ComboBoxEx : public QComboBox {
+#include "ui/IEffectFieldWidget.h"
+
+class ComboBoxEx : public QComboBox, chestnut::ui::IEffectFieldWidget
+{
     Q_OBJECT
   public:
     explicit ComboBoxEx(QWidget* parent = nullptr);
-    void setCurrentIndexEx(int i);
-    void setCurrentTextEx(const QString &text);
+    void setCurrentIndexEx(const int ix);
+    void setCurrentTextEx(QString text);
     int getPreviousIndex();
+
+    QVariant getValue() const override;
+    void setValue(QVariant val) override;
   protected:
     void wheelEvent(QWheelEvent* e) override;
   private slots:
-    void index_changed(int);
+    void index_changed(const int ix);
   private:
     int index;
     int previousIndex;

@@ -373,7 +373,7 @@ EffectField* EffectRow::field(const int index) {
 EffectField* EffectRow::field(const QString& name)
 {
   for (auto fld : fields) {
-    if ( (fld != nullptr) && (fld->id == name) ) {
+    if ( (fld != nullptr) && (fld->name() == name) ) {
       return fld;
     }
   }

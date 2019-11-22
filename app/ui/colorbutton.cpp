@@ -46,6 +46,16 @@ const QColor &ColorButton::getPreviousValue()
   return previousColor;
 }
 
+QVariant ColorButton::getValue() const
+{
+  return color;
+}
+
+void ColorButton::setValue(QVariant val)
+{
+  set_color(QColor(static_cast<QRgb>(val.toUInt())));
+}
+
 void ColorButton::set_button_color()
 {
   QPalette pal = palette();

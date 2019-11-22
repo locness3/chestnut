@@ -21,6 +21,7 @@
 #include <QLabel>
 #include <QUndoCommand>
 #include <optional>
+#include "ui/IEffectFieldWidget.h"
 
 enum class SliderType {
     NORMAL = 0,
@@ -28,7 +29,7 @@ enum class SliderType {
     PERCENT = 2
 };
 
-class LabelSlider : public QLabel
+class LabelSlider : public QLabel, chestnut::ui::IEffectFieldWidget
 {
     Q_OBJECT
   public:
@@ -49,6 +50,9 @@ class LabelSlider : public QLabel
     double getPreviousValue();
     void set_previous_value();
     void set_color(QString c="");
+
+    QVariant getValue() const override;
+    void setValue(QVariant val) override;
   protected:
     void mousePressEvent(QMouseEvent *ev) override;
     void mouseMoveEvent(QMouseEvent *ev) override;

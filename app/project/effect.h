@@ -255,7 +255,7 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     // superimpose effect
     QString script;
 
-    QVector<EffectRowPtr> rows;
+    QVector<EffectRowPtr> rows_;
     QVector<EffectGizmoPtr> gizmos;
     QGridLayout* ui_layout;
     QWidget* ui;

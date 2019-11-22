@@ -131,6 +131,7 @@ HEADERS += \
     ui/Forms/effects.h \
     ui/Forms/timelinetrackarea.h \
     ui/Forms/trackareawidget.h \
+    ui/IEffectFieldWidget.h \
     ui/blankscrollarea.h \
     ui/cursor.h \
     ui/mainwindow.h \
