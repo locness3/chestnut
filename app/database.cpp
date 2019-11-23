@@ -32,6 +32,7 @@ std::shared_ptr<Database> Database::instance(const QString& file_path)
 
 bool Database::addNewPreset(const EffectPreset& value)
 {
+  // TODO: adding a preset with same name overwrites old
   QSqlQuery q(db_);
   const auto e_id = effectId(value.effect_name_);
   Q_ASSERT(e_id >= 0);
@@ -42,19 +43,18 @@ bool Database::addNewPreset(const EffectPreset& value)
   q.addBindValue(e_id);
   if (!q.exec()) {
     qWarning() << q.lastError().text();
-    qWarning() << q.executedQuery();
+    qDebug() << q.executedQuery();
+    return false;
   }
 
   const auto p_id = presetId(value.preset_name_);
   Q_ASSERT(p_id >= 0);
 
-  for (const auto& t : value.parameters_) {
-    for (const auto& [row, params] : t.toStdMap()) {
-      const auto row_id = effectRowId(row, e_id);
-      Q_ASSERT(row_id >= 0);
-      for (const auto& param : params) {
-        Q_ASSERT(addNewParameterPreset(p_id, row_id, param.first, param.second));
-      }
+  for (const auto& [row, params] : value.parameters_.toStdMap()) {
+    const auto row_id = effectRowId(row, e_id);
+    Q_ASSERT(row_id >= 0);
+    for (const auto& param : params) {
+      Q_ASSERT(addNewParameterPreset(p_id, row_id, param.first, param.second));
     }
   }
 
@@ -62,7 +62,7 @@ bool Database::addNewPreset(const EffectPreset& value)
 }
 
 
-QStringList Database::getPresets(QString effect_name)
+QStringList Database::getPresets(const QString& effect_name)
 {
   QSqlQuery q(db_);
   q.prepare("SELECT presets.name FROM presets "
@@ -83,9 +83,47 @@ QStringList Database::getPresets(QString effect_name)
 }
 
 
-chestnut::EffectParamType Database::getPresetParameters(QString preset_name)
+chestnut::EffectParametersType Database::getPresetParameters(QString effect_name, QString preset_name)
 {
-  return {};
+  QSqlQuery q(db_);
+  q.prepare("SELECT preset_parameter.name, preset_parameter.value, preset_parameter.value_type, effect_rows.name "
+            "FROM preset_parameter "
+            "JOIN presets ON preset_parameter.p_id = presets.id "
+            "JOIN effects ON presets.e_id = effects.id "
+            "JOIN effect_rows ON preset_parameter.er_id = effect_rows.id "
+            "WHERE presets.name=? AND effects.name = ? "
+            "ORDER BY effect_rows.id");
+  q.addBindValue(std::move(preset_name));
+  q.addBindValue(std::move(effect_name));
+
+  if (!q.exec()) {
+    qWarning() << q.lastError().text();
+    qDebug() << q.executedQuery();
+    return {};
+  }
+
+  ParamsType params;
+  EffectParametersType preset_params;
+  QString row_name;
+  while (q.next()) {
+    const auto new_row(q.value(3).toString() != row_name);
+    const auto param_name(q.value(0).toString());
+    const auto param_value(q.value(1).toString());
+    const auto param_type(static_cast<QVariant::Type>(q.value(2).toInt()));
+    QVariant value(param_type);
+    value.setValue(param_value);
+    if (new_row) {
+      if (!params.empty() && (row_name.length() > 0) ) {
+        preset_params[row_name] = params;
+      }
+      row_name = q.value(3).toString();
+      params.clear();
+      params.append(QPair<QString, QVariant>(param_name, value));
+    } else {
+      params.append(QPair<QString, QVariant>(param_name, value));
+    }
+  }
+  return preset_params;
 }
 
 const QSqlResult* Database::query(const QString& statement)
@@ -149,15 +187,15 @@ int Database::presetId(const QString& name)
 }
 
 
-bool Database::addNewParameterPreset(const int preset_id, const int row_id, QString name, QVariant value)
+bool Database::addNewParameterPreset(const int preset_id, const int row_id, const QString& name, const QVariant& value)
 {
   QSqlQuery q(db_);
   q.prepare("INSERT INTO preset_parameter"
-            "(name, value, p_id, er_id)"
-            "VALUES (?, ?, ?, ?)");
+            "(name, value, value_type, p_id, er_id)"
+            "VALUES (?, ?, ?, ?, ?)");
   q.addBindValue(name);
-  auto v = value.toString();
-  q.addBindValue(v);
+  q.addBindValue(value.toString());
+  q.addBindValue(static_cast<int>(value.type()));
   q.addBindValue(preset_id);
   q.addBindValue(row_id);
   if (!q.exec()) {
@@ -193,35 +231,10 @@ void Database::setupEffectsTable()
         "id INTEGER,"
         "name VARCHAR(256),"
         "value VARCHAR(256),"
+        "value_type INTEGER,"
         "p_id INTEGER,"
         "er_id INTEGER,"
         "PRIMARY KEY (id),"
         "FOREIGN KEY (p_id) REFERENCES presets(id),"
         "FOREIGN KEY (er_id) REFERENCES effect_rows(id))");
-}
-
-
-QString Database::variantAsString(QVariant val) const
-{
-  const auto v_t = val.type();
-  switch (v_t) {
-    case QVariant::Bool:
-      return val.toBool() ? "true" : "false";
-    case QVariant::Int:
-      [[fallthrough]];
-    case QVariant::UInt:
-      [[fallthrough]];
-    case QVariant::LongLong:
-      [[fallthrough]];
-    case QVariant::ULongLong:
-      [[fallthrough]];
-    case QVariant::Double:
-      return QString::number(val.toInt());
-    case QVariant::Char:
-      return val.toChar();
-    case QVariant::String:
-      return val.toString();
-    default:
-      throw std::runtime_error("Unhandled variant type conversion");
-  }
 }

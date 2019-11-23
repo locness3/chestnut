@@ -598,20 +598,25 @@ void Effect::storePreset()
   if (dial.exec() == QDialog::Rejected) {
     return;
   }
-  chestnut::EffectPreset preset {meta.name, dial.textValue(), {}};
-  QVector<QMap<QString, QVector<QPair<QString, QVariant>>>> params;
+  const auto preset_name(dial.textValue());
+  if (preset_name.length() <= 1) {
+    qWarning() << "Not saving a preset with an empty name";
+    return;
+  }
 
+  chestnut::EffectPreset preset {meta.name, preset_name, {}};
+  chestnut::EffectParametersType params;
+
+  // Build a listing of the effect's current values
   for (const auto& row : rows_) {
     Q_ASSERT(row);
-    QMap<QString, QVector<QPair<QString, QVariant>>> row_map;
     auto row_name = row->get_name();
     for (const auto& field : row->getFields()) {
       Q_ASSERT(field);
       auto val = field->get_current_data();
       auto pair = QPair<QString, QVariant>(field->name(), val);
-      row_map[row_name].append(pair);
+      params[row_name].append(pair);
     }
-    params.append(row_map);
   }
   preset.parameters_ = params;
   chestnut::Database::instance()->addNewPreset(preset);
@@ -625,7 +630,7 @@ void Effect::loadPreset()
   auto preset_name(action->text());
 
   auto db(chestnut::Database::instance());
-  auto params(db->getPresetParameters(preset_name));
+  const auto params(db->getPresetParameters(meta.name, preset_name));
 }
 
 /**
