@@ -617,6 +617,14 @@ void Viewer::set_panel_name(const QString &n)
   update_window_title();
 }
 
+
+void Viewer::reRender()
+{
+  Q_ASSERT(viewer_widget);
+  viewer_widget->frame_update();
+}
+
+
 void Viewer::update_window_title()
 {
   const QString name(seq == nullptr  ? tr("(none)") : seq->name());

@@ -10,7 +10,7 @@
 VoidEffect::VoidEffect(ClipPtr c, const QString& n)
   : Effect(c)
 {
-  name_ = n;
+  setName(n);
 }
 
 bool VoidEffect::load(QXmlStreamReader &stream)
@@ -67,10 +67,10 @@ void VoidEffect::setupUi()
   Effect::setupUi();
 
   QString display_name;
-  if (name_.isEmpty()) {
+  if (name().isEmpty()) {
     display_name = tr("(unknown)");
   } else {
-    display_name = name_;
+    display_name = name();
   }
   EffectRowPtr row = add_row(tr("Missing Effect"), false, false);
   row->add_widget(new QLabel(display_name));

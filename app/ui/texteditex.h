@@ -20,13 +20,19 @@
 
 #include <QTextEdit>
 
-class TextEditEx : public QTextEdit {
+#include "ui/IEffectFieldWidget.h"
+
+class TextEditEx : public QTextEdit, chestnut::ui::IEffectFieldWidget
+{
     Q_OBJECT
   public:
     explicit TextEditEx(QWidget* parent = nullptr);
     void setPlainTextEx(const QString &text);
     QString getPreviousValue();
     QString getPlainTextEx();
+
+    QVariant getValue() const override;
+    void setValue(QVariant val) override;
   signals:
     void updateSelf();
   private slots:

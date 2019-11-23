@@ -12,6 +12,7 @@ CONFIG += staticlib
 TARGET = chestnut
 
 SOURCES += \
+    database.cpp \
     project/objectclip.cpp \
     project/track.cpp \
     ui/Forms/effects.cpp \
@@ -126,12 +127,14 @@ SOURCES += \
 HEADERS += \
     chestnut.h \
     coderconstants.h \
+    database.h \
     project/objectclip.h \
     project/track.h \
     ui/Forms/effects.h \
     ui/Forms/subclipcreatedialog.h \
     ui/Forms/timelinetrackarea.h \
     ui/Forms/trackareawidget.h \
+    ui/IEffectFieldWidget.h \
     ui/blankscrollarea.h \
     ui/cursor.h \
     ui/mainwindow.h \

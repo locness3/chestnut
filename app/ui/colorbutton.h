@@ -21,14 +21,19 @@
 #include <QPushButton>
 #include <QColor>
 #include <QUndoCommand>
+#include "ui/IEffectFieldWidget.h"
 
-class ColorButton : public QPushButton {
+class ColorButton : public QPushButton, chestnut::ui::IEffectFieldWidget
+{
     Q_OBJECT
   public:
     explicit ColorButton(QWidget* parent = nullptr);
     QColor get_color() const;
     void set_color(const QColor& c);
     const QColor& getPreviousValue();
+
+    QVariant getValue() const override;
+    void setValue(QVariant val) override;
   protected:
     virtual void showEvent(QShowEvent *event) override;
   private:

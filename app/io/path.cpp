@@ -20,30 +20,38 @@
 #include <QStandardPaths>
 #include <QFileInfo>
 #include <QCoreApplication>
+#include <QDir>
+
 #include "debug.h"
 
-QString real_app_dir;
+constexpr auto PORTABLE_DIR = "/portable";
 
-QString get_app_dir() {
+namespace  {
+  QString real_app_dir;
+}
+
+QString chestnut::paths::appDir()
+{
   if (real_app_dir.isEmpty()) {
-    QString app_path = QCoreApplication::applicationFilePath();
-    real_app_dir = app_path.left(app_path.lastIndexOf('/'));
+    real_app_dir = QCoreApplication::applicationDirPath();
   }
   return real_app_dir;
 }
 
-QString get_data_path() {
-  QString app_dir = get_app_dir();
-  if (QFileInfo::exists(app_dir + "/portable")) {
+QString chestnut::paths::dataPath()
+{
+  const QString app_dir(appDir());
+  if (QFileInfo::exists(app_dir + PORTABLE_DIR)) {
     return app_dir;
   } else {
     return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
   }
 }
 
-QString get_config_path() {
-  QString app_dir = get_app_dir();
-  if (QFileInfo::exists(app_dir + "/portable")) {
+QString chestnut::paths::configPath()
+{
+  const QString app_dir(appDir());
+  if (QFileInfo::exists(app_dir + PORTABLE_DIR)) {
     return app_dir;
   } else {
     return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);

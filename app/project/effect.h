@@ -38,6 +38,7 @@
 #include "effectgizmo.h"
 #include "project/sequenceitem.h"
 #include "project/ixmlstreamer.h"
+#include "database.h"
 
 class CollapsibleWidget;
 class QLabel;
@@ -199,7 +200,6 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     ClipPtr parent_clip; //TODO: make weak
     EffectMeta meta{};
     int id{-1};
-    QString name_{};
     CollapsibleWidget* container{nullptr};
     // glsl effect
     struct {
@@ -226,6 +226,9 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     void move_up();
     void move_down();
     void reset();
+    void displayPresets();
+    void storePreset();
+    void loadPreset();
   protected:
     // superimpose functions
     virtual void redraw(double timecode);
@@ -249,13 +252,12 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     }
 
 
-
   private:
     friend class EffectTest;
     // superimpose effect
     QString script;
 
-    QVector<EffectRowPtr> rows;
+    QVector<EffectRowPtr> rows_;
     QVector<EffectGizmoPtr> gizmos;
     QGridLayout* ui_layout {nullptr};
     QWidget* ui {nullptr};
@@ -278,6 +280,13 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     void setupFileWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
     std::tuple<EffectFieldType, QString> getFieldType(const QXmlStreamAttributes& attributes) const;
     void extractShaderDetails(const QXmlStreamAttributes& attributes);
+
+    /**
+     * @brief             Setup an Effect Row based on stored values
+     * @param row_name    Effect row name
+     * @param row_params  The stored values
+     */
+    void setEffectRow(const QString& row_name, const chestnut::ParamsType& row_params);
 
 };
 

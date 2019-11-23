@@ -19,19 +19,33 @@
 
 #include <QFontDatabase>
 
-FontCombobox::FontCombobox(QWidget* parent) : ComboBoxEx(parent) {
+FontCombobox::FontCombobox(QWidget* parent) : ComboBoxEx(parent)
+{
   addItems(QFontDatabase().families());
 
-  value = currentText();
+  value_ = currentText();
 
   connect(this, SIGNAL(currentTextChanged(QString)), this, SLOT(updateInternals()));
 }
 
-const QString& FontCombobox::getPreviousValue() {
-  return previousValue;
+const QString& FontCombobox::getPreviousValue()
+{
+  return previous_value_;
 }
 
-void FontCombobox::updateInternals() {
-  previousValue = value;
-  value = currentText();
+QVariant FontCombobox::getValue() const
+{
+  return value_;
+}
+
+void FontCombobox::setValue(QVariant val)
+{
+  previous_value_ = value_;
+  value_ = val.toString();
+}
+
+void FontCombobox::updateInternals()
+{
+  previous_value_ = value_;
+  value_ = currentText();
 }

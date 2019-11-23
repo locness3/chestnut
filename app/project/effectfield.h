@@ -103,8 +103,12 @@ public:
 
   bool setValue(const QVariant& value);
 
+  QVariant value() const;
+
   virtual bool load(QXmlStreamReader& stream) override;
   virtual bool save(QXmlStreamWriter& stream) const override;
+
+  QString name() const {return id_;}
 
   /**
    * @brief           Obtain a keyframe before a position
@@ -122,14 +126,15 @@ public:
 
   EffectRow* parent_row;
   EffectFieldType type{EffectFieldType::UNKNOWN};
-  QString id{};
   QVector<EffectKeyframe> keyframes;
   QWidget* ui_element = nullptr;
 public slots:
   void ui_element_change();
 private:
+  QString id_;
+  QVariant default_data_;
+
   bool hasKeyframes();
-  QVariant default_data_{};
 signals:
   void changed();
   void toggled(bool);

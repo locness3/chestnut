@@ -25,6 +25,7 @@
 
 #include "project/effectfield.h"
 #include "project/ixmlstreamer.h"
+#include "database.h"
 
 class Effect;
 class ComboAction;
@@ -50,7 +51,7 @@ public:
   void add_widget(QWidget *w);
   EffectField* field(const int index);
   EffectField* field(const QString& name);
-  const QVector<EffectField*>& getFields() const;
+  QVector<EffectField*> getFields() const;
   int fieldCount();
   void set_keyframe_now(ComboAction *ca);
   void delete_keyframe_at_time(ComboAction *ca, long time);
@@ -58,6 +59,12 @@ public:
 
   bool isKeyframing();
   void setKeyframing(bool);
+
+  /**
+   * @brief         Set up the row based on stored values
+   * @param params  The stored values
+   */
+  void setValues(const chestnut::ParamsType& params);
 
   virtual bool load(QXmlStreamReader& stream) override;
   virtual bool save(QXmlStreamWriter& stream) const override;

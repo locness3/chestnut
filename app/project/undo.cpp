@@ -253,10 +253,6 @@ AddEffectCommand::AddEffectCommand(ClipPtr c, EffectPtr e, const int insert_pos)
 
 }
 
-AddEffectCommand::~AddEffectCommand()
-{
-}
-
 void AddEffectCommand::undo() {
   clip->effects.last()->close();
   if (pos < 0) {

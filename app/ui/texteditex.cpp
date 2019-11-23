@@ -17,7 +17,6 @@
  */
 #include "texteditex.h"
 
-#include <QDebug>
 
 TextEditEx::TextEditEx(QWidget *parent) : QTextEdit(parent)
 {
@@ -29,6 +28,16 @@ TextEditEx::TextEditEx(QWidget *parent) : QTextEdit(parent)
 QString TextEditEx::getPlainTextEx()
 {
   return text;
+}
+
+QVariant TextEditEx::getValue() const
+{
+  return text;
+}
+
+void TextEditEx::setValue(QVariant val)
+{
+  text = val.toString();
 }
 
 void TextEditEx::setPlainTextEx(const QString &t)
@@ -53,7 +62,7 @@ void TextEditEx::updateText()
 {
   blockSignals(true);
 
-  int pos = textCursor().position();
+  const int pos = textCursor().position();
 
   setPlainText(text);
 

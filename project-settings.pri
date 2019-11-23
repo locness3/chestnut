@@ -1,4 +1,4 @@
-QT       += core gui multimedia opengl svg
+QT       += core gui multimedia opengl svg sql
 CONFIG += c++17
 QMAKE_CXXFLAGS += -fopenmp
 QMAKE_CXXFLAGS_DEBUG += -O0 -g3 -Wextra -Winit-self -Wshadow -Wnon-virtual-dtor -pedantic -Wfloat-equal -Wundef

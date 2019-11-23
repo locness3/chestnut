@@ -19,17 +19,22 @@
 #define FONTCOMBOBOX_H
 
 #include "comboboxex.h"
+#include "ui/IEffectFieldWidget.h"
 
-class FontCombobox : public ComboBoxEx {
+class FontCombobox : public ComboBoxEx
+{
     Q_OBJECT
   public:
     explicit FontCombobox(QWidget* parent = nullptr);
     const QString &getPreviousValue();
+
+    QVariant getValue() const override;
+    void setValue(QVariant val) override;
   private slots:
     void updateInternals();
   private:
-    QString previousValue;
-    QString value;
+    QString previous_value_;
+    QString value_;
 };
 
 #endif // FONTCOMBOBOX_H

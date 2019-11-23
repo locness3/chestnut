@@ -69,6 +69,16 @@ void EffectRow::setKeyframing(bool b)
 }
 
 
+void EffectRow::setValues(const chestnut::ParamsType& params)
+{
+  for (const auto& p : params) {
+    if (auto eff_field = field(p.first)) {
+      eff_field->setValue(p.second);
+    }
+  }
+}
+
+
 bool EffectRow::load(QXmlStreamReader& stream)
 {
   EffectField* eff_fld = nullptr;
@@ -373,7 +383,7 @@ EffectField* EffectRow::field(const int index) {
 EffectField* EffectRow::field(const QString& name)
 {
   for (auto fld : fields) {
-    if ( (fld != nullptr) && (fld->id == name) ) {
+    if ( (fld != nullptr) && (fld->name() == name) ) {
       return fld;
     }
   }
@@ -381,7 +391,7 @@ EffectField* EffectRow::field(const QString& name)
 }
 
 
-const QVector<EffectField*>& EffectRow::getFields() const
+QVector<EffectField*> EffectRow::getFields() const
 {
   return fields;
 }

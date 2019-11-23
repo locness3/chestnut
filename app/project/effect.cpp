@@ -30,6 +30,8 @@
 #include <QApplication>
 #include <thread>
 #include <utility>
+#include <QMenu>
+#include <QInputDialog>
 
 #include "panels/panelmanager.h"
 #include "ui/viewerwidget.h"
@@ -43,6 +45,7 @@
 #include "ui/mainwindow.h"
 #include "io/math.h"
 #include "transition.h"
+#include "io/path.h"
 
 #include "effects/internal/transformeffect.h"
 #include "effects/internal/texteffect.h"
@@ -150,8 +153,8 @@ QList<QString> get_effects_paths()
 {
   QList<QString> effects_paths;
   // Ensure the ordering remains, local, system, env
-  effects_paths.append(get_app_dir() + "/" + LOCAL_EFFECT_PATH);
-  effects_paths.append(get_app_dir() + "/" + SYSTEM_EFFECT_PATH);
+  effects_paths.append(chestnut::paths::appDir() + "/" + LOCAL_EFFECT_PATH);
+  effects_paths.append(chestnut::paths::appDir() + "/" + SYSTEM_EFFECT_PATH);
   QString env_path(get_system_effects_path());
   if (!env_path.isEmpty()) {
     effects_paths.append(env_path);
@@ -406,12 +409,11 @@ void Effect::clearCapability(const Capability flag)
   capabilities_.erase(flag);
 }
 
-
 void Effect::copy_field_keyframes(const std::shared_ptr<Effect>& e)
 {
-  for (int i=0; i<rows.size(); ++i) {
-    EffectRowPtr row(rows.at(i));
-    EffectRowPtr copy_row(e->rows.at(i));
+  for (int i=0; i<rows_.size(); ++i) {
+    EffectRowPtr row(rows_.at(i));
+    EffectRowPtr copy_row(e->rows_.at(i));
     copy_row->setKeyframing(row->isKeyframing());
     for (int j=0;j<row->fieldCount();j++) {
       EffectField* field = row->field(j);
@@ -426,21 +428,21 @@ EffectRowPtr Effect::add_row(const QString& name, bool savable, bool keyframable
 {
   EffectRowPtr row;
   if (ui_layout != nullptr) {
-    row = std::make_shared<EffectRow>(this, savable, *ui_layout, name, rows.size(), keyframable);
-    rows.append(row);
+    row = std::make_shared<EffectRow>(this, savable, *ui_layout, name, rows_.size(), keyframable);
+    rows_.append(row);
   }
   return row;
 }
 
 EffectRowPtr Effect::row(const int i)
 {
-  return rows.at(i);
+  return rows_.at(i);
 }
 
 
 EffectRowPtr Effect::row(const QString& name)
 {
-  for (auto row : rows) {
+  for (auto row : rows_) {
     if (row != nullptr && (row->name.toLower() == name.toLower()) ) {
       return row;
     }
@@ -451,12 +453,12 @@ EffectRowPtr Effect::row(const QString& name)
 
 const QVector<EffectRowPtr> &Effect::getRows() const
 {
-  return rows;
+  return rows_;
 }
 
 int Effect::row_count()
 {
-  return rows.size();
+  return rows_.size();
 }
 
 /**
@@ -488,7 +490,7 @@ void Effect::refresh()
 
 void Effect::field_changed()
 {
-  PanelManager::sequenceViewer().viewer_widget->frame_update();
+  PanelManager::sequenceViewer().reRender();
   panels::PanelManager::graphEditor().update_panel();
 }
 
@@ -552,7 +554,7 @@ void Effect::move_down()
 void Effect::reset()
 {
   auto command = new ResetEffectCommand();
-  for (const auto& row : rows) {
+  for (const auto& row : rows_) {
     for (auto i=0; i < row->fieldCount(); ++i) {
       auto field = row->field(i);
       if (field == nullptr) {
@@ -565,6 +567,73 @@ void Effect::reset()
 
   e_undo_stack.push(command);
   PanelManager::refreshPanels(true);
+}
+
+
+void Effect::displayPresets()
+{
+  QMenu menu(container->preset_button_);
+  auto db(chestnut::Database::instance());
+  const auto presets(db->getPresets(meta.name));
+  for (const auto& name: presets) {
+    auto preset_action(menu.addAction(name));
+    connect(preset_action, &QAction::triggered, this, &Effect::loadPreset);
+  }
+  menu.addSeparator();
+  auto store_action(menu.addAction(tr("Store new preset")));
+  connect(store_action, &QAction::triggered, this, &Effect::storePreset);
+  menu.exec(QCursor::pos());
+}
+
+
+void Effect::storePreset()
+{
+  QInputDialog dial(container->preset_button_);
+  dial.setWindowTitle(tr("Edit new preset"));
+  dial.setLabelText("Preset name");
+  if (dial.exec() == QDialog::Rejected) {
+    return;
+  }
+  const auto preset_name(dial.textValue());
+  if (preset_name.length() <= 1) {
+    qWarning() << "Not saving a preset with an empty name";
+    return;
+  }
+
+  chestnut::EffectPreset preset {meta.name, preset_name, {}};
+  chestnut::EffectParametersType params;
+
+  // Build a listing of the effect's current values
+  for (const auto& row : rows_) {
+    Q_ASSERT(row);
+    auto row_name = row->get_name();
+    for (const auto& field : row->getFields()) {
+      Q_ASSERT(field);
+      auto val = field->get_current_data();
+      auto pair = QPair<QString, QVariant>(field->name(), val);
+      params[row_name].append(pair);
+    }
+  }
+  preset.parameters_ = params;
+  chestnut::Database::instance()->addNewPreset(preset);
+}
+
+
+void Effect::loadPreset()
+{
+  const auto action(dynamic_cast<QAction*>(sender()));
+  Q_ASSERT(action);
+  const auto preset_name(action->text());
+
+  auto db(chestnut::Database::instance());
+  const auto params(db->getPresetParameters(meta.name, preset_name));
+
+  // TODO: apply via an QUndoCommand
+  for (const auto& [row_name, row_params] : params.toStdMap()) {
+    setEffectRow(row_name, row_params);
+  }
+
+  panels::PanelManager::sequenceViewer().reRender();
 }
 
 /**
@@ -683,7 +752,7 @@ bool Effect::save(QXmlStreamWriter& stream) const
   stream.writeAttribute("name", meta.name);
   stream.writeAttribute("enabled", is_enabled() ? "true" : "false");
 
-  for (const auto& row : rows) {
+  for (const auto& row : rows_) {
     row->save(stream);
   }
   stream.writeEndElement(); //effect
@@ -813,28 +882,28 @@ void Effect::process_shader(const double timecode, GLTextureCoords& /*coords*/, 
   glsl_.program_->setUniformValue("time", static_cast<GLfloat>(timecode));
   glsl_.program_->setUniformValue("iteration", iteration);
 
-  for (const auto& row: rows) {
+  for (const auto& row: rows_) {
     for (int j=0;j<row->fieldCount();j++) {
       EffectField* field = row->field(j);
-      if (!field->id.isEmpty()) {
+      if (!field->name().isEmpty()) {
         switch (field->type) {
           case EffectFieldType::DOUBLE:
-            glsl_.program_->setUniformValue(field->id.toUtf8().constData(),
+            glsl_.program_->setUniformValue(field->name().toUtf8().constData(),
                                             static_cast<GLfloat>(field->get_double_value(timecode)));
             break;
           case EffectFieldType::COLOR:
             glsl_.program_->setUniformValue(
-                  field->id.toUtf8().constData(),
+                  field->name().toUtf8().constData(),
                   static_cast<GLfloat>(field->get_color_value(timecode).redF()),
                   static_cast<GLfloat>(field->get_color_value(timecode).greenF()),
                   static_cast<GLfloat>(field->get_color_value(timecode).blueF())
                   );
             break;
           case EffectFieldType::BOOL:
-            glsl_.program_->setUniformValue(field->id.toUtf8().constData(), field->get_bool_value(timecode));
+            glsl_.program_->setUniformValue(field->name().toUtf8().constData(), field->get_bool_value(timecode));
             break;
           case EffectFieldType::COMBO:
-            glsl_.program_->setUniformValue(field->id.toUtf8().constData(), field->get_combo_index(timecode));
+            glsl_.program_->setUniformValue(field->name().toUtf8().constData(), field->get_combo_index(timecode));
             break;
           case EffectFieldType::FONT:
             [[fallthrough]];
@@ -963,6 +1032,7 @@ void Effect::setupUi()
   // set up base UI
   connect(container->enabled_check, SIGNAL(clicked(bool)), this, SLOT(field_changed()));
   connect(container->reset_button_, &QPushButton::clicked, this, &Effect::reset);
+  connect(container->preset_button_, &QPushButton::clicked, this, &Effect::displayPresets);
   ui = new QWidget();
   ui_layout = new QGridLayout();
   ui_layout->setSpacing(4);
@@ -1161,6 +1231,23 @@ void Effect::extractShaderDetails(const QXmlStreamAttributes& attributes)
     } else {
       qWarning() << "Unknown attribute" << attr.name();
     }
+  }
+}
+
+
+void Effect::setEffectRow(const QString& row_name, const chestnut::ParamsType& row_params)
+{
+  auto row = [&] {
+    for (const auto& r : rows_) {
+      if (r->get_name() == row_name) {
+        return r;
+      }
+    }
+    return std::shared_ptr<EffectRow>();
+  }();
+
+  if (row != nullptr) {
+    row->setValues(row_params);
   }
 }
 

@@ -34,6 +34,7 @@
 #include "panels/unittest/histogramviewertest.h"
 #include "panels/unittest/viewertest.h"
 #include "panels/unittest/timelinetest.h"
+#include "unittest/databasetest.h"
 
 namespace
 {
@@ -70,5 +71,6 @@ int main(int argc, char** argv)
   status |= runTest<panels::HistogramViewerTest>();
   status |= runTest<ViewerTest>();
   status |= runTest<TimelineTest>();
+  status |= runTest<DatabaseTest>();
   return status;
 }

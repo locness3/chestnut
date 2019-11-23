@@ -68,27 +68,43 @@ ComboBoxEx::ComboBoxEx(QWidget *parent)
   connect(this, SIGNAL(activated(int)), this, SLOT(index_changed(int)));
 }
 
-void ComboBoxEx::setCurrentIndexEx(int i) {
-  index = i;
-  setCurrentIndex(i);
+void ComboBoxEx::setCurrentIndexEx(const int ix)
+{
+  index = ix;
+  setCurrentIndex(ix);
 }
 
-void ComboBoxEx::setCurrentTextEx(const QString &text) {
-  setCurrentText(text);
+void ComboBoxEx::setCurrentTextEx(QString text)
+{
+  setCurrentText(std::move(text));
   index = currentIndex();
 }
 
-int ComboBoxEx::getPreviousIndex() {
+int ComboBoxEx::getPreviousIndex()
+{
   return previousIndex;
 }
 
-void ComboBoxEx::index_changed(int i) {
-  if (index != i) {
+QVariant ComboBoxEx::getValue() const
+{
+  return index;
+}
+
+void ComboBoxEx::setValue(QVariant val)
+{
+  setCurrentIndexEx(val.toInt());
+}
+
+void ComboBoxEx::index_changed(const int ix)
+{
+  if (index != ix) {
     previousIndex = index;
-    index = i;
+    index = ix;
   }
 }
 
-void ComboBoxEx::wheelEvent(QWheelEvent* e) {
+void ComboBoxEx::wheelEvent(QWheelEvent* e)
+{
+  Q_ASSERT(e);
   e->ignore();
 }
