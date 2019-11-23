@@ -1,3 +1,21 @@
+/*
+ * Chestnut. Chestnut is a free non-linear video editor for Linux.
+ * Copyright (C) 2019
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "database.h"
 
 #include <QSql>
@@ -17,7 +35,6 @@ Database::Database(QString file_path)
   setupEffectsTable();
 }
 
-
 std::shared_ptr<Database> Database::instance(const QString& file_path)
 {
   if (instance_) {
@@ -32,7 +49,16 @@ std::shared_ptr<Database> Database::instance(const QString& file_path)
 
 bool Database::addNewPreset(const EffectPreset& value)
 {
-  // TODO: adding a preset with same name overwrites old
+  if ( (value.effect_name_.length() <= 0) || (value.preset_name_.length() <= 0) || value.parameters_.empty()) {
+    qWarning() << "Not adding a new preset with empty values";
+    return false;
+  }
+
+  if (presetId(value.effect_name_, value.preset_name_) >= 0) {
+    qWarning() << "Preset" << value.preset_name_ << "for Effect" << value.effect_name_ << "already exists.";
+    return false;
+  }
+
   QSqlQuery q(db_);
   const auto e_id = effectId(value.effect_name_);
   Q_ASSERT(e_id >= 0);
@@ -47,7 +73,7 @@ bool Database::addNewPreset(const EffectPreset& value)
     return false;
   }
 
-  const auto p_id = presetId(value.preset_name_);
+  const auto p_id = presetId(value.effect_name_, value.preset_name_);
   Q_ASSERT(p_id >= 0);
 
   for (const auto& [row, params] : value.parameters_.toStdMap()) {
@@ -171,12 +197,19 @@ int Database::effectRowId(const QString& name, const int effect_id, const bool r
   return -1;
 }
 
-int Database::presetId(const QString& name)
+int Database::presetId(QString effect_name, QString preset_name)
 {
   QSqlQuery q(db_);
-  q.prepare("SELECT id FROM presets WHERE name=?");
-  q.addBindValue(name);
-  q.exec();
+  q.prepare("SELECT presets.id FROM presets "
+            "JOIN effects ON presets.e_id = effects.id "
+            "WHERE presets.name=? AND effects.name=?");
+  q.addBindValue(std::move(preset_name));
+  q.addBindValue(std::move(effect_name));
+  if (!q.exec()) {
+    qWarning() << q.lastError().text();
+    qDebug() << q.executedQuery();
+    return -1;
+  }
   if (q.first()) {
     return q.value(0).toInt();
   }

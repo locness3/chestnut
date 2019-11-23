@@ -1,3 +1,21 @@
+/*
+ * Chestnut. Chestnut is a free non-linear video editor for Linux.
+ * Copyright (C) 2019
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef DATABASE_H
 #define DATABASE_H
 
@@ -26,6 +44,7 @@ namespace chestnut
   {
     public:
       explicit Database(QString file_path);
+
       static std::shared_ptr<Database> instance(const QString& file_path="");
       /**
        * @brief         Add a new Effect preset into the database
@@ -55,7 +74,7 @@ namespace chestnut
       const QSqlResult* query(const QString& statement);
       int effectId(const QString& name, const bool recurse=true);
       int effectRowId(const QString& name, const int effect_id, const bool recurse=true);
-      int presetId(const QString& name);
+      int presetId(QString effect_name, QString preset_name);
       bool addNewParameterPreset(const int preset_id, const int row_id, const QString& name, const QVariant& value);
   };
 }

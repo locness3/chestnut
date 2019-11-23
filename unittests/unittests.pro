@@ -28,6 +28,7 @@ SOURCES += \
     ../app/panels/unittest/viewertest.cpp \
     ../app/project/UnitTest/effectfieldtest.cpp \
     ../app/project/UnitTest/markertest.cpp \
+    ../app/unittest/databasetest.cpp \
     main.cpp \
     ../app/project/UnitTest/sequenceitemtest.cpp \
     ../app/project/UnitTest/sequencetest.cpp \
@@ -61,7 +62,8 @@ HEADERS += \
     ../app/project/UnitTest/mediahandlertest.h \
     ../app/project/UnitTest/effecttest.h \
     ../app/panels/unittest/histogramviewertest.h \
-    ../app/project/UnitTest/effectkeyframetest.h
+    ../app/project/UnitTest/effectkeyframetest.h \
+    ../app/unittest/databasetest.h
 
 INCLUDEPATH += ../app/
 
