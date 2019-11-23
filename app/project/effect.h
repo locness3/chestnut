@@ -227,6 +227,7 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     void reset();
     void displayPresets();
     void storePreset();
+    void loadPreset();
   protected:
     // superimpose functions
     virtual void redraw(double timecode);

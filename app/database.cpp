@@ -42,6 +42,7 @@ bool Database::addNewPreset(const EffectPreset& value)
   q.addBindValue(e_id);
   if (!q.exec()) {
     qWarning() << q.lastError().text();
+    qWarning() << q.executedQuery();
   }
 
   const auto p_id = presetId(value.preset_name_);
@@ -61,11 +62,38 @@ bool Database::addNewPreset(const EffectPreset& value)
 }
 
 
+QStringList Database::getPresets(QString effect_name)
+{
+  QSqlQuery q(db_);
+  q.prepare("SELECT presets.name FROM presets "
+            "JOIN effects ON presets.e_id = effects.id "
+            "WHERE effects.name=?");
+  q.addBindValue(effect_name);
+  if (!q.exec()) {
+    qWarning() << q.lastError().text();
+    qWarning() << q.executedQuery();
+    return {};
+  }
+  QStringList names;
+  while (q.next()) {
+    names << q.value(0).toString();
+  }
+
+  return names;
+}
+
+
+chestnut::EffectParamType Database::getPresetParameters(QString preset_name)
+{
+  return {};
+}
+
 const QSqlResult* Database::query(const QString& statement)
 {
   QSqlQuery q(db_);
   if (!q.exec(statement)) {
     qWarning() << q.lastError().text();
+    qWarning() << q.executedQuery();
     return {};
   }
   return q.result();
@@ -103,7 +131,7 @@ int Database::effectRowId(const QString& name, const int effect_id, const bool r
     q.addBindValue(name);
     q.addBindValue(effect_id);
     q.exec();
-    return effectRowId(name, false);
+    return effectRowId(name, effect_id, false);
   }
   return -1;
 }
@@ -134,6 +162,7 @@ bool Database::addNewParameterPreset(const int preset_id, const int row_id, QStr
   q.addBindValue(row_id);
   if (!q.exec()) {
     qWarning() << q.lastError().text();
+    qWarning() << q.executedQuery();
     return false;
   }
   return true;

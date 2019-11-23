@@ -577,10 +577,14 @@ void Effect::reset()
 void Effect::displayPresets()
 {
   QMenu menu(container->preset_button_);
-  auto db = chestnut::Database::instance();
-  // TODO: pull preset names from db
+  auto db(chestnut::Database::instance());
+  const auto presets(db->getPresets(meta.name));
+  for (const auto& name: presets) {
+    auto preset_action(menu.addAction(name));
+    connect(preset_action, &QAction::triggered, this, &Effect::loadPreset);
+  }
   menu.addSeparator();
-  auto store_action = menu.addAction(tr("Store new preset"));
+  auto store_action(menu.addAction(tr("Store new preset")));
   connect(store_action, &QAction::triggered, this, &Effect::storePreset);
   menu.exec(QCursor::pos());
 }
@@ -591,7 +595,9 @@ void Effect::storePreset()
   QInputDialog dial(container->preset_button_);
   dial.setWindowTitle(tr("Edit new preset"));
   dial.setLabelText("Preset name");
-  dial.exec();
+  if (dial.exec() == QDialog::Rejected) {
+    return;
+  }
   chestnut::EffectPreset preset {meta.name, dial.textValue(), {}};
   QVector<QMap<QString, QVector<QPair<QString, QVariant>>>> params;
 
@@ -609,6 +615,17 @@ void Effect::storePreset()
   }
   preset.parameters_ = params;
   chestnut::Database::instance()->addNewPreset(preset);
+}
+
+
+void Effect::loadPreset()
+{
+  const auto action(dynamic_cast<QAction*>(sender()));
+  Q_ASSERT(action);
+  auto preset_name(action->text());
+
+  auto db(chestnut::Database::instance());
+  auto params(db->getPresetParameters(preset_name));
 }
 
 /**

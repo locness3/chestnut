@@ -8,11 +8,12 @@
 
 namespace chestnut
 {
+  using EffectParamType = QVector<QMap<QString, QVector<QPair<QString, QVariant>>>>;
   struct EffectPreset
   {
     QString effect_name_;
     QString preset_name_;
-    QVector<QMap<QString, QVector<QPair<QString, QVariant>>>> parameters_;
+    EffectParamType parameters_;
   };
 
   class Database
@@ -22,6 +23,8 @@ namespace chestnut
       static std::shared_ptr<Database> instance(const QString& file_path="");
 
       bool addNewPreset(const EffectPreset& value);
+      QStringList getPresets(QString effect_name);
+      EffectParamType getPresetParameters(QString preset_name);
 
     private:
       QSqlDatabase db_;
