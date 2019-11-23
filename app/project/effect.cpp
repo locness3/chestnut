@@ -46,7 +46,6 @@
 #include "io/math.h"
 #include "transition.h"
 #include "io/path.h"
-#include "database.h"
 
 #include "effects/internal/transformeffect.h"
 #include "effects/internal/texteffect.h"
@@ -627,10 +626,14 @@ void Effect::loadPreset()
 {
   const auto action(dynamic_cast<QAction*>(sender()));
   Q_ASSERT(action);
-  auto preset_name(action->text());
+  const auto preset_name(action->text());
 
   auto db(chestnut::Database::instance());
   const auto params(db->getPresetParameters(meta.name, preset_name));
+
+  for (const auto& [row_name, row_params] : params.toStdMap()) {
+    setEffectRow(row_name, row_params);
+  }
 }
 
 /**
@@ -1228,6 +1231,23 @@ void Effect::extractShaderDetails(const QXmlStreamAttributes& attributes)
     } else {
       qWarning() << "Unknown attribute" << attr.name();
     }
+  }
+}
+
+
+void Effect::setEffectRow(const QString& row_name, const chestnut::ParamsType& row_params)
+{
+  auto row = [&] {
+    for (const auto& r : rows_) {
+      if (r->get_name() == row_name) {
+        return r;
+      }
+    }
+    return std::shared_ptr<EffectRow>();
+  }();
+
+  if (row != nullptr) {
+    row->setValues(row_params);
   }
 }
 

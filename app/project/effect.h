@@ -38,6 +38,7 @@
 #include "project/sequenceitem.h"
 #include "gsl/span"
 #include "project/ixmlstreamer.h"
+#include "database.h"
 
 class CollapsibleWidget;
 class QLabel;
@@ -280,6 +281,13 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>, pub
     void setupFileWidget(const QXmlStreamAttributes& attributes, EffectField& field) const;
     std::tuple<EffectFieldType, QString> getFieldType(const QXmlStreamAttributes& attributes) const;
     void extractShaderDetails(const QXmlStreamAttributes& attributes);
+
+    /**
+     * @brief             Setup an Effect Row based on stored values
+     * @param row_name    Effect row name
+     * @param row_params  The stored values
+     */
+    void setEffectRow(const QString& row_name, const chestnut::ParamsType& row_params);
 
 };
 

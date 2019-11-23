@@ -40,10 +40,10 @@ namespace chestnut
        */
       QStringList getPresets(const QString& effect_name);
       /**
-       * @brief getPresetParameters
+       * @brief               Obtain all the Effect parameters of a preset
        * @param effect_name
        * @param preset_name
-       * @return
+       * @return              Structure in which to setup an Effect
        */
       EffectParametersType getPresetParameters(QString effect_name, QString preset_name);
 
@@ -52,13 +52,10 @@ namespace chestnut
       inline static std::shared_ptr<Database> instance_{nullptr};
 
       void setupEffectsTable();
-
       const QSqlResult* query(const QString& statement);
-
       int effectId(const QString& name, const bool recurse=true);
       int effectRowId(const QString& name, const int effect_id, const bool recurse=true);
       int presetId(const QString& name);
-
       bool addNewParameterPreset(const int preset_id, const int row_id, const QString& name, const QVariant& value);
   };
 }

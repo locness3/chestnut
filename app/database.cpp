@@ -71,7 +71,7 @@ QStringList Database::getPresets(const QString& effect_name)
   q.addBindValue(effect_name);
   if (!q.exec()) {
     qWarning() << q.lastError().text();
-    qWarning() << q.executedQuery();
+    qDebug() << q.executedQuery();
     return {};
   }
   QStringList names;
@@ -105,6 +105,7 @@ chestnut::EffectParametersType Database::getPresetParameters(QString effect_name
   ParamsType params;
   EffectParametersType preset_params;
   QString row_name;
+
   while (q.next()) {
     const auto new_row(q.value(3).toString() != row_name);
     const auto param_name(q.value(0).toString());
@@ -113,16 +114,12 @@ chestnut::EffectParametersType Database::getPresetParameters(QString effect_name
     QVariant value(param_type);
     value.setValue(param_value);
     if (new_row) {
-      if (!params.empty() && (row_name.length() > 0) ) {
-        preset_params[row_name] = params;
-      }
-      row_name = q.value(3).toString();
       params.clear();
-      params.append(QPair<QString, QVariant>(param_name, value));
-    } else {
-      params.append(QPair<QString, QVariant>(param_name, value));
+      row_name = q.value(3).toString();
     }
+    preset_params[row_name].append(QPair<QString, QVariant>(param_name, value));
   }
+
   return preset_params;
 }
 
@@ -131,7 +128,7 @@ const QSqlResult* Database::query(const QString& statement)
   QSqlQuery q(db_);
   if (!q.exec(statement)) {
     qWarning() << q.lastError().text();
-    qWarning() << q.executedQuery();
+    qDebug() << q.executedQuery();
     return {};
   }
   return q.result();
@@ -200,7 +197,7 @@ bool Database::addNewParameterPreset(const int preset_id, const int row_id, cons
   q.addBindValue(row_id);
   if (!q.exec()) {
     qWarning() << q.lastError().text();
-    qWarning() << q.executedQuery();
+    qDebug() << q.executedQuery();
     return false;
   }
   return true;
