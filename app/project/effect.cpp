@@ -493,7 +493,7 @@ void Effect::refresh()
 
 void Effect::field_changed()
 {
-  PanelManager::sequenceViewer().viewer_widget->frame_update();
+  PanelManager::sequenceViewer().reRender();
   panels::PanelManager::graphEditor().update_panel();
 }
 
@@ -631,9 +631,12 @@ void Effect::loadPreset()
   auto db(chestnut::Database::instance());
   const auto params(db->getPresetParameters(meta.name, preset_name));
 
+  // TODO: apply via an QUndoCommand
   for (const auto& [row_name, row_params] : params.toStdMap()) {
     setEffectRow(row_name, row_params);
   }
+
+  panels::PanelManager::sequenceViewer().reRender();
 }
 
 /**

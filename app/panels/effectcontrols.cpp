@@ -123,7 +123,7 @@ void EffectControls::menu_select(QAction* q)
     PanelManager::refreshPanels(true);
   } else {
     reload_clips();
-    PanelManager::sequenceViewer().viewer_widget->frame_update();
+    PanelManager::sequenceViewer().reRender();
   }
 }
 

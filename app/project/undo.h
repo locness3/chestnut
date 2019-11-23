@@ -139,7 +139,6 @@ public:
   AddEffectCommand(const AddEffectCommand& ) = delete;
   AddEffectCommand& operator=(const AddEffectCommand&) = delete;
 
-  virtual ~AddEffectCommand();
   virtual void undo() override;
   virtual void redo() override;
 private:

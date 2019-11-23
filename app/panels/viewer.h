@@ -68,6 +68,11 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     void set_zoom(bool in);
     void set_panel_name(const QString& name);
 
+    /**
+     * @brief Force a render of the current frame displayed
+     */
+    void reRender();
+
     // playback functions
     void seek(const int64_t p);
     void play();
