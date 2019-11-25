@@ -21,25 +21,54 @@
 #include <QLabel>
 #include <QtMath>
 #include <stdint.h>
+#include <mediahandling/gsl-lite.hpp>
 
 #include "ui/labelslider.h"
 #include "ui/collapsiblewidget.h"
 
-VolumeEffect::VolumeEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em) {
+constexpr auto VOLUME_MIN = -120.0;
+constexpr auto VOLUME_MAX = 10;
+constexpr auto VOLUME_DEFAULT = 0;
+constexpr auto VOLUME_SUFFIX = " dB";
+constexpr auto VOLUME_STEP = 0.1;
+
+VolumeEffect::VolumeEffect(ClipPtr c, const EffectMeta& em) : Effect(c, em)
+{
 
 }
 
-void VolumeEffect::process_audio(double timecode_start, double timecode_end, quint8* samples, int nb_bytes, int) {
-  double interval = (timecode_end-timecode_start)/nb_bytes;
-  for (int i=0;i<nb_bytes;i+=4) {
-    double vol_val = log_volume(volume_val->get_double_value(timecode_start+(interval*i), true)*0.01);
+VolumeEffect::~VolumeEffect()
+{
+  volume_val = nullptr;
+}
 
-    qint32 right_samp = static_cast<qint16> (((samples[i+3] & 0xFF) << 8) | (samples[i+2] & 0xFF));
-    qint32 left_samp = static_cast<qint16> (((samples[i+1] & 0xFF) << 8) | (samples[i] & 0xFF));
+inline double decibelToPowerRatio(const double db)
+{
+  return pow(10.0, db / 20.0);
+}
 
-    left_samp *= vol_val;
-    right_samp *= vol_val;
+void VolumeEffect::process_audio(const double timecode_start,
+                                 const double timecode_end,
+                                 quint8* samples,
+                                 const int nb_bytes,
+                                 const int /*channel_count*/)
+{
+  Q_ASSERT(nb_bytes != 0);
+  Q_ASSERT(volume_val);
 
+  const double interval = (timecode_end - timecode_start) / nb_bytes;
+  for (size_t i = 0; i < nb_bytes; i += 4) {
+    const auto vol_val = decibelToPowerRatio(volume_val->get_double_value(timecode_start + (interval * i), true));
+
+    gsl::span<quint8> samps(samples, static_cast<size_t>(nb_bytes));
+    qint32 right_samp = static_cast<qint16> (((samps.at(i + 3) & 0xFF) << 8) | (samps.at(i + 2) & 0xFF));
+    qint32 left_samp = static_cast<qint16> (((samps.at(i + 1) & 0xFF) << 8) | (samps.at(i) & 0xFF));
+
+    // Adjust amplitude
+    left_samp = lround(left_samp * vol_val);
+    right_samp = lround (right_samp * vol_val);
+
+    // Clamping
     if (left_samp > INT16_MAX) {
       left_samp = INT16_MAX;
     } else if (left_samp < INT16_MIN) {
@@ -52,10 +81,10 @@ void VolumeEffect::process_audio(double timecode_start, double timecode_end, qui
       right_samp = INT16_MIN;
     }
 
-    samples[i+3] = static_cast<quint8> (right_samp >> 8);
-    samples[i+2] = static_cast<quint8> (right_samp);
-    samples[i+1] = static_cast<quint8> (left_samp >> 8);
-    samples[i] = static_cast<quint8> (left_samp);
+    samps[i+3] = static_cast<quint8> (right_samp >> 8);
+    samps[i+2] = static_cast<quint8> (right_samp);
+    samps[i+1] = static_cast<quint8> (left_samp >> 8);
+    samps[i] = static_cast<quint8> (left_samp);
   }
 }
 
@@ -66,9 +95,14 @@ void VolumeEffect::setupUi()
   }
   Effect::setupUi();
   EffectRowPtr volume_row = add_row(tr("Volume"));
+  Q_ASSERT(volume_row);
   volume_val = volume_row->add_field(EffectFieldType::DOUBLE, "volume");
-  volume_val->set_double_minimum_value(0);
+  Q_ASSERT(volume_val);
+  volume_val->set_double_minimum_value(VOLUME_MIN);
+  volume_val->set_double_maximum_value(VOLUME_MAX);
+  volume_val->setSuffix(VOLUME_SUFFIX);
+  volume_val->set_double_step_value(VOLUME_STEP);
 
   // set defaults
-  volume_val->set_double_default_value(100);
+  volume_val->set_double_default_value(VOLUME_DEFAULT);
 }
