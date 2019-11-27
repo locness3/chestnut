@@ -1547,30 +1547,35 @@ void Timeline::add_btn_click()
 {
   QMenu add_menu(this);
 
+  auto adjustment_layer_item = new QAction(&add_menu);
+  adjustment_layer_item->setText(tr("Adjustment Layer"));
+  adjustment_layer_item->setData(static_cast<int>(AddObjectType::ADJUSTMENT_LAYER));
+  add_menu.addAction(adjustment_layer_item);
+
   auto titleMenuItem = new QAction(&add_menu);
-  titleMenuItem->setText(tr("Title..."));
+  titleMenuItem->setText(tr("Title"));
   titleMenuItem->setData(static_cast<int>(AddObjectType::TITLE));
   add_menu.addAction(titleMenuItem);
 
   auto solidMenuItem = new QAction(&add_menu);
-  solidMenuItem->setText(tr("Solid Color..."));
+  solidMenuItem->setText(tr("Solid Color"));
   solidMenuItem->setData(static_cast<int>(AddObjectType::SOLID));
   add_menu.addAction(solidMenuItem);
 
   auto barsMenuItem = new QAction(&add_menu);
-  barsMenuItem->setText(tr("Bars..."));
+  barsMenuItem->setText(tr("Bars"));
   barsMenuItem->setData(static_cast<int>(AddObjectType::BARS));
   add_menu.addAction(barsMenuItem);
 
   add_menu.addSeparator();
 
   auto toneMenuItem = new QAction(&add_menu);
-  toneMenuItem->setText(tr("Tone..."));
+  toneMenuItem->setText(tr("Tone"));
   toneMenuItem->setData(static_cast<int>(AddObjectType::TONE));
   add_menu.addAction(toneMenuItem);
 
   auto noiseMenuItem = new QAction(&add_menu);
-  noiseMenuItem->setText(tr("Noise..."));
+  noiseMenuItem->setText(tr("Noise"));
   noiseMenuItem->setData(static_cast<int>(AddObjectType::NOISE));
   add_menu.addAction(noiseMenuItem);
 
