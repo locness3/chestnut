@@ -2944,6 +2944,15 @@ void TimelineWidget::drawRecordingClip(Timeline& time_line, Viewer& sequence_vie
 
 void TimelineWidget::drawClipText(QRect& text_rect, QRect clip_rect, Clip& clip, QPainter& painter) const
 {
+  QString name(clip.name());
+  if (clip.mediaType() == ClipType::AUDIO) {
+    if (const auto links = clip.linkedClips(); links.size() == 1) {
+      if (auto c = links.first(); c->mediaType() == ClipType::VISUAL) {
+        // Don't show an audio-clip filename if linked to a sole video clip
+        return;
+      }
+    }
+  }
   if ((text_rect.width() > MAX_TEXT_WIDTH) && (text_rect.right() > 0) && (text_rect.left() < width()) ) {
     if (!clip.timeline_info.enabled) {
       painter.setPen(Qt::gray);
