@@ -208,6 +208,8 @@ class TimelineWidget : public QWidget {
 
     void drawEditCursor(SequencePtr seq, Timeline& time_line, QPainter& painter) const;
 
+    void drawClipText(QRect& text_rect, QRect clip_rect, Clip& clip, QPainter& painter) const;
+    
 public slots:
     void setScroll(int);
 
