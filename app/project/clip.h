@@ -85,6 +85,8 @@ public:
   Clip& operator=(const Clip&) = delete;
   Clip& operator=(const Clip&&) = delete;
 
+  QString name() const override;
+
   bool isActive(const long playhead);
   /**
      * @brief Identify if the clip is being cached

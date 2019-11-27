@@ -513,7 +513,8 @@ int Timeline::calculate_track_height(const int track, const int value)
   return heights.at(index);
 }
 
-void Timeline::update_sequence() {
+void Timeline::update_sequence()
+{
   bool null_sequence = (sequence_ == nullptr);
 
   for (auto btn : tool_buttons) {

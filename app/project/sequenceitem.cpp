@@ -35,18 +35,19 @@ SequenceItem::SequenceItem(const project::SequenceItemType sequenceType)
 }
 
 
-void SequenceItem::setName(const QString& val)
+void SequenceItem::setName(QString name)
 {
   //TODO: input validation
-  name_ = val;
+  name_ = std::move(name);
 }
-const QString& SequenceItem::name() const
+
+QString SequenceItem::name() const
 {
   return name_;
 }
 
 
-project::SequenceItemType SequenceItem::type() const
+project::SequenceItemType SequenceItem::type() const noexcept
 {
   return type_;
 }

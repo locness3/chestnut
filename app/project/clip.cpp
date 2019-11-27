@@ -18,6 +18,7 @@
 #include "clip.h"
 
 #include <QtMath>
+#include <filesystem>
 
 #include "project/effect.h"
 #include "project/transition.h"
@@ -127,7 +128,20 @@ ClipPtr Clip::copyPreserveLinks(SequencePtr s)
   return clp;
 }
 
-bool Clip::isActive(const long playhead) {
+QString Clip::name() const
+{
+  if (timeline_info.media == nullptr) {
+    return SequenceItem::name();
+  } else if (timeline_info.media->type() == MediaType::FOOTAGE) {
+    if (const auto ftg = timeline_info.media->object<Footage>()) {
+      return std::filesystem::path(ftg->url.toStdString()).filename().c_str();
+    }
+  }
+  return "NoName";
+}
+
+bool Clip::isActive(const long playhead)
+{
   if (timeline_info.enabled) {
     if (sequence != nullptr) {
       if ( timelineInWithTransition() < (playhead + (ceil(sequence->frameRate()*2)) ) )  {                      //TODO:what are we checking?

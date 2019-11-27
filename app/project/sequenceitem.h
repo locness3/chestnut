@@ -37,16 +37,10 @@ class SequenceItem
 public:
   SequenceItem();
   explicit SequenceItem(const SequenceItemType sequenceType);
-  virtual ~SequenceItem() = default;
-  SequenceItem(const SequenceItem&) = delete;
-  SequenceItem(const SequenceItem&&) = delete;
-  SequenceItem& operator=(const SequenceItem&) = delete;
-  SequenceItem& operator=(const SequenceItem&&) = delete;
+  void setName(QString name);
+  virtual QString name() const;
 
-  void setName(const QString& val);
-  const QString& name() const;
-
-  SequenceItemType type() const;
+  SequenceItemType type() const noexcept;
 
 private:
   friend class ::Clip;

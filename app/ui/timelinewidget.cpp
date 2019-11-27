@@ -265,7 +265,7 @@ void TimelineWidget::tooltip_timer_timeout()
   Q_ASSERT(global::sequence != nullptr);
 
   if (auto c = tooltip_clip_.lock()) {
-    const QString name = c->timeline_info.media != nullptr ? c->timeline_info.media->name() : c->name();
+    const QString name(c->timeline_info.media != nullptr ? c->timeline_info.media->name() : c->name());
     QToolTip::showText(QCursor::pos(),
                        tr("%1\nStart: %2\nEnd: %3\nDuration: %4").arg(
                          name,
@@ -2944,6 +2944,42 @@ void TimelineWidget::drawRecordingClip(Timeline& time_line, Viewer& sequence_vie
   painter.drawPolygon(cue_marker, 3);
 }
 
+void TimelineWidget::drawClipText(QRect& text_rect, QRect clip_rect, Clip& clip, QPainter& painter) const
+{
+  QString name(clip.name());
+  if (clip.mediaType() == ClipType::AUDIO) {
+    if (const auto links = clip.linkedClips(); links.size() == 1) {
+      if (auto c = links.first(); c->mediaType() == ClipType::VISUAL) {
+        // Don't show an audio-clip filename if linked to a sole video clip
+        return;
+      }
+    }
+  }
+  if ((text_rect.width() > MAX_TEXT_WIDTH) && (text_rect.right() > 0) && (text_rect.left() < width()) ) {
+    if (!clip.timeline_info.enabled) {
+      painter.setPen(Qt::gray);
+    } else if (io::color_conversion::rgbToLuma(clip.timeline_info.color.rgb()) > 160) {
+      // set to black if color is bright
+      painter.setPen(Qt::black);
+    }
+
+    QString name(clip.name());
+    if (!clip.linkedClips().empty()) {
+      const int underline_y = CLIP_TEXT_PADDING + painter.fontMetrics().height() + clip_rect.top();
+      const int underline_width = qMin(text_rect.width() - 1, painter.fontMetrics().horizontalAdvance(name));
+      painter.drawLine(text_rect.x(), underline_y, text_rect.x() + underline_width, underline_y);
+    }
+    if (!qFuzzyCompare(clip.timeline_info.speed, 1.0) || clip.timeline_info.reverse) {
+      name += " (";
+      if (clip.timeline_info.reverse) {
+        name += "-";
+      }
+      name += QString::number(clip.timeline_info.speed * 100) + "%)";
+    }
+    painter.drawText(text_rect, 0, name, &text_rect);
+  }
+}
+
 // FIXME: refactor
 void TimelineWidget::drawClips(SequencePtr seq, Timeline& time_line, QPainter& painter)
 {
@@ -3141,32 +3177,7 @@ void TimelineWidget::drawClips(SequencePtr seq, Timeline& time_line, QPainter& p
       }
 
       // draw text
-      if ( (text_rect.width() > MAX_TEXT_WIDTH) && (text_rect.right() > 0) && (text_rect.left() < width())) {
-        if (!clip->timeline_info.enabled) {
-          painter.setPen(Qt::gray);
-        } else if (io::color_conversion::rgbToLuma(clip->timeline_info.color.rgb()) > 160) {
-          // set to black if color is bright
-          painter.setPen(Qt::black);
-        }
-        if (!clip->linkedClips().empty()) {
-          int underline_y = CLIP_TEXT_PADDING + painter.fontMetrics().height() + clip_rect.top();
-          int underline_width = qMin(text_rect.width() - 1, painter.fontMetrics().width(clip->name()));
-          painter.drawLine(text_rect.x(), underline_y, text_rect.x() + underline_width, underline_y);
-        }
-
-        const QString name(std::invoke([&]{
-          if (!qFuzzyCompare(clip->timeline_info.speed, 1.0) || clip->timeline_info.reverse) {
-            QString tmp(" (");
-            if (clip->timeline_info.reverse) {
-              tmp += "-";
-            }
-            tmp += QString::number(clip->timeline_info.speed * 100) + "%)";
-            return tmp;
-          }
-          return clip->name();
-        }));
-        painter.drawText(text_rect, 0, name, &text_rect);
-      }
+      drawClipText(text_rect, clip_rect, *clip, painter);
 
       // bottom right gray
       painter.setPen(QColor(0, 0, 0, 128));
