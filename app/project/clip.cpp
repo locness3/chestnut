@@ -134,7 +134,7 @@ QString Clip::name() const
     return SequenceItem::name();
   } else if (timeline_info.media->type() == MediaType::FOOTAGE) {
     if (const auto ftg = timeline_info.media->object<Footage>()) {
-      return std::filesystem::path(ftg->url.toStdString()).filename().c_str();
+      return std::filesystem::path(ftg->location().toStdString()).filename().c_str();
     }
   }
   return "NoName";
