@@ -122,7 +122,8 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
       // ONLY footage is selected
       if (all_footage) {
         QAction* delete_footage_from_sequences = menu.addAction(tr("Delete All Clips Using This Media"));
-        QObject::connect(delete_footage_from_sequences, SIGNAL(triggered(bool)), project_parent, SLOT(delete_clips_using_selected_media()));
+        QObject::connect(delete_footage_from_sequences, SIGNAL(triggered(bool)), project_parent,
+                         SLOT(delete_clips_using_selected_media()));
       }
 
       // delete media
@@ -140,11 +141,13 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
 
   menu.addSeparator();
 
-  QAction* tree_view_action = menu.addAction(tr("Tree View"));
-  connect(tree_view_action, SIGNAL(triggered(bool)), project_parent, SLOT(set_tree_view()));
-
-  QAction* icon_view_action = menu.addAction(tr("Icon View"));
-  connect(icon_view_action, SIGNAL(triggered(bool)), project_parent, SLOT(set_icon_view()));
+  if (global::config.project_view_type == ProjectView::ICON) {
+    QAction* tree_view_action = menu.addAction(tr("Tree View"));
+    connect(tree_view_action, SIGNAL(triggered(bool)), project_parent, SLOT(set_tree_view()));
+  } else {
+    QAction* icon_view_action = menu.addAction(tr("Icon View"));
+    connect(icon_view_action, SIGNAL(triggered(bool)), project_parent, SLOT(set_icon_view()));
+  }
 
   QAction* toolbar_action = menu.addAction(tr("Show Toolbar"));
   toolbar_action->setCheckable(true);
