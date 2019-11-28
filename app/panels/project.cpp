@@ -827,17 +827,28 @@ MediaPtr Project::get_selected_folder()
 
 bool Project::reveal_media(MediaPtr media, QModelIndex parent)
 {
-  for (int i=0;i<Project::model().rowCount(parent);i++) {
-    const QModelIndex& item = Project::model().index(i, 0, parent);
-    MediaPtr m = Project::model().getItem(item);
+  if (QAbstractItemView* const view = [&] {
+    if (global::config.project_view_type == ProjectView::TREE) {
+      Q_ASSERT(tree_view_);
+      return dynamic_cast<QAbstractItemView*>(tree_view_);
+    } else {
+      Q_ASSERT(icon_view_);
+      return dynamic_cast<QAbstractItemView*>(icon_view_);
+    }}()) {
+    view->selectionModel()->clearSelection();
+  }
 
-    if (m->type() == MediaType::FOLDER) {
-      if (reveal_media(media, item)) return true;
-    } else if (m == media) {
+  for (int i=0; i < Project::model().rowCount(parent); i++) {
+    const QModelIndex& item(Project::model().index(i, 0, parent));
+    if (auto mda = Project::model().getItem(item); mda->type() == MediaType::FOLDER) {
+      if (reveal_media(media, item)) {
+        return true;
+      }
+    } else if (mda == media) {
       // expand all folders leading to this media
-      QModelIndex sorted_index = sorter->mapFromSource(item);
+      const QModelIndex sorted_index(sorter->mapFromSource(item));
 
-      QModelIndex hierarchy = sorted_index.parent();
+      QModelIndex hierarchy(sorted_index.parent());
 
       if (e_config.project_view_type == ProjectView::TREE) {
         while (hierarchy.isValid()) {
@@ -852,7 +863,6 @@ bool Project::reveal_media(MediaPtr media, QModelIndex parent)
         icon_view_->selectionModel()->select(sorted_index, QItemSelectionModel::Select);
         set_up_dir_enabled();
       }
-
       return true;
     }
   }
