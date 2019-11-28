@@ -32,6 +32,8 @@ extern "C" {
 
 constexpr int AUDIO_MONITOR_PEAK_HEIGHT = 15;
 constexpr int AUDIO_MONITOR_GAP = 3;
+constexpr auto PEAK_COLOUR = Qt::lightGray;
+constexpr auto PEAK_WIDTH = 2;
 
 AudioMonitor::AudioMonitor(QWidget *parent) : QWidget(parent)
 {
@@ -45,17 +47,25 @@ void AudioMonitor::reset()
   update();
 }
 
-void AudioMonitor::resizeEvent(QResizeEvent *e)
+
+void AudioMonitor::resetPeaks()
 {
+  peaks_.clear();
+}
+
+void AudioMonitor::resizeEvent(QResizeEvent* event)
+{
+  event->accept();
   gradient = QLinearGradient(QPoint(0, rect().top()), QPoint(0, rect().bottom()));
   gradient.setColorAt(0, Qt::red);
   gradient.setColorAt(0.25, Qt::yellow);
   gradient.setColorAt(1, Qt::green);
-  QWidget::resizeEvent(e);
+  QWidget::resizeEvent(event);
 }
 
-void AudioMonitor::paintEvent(QPaintEvent *)
+void AudioMonitor::paintEvent(QPaintEvent* event)
 {
+  event->accept();
   if (global::sequence == nullptr) {
     return;
   }
@@ -66,21 +76,33 @@ void AudioMonitor::paintEvent(QPaintEvent *)
 
   const int channel_width = (width() / channel_count) - AUDIO_MONITOR_GAP;
   int32_t playhead_offset = -1;
-  for (auto i = 0; i < channel_count; i++) {
+
+  QPen peak_pen(PEAK_COLOUR);
+  peak_pen.setWidth(PEAK_WIDTH);
+
+  for (auto channel = 0; channel < channel_count; ++channel) {
     QRect r(channel_x, AUDIO_MONITOR_PEAK_HEIGHT + AUDIO_MONITOR_GAP, channel_width, height());
     p.fillRect(r, gradient);
 
+    qint16 peak = -1;
     if ( (sample_cache_offset != -1) && !sample_cache.empty()) {
       playhead_offset = static_cast<int32_t>((global::sequence->playhead_ - sample_cache_offset) * channel_count);
       if ( (playhead_offset >= 0) && (playhead_offset < sample_cache.size()) ) {
-        const double multiplier = 1 - qAbs(static_cast<double>(sample_cache.at(playhead_offset + i))
-                                           / std::numeric_limits<int16_t>::max()); // 16-bit int divided to float
-        r.setHeight(qRound(r.height() * multiplier));
+        const qint16 val = sample_cache.at(playhead_offset + channel);
+        const double multiplier = 1 - qAbs(static_cast<double>(val) / std::numeric_limits<int16_t>::max());
+        const auto height = static_cast<qint16>(qRound(r.height() * multiplier));
+        r.setHeight(height);
+        peak = updatePeak(channel, height);
       } else {
         reset();
       }
     }
     p.fillRect(r, QColor(0, 0, 0, 160));
+
+    if (peak >= 0) {
+      const QRect peak_rect(channel_x, peak, channel_width, PEAK_WIDTH);
+      p.fillRect(peak_rect, PEAK_COLOUR);
+    }
 
     channel_x += channel_width + AUDIO_MONITOR_GAP;
   }
@@ -88,9 +110,9 @@ void AudioMonitor::paintEvent(QPaintEvent *)
   if (playhead_offset > -1) {
     // clean up used samples
     bool error = false;
-    while (sample_cache_offset < global::sequence->playhead_ && !error) {
+    while ( (sample_cache_offset < global::sequence->playhead_) && !error) {
       sample_cache_offset++;
-      for (auto i = 0; i<channel_count; i++) {
+      for (auto i = 0; i < channel_count; i++) {
         if (sample_cache.isEmpty()) {
           reset();
           error = true;
@@ -101,4 +123,17 @@ void AudioMonitor::paintEvent(QPaintEvent *)
       }//for
     }//while
   }
+}
+
+
+qint16 AudioMonitor::updatePeak(const int channel, const qint16 value)
+{
+  if (peaks_.count(channel) == 1) {
+    if (peaks_[channel] > value) {
+      peaks_[channel] = value;
+    }
+  } else {
+    peaks_[channel] = value;
+  }
+  return peaks_[channel];
 }
