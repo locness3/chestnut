@@ -828,7 +828,7 @@ MediaPtr Project::get_selected_folder()
 bool Project::reveal_media(MediaPtr media, QModelIndex parent)
 {
   if (QAbstractItemView* const view = [&] {
-    if (global::config.project_view_type == ProjectView::TREE) {
+    if (e_config.project_view_type == ProjectView::TREE) {
       Q_ASSERT(tree_view_);
       return dynamic_cast<QAbstractItemView*>(tree_view_);
     } else {
