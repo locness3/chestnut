@@ -19,27 +19,40 @@
 #define AUDIOMONITOR_H
 
 #include <QWidget>
+#include <map>
 
 class AudioMonitor : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AudioMonitor(QWidget *parent = nullptr);
     QVector<qint16> sample_cache;
     long sample_cache_offset;
+
+    explicit AudioMonitor(QWidget *parent = nullptr);
     void reset();
+    /**
+     * @brief Reset all the channel peak values
+     */
+    void resetPeaks();
 
 protected:
-    void paintEvent(QPaintEvent *);
-    void resizeEvent(QResizeEvent *);
-
+    void paintEvent(QPaintEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
 signals:
 
 public slots:
 
 private:
     QLinearGradient gradient;
-//    QVector<bool> peaks;
+    std::map<int, qint16> peaks_;
+
+    /**
+     * @brief         Update the peak value of a channel
+     * @param channel Channel to update
+     * @param value   Value to update the channel peak
+     * @return        The peak value of the channel updated
+     */
+    qint16 updatePeak(const int channel, const qint16 value);
 };
 
 #endif // AUDIOMONITOR_H

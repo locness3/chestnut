@@ -96,8 +96,6 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     void reset_all_audio();
     void update_parents(bool reload_fx = false);
 
-
-
     MediaPtr getMedia();
     SequencePtr getSequence();
     /**
@@ -131,6 +129,8 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
 
   signals:
     void muteEffects(const bool value);
+    void startedPlaying();
+    void stoppedPlaying();
 
   private slots:
     void update_playhead();

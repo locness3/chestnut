@@ -53,7 +53,9 @@ void VolumeEffect::process_audio(const double timecode_start,
                                  const int nb_bytes,
                                  const int /*channel_count*/)
 {
-  Q_ASSERT(nb_bytes != 0);
+  if (nb_bytes <= 0) {
+    return;
+  }
   Q_ASSERT(volume_val);
 
   const double interval = (timecode_end - timecode_start) / nb_bytes;
