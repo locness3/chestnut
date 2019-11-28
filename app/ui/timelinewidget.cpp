@@ -224,8 +224,8 @@ void TimelineWidget::show_context_menu(const QPoint& pos) {
       // check if all selected clips have the same media for a "Reveal In Project"
       bool same_media = true;
       rc_reveal_media = selected_clips.front()->timeline_info.media;
-      for (auto& sel_clip : selected_clips) {
-        if (sel_clip->timeline_info.media != rc_reveal_media) {
+      for (const auto& sel_clip : selected_clips) {
+        if (sel_clip && (sel_clip->timeline_info.media != rc_reveal_media)) {
           same_media = false;
           break;
         }
