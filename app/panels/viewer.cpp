@@ -431,6 +431,7 @@ void Viewer::play()
     set_playpause_icon(false);
     start_msecs = QDateTime::currentMSecsSinceEpoch();
     timer_update();
+    emit startedPlaying();
   }
 }
 
