@@ -33,6 +33,7 @@ extern "C" {
 constexpr int AUDIO_MONITOR_PEAK_HEIGHT = 15;
 constexpr int AUDIO_MONITOR_GAP = 3;
 constexpr auto PEAK_COLOUR = Qt::lightGray;
+constexpr auto PEAK_MAXED_COLOUR = Qt::red;
 constexpr auto PEAK_WIDTH = 2;
 
 AudioMonitor::AudioMonitor(QWidget *parent) : QWidget(parent)
@@ -101,7 +102,8 @@ void AudioMonitor::paintEvent(QPaintEvent* event)
 
     if (peak >= 0) {
       const QRect peak_rect(channel_x, peak, channel_width, PEAK_WIDTH);
-      p.fillRect(peak_rect, PEAK_COLOUR);
+      const QColor clr(peak > 0 ? PEAK_COLOUR : PEAK_MAXED_COLOUR);
+      p.fillRect(peak_rect, clr);
     }
 
     channel_x += channel_width + AUDIO_MONITOR_GAP;
