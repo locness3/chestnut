@@ -447,6 +447,7 @@ void Viewer::play_wake()
 
 void Viewer::pause()
 {
+  emit stoppedPlaying();
   playing = false;
   just_played = false;
   set_playpause_icon(true);

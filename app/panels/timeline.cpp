@@ -1962,6 +1962,7 @@ void Timeline::setup_ui()
   audio_monitor = new AudioMonitor(dockWidgetContents);
   audio_monitor->setMinimumSize(QSize(50, 0));
   connect(&panels::PanelManager::sequenceViewer(), &Viewer::startedPlaying, audio_monitor, &AudioMonitor::resetPeaks);
+  connect(&panels::PanelManager::sequenceViewer(), &Viewer::stoppedPlaying, audio_monitor, &AudioMonitor::reset);
 
   horizontalLayout->addWidget(audio_monitor);
 

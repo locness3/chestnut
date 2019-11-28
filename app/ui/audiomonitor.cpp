@@ -30,7 +30,6 @@ extern "C" {
 #include "libavformat/avformat.h"
 }
 
-constexpr int AUDIO_MONITOR_PEAK_HEIGHT = 15;
 constexpr int AUDIO_MONITOR_GAP = 3;
 constexpr auto PEAK_COLOUR = Qt::lightGray;
 constexpr auto PEAK_MAXED_COLOUR = Qt::red;
@@ -72,17 +71,14 @@ void AudioMonitor::paintEvent(QPaintEvent* event)
   }
 
   QPainter p(this);
-  int channel_x = AUDIO_MONITOR_GAP;
   const int channel_count = av_get_channel_layout_nb_channels(static_cast<uint64_t>(global::sequence->audioLayout()));
 
   const int channel_width = (width() / channel_count) - AUDIO_MONITOR_GAP;
   int32_t playhead_offset = -1;
-
-  QPen peak_pen(PEAK_COLOUR);
-  peak_pen.setWidth(PEAK_WIDTH);
+  int channel_x = AUDIO_MONITOR_GAP;
 
   for (auto channel = 0; channel < channel_count; ++channel) {
-    QRect r(channel_x, AUDIO_MONITOR_PEAK_HEIGHT + AUDIO_MONITOR_GAP, channel_width, height());
+    QRect r(channel_x, AUDIO_MONITOR_GAP, channel_width, height());
     p.fillRect(r, gradient);
 
     qint16 peak = -1;
@@ -97,6 +93,9 @@ void AudioMonitor::paintEvent(QPaintEvent* event)
       } else {
         reset();
       }
+    } else if (peaks_.count(channel) == 1) {
+      // happens on a reset
+      peak = peaks_.at(channel);
     }
     p.fillRect(r, QColor(0, 0, 0, 160));
 
