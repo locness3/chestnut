@@ -573,6 +573,8 @@ void Viewer::update_viewer()
 {
   update_header_zoom();
   viewer_widget->frame_update();
+  // FIXME: doing x2 frame updates resolves Issue#32. Need to find out why!
+  viewer_widget->frame_update();
   if (sequence_ != nullptr) {
     update_playhead_timecode(sequence_->playhead_);
   }

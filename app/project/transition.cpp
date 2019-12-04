@@ -59,11 +59,13 @@ void Transition::setLength(const long value)
   length_field->set_double_value(value);
 }
 
-long Transition::get_true_length() const {
+long Transition::get_true_length() const noexcept
+{
   return length;
 }
 
-long Transition::get_length() const {
+long Transition::get_length() const noexcept
+{
   if (!secondary_clip.expired()) {
     return length * 2;
   }
@@ -94,18 +96,22 @@ void Transition::setupUi()
 }
 
 
-ClipPtr Transition::secondaryClip()
+ClipPtr Transition::secondaryClip() noexcept
 {
-  if (auto s_clip = secondary_clip.lock()) {
-    return s_clip;
+  try
+  {
+    if (auto s_clip = secondary_clip.lock()) {
+      return s_clip;
+    }
+    if ( (Effect::parent_clip != nullptr)
+         && (Effect::parent_clip->sequence != nullptr)
+         && (secondary_load_id >= 0) ) {
+      // use the id at file load
+      return Effect::parent_clip->sequence->clip(secondary_load_id);
+    }
+  } catch (...) {
+    return nullptr;
   }
-  if ( (Effect::parent_clip != nullptr)
-       && (Effect::parent_clip->sequence != nullptr)
-       && (secondary_load_id >= 0) ) {
-    // use the id at file load
-    return Effect::parent_clip->sequence->clip(secondary_load_id);
-  }
-  return nullptr;
 }
 
 void Transition::set_length_from_slider()

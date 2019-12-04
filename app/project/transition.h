@@ -62,14 +62,14 @@ class Transition : public Effect {
     Transition(const ClipPtr& c, const ClipPtr& s, const EffectMeta& em);
 
     void setLength(const long value);
-    long get_true_length() const;
-    long get_length() const;
+    long get_true_length() const noexcept;
+    long get_length() const noexcept;
 
     void setSecondaryLoadId(const int load_id);
 
     virtual void setupUi() override;
 
-    ClipPtr secondaryClip();
+    ClipPtr secondaryClip() noexcept;
 
   private slots:
     void set_length_from_slider();
