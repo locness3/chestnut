@@ -33,10 +33,6 @@ ProjectModel::ProjectModel(QObject *parent)
   insert(std::make_shared<Media>());
 }
 
-ProjectModel::~ProjectModel()
-{
-}
-
 void ProjectModel::destroy_root()
 {
   PanelManager::sequenceViewer().viewer_widget->delete_function();
@@ -259,6 +255,16 @@ void ProjectModel::set_icon(const MediaPtr& m, const QIcon &ico)
   m->setIcon(ico);
   emit dataChanged(index, index);
 
+}
+
+void ProjectModel::setIcon(FootagePtr ftg, QIcon icon)
+{
+  Q_ASSERT(ftg);
+  if (auto mda = ftg->parent().lock()) {
+    set_icon(mda, std::move(icon));
+  } else {
+    qWarning() << "Failed to find media object, ftg:" << ftg->location();
+  }
 }
 
 QModelIndex ProjectModel::add(const MediaPtr& mda)

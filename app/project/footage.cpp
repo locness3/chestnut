@@ -25,7 +25,6 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-#include "io/previewgenerator.h"
 #include "project/clip.h"
 #include "panels/project.h"
 
@@ -41,7 +40,6 @@ Footage::Footage(const Footage& cpy)
     save_id(0),
     folder_(cpy.folder_),
     speed_(cpy.speed_),
-    preview_gen(cpy.preview_gen),
     in(cpy.in),
     out(cpy.out),
     using_inout(cpy.using_inout),
@@ -78,18 +76,14 @@ Footage::Footage(QString url, const std::shared_ptr<Media>& parent, const bool i
   parseStreams();
 }
 
+
+std::weak_ptr<Media> Footage::parent()
+{
+  return parent_mda_;
+}
+
 void Footage::reset()
 {
-  if (preview_gen != nullptr) {
-    try {
-      preview_gen->cancel();
-      preview_gen->wait();
-    } catch (const std::exception& ex) {
-      qCritical() << "Caught an exception, msg =" << ex.what();
-    } catch (...) {
-      qCritical() << "Caught an unknown exception";
-    }
-  }
   video_tracks.clear();
   audio_tracks.clear();
   ready_ = false;
@@ -148,15 +142,13 @@ void Footage::parseStreams()
 
   video_tracks.clear();
   for (auto[key, stream] : media_source_->visualStreams()) {
-    auto ftg_stream = std::make_shared<project::FootageStream>(stream);
-    video_tracks.insert(key, ftg_stream);
+    video_tracks.insert(key, std::make_shared<project::FootageStream>(stream, location(), false));
   }
 
   audio_tracks.clear();
 
   for (auto[key, stream] : media_source_->audioStreams()) {
-    auto ftg_stream = std::make_shared<project::FootageStream>(stream);
-    audio_tracks.insert(key, ftg_stream);
+    audio_tracks.insert(key, std::make_shared<project::FootageStream>(stream, location(), true));
   }
 
   bool is_okay = false;
@@ -355,6 +347,21 @@ constexpr long lengthToFrames(const int64_t length, const double frame_rate, con
                                          * (frame_rate / speed) ));
   }
   return 0;
+}
+
+bool Footage::generatePreviews()
+{
+  qInfo() << "Generating previews for all streams, path:" << url_;
+  bool success = true;
+  for (const auto& trk : video_tracks + audio_tracks) {
+    Q_ASSERT(trk);
+    qDebug() << "Stream index:" << trk->file_index;
+    success &= trk->generatePreview();
+  }
+
+  ready_ = success;
+  has_preview_ = success;
+  return success;
 }
 
 bool Footage::isMissing() const noexcept

@@ -28,7 +28,7 @@ class ProjectModel : public QAbstractItemModel, public project::IXMLStreamer
     Q_OBJECT
 public:
     explicit ProjectModel(QObject* parent = nullptr);
-    virtual ~ProjectModel() override;
+    virtual ~ProjectModel() override = default;
 
     ProjectModel(const ProjectModel&) = delete;
     ProjectModel(const ProjectModel&&) = delete;
@@ -56,6 +56,7 @@ public:
     MediaPtr child(const int index, MediaPtr parent = nullptr);
     int childCount(MediaPtr parent = nullptr);
     void set_icon(const MediaPtr& m, const QIcon &ico);
+    void setIcon(FootagePtr ftg, QIcon icon);
     QModelIndex add(const MediaPtr& mda);
     MediaPtr get(const QModelIndex& idx);
     const MediaPtr get(const QModelIndex& idx) const;
@@ -101,6 +102,7 @@ private:
     bool saveMedia(QXmlStreamWriter& stream) const;
     bool saveSequences(QXmlStreamWriter& stream) const;
     bool saveTypes(QXmlStreamWriter& stream, const MediaType mda_type) const;
+
 };
 
 #endif // PROJECTMODEL_H

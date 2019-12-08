@@ -19,9 +19,18 @@
 #include "footagestream.h"
 
 #include <QPainter>
+#include <QFile>
+#include <QDir>
+#include <QCryptographicHash>
+#include <QDateTime>
 #include <mediahandling/imediastream.h>
+#include <mediahandling/gsl-lite.hpp>
+#include <fmt/core.h>
+#include <stdlib.h>
 
+#include "io/path.h"
 #include "debug.h"
+
 
 using project::FootageStream;
 using media_handling::FieldOrder;
@@ -29,14 +38,55 @@ using media_handling::MediaStreamPtr;
 using media_handling::MediaProperty;
 using media_handling::StreamType;
 
-FootageStream::FootageStream(MediaStreamPtr stream_info)
-  : stream_info_(std::move(stream_info))
+
+constexpr auto IMAGE_FRAMERATE = 0;
+constexpr auto PREVIEW_HEIGHT = 480;
+constexpr auto PREVIEW_DIR = "/previews";
+constexpr auto THUMB_PREVIEW_FORMAT = "jpg";
+constexpr auto THUMB_PREVIEW_QUALITY = 80;
+constexpr auto EXTENSION = "dat";
+constexpr auto PIXELS_PER_SECOND = 100;
+#ifdef __linux__
+constexpr auto CMD_FORMAT = "ffmpeg -i \"{0}\" -map 0:{1} -f wav - | audiowaveform --input-format wav --output-format {2} -b 8 "
+                            "--split-channels --pixels-per-second {3} -o \"{4}\" &>/dev/null";
+#elif _WIN64
+//TODO:
+constexpr auto CMD_FORMAT = "";
+#endif
+
+FootageStream::FootageStream(MediaStreamPtr stream_info, QString source_path, const bool is_audio)
+  : stream_info_(std::move(stream_info)),
+    source_path_(std::move(source_path)),
+    audio_(is_audio)
 {
   Q_ASSERT(stream_info_);
   initialise(*stream_info_);
+  data_path = chestnut::paths::dataPath() + PREVIEW_DIR;
+  const QDir data_dir(data_path);
+  if (!data_dir.exists()) {
+    data_dir.mkpath(".");
+  }
 }
 
-void FootageStream::make_square_thumb()
+
+bool FootageStream::generatePreview()
+{
+  bool success = false;
+  qDebug() << "Generating preview, index=" << file_index << ", path:" << source_path_;
+  if (audio_) {
+    success = generateAudioPreview();
+  } else {
+    success = generateVisualPreview();
+    if (success) {
+      makeSquareThumb();
+    }
+  }
+  qDebug() << "success:" << success << ", index:" << file_index << ", path:" << source_path_;
+  preview_done_ = success;
+  return success;
+}
+
+void FootageStream::makeSquareThumb()
 {
   qDebug() << "Making square thumbnail";
   // generate square version for QListView?
@@ -48,7 +98,7 @@ void FootageStream::make_square_thumb()
   const auto sqx = (diff < 0) ? -diff : 0;
   const auto sqy = (diff > 0) ? diff : 0;
   p.drawImage(sqx, sqy, video_preview);
-  video_preview_square = QIcon(pixmap);
+  video_preview_square.addPixmap(pixmap);
 }
 
 
@@ -160,6 +210,64 @@ bool FootageStream::save(QXmlStreamWriter& stream) const
 }
 
 
+auto convert(char* data, int size)
+{
+  uint32_t val = 0;
+  for (auto i = 0; i < size; ++i){
+    val |= static_cast<uint8_t>(data[i]) << (i * 8);
+  }
+  return val;
+}
+
+
+bool FootageStream::loadWaveformFile(const QString& data_path)
+{
+  qInfo() << "Reading waveform data, path:" << data_path;
+  QFile file(data_path);
+  if (!file.open(QIODevice::ReadOnly)) {
+    qWarning() << "Failed to open wavform file, path:" << data_path;
+    return false;
+  }
+
+  constexpr auto buf_size = 4;
+  char data[buf_size];
+  auto readUint = [&]() -> uint32_t {
+    if (file.read(data, buf_size) != buf_size) {
+      throw std::runtime_error("Unable to read from file");
+    }
+    return convert(data, buf_size);
+};
+
+  waveform_info_.version_ = readUint();
+  if (waveform_info_.version_ < 2){
+    qCritical() << "audiowaveform version is not supported";
+    return false;
+  }
+  waveform_info_.flags_ = readUint();
+  waveform_info_.rate_ = readUint();
+  waveform_info_.samples_per_pixel_= readUint();
+  waveform_info_.length_ = readUint();
+  waveform_info_.channels_ = readUint();
+
+  // TODO: identify what to do about 16bit sampling
+  const size_t datasize = [&] {
+    size_t sz = waveform_info_.length_ * waveform_info_.channels_ * 2;
+    if ((waveform_info_.flags_ & 0x1) == 0) {
+      // 16bit values
+      sz *= 2;
+    }
+    return sz;
+  }();
+
+  audio_preview.clear();
+  QByteArray samples = file.read(datasize);
+  for (const auto& samp: samples) {
+    audio_preview.push_back(samp);
+  }
+  return true;
+}
+
+
 void FootageStream::initialise(const media_handling::IMediaStream& stream)
 {
   file_index = stream.sourceIndex();
@@ -209,4 +317,100 @@ void FootageStream::initialise(const media_handling::IMediaStream& stream)
   } else {
     qWarning() << "Unhandled Stream type";
   }
+}
+
+bool FootageStream::generateVisualPreview()
+{
+  if (type_ == media_handling::StreamType::IMAGE) {
+    //TODO: load/store small thumbnail of image
+    const QImage img(source_path_);
+    if (!img.isNull()) {
+      video_preview     = img.scaledToHeight(PREVIEW_HEIGHT, Qt::SmoothTransformation);
+      video_height      = img.height();
+      video_width       = img.width();
+      infinite_length   = true;
+      video_frame_rate  = IMAGE_FRAMERATE;
+      return true;
+    } else {
+      qCritical() << "Failed to open image, path:" << source_path_;
+    }
+  } else {
+    const auto preview_path = thumbnailPath();
+    if (QFileInfo(preview_path).exists()) {
+      qInfo() << "Loading video preview, file:" << source_path_;
+      video_preview = QImage(preview_path);
+      if (video_preview.isNull()) {
+        qCritical() << "Failed to load video preview from file, preview_path:"  << preview_path
+                    << ", file:" << source_path_;
+      }
+    } else {
+      qInfo() << "Generating preview from video, file:" << source_path_;
+      const auto aspect = static_cast<double>(video_width) / video_height;
+      const media_handling::Dimensions dims {qRound(PREVIEW_HEIGHT * aspect), PREVIEW_HEIGHT};
+      stream_info_->setOutputFormat(media_handling::PixelFormat::RGBA, dims, media_handling::InterpolationMethod::NEAREST);
+      if (auto frame = stream_info_->frame(0)) { //TODO: use the wadsworth constant?
+        auto f_d = frame->data();
+        if (f_d.data_ == nullptr) {
+          qCritical() << "Frame data is null, path:" << source_path_;
+          return false;
+        }
+        video_preview = QImage(*f_d.data_, dims.width, dims.height, f_d.line_size_, QImage::Format_RGBA8888);
+        if (!video_preview.isNull()) {
+          if (video_preview.save(preview_path, THUMB_PREVIEW_FORMAT, THUMB_PREVIEW_QUALITY)) {
+            // f_d.data_ exists for the lifetime of the frame unless memcpy
+            // just reload from FS instead
+            video_preview.load(preview_path);
+          } else {
+            qWarning() << "Video preview did not save, path:" << source_path_;
+          }
+        } else {
+          qCritical() << "Failed to load image data, path:" << source_path_;
+        }
+      } else {
+        qCritical() << "Failed to retrieve a video frame from backend, path:" << source_path_;
+      }
+    }
+  }
+  return true;
+}
+
+bool FootageStream::generateAudioPreview()
+{
+  bool success = false;
+  const auto preview_path = waveformPath();
+  QFileInfo file(preview_path);
+  if (file.exists() && file.size() > 0) {
+    success = loadWaveformFile(preview_path);
+    qDebug() << "Opened existing preview, index:" << file_index;
+  } else {
+    const auto cmd = fmt::format(CMD_FORMAT, source_path_.toStdString(), file_index, EXTENSION, PIXELS_PER_SECOND,
+                                 preview_path.toStdString());
+    if (system(cmd.c_str()) == 0) {
+      success = loadWaveformFile(preview_path);
+    } else {
+      qWarning() << "Failed to generate waveform, index:" << file_index;
+    }
+  }
+  return success;
+}
+
+QString FootageStream::previewHash() const
+{
+  const QFileInfo file_info(source_path_);
+  const QString cache_file(file_info.fileName()
+                           + QString::number(file_info.size())
+                           + QString::number(file_info.lastModified().toMSecsSinceEpoch()));
+  const QString hash(QCryptographicHash::hash(cache_file.toUtf8(), QCryptographicHash::Md5).toHex());
+  return hash;
+}
+
+QString FootageStream::thumbnailPath() const
+{
+  return QDir(data_path).filePath(previewHash() + "t" + QString::number(file_index));
+}
+
+
+QString FootageStream::waveformPath() const
+{
+  return QDir(data_path).filePath(previewHash() + "w" + QString::number(file_index));
 }

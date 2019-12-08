@@ -36,6 +36,7 @@
 #include <QStandardPaths>
 #include <mediahandling/mediahandling.h>
 #include <regex>
+#include <fmt/core.h>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -50,7 +51,6 @@ extern "C" {
 #include "project/transition.h"
 #include "project/sequence.h"
 #include "project/clip.h"
-#include "io/previewgenerator.h"
 #include "project/undo.h"
 #include "ui/mainwindow.h"
 #include "io/config.h"
@@ -68,8 +68,6 @@ extern "C" {
 
 
 
-using panels::PanelManager;
-
 QString autorecovery_filename;
 QString project_url = "";
 QStringList recent_projects;
@@ -83,7 +81,7 @@ constexpr int THROBBER_SIZE           = 50;
 constexpr int MIN_WIDTH = 320;
 
 constexpr auto VIDEO_FMT_FILTER = "*.avi *.m4v *.mkv *.mov *.mp4 *.mts *.mxf *.ogv *.webm *.wmv";
-constexpr auto AUDIO_FMT_FILTER = "*.aac *.aif *.alac *.flac *.m4a *.mp3 *.ogg *.wav *.wma";
+constexpr auto AUDIO_FMT_FILTER = "*.aac *.ac3 *.aif *.alac *.flac *.m4a *.mp3 *.ogg *.wav *.wma";
 constexpr auto IMAGE_FMT_FILTER = "*.bmp *.dpx *.exr *.jp2 *.jpeg *.jpg *.png *.tga *.tif *.tiff *.webp";
 constexpr auto TMP_SAVE_FILENAME = "tmpsave.nut";
 
@@ -93,9 +91,18 @@ constexpr bool XML_SAVE_FORMATTING = false;
 constexpr bool XML_SAVE_FORMATTING = true; // creates bigger files
 #endif
 
+
+using panels::PanelManager;
+using chestnut::project::PreviewGeneratorThread;
+
 Project::Project(QWidget *parent) :
   QDockWidget(parent)
 {
+  preview_gen_ = new PreviewGeneratorThread(this);
+  qRegisterMetaType<FootageWPtr>();
+  connect(preview_gen_, &PreviewGeneratorThread::previewGenerated, this, &Project::setItemIcon);
+  connect(preview_gen_, &PreviewGeneratorThread::previewFailed, this, &Project::setItemMissing);
+
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   auto dockWidgetContents = new QWidget(this);
@@ -400,6 +407,57 @@ QString Project::get_file_ext_from_path(const QString &path) const
 }
 
 
+void Project::getPreview(MediaPtr mda)
+{
+  if (!mda || mda->type() != MediaType::FOOTAGE) {
+    return;
+  }
+  // TODO: set up throbber animation. No way of stopping atm
+  const auto throbber = new MediaThrobber(mda, this);
+  throbber->moveToThread(QApplication::instance()->thread());
+  QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);
+  media_throbbers_[mda] = throbber;
+
+  Q_ASSERT(preview_gen_);
+  preview_gen_->addToQueue(mda->object<Footage>());
+}
+
+
+void Project::setModelItemIcon(FootagePtr ftg, QIcon icon) const
+{
+  model().setIcon(ftg, icon);
+
+  // refresh all clips
+  auto sequences = PanelManager::projectViewer().list_all_project_sequences();
+  for (const auto& sqn : sequences) {
+    if (auto s = sqn->object<Sequence>()) {
+      for (const auto& clp: s->clips()) {
+        Q_ASSERT(clp);
+        clp->refresh();
+      }
+    }
+  }//for
+
+  // redraw clips
+  PanelManager::refreshPanels(true);
+
+  Q_ASSERT(tree_view_);
+  tree_view_->viewport()->update();
+}
+
+
+void Project::stopThrobber(FootagePtr ftg)
+{
+  auto mda = ftg->parent().lock();
+  if (media_throbbers_.count(mda) == 1) {
+    if (auto throbber = media_throbbers_[mda]) {
+      QMetaObject::invokeMethod(throbber, "stop", Qt::QueuedConnection);
+    }
+    media_throbbers_.remove(mda);
+  }
+}
+
+
 bool Project::is_focused() const
 {
   return tree_view_->hasFocus() || icon_view_->hasFocus();
@@ -413,7 +471,8 @@ MediaPtr Project::newFolder(const QString &name)
   return item;
 }
 
-MediaPtr Project::item_to_media(const QModelIndex &index) {
+MediaPtr Project::item_to_media(const QModelIndex &index)
+{
   if (sorter_ != nullptr) {
     const auto src = sorter_->mapToSource(index);
     return Project::model().get(src);
@@ -422,7 +481,8 @@ MediaPtr Project::item_to_media(const QModelIndex &index) {
   return {};
 }
 
-void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPtr>& list, const MediaType search_type) {
+void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPtr>& list, const MediaType search_type)
+{
   for (int i=0;i<items.size();i++) {
     MediaPtr item = items.at(i);
     if (item->type() == MediaType::FOLDER) {
@@ -441,7 +501,7 @@ void Project::get_all_media_from_table(QVector<MediaPtr>& items, QVector<MediaPt
 void Project::refresh()
 {
   for (const auto& item : model_->items()) {
-    start_preview_generator(item, true);
+    getPreview(item);
   }
 }
 
@@ -451,7 +511,8 @@ void Project::updatePanel()
   icon_view_->viewport()->update();
 }
 
-bool delete_clips_in_clipboard_with_media(ComboAction* ca, MediaPtr m) {
+bool delete_clips_in_clipboard_with_media(ComboAction* ca, MediaPtr m)
+{
   int delete_count = 0;
   if (e_clipboard_type == CLIPBOARD_TYPE_CLIP) {
     for (int i=0;i<e_clipboard.size();i++) {
@@ -629,23 +690,6 @@ void Project::delete_selected_media()
   }
 }
 
-void Project::start_preview_generator(MediaPtr item, const bool replacing)
-{
-  if (item->object<Footage>() == nullptr) {
-    // No preview to generate
-    return;
-  }
-  // set up throbber animation
-  const auto throbber = new MediaThrobber(item, this);
-  throbber->moveToThread(QApplication::instance()->thread());
-  QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);
-
-  const auto pg = new PreviewGenerator(item, item->object<Footage>(), replacing, this);
-  connect(pg, SIGNAL(set_icon(int, bool)), throbber, SLOT(stop(int, bool)));
-  pg->start(QThread::LowPriority);
-  item->object<Footage>()->preview_gen = pg;
-}
-
 void Project::process_file_list(QStringList& files, bool recursive, MediaPtr replace, MediaPtr parent)
 {
   bool imported = false;
@@ -701,11 +745,11 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
         if (image_sequence_urls.count(match.str(1)) < 1) {
           // Not seen yet
           import_as_sequence = QMessageBox::question(this,
-                                    tr("Image sequence detected"),
-                                    tr("The file '%1' appears to be part of an image sequence. "
-                                       "Would you like to import it as such?").arg(fileName),
-                                    QMessageBox::Yes | QMessageBox::No,
-                                    QMessageBox::Yes) == QMessageBox::Yes;
+                                                     tr("Image sequence detected"),
+                                                     tr("The file '%1' appears to be part of an image sequence. "
+                                                        "Would you like to import it as such?").arg(fileName),
+                                                     QMessageBox::Yes | QMessageBox::No,
+                                                     QMessageBox::Yes) == QMessageBox::Yes;
           image_sequence_urls[match.str(1)] = import_as_sequence;
         } else if (image_sequence_urls.at(match.str(1))) {
           // This img_sequence part-name has been selected to import as sequence already
@@ -722,7 +766,13 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
         ftg->reset();
       } else {
         item = std::make_shared<Media>(parent);
-        ftg = std::make_shared<Footage>(fileName, item, import_as_sequence);
+        try {
+          ftg = std::make_shared<Footage>(fileName, item, import_as_sequence);
+        } catch (const std::runtime_error& err) {
+          //TODO: notify user
+          qWarning() << err.what();
+          continue;
+        }
       }
 
       ftg->using_inout = false;
@@ -747,10 +797,8 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
   if (create_undo_action) {
     if (imported) {
       e_undo_stack.push(ca);
-
-      for (MediaPtr& mda : last_imported_media){
-        // generate waveform/thumbnail in another thread
-        start_preview_generator(mda, replace != nullptr);
+      for (const auto& mda : last_imported_media) {
+        getPreview(mda);
       }
     } else {
       delete ca;
@@ -778,13 +826,13 @@ MediaPtr Project::get_selected_folder()
 bool Project::reveal_media(MediaPtr media, QModelIndex parent)
 {
   if (QAbstractItemView* const view = [&] {
-    if (global::config.project_view_type == ProjectView::TREE) {
+      if (global::config.project_view_type == ProjectView::TREE) {
       Q_ASSERT(tree_view_);
       return dynamic_cast<QAbstractItemView*>(tree_view_);
-    } else {
+} else {
       Q_ASSERT(icon_view_);
       return dynamic_cast<QAbstractItemView*>(icon_view_);
-    }}()) {
+}}()) {
     view->selectionModel()->clearSelection();
   }
 
@@ -1103,7 +1151,31 @@ void Project::make_new_menu()
   new_menu.exec(QCursor::pos());
 }
 
-void Project::add_recent_project(QString url) {
+
+void Project::setItemIcon(FootageWPtr item)
+{
+  if (auto ftg = item.lock()) {
+    stopThrobber(ftg);
+    QIcon icon;
+    if (ftg->videoTracks().empty()) {
+      icon.addFile(":/icons/audiosource.png");
+    }
+    // setting a default icon for image/video is pointless as those clips have one generated
+    setModelItemIcon(ftg, icon);
+  }
+}
+
+void Project::setItemMissing(FootageWPtr item)
+{
+  if (auto ftg = item.lock()) {
+    stopThrobber(ftg);
+    QIcon icon(":/icons/error.png");
+    setModelItemIcon(ftg, icon);
+  }
+}
+
+void Project::add_recent_project(QString url)
+{
   bool found = false;
   for (int i=0;i<recent_projects.size();i++) {
     if (url == recent_projects.at(i)) {
@@ -1186,72 +1258,38 @@ QModelIndexList Project::get_current_selected()
 }
 
 
-MediaThrobber::MediaThrobber(MediaPtr i, QObject* parent) :
-  pixmap(":/icons/throbber.png"),
-  animation(0),
-  item(i),
-  animator(nullptr)
+MediaThrobber::MediaThrobber(MediaPtr item, QObject* parent)
+  : QObject(parent),
+    pixmap(":/icons/throbber.png"),
+    animation(0),
+    item(std::move(item)),
+    animator(nullptr)
 {
-  animator = std::make_unique<QTimer>(this);
-  setParent(parent);
+  animator = new QTimer(this);
 }
 
-void MediaThrobber::start() {
+void MediaThrobber::start()
+{
   // set up throbber
   animation_update();
   animator->setInterval(THROBBER_INTERVAL);
-  connect(animator.get(), SIGNAL(timeout()), this, SLOT(animation_update()));
+  connect(animator, SIGNAL(timeout()), this, SLOT(animation_update()));
   animator->start();
 }
 
-void MediaThrobber::animation_update() {
+void MediaThrobber::animation_update()
+{
   if (animation == THROBBER_LIMIT) {
     animation = 0;
   }
-  Project::model().set_icon(item, QIcon(pixmap.copy(THROBBER_SIZE*animation, 0, THROBBER_SIZE, THROBBER_SIZE)));
+  Project::model().set_icon(item, QIcon(pixmap.copy(THROBBER_SIZE * animation, 0, THROBBER_SIZE, THROBBER_SIZE)));
   animation++;
 }
 
-void MediaThrobber::stop(const int icon_type, const bool replace) {
-  if (animator.get() != nullptr) {
-    animator->stop();
-  }
-
-  QIcon icon;
-  switch (icon_type) {
-    case ICON_TYPE_VIDEO:
-      icon.addFile(":/icons/videosource.png");
-      break;
-    case ICON_TYPE_AUDIO:
-      icon.addFile(":/icons/audiosource.png");
-      break;
-    case ICON_TYPE_IMAGE:
-      icon.addFile(":/icons/imagesource.png");
-      break;
-    case ICON_TYPE_ERROR:
-      icon.addFile(":/icons/error.png");
-      break;
-    default:
-      qWarning() << "Unknown icon type" << static_cast<int>(icon_type);
-      break;
-  }//switch
-  Project::model().set_icon(item,icon);
-
-  // refresh all clips
-  auto sequences = PanelManager::projectViewer().list_all_project_sequences();
-  for (auto sqn : sequences) {
-    if (auto s = sqn->object<Sequence>()) {
-      for (auto clp: s->clips()) {
-        if (clp != nullptr) {
-          clp->refresh();
-        }
-      }
-    }
-  }//for
-
-  // redraw clips
-  PanelManager::refreshPanels(replace);
-
-  PanelManager::projectViewer().tree_view_->viewport()->update();
+void MediaThrobber::stop()
+{
+  qDebug() << "Stopping:" << item->id();
+  Q_ASSERT(animator);
+  animator->stop();
   deleteLater();
 }
