@@ -1,21 +1,21 @@
 # Installation
 
-##Ubuntu 19.10
+## Ubuntu 19.10
 
 Versions earlier than 19.10 are not supported
 
-###Requirements
+### Requirements
 First install the following packages:
 
-```sudo apt install build-essential pkg-config qtchooser wget unzip desktop-file-utils git cmake qt5-default \
-libqt5svg5-dev qtmultimedia5-dev libavutil-dev libavformat-dev libavcodec-dev libavfilter-dev libavutil-dev \
-libswscale-dev libboost-dev libfmt-dev ffmpeg```
+```sudo apt install build-essential pkg-config qtchooser wget unzip desktop-file-utils git cmake qt5-default \```
+```libqt5svg5-dev qtmultimedia5-dev libavutil-dev libavformat-dev libavcodec-dev libavfilter-dev libavutil-dev \```
+```libswscale-dev libboost-dev libfmt-dev ffmpeg```
 
 Add the audiowaveform ppa and install:
 
-```sudo add-apt-repository ppa:chris-needham/ppa``` 
+```sudo add-apt-repository ppa:chris-needham/ppa```
 
-```sudo apt-get update``` 
+```sudo apt-get update```
 
 ```sudo apt-get install audiowaveform```
 
