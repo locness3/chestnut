@@ -30,6 +30,7 @@ PreviewGeneratorThread::PreviewGeneratorThread(QObject* parent) : QObject(parent
 
 PreviewGeneratorThread::~PreviewGeneratorThread()
 {
+  qInfo() << "Stopping Preview generation thread";
   running_ = false;
   wait_cond_.wakeAll();
   thread_.join();
@@ -54,7 +55,7 @@ void PreviewGeneratorThread::run()
   while (running_) {
     wait_cond_.wait(&mutex_);
     QMutexLocker lock(&queue_mutex_);
-    while (!queue_.empty()) {
+    while (!queue_.empty() && running_) {
       if (auto ftg = queue_.dequeue().lock()) {
         lock.unlock();
         if (ftg->generatePreviews()) {
