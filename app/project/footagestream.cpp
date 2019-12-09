@@ -30,6 +30,7 @@
 
 #include "io/path.h"
 #include "debug.h"
+#include "footage.h"
 
 
 using project::FootageStream;
@@ -54,14 +55,26 @@ constexpr auto CMD_FORMAT = "ffmpeg -i \"{0}\" -map 0:{1} -f wav - | audiowavefo
 constexpr auto CMD_FORMAT = "";
 #endif
 
-FootageStream::FootageStream(MediaStreamPtr stream_info, QString source_path, const bool is_audio)
-  : stream_info_(std::move(stream_info)),
-    source_path_(std::move(source_path)),
+
+FootageStream::FootageStream() : data_path(chestnut::paths::dataPath() + PREVIEW_DIR)
+{
+
+}
+
+FootageStream::FootageStream(std::weak_ptr<Footage> parent)
+  : parent_(std::move(parent)),
+    data_path(chestnut::paths::dataPath() + PREVIEW_DIR)
+{
+}
+
+FootageStream::FootageStream(MediaStreamPtr stream_info,const bool is_audio, std::weak_ptr<Footage> parent)
+  : parent_(std::move(parent)),
+    stream_info_(std::move(stream_info)),
+    data_path(chestnut::paths::dataPath() + PREVIEW_DIR),
     audio_(is_audio)
 {
   Q_ASSERT(stream_info_);
   initialise(*stream_info_);
-  data_path = chestnut::paths::dataPath() + PREVIEW_DIR;
   const QDir data_dir(data_path);
   if (!data_dir.exists()) {
     data_dir.mkpath(".");
@@ -72,7 +85,9 @@ FootageStream::FootageStream(MediaStreamPtr stream_info, QString source_path, co
 bool FootageStream::generatePreview()
 {
   bool success = false;
-  qDebug() << "Generating preview, index=" << file_index << ", path:" << source_path_;
+  const auto par = parent_.lock();
+  Q_ASSERT(par);
+  qDebug() << "Generating preview, index=" << file_index << ", path:" << par->location();
   if (audio_) {
     success = generateAudioPreview();
   } else {
@@ -81,7 +96,7 @@ bool FootageStream::generatePreview()
       makeSquareThumb();
     }
   }
-  qDebug() << "success:" << success << ", index:" << file_index << ", path:" << source_path_;
+  qDebug() << "success:" << success << ", index:" << file_index << ", path:" <<  par->location();
   preview_done_ = success;
   return success;
 }
@@ -133,6 +148,7 @@ bool FootageStream::load(QXmlStreamReader& stream)
     type_ = StreamType::VIDEO;
   } else if (name == "audio") {
     type_ = StreamType::AUDIO;
+    audio_ = true;
   } else if (name == "image") {
     type_ = StreamType::IMAGE;
   } else {
@@ -321,9 +337,11 @@ void FootageStream::initialise(const media_handling::IMediaStream& stream)
 
 bool FootageStream::generateVisualPreview()
 {
+  const auto par = parent_.lock();
+  Q_ASSERT(par);
   if (type_ == media_handling::StreamType::IMAGE) {
     //TODO: load/store small thumbnail of image
-    const QImage img(source_path_);
+    const QImage img(par->location());
     if (!img.isNull()) {
       video_preview     = img.scaledToHeight(PREVIEW_HEIGHT, Qt::SmoothTransformation);
       video_height      = img.height();
@@ -332,43 +350,49 @@ bool FootageStream::generateVisualPreview()
       video_frame_rate  = IMAGE_FRAMERATE;
       return true;
     } else {
-      qCritical() << "Failed to open image, path:" << source_path_;
+      qCritical() << "Failed to open image, path:" << par->location();
     }
   } else {
     const auto preview_path = thumbnailPath();
     if (QFileInfo(preview_path).exists()) {
-      qInfo() << "Loading video preview, file:" << source_path_;
+      qInfo() << "Loading video preview, file:" << par->location();
       video_preview = QImage(preview_path);
       if (video_preview.isNull()) {
         qCritical() << "Failed to load video preview from file, preview_path:"  << preview_path
-                    << ", file:" << source_path_;
+                    << ", file:" << par->location();
       }
     } else {
-      qInfo() << "Generating preview from video, file:" << source_path_;
+      qInfo() << "Generating preview from video, file:" << par->location();
       const auto aspect = static_cast<double>(video_width) / video_height;
       const media_handling::Dimensions dims {qRound(PREVIEW_HEIGHT * aspect), PREVIEW_HEIGHT};
-      stream_info_->setOutputFormat(media_handling::PixelFormat::RGBA, dims, media_handling::InterpolationMethod::NEAREST);
-      if (auto frame = stream_info_->frame(0)) { //TODO: use the wadsworth constant?
-        auto f_d = frame->data();
-        if (f_d.data_ == nullptr) {
-          qCritical() << "Frame data is null, path:" << source_path_;
-          return false;
-        }
-        video_preview = QImage(*f_d.data_, dims.width, dims.height, f_d.line_size_, QImage::Format_RGBA8888);
-        if (!video_preview.isNull()) {
-          if (video_preview.save(preview_path, THUMB_PREVIEW_FORMAT, THUMB_PREVIEW_QUALITY)) {
-            // f_d.data_ exists for the lifetime of the frame unless memcpy
-            // just reload from FS instead
-            video_preview.load(preview_path);
+      try {
+        stream_info_->setOutputFormat(media_handling::PixelFormat::RGBA, dims, media_handling::InterpolationMethod::NEAREST);
+        if (auto frame = stream_info_->frame(0)) { //TODO: use the wadsworth constant?
+          auto f_d = frame->data();
+          if (f_d.data_ == nullptr) {
+            qCritical() << "Frame data is null, path:" << par->location();
+            return false;
+          }
+          video_preview = QImage(*f_d.data_, dims.width, dims.height, f_d.line_size_, QImage::Format_RGBA8888);
+          if (!video_preview.isNull()) {
+            if (video_preview.save(preview_path, THUMB_PREVIEW_FORMAT, THUMB_PREVIEW_QUALITY)) {
+              // f_d.data_ exists for the lifetime of the frame unless memcpy
+              // just reload from FS instead
+              video_preview.load(preview_path);
+            } else {
+              qWarning() << "Video preview did not save, path:" << par->location();
+            }
           } else {
-            qWarning() << "Video preview did not save, path:" << source_path_;
+            qCritical() << "Failed to load image data, path:" << par->location();
           }
         } else {
-          qCritical() << "Failed to load image data, path:" << source_path_;
+          qCritical() << "Failed to retrieve a video frame from backend, path:" << par->location();
         }
-      } else {
-        qCritical() << "Failed to retrieve a video frame from backend, path:" << source_path_;
+      }  catch (const std::runtime_error& err) {
+        qCritical() << err.what();
+        return false;
       }
+
     }
   }
   return true;
@@ -376,6 +400,8 @@ bool FootageStream::generateVisualPreview()
 
 bool FootageStream::generateAudioPreview()
 {
+  const auto par = parent_.lock();
+  Q_ASSERT(par);
   bool success = false;
   const auto preview_path = waveformPath();
   QFileInfo file(preview_path);
@@ -383,7 +409,7 @@ bool FootageStream::generateAudioPreview()
     success = loadWaveformFile(preview_path);
     qDebug() << "Opened existing preview, index:" << file_index;
   } else {
-    const auto cmd = fmt::format(CMD_FORMAT, source_path_.toStdString(), file_index, EXTENSION, PIXELS_PER_SECOND,
+    const auto cmd = fmt::format(CMD_FORMAT, par->location().toStdString(), file_index, EXTENSION, PIXELS_PER_SECOND,
                                  preview_path.toStdString());
     if (system(cmd.c_str()) == 0) {
       success = loadWaveformFile(preview_path);
@@ -396,7 +422,9 @@ bool FootageStream::generateAudioPreview()
 
 QString FootageStream::previewHash() const
 {
-  const QFileInfo file_info(source_path_);
+  const auto par = parent_.lock();
+  Q_ASSERT(par);
+  const QFileInfo file_info(par->location());
   const QString cache_file(file_info.fileName()
                            + QString::number(file_info.size())
                            + QString::number(file_info.lastModified().toMSecsSinceEpoch()));

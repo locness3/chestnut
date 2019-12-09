@@ -142,13 +142,13 @@ void Footage::parseStreams()
 
   video_tracks.clear();
   for (auto[key, stream] : media_source_->visualStreams()) {
-    video_tracks.insert(key, std::make_shared<project::FootageStream>(stream, location(), false));
+    video_tracks.insert(key, std::make_shared<project::FootageStream>(stream, false, weak_from_this()));
   }
 
   audio_tracks.clear();
 
   for (auto[key, stream] : media_source_->audioStreams()) {
-    audio_tracks.insert(key, std::make_shared<project::FootageStream>(stream, location(), true));
+    audio_tracks.insert(key, std::make_shared<project::FootageStream>(stream, true, weak_from_this()));
   }
 
   bool is_okay = false;
@@ -220,7 +220,7 @@ bool Footage::load(QXmlStreamReader& stream)
   while (stream.readNextStartElement()) {
     auto elem_name = stream.name().toString().toLower();
     if ( (elem_name == "video") || (elem_name == "audio") || (elem_name == "image")) {
-      auto ms = std::make_shared<project::FootageStream>();
+      auto ms = std::make_shared<project::FootageStream>(weak_from_this());
       ms->load(stream);
       if ( (elem_name == "video") || (elem_name == "image") ) {
         video_tracks.append(ms);
@@ -414,13 +414,13 @@ bool Footage::has_video_stream_from_file_index(const int index)
 FootageStreamPtr Footage::get_stream_from_file_index(const bool video, const int index)
 {
   FootageStreamPtr stream;
-  auto finder = [index] (auto tracks){
+  auto finder = [index] (auto tracks) -> FootageStreamPtr {
     for (const auto& track : tracks) {
       if (track->file_index == index) {
         return track;
       }
     }
-    return FootageStreamPtr();
+    return {};
   };
   if (video) {
     stream = finder(video_tracks);

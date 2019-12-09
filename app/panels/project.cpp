@@ -412,7 +412,6 @@ void Project::getPreview(MediaPtr mda)
   if (!mda || mda->type() != MediaType::FOOTAGE) {
     return;
   }
-  // TODO: set up throbber animation. No way of stopping atm
   const auto throbber = new MediaThrobber(mda, this);
   throbber->moveToThread(QApplication::instance()->thread());
   QMetaObject::invokeMethod(throbber, "start", Qt::QueuedConnection);

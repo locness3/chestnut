@@ -26,6 +26,8 @@
 
 #include "project/ixmlstreamer.h"
 
+class Footage;
+
 namespace project {
 
   enum class ScanMethod {
@@ -54,8 +56,9 @@ namespace project {
       bool infinite_length {false};
       bool preview_done_ {false};
 
-      FootageStream() = default;
-      FootageStream(media_handling::MediaStreamPtr stream_info, QString source_path, const bool is_audio);
+      FootageStream();
+      explicit FootageStream(std::weak_ptr<Footage> parent);
+      FootageStream(media_handling::MediaStreamPtr stream_info, const bool is_audio, std::weak_ptr<Footage> parent);
 
       FootageStream(const FootageStream& cpy) = delete;
       FootageStream(const FootageStream&& cpy) = delete;
@@ -86,9 +89,9 @@ namespace project {
           uint32_t length_ {};
           uint32_t channels_ {};
       } waveform_info_;
+      std::weak_ptr<Footage> parent_;
       media_handling::MediaStreamPtr stream_info_{nullptr};
       QString data_path;
-      QString source_path_;
       bool audio_ {false};
 
       void initialise(const media_handling::IMediaStream& stream);
