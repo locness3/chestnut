@@ -1,32 +1,49 @@
+# Installation
 
-= Ubuntu 19.10 =
+##Ubuntu 19.10
 
 Versions earlier than 19.10 are not supported
 
-== Requirements ==
+###Requirements
 First install the following packages:
 
-    ```sudo apt install build-essential pkg-config qtchooser wget unzip desktop-file-utils git cmake qt5-default libqt5svg5-dev qtmultimedia5-dev libavutil-dev libavformat-dev libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev libboost-dev libfmt-dev ffmpeg```
+```sudo apt install build-essential pkg-config qtchooser wget unzip desktop-file-utils git cmake qt5-default \
+libqt5svg5-dev qtmultimedia5-dev libavutil-dev libavformat-dev libavcodec-dev libavfilter-dev libavutil-dev \
+libswscale-dev libboost-dev libfmt-dev ffmpeg```
 
 Add the audiowaveform ppa and install:
 
-    ```sudo add-apt-repository ppa:chris-needham/ppa
-    sudo apt-get update
-    sudo apt-get install audiowaveform```
+```sudo add-apt-repository ppa:chris-needham/ppa``` 
 
-== Build ==
+```sudo apt-get update``` 
+
+```sudo apt-get install audiowaveform```
+
+### Build
+
 Run:
-    qmake
+
+```qmake```
 
 Then:
-    make -j{JOBS} # replace {JOBS} with the amount of cores on your build system + 1
 
-== Install ==
+```make -j{JOBS}``` 
+
+Replace {JOBS} with the amount of logical cores on your build system + 1
+
+### Install
 
 By default, Chestnut will install to /usr/local
 
-    sudo make install
+```sudo make install```
 
-== Uninstall ==
+### Uninstall
 
-    sudo make uninstall
+```sudo make uninstall```
+
+## Manjaro/Arch Linux
+
+There is a package of the latest release available via AUR
+
+```pacaur -S chestnut```
+
