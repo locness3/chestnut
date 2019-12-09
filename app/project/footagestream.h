@@ -56,7 +56,7 @@ namespace project {
       bool infinite_length {false};
       bool preview_done_ {false};
 
-      FootageStream();
+      FootageStream() = delete;
       explicit FootageStream(std::weak_ptr<Footage> parent);
       FootageStream(media_handling::MediaStreamPtr stream_info, const bool is_audio, std::weak_ptr<Footage> parent);
 

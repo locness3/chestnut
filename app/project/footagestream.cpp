@@ -56,11 +56,6 @@ constexpr auto CMD_FORMAT = "";
 #endif
 
 
-FootageStream::FootageStream() : data_path(chestnut::paths::dataPath() + PREVIEW_DIR)
-{
-
-}
-
 FootageStream::FootageStream(std::weak_ptr<Footage> parent)
   : parent_(std::move(parent)),
     data_path(chestnut::paths::dataPath() + PREVIEW_DIR)

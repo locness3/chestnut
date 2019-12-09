@@ -191,13 +191,9 @@ bool Clip::openWorker()
     auto ftg = timeline_info.media->object<Footage>();
     auto filename = ftg->location().toUtf8().data();
 
-    FootageStreamPtr ms;
-    if (mediaType() == ClipType::VISUAL) {
-      ms = ftg->video_stream_from_file_index(timeline_info.media_stream);
-    } else {
-      ms = ftg->audio_stream_from_file_index(timeline_info.media_stream);
-    }
-
+    const auto ms = (mediaType() == ClipType::VISUAL)
+                    ? ftg->video_stream_from_file_index(timeline_info.media_stream)
+                    : ftg->audio_stream_from_file_index(timeline_info.media_stream);
     if (ms == nullptr) {
       qCritical() << "Footage stream is NULL";
       return false;

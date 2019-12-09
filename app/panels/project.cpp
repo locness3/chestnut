@@ -767,6 +767,7 @@ void Project::process_file_list(QStringList& files, bool recursive, MediaPtr rep
         item = std::make_shared<Media>(parent);
         try {
           ftg = std::make_shared<Footage>(fileName, item, import_as_sequence);
+          ftg->parseStreams();
         } catch (const std::runtime_error& err) {
           //TODO: notify user
           qWarning() << err.what();

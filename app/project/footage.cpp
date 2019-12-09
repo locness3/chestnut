@@ -73,7 +73,6 @@ Footage::Footage(QString url, const std::shared_ptr<Media>& parent, const bool i
     qWarning() << "Unable to create media_handling source, msg=" << ex.what();
     throw;
   }
-  parseStreams();
 }
 
 
