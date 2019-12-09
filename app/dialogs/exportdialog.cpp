@@ -81,7 +81,7 @@ static const FormatCodecs MPEG4_CODECS {{AV_CODEC_ID_MPEG4, AV_CODEC_ID_H264},
                                         {AV_CODEC_ID_AAC, AV_CODEC_ID_AC3, AV_CODEC_ID_MP2, AV_CODEC_ID_MP3}};
 static const FormatCodecs AC3_CODECS {{}, {AV_CODEC_ID_AC3, AV_CODEC_ID_EAC3}};
 static const FormatCodecs MP3_CODECS {{}, {AV_CODEC_ID_MP3}};
-static const FormatCodecs MKV_CODECS {{AV_CODEC_ID_MPEG4, AV_CODEC_ID_H264, AV_CODEC_ID_HUFFYUV},
+static const FormatCodecs MKV_CODECS {{AV_CODEC_ID_MPEG4, AV_CODEC_ID_H264, AV_CODEC_ID_HUFFYUV, AV_CODEC_ID_UTVIDEO},
                                       {AV_CODEC_ID_AAC, AV_CODEC_ID_AC3, AV_CODEC_ID_EAC3, AV_CODEC_ID_FLAC, AV_CODEC_ID_MP2,
                                       AV_CODEC_ID_MP3, AV_CODEC_ID_OPUS, AV_CODEC_ID_PCM_S16LE, AV_CODEC_ID_VORBIS, AV_CODEC_ID_WAVPACK}};
 
@@ -437,6 +437,8 @@ void ExportDialog::vcodec_changed(int index)
       setupForMpeg4();
       break;
     case AV_CODEC_ID_HUFFYUV:
+      [[fallthrough]];
+    case AV_CODEC_ID_UTVIDEO:
       setupForHuffYUV();
       break;
   }
