@@ -164,7 +164,7 @@ class Effect : public QObject,  public std::enable_shared_from_this<Effect>,
     static const QMap<QString, EffectMeta>& getRegisteredMetas();
 
     explicit Effect(ClipPtr c);
-    Effect(ClipPtr c, const EffectMeta& em);
+    Effect(ClipPtr c, EffectMeta em);
     Effect() = delete;
 
     bool hasCapability(const Capability flag) const;

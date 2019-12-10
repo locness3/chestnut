@@ -396,10 +396,11 @@ Effect::Effect(ClipPtr c)
 {
 }
 
-Effect::Effect(ClipPtr c, const EffectMeta& em) :
-  Effect(c)
+Effect::Effect(ClipPtr c, EffectMeta em)
+  : SequenceItem(project::SequenceItemType::CLIP),
+    parent_clip(std::move(c)),
+    meta(std::move(em))
 {
-  meta = em;
 
 }
 
