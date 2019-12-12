@@ -20,6 +20,9 @@
 
 #include <QWidget>
 #include <QFontMetrics>
+
+#include "project/marker.h"
+
 class Viewer;
 class QScrollBar;
 
@@ -96,7 +99,8 @@ class TimelineHeader : public QWidget
     void set_playhead(int mouse_x);
 
     long getHeaderFrameFromScreenPoint(int x);
-    int getHeaderScreenPointFromFrame(long frame);
+    int getHeaderScreenPointFromFrame(long frame) const;
+    void drawMarkers(QPainter& p, const QVector<MarkerPtr>& markers, const int offset);
 };
 
 #endif // TIMELINEHEADER_H

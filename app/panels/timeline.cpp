@@ -69,6 +69,21 @@ namespace
 using panels::PanelManager;
 
 
+long getFrameFromScreenPoint(const double zoom, const int x) noexcept
+{
+  const long f = qCeil(x / zoom);
+  if (f < 0) {
+    return 0;
+  }
+  return f;
+}
+
+int getScreenPointFromFrame(const double zoom, const int64_t frame) noexcept
+{
+  return qFloor(frame * zoom);
+}
+
+
 Timeline::Timeline(QWidget *parent) :
   QDockWidget(parent),
   cursor_frame(0),
@@ -1520,19 +1535,6 @@ void Timeline::deselect()
   repaint_timeline();
 }
 
-long getFrameFromScreenPoint(double zoom, int x)
-{
-  long f = qCeil(double(x) / zoom);
-  if (f < 0) {
-    return 0;
-  }
-  return f;
-}
-
-int getScreenPointFromFrame(double zoom, int64_t frame)
-{
-  return qFloor(double(frame)*zoom);
-}
 
 long Timeline::getTimelineFrameFromScreenPoint(int x)
 {

@@ -82,7 +82,7 @@ long TimelineHeader::getHeaderFrameFromScreenPoint(int x)
   return getFrameFromScreenPoint(zoom, x + scroll) + in_visible;
 }
 
-int TimelineHeader::getHeaderScreenPointFromFrame(long frame)
+int TimelineHeader::getHeaderScreenPointFromFrame(long frame) const
 {
   return getScreenPointFromFrame(zoom, frame - in_visible) - scroll;
 }
@@ -355,6 +355,47 @@ void TimelineHeader::delete_markers()
   }
 }
 
+void TimelineHeader::drawMarkers(QPainter& p, const QVector<MarkerPtr>& markers, const int offset)
+{
+  //TODO: draw range between start/end of marker if not the same
+  for (int j=0; j < markers.size(); ++j) {
+    const MarkerPtr& m = markers.at(j);
+    if (m == nullptr) {
+      continue;
+    }
+    const int marker_x = getHeaderScreenPointFromFrame(m->frame);
+    const QPoint points[5] = {
+      QPoint(marker_x, height() - 1),
+      QPoint(marker_x + MARKER_SIZE, height() - MARKER_SIZE - 1),
+      QPoint(marker_x + MARKER_SIZE, offset),
+      QPoint(marker_x - MARKER_SIZE, offset),
+      QPoint(marker_x - MARKER_SIZE, height() - MARKER_SIZE - 1)
+    };
+
+    bool selected = false;
+    for (int k = 0; k < selected_markers.size(); ++k) {
+      if (selected_markers.at(k) == j) {
+        selected = true;
+        break;
+      }
+    }
+
+    if (selected) {
+      QColor invert;
+      invert.setRed(255 - m->color_.red());
+      invert.setGreen(255 - m->color_.green());
+      invert.setBlue(255 - m->color_.blue());
+      QPen pen(invert);
+      pen.setWidth(MARKER_OUTLINE_WIDTH);
+      p.setPen(pen);
+    } else {
+      p.setPen(m->color_);
+    }
+    p.setBrush(m->color_);
+    p.drawPolygon(points, 5);
+  }
+}
+
 void TimelineHeader::paintEvent(QPaintEvent*)
 {
   auto sqn = viewer_->getSequence();
@@ -441,43 +482,7 @@ void TimelineHeader::paintEvent(QPaintEvent*)
     p.drawLine(out_x, 0, out_x, height());
   }
 
-  // draw markers
-  for (int j=0; j < sqn->markers_.size(); ++j) {
-    const MarkerPtr& m = sqn->markers_.at(j);
-    if (m == nullptr) {
-      continue;
-    }
-    const int marker_x = getHeaderScreenPointFromFrame(m->frame);
-    const QPoint points[5] = {
-      QPoint(marker_x, height() - 1),
-      QPoint(marker_x + MARKER_SIZE, height() - MARKER_SIZE - 1),
-      QPoint(marker_x + MARKER_SIZE, yoff),
-      QPoint(marker_x - MARKER_SIZE, yoff),
-      QPoint(marker_x - MARKER_SIZE, height() - MARKER_SIZE - 1)
-    };
-
-    bool selected = false;
-    for (int k = 0; k < selected_markers.size(); ++k) {
-      if (selected_markers.at(k) == j) {
-        selected = true;
-        break;
-      }
-    }
-
-    if (selected) {
-      QColor invert;
-      invert.setRed(255 - m->color_.red());
-      invert.setGreen(255 - m->color_.green());
-      invert.setBlue(255 - m->color_.blue());
-      QPen pen(invert);
-      pen.setWidth(MARKER_OUTLINE_WIDTH);
-      p.setPen(pen);
-    } else {
-      p.setPen(m->color_);
-    }
-    p.setBrush(m->color_);
-    p.drawPolygon(points, 5);
-  }
+  drawMarkers(p, sqn->markers_, yoff);
 
   // draw playhead triangle
   p.setRenderHint(QPainter::Antialiasing);

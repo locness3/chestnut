@@ -61,8 +61,8 @@ class Clip;
 class Footage;
 class FootageStream;
 
-int getScreenPointFromFrame(double zoom, int64_t frame);
-long getFrameFromScreenPoint(double zoom, int x);
+int getScreenPointFromFrame(const double zoom, const int64_t frame) noexcept;
+long getFrameFromScreenPoint(const double zoom, const int x) noexcept;
 bool selection_contains_transition(const Selection& s, ClipPtr c, int type);
 void ripple_clips(ComboAction *ca, SequencePtr  s, long point, long length, const QVector<int>& ignore = QVector<int>());
 
