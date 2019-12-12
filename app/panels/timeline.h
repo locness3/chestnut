@@ -43,7 +43,8 @@ enum class AddObjectType {
   BARS,
   TONE,
   NOISE,
-  AUDIO
+  AUDIO,
+  ADJUSTMENT_LAYER
 };
 
 

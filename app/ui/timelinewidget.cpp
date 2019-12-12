@@ -665,6 +665,8 @@ void TimelineWidget::mousePressCreatingEvent(Timeline& time_line)
     case AddObjectType::SOLID:
       [[fallthrough]];
     case AddObjectType::BARS:
+      [[fallthrough]];
+    case AddObjectType::ADJUSTMENT_LAYER:
       comp = -1;
       break;
     case AddObjectType::TONE:
@@ -1365,7 +1367,7 @@ bool TimelineWidget::createObjectEvent(ComboAction& ca, const bool ctrl, const b
     add.append(c);
     ca.append(new AddClipsCommand(seq, add));
 
-    if (c->mediaType() == ClipType::VISUAL) {
+    if ( (c->mediaType() == ClipType::VISUAL) && (time_line.creating_object != AddObjectType::ADJUSTMENT_LAYER) ) {
       // default video effects (before custom effects)
       c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_TRANSFORM, EFFECT_TYPE_EFFECT)));
     }
@@ -1395,6 +1397,9 @@ bool TimelineWidget::createObjectEvent(ComboAction& ca, const bool ctrl, const b
         c->setName(tr("Noise"));
         c->effects.append(create_effect(c, get_internal_meta(EFFECT_INTERNAL_NOISE, EFFECT_TYPE_EFFECT)));
         break;
+      case AddObjectType::ADJUSTMENT_LAYER:
+        c->setName(tr("Adjustment Layer"));
+        break;
       default:
         qWarning() << "Unhandled object add type" << static_cast<int>(time_line.creating_object);
         break;
@@ -1414,7 +1419,8 @@ bool TimelineWidget::createObjectEvent(ComboAction& ca, const bool ctrl, const b
   return push_undo;
 }
 
-void TimelineWidget::mouseReleaseEvent(QMouseEvent *event) {
+void TimelineWidget::mouseReleaseEvent(QMouseEvent *event)
+{
   QToolTip::hideText();
   if (global::sequence == nullptr) {
     return;
