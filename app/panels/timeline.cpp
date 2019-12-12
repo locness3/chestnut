@@ -1548,10 +1548,12 @@ void Timeline::add_btn_click()
 {
   QMenu add_menu(this);
 
+#ifdef ADJ_LAYER
   auto adjustment_layer_item = new QAction(&add_menu);
   adjustment_layer_item->setText(tr("Adjustment Layer"));
   adjustment_layer_item->setData(static_cast<int>(AddObjectType::ADJUSTMENT_LAYER));
   add_menu.addAction(adjustment_layer_item);
+#endif
 
   auto titleMenuItem = new QAction(&add_menu);
   titleMenuItem->setText(tr("Title"));
