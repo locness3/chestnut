@@ -85,7 +85,7 @@ void MarkersViewer::refresh(const QString& filter)
   MarkerWidget* widg = nullptr;
   auto markers = pj->markers_;
   std::sort(markers.begin(), markers.end(), markerLessThan);
-  for (auto mark : markers) {
+  for (const auto& mark : markers) {
     if ( (mark != nullptr) && (mark->name.contains(filter) || mark->comment_.contains(filter))) {
       widg = new MarkerWidget(mark, this);
       ui->markerLayout->addWidget(widg);

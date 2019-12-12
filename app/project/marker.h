@@ -34,7 +34,8 @@ class Marker : public project::IXMLStreamer {
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 
-    long frame{}; // TODO: timecode?
+    long frame{};
+    double frame_rate_; // Needed to properly display timecode
     QString name{};
     long duration_{};
     QString comment_{};
@@ -42,4 +43,5 @@ class Marker : public project::IXMLStreamer {
 };
 
 using MarkerPtr = std::shared_ptr<Marker>;
+using MarkerWPtr = std::weak_ptr<Marker>;
 #endif // MARKER_H

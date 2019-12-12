@@ -23,7 +23,7 @@
 #include "debug.h"
 
 constexpr int DEFAULT_COLUMN = 0;
-constexpr int FILE_VERSION = 1;
+constexpr int FILE_VERSION = 2;
 
 using panels::PanelManager;
 

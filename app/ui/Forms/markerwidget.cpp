@@ -56,29 +56,46 @@ void MarkerIcon::mouseDoubleClickEvent(QMouseEvent *event)
   qInfo() << "Mouse dbl-click";
 }
 
-MarkerWidget::MarkerWidget(MarkerPtr mark, QWidget *parent) :
+MarkerWidget::MarkerWidget(MarkerWPtr mark, QWidget *parent) :
   QWidget(parent),
   ui(new Ui::MarkerWidget),
-  marker_(mark)
+  marker_(std::move(mark))
 {
-  Q_ASSERT(mark != nullptr);
+  auto marker = marker_.lock();
+  Q_ASSERT(marker);
   ui->setupUi(this);
-  ui->nameEdit->setText(marker_->name);
-  ui->inEdit->setText(QString::number(marker_->frame));
-  ui->outEdit->setText(QString::number(marker_->frame + marker_->duration_));
-  ui->commentsEdit->setPlainText(marker_->comment_);
+  ui->nameEdit->setText(marker->name);
+  ui->commentsEdit->setPlainText(marker->comment_);
 
-  // replace placeholder-widget
+  // replace placeholder-widgets
   marker_icon_ = new MarkerIcon(this);
-  marker_icon_->clr_ = marker_->color_;
+  marker_icon_->clr_ = marker->color_;
   ui->topHLayout->removeWidget(ui->iconWidget);
   delete ui->iconWidget;
   ui->topHLayout->insertWidget(0, marker_icon_);
 
+  ui->formLayout->removeWidget(ui->inEdit);
+  delete ui->inEdit;
+  in_slider_ = new LabelSlider(marker->frame);
+  in_slider_->set_frame_rate(marker->frame_rate_);
+  in_slider_->decimal_places = 0;
+  in_slider_->set_minimum_value(0);
+  in_slider_->set_display_type(SliderType::FRAMENUMBER);
+  ui->formLayout->insertRow(1, ui->label_2, in_slider_);
+
+  ui->formLayout->removeWidget(ui->outEdit);
+  out_slider_ = new LabelSlider(marker->frame + marker->duration_);
+  out_slider_->set_frame_rate(marker->frame_rate_);
+  out_slider_->decimal_places = 0;
+  out_slider_->set_display_type(SliderType::FRAMENUMBER);
+  out_slider_->set_minimum_value(0);
+  ui->formLayout->insertRow(2, ui->label_3, out_slider_);
+  delete ui->outEdit;
+
   connect(ui->nameEdit, &QLineEdit::textChanged, this, &MarkerWidget::onValChange);
-  connect(ui->inEdit, &QLineEdit::textChanged, this, &MarkerWidget::onValChange);
-  connect(ui->outEdit, &QLineEdit::textChanged, this, &MarkerWidget::onValChange);
   connect(ui->commentsEdit, &QPlainTextEdit::textChanged, this, &MarkerWidget::onCommentChanged);
+  connect(in_slider_, &LabelSlider::valueChanged, this, &MarkerWidget::onSliderChanged);
+  connect(out_slider_, &LabelSlider::valueChanged, this, &MarkerWidget::onSliderChanged);
 }
 
 MarkerWidget::~MarkerWidget()
@@ -88,20 +105,31 @@ MarkerWidget::~MarkerWidget()
 
 void MarkerWidget::onValChange(const QString& val)
 {
-  //TODO: command
+  auto marker = marker_.lock();
+  Q_ASSERT(marker);
   if (sender() == ui->nameEdit) {
-    marker_->name = val;
-  } else if (sender() == ui->inEdit) {
-    marker_->frame = val.toLong();
-  } else if (sender() == ui->outEdit) {
-    marker_->duration_ = val.toLong() - marker_->frame;
+    marker->name = val;
   } else if (sender() == ui->commentsEdit) {
-    marker_->comment_ = val;
+    marker->comment_ = val;
+  }
+}
+
+void MarkerWidget::onSliderChanged()
+{
+  auto marker = marker_.lock();
+  Q_ASSERT(marker);
+  if (sender() == in_slider_) {
+    marker->frame = qRound(in_slider_->value());
+  } else if (sender() == out_slider_) {
+    marker->duration_ = qRound(out_slider_->value()) - marker->frame;
+  } else {
+    qWarning() << "Unhandled slider value change";
   }
 }
 
 void MarkerWidget::onCommentChanged()
 {
-  //TODO: command
-  marker_->comment_ = ui->commentsEdit->document()->toPlainText();
+  auto marker = marker_.lock();
+  Q_ASSERT(marker);
+  marker->comment_ = ui->commentsEdit->document()->toPlainText();
 }

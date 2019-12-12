@@ -793,7 +793,7 @@ void SetAutoscaleAction::redo()
   MainWindow::instance().setWindowModified(true);
 }
 
-AddMarkerAction::AddMarkerAction(project::ProjectItemPtr item, const long t, QString n) :
+AddMarkerAction::AddMarkerAction(project::ProjectItemPtr item, const long t, QString n, const double frame_rate) :
   item_(std::move(item)),
   time(t),
   name(std::move(n)),
@@ -813,6 +813,7 @@ void AddMarkerAction::undo()
 
 void AddMarkerAction::redo()
 {
+  Q_ASSERT(item_);
   index = -1;
   for (auto i = 0; i < item_->markers_.size(); ++i) {
     if (MarkerPtr mark = item_->markers_.at(i)) {
@@ -827,6 +828,7 @@ void AddMarkerAction::redo()
     auto mark = std::make_shared<Marker>();
     mark->frame = time;
     mark->name = name;
+    mark->frame_rate_ = frame_rate_;
     item_->markers_.append(mark);
   } else {
     old_name = item_->markers_.at(index)->name;

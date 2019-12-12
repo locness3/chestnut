@@ -22,6 +22,7 @@
 #include <QWidget>
 
 #include "project/marker.h"
+#include "ui/labelslider.h"
 
 namespace Ui {
   class MarkerWidget;
@@ -49,17 +50,20 @@ class MarkerWidget : public QWidget
     Q_OBJECT
 
   public:
-    MarkerWidget(MarkerPtr mark, QWidget *parent = nullptr);
+    MarkerWidget(MarkerWPtr mark, QWidget *parent = nullptr);
     ~MarkerWidget();
 
   private slots:
     void onValChange(const QString& val);
     void onCommentChanged();
+    void onSliderChanged();
 
   private:
-    Ui::MarkerWidget *ui;
-    MarkerPtr marker_;
-    MarkerIcon* marker_icon_;
+    Ui::MarkerWidget *ui {nullptr};
+    MarkerWPtr marker_;
+    MarkerIcon* marker_icon_ {nullptr};
+    LabelSlider* in_slider_ {nullptr};
+    LabelSlider* out_slider_ {nullptr};
 };
 
 #endif // MARKERWIDGET_H

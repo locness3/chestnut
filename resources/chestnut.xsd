@@ -110,6 +110,7 @@
                 <xs:element ref="comment"/>
                 <xs:element ref="duration"/>
                 <xs:element ref="color"/>
+                <xs:element ref="framerate"/>
             </xs:sequence>
 		</xs:complexType>
 	</xs:element>

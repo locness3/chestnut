@@ -40,6 +40,15 @@ LabelSlider::LabelSlider(QWidget* parent)
   set_default_value(0);
 }
 
+LabelSlider::LabelSlider(const double val, QWidget* parent)
+  : QLabel(parent)
+{
+  set_color();
+  setCursor(Qt::SizeHorCursor);
+  set_default_value(0);
+  set_value(val, false);
+}
+
 void LabelSlider::set_frame_rate(const double d)
 {
   frame_rate = d;

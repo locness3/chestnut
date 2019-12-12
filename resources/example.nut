@@ -228,6 +228,14 @@
                 <layout>0</layout>
                 <frequency>48000</frequency>
             </audio>
+            <marker>
+                <name>test</name>
+                <frame>84</frame>
+                <comment>testing</comment>
+                <duration>0</duration>
+                <color>4294967295</color>
+                <framerate>8</framerate>
+            </marker>
         </footage>
         <footage id="35" folder="18" using_inout="true" in="298" out="319">
             <name>meow</name>

@@ -36,6 +36,7 @@ class LabelSlider : public QLabel, chestnut::ui::IEffectFieldWidget
     int decimal_places {1};
 
     explicit LabelSlider(QWidget* parent = nullptr);
+    LabelSlider(const double val, QWidget* parent = nullptr);
     void set_frame_rate(const double d);
     void set_display_type(const SliderType type);
     void set_value(const double val, const bool userSet);

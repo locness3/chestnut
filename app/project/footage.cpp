@@ -159,6 +159,17 @@ void Footage::parseStreams()
   }
 }
 
+
+double Footage::frameRate()
+{
+  bool okay = false;
+  const auto val = media_source_->property<media_handling::Rational>(media_handling::MediaProperty::FRAME_RATE, okay);
+  if (okay) {
+    return boost::rational_cast<double>(val);
+  }
+  return 0.0;
+}
+
 bool Footage::addVideoTrack(project::FootageStreamPtr track)
 {
   if (!track) {

@@ -18,12 +18,13 @@
 
 #include "marker.h"
 
-constexpr const char* const START_ELEM = "marker";
-constexpr const char* const ELEM_FRAME = "frame";
-constexpr const char* const ELEM_NAME = "name";
-constexpr const char* const ELEM_COMMENT = "comment";
-constexpr const char* const ELEM_DURATION = "duration";
-constexpr const char* const ELEM_COLOR = "color";
+constexpr auto START_ELEM = "marker";
+constexpr auto ELEM_FRAME = "frame";
+constexpr auto ELEM_NAME = "name";
+constexpr auto ELEM_COMMENT = "comment";
+constexpr auto ELEM_DURATION = "duration";
+constexpr auto ELEM_COLOR = "color";
+constexpr auto ELEM_FRAME_RATE = "framerate";
 
 #include "debug.h"
 
@@ -40,6 +41,7 @@ bool Marker::load(QXmlStreamReader& stream)
   bool comment_read = false;
   bool duration_read = false;
   bool color_read = false;
+  bool frame_rate_read = false;
 
   while (stream.readNextStartElement()) {
     auto elem_name = stream.name().toString().toLower();
@@ -58,13 +60,16 @@ bool Marker::load(QXmlStreamReader& stream)
     } else if (elem_name == ELEM_COLOR) {
       color_ = QColor(static_cast<QRgb>(stream.readElementText().toUInt()));
       color_read = true;
+    } else if (elem_name == ELEM_FRAME_RATE) {
+      frame_rate_ = stream.readElementText().toDouble();
+      frame_rate_read = true;
     } else {
       qWarning() << "Unknown element" << elem_name;
       stream.skipCurrentElement();
     }
   }
 
-  return name_read && frame_read && comment_read && duration_read && color_read;
+  return name_read && frame_read && comment_read && duration_read && color_read && frame_rate_read;
 }
 
 bool Marker::save(QXmlStreamWriter& stream) const
@@ -75,6 +80,7 @@ bool Marker::save(QXmlStreamWriter& stream) const
   stream.writeTextElement(ELEM_COMMENT, comment_);
   stream.writeTextElement(ELEM_DURATION, QString::number(duration_));
   stream.writeTextElement(ELEM_COLOR, QString::number(color_.rgb()));
+  stream.writeTextElement(ELEM_FRAME_RATE, QString::number(frame_rate_));
   stream.writeEndElement();
   return true;
 }

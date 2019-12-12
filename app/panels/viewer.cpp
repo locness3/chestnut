@@ -556,7 +556,12 @@ void Viewer::setMarker() const
   if (add_marker) {
     // TODO: create a thumbnail for this
     if (auto mda = media_.lock()) {
-      e_undo_stack.push(new AddMarkerAction(mda->object<Footage>(), sequence_->playhead_, marker_name));
+      if (auto ftg = mda->object<Footage>()) {
+      e_undo_stack.push(new AddMarkerAction(ftg,
+                                            sequence_->playhead_,
+                                            marker_name,
+                                            ftg->frameRate()));
+      }
     }
   }
 }

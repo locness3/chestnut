@@ -1425,7 +1425,7 @@ void Timeline::setMarker() const
 
   if (add_marker) {
     // TODO: create a thumbnail for this
-    e_undo_stack.push(new AddMarkerAction(sequence_, sequence_->playhead_, marker_name));
+    e_undo_stack.push(new AddMarkerAction(sequence_, sequence_->playhead_, marker_name, sequence_->frameRate()));
   }
 }
 

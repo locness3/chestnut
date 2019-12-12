@@ -434,7 +434,7 @@ private:
 
 class AddMarkerAction : public QUndoCommand {
 public:
-  AddMarkerAction(project::ProjectItemPtr  item, const long t, QString n);
+  AddMarkerAction(project::ProjectItemPtr item, const long t, QString n, const double frame_rate);
   virtual void undo() override;
   virtual void redo() override;
 private:
@@ -442,8 +442,9 @@ private:
   long time;
   QString name;
   QString old_name;
-  bool old_project_changed;
   int index{};
+  double frame_rate_ {0};
+  bool old_project_changed;
 };
 
 class MoveMarkerAction : public QUndoCommand {

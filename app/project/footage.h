@@ -116,6 +116,8 @@ class Footage : public std::enable_shared_from_this<Footage>, public project::Pr
      */
     void parseStreams();
 
+    double frameRate();
+
     bool addVideoTrack(project::FootageStreamPtr track);
     QVector<project::FootageStreamPtr> videoTracks() const;
     bool addAudioTrack(project::FootageStreamPtr track);

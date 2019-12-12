@@ -33,7 +33,7 @@ class MarkersViewer : public QDockWidget
 
 public:
   explicit MarkersViewer(QWidget *parent = nullptr);
-  ~MarkersViewer() ;
+  ~MarkersViewer() override;
 
   /**
    * Set this viewers media item
