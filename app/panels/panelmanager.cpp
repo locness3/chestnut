@@ -142,6 +142,13 @@ void updateEffectsControls(EffectControls& controls, const SequencePtr& seq)
 }
 
 
+void PanelManager::refreshPlayHeaders()
+{
+  timeLine().repaint_timeline();
+  sequenceViewer().update_viewer();
+  footageViewer().update_viewer();
+}
+
 void PanelManager::refreshPanels(const bool modified)
 {
   if (modified) {

@@ -35,12 +35,12 @@ class MarkerIcon : public QWidget
     explicit MarkerIcon(QWidget *parent = nullptr);
     QColor clr_{};
   protected:
-    /*
-     * Draw the icon of the grabbed frame with colored hint
+    /**
+     * @brief Draw the icon of the grabbed frame with colored hint
      */
     void paintEvent(QPaintEvent *event) override;
-    /*
-     * Open up a dialog
+    /**
+     * @brief Open up a dialog
      */
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 };
@@ -51,8 +51,10 @@ class MarkerWidget : public QWidget
 
   public:
     MarkerWidget(MarkerWPtr mark, QWidget *parent = nullptr);
-    ~MarkerWidget();
+    ~MarkerWidget() override;
 
+  signals:
+    void changed();
   private slots:
     void onValChange(const QString& val);
     void onCommentChanged();

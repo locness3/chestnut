@@ -101,6 +101,8 @@ MarkerWidget::MarkerWidget(MarkerWPtr mark, QWidget *parent) :
 MarkerWidget::~MarkerWidget()
 {
   delete ui;
+  delete in_slider_;
+  delete out_slider_;
 }
 
 void MarkerWidget::onValChange(const QString& val)
@@ -125,6 +127,7 @@ void MarkerWidget::onSliderChanged()
   } else {
     qWarning() << "Unhandled slider value change";
   }
+  emit changed();
 }
 
 void MarkerWidget::onCommentChanged()

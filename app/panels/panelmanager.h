@@ -37,6 +37,7 @@ namespace panels {
     public:
       // eh, really a singleton/factory
       PanelManager() = default;
+      static void refreshPlayHeaders();
 
       static void refreshPanels(const bool modified);
       static QDockWidget* getFocusedPanel();

@@ -21,6 +21,7 @@
 #include "markerwidget.h"
 
 #include "project/marker.h"
+#include "panels/panelmanager.h"
 
 MarkersViewer::MarkersViewer(QWidget *parent) :
   QDockWidget(parent),
@@ -88,12 +89,19 @@ void MarkersViewer::refresh(const QString& filter)
   for (const auto& mark : markers) {
     if ( (mark != nullptr) && (mark->name.contains(filter) || mark->comment_.contains(filter))) {
       widg = new MarkerWidget(mark, this);
+      connect(widg, &MarkerWidget::changed, this, &MarkersViewer::onMarkerChanged);
       ui->markerLayout->addWidget(widg);
     }
   }
   auto spacer = new QSpacerItem(0,0, QSizePolicy::Fixed, QSizePolicy::Expanding);
   ui->markerLayout->addSpacerItem(spacer);
 
+}
+
+
+void MarkersViewer::onMarkerChanged()
+{
+  panels::PanelManager::refreshPlayHeaders();
 }
 
 void MarkersViewer::reset()

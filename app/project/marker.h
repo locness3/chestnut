@@ -40,6 +40,7 @@ class Marker : public project::IXMLStreamer {
     long duration_{};
     QString comment_{};
     QColor color_{Qt::white};
+    QString thumb_hash_; // TODO: create thumbnail and load
 };
 
 using MarkerPtr = std::shared_ptr<Marker>;
