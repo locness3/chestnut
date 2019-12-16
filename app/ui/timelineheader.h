@@ -100,7 +100,7 @@ class TimelineHeader : public QWidget
 
     long getHeaderFrameFromScreenPoint(int x);
     int getHeaderScreenPointFromFrame(long frame) const;
-    void drawMarkers(QPainter& p, const QVector<MarkerPtr>& markers, const int offset);
+    void drawMarkers(QPainter& p, const QVector<MarkerPtr>& markers, const int offset) const;
 };
 
 #endif // TIMELINEHEADER_H

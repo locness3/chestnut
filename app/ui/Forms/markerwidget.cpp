@@ -88,7 +88,7 @@ MarkerWidget::MarkerWidget(MarkerWPtr mark, QWidget *parent) :
   out_slider_->set_frame_rate(marker->frame_rate_);
   out_slider_->decimal_places = 0;
   out_slider_->set_display_type(SliderType::FRAMENUMBER);
-  out_slider_->set_minimum_value(0);
+  out_slider_->set_minimum_value(marker->frame);
   ui->formLayout->insertRow(2, ui->label_3, out_slider_);
   delete ui->outEdit;
 
@@ -122,6 +122,8 @@ void MarkerWidget::onSliderChanged()
   Q_ASSERT(marker);
   if (sender() == in_slider_) {
     marker->frame = qRound(in_slider_->value());
+    out_slider_->set_minimum_value(marker->frame);
+    out_slider_->set_value(marker->frame + marker->duration_, false);
   } else if (sender() == out_slider_) {
     marker->duration_ = qRound(out_slider_->value()) - marker->frame;
   } else {

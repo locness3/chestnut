@@ -355,7 +355,7 @@ void TimelineHeader::delete_markers()
   }
 }
 
-void TimelineHeader::drawMarkers(QPainter& p, const QVector<MarkerPtr>& markers, const int offset)
+void TimelineHeader::drawMarkers(QPainter& p, const QVector<MarkerPtr>& markers, const int offset) const
 {
   //TODO: draw range between start/end of marker if not the same
   for (int j=0; j < markers.size(); ++j) {
@@ -364,12 +364,22 @@ void TimelineHeader::drawMarkers(QPainter& p, const QVector<MarkerPtr>& markers,
       continue;
     }
     const int marker_x = getHeaderScreenPointFromFrame(m->frame);
-    const QPoint points[5] = {
-      QPoint(marker_x, height() - 1),
-      QPoint(marker_x + MARKER_SIZE, height() - MARKER_SIZE - 1),
-      QPoint(marker_x + MARKER_SIZE, offset),
+    const int marker_x_out = getHeaderScreenPointFromFrame(m->frame + m->duration_);
+
+    const int marker_bottom = height() - 1;
+    const int marker_mid_h = height() - MARKER_SIZE - 1;
+
+    const QPoint start[4] = {
+      QPoint(marker_x, marker_bottom),
+      QPoint(marker_x , offset),
       QPoint(marker_x - MARKER_SIZE, offset),
-      QPoint(marker_x - MARKER_SIZE, height() - MARKER_SIZE - 1)
+      QPoint(marker_x - MARKER_SIZE, marker_mid_h)
+    };
+    const QPoint end[4] = {
+      QPoint(marker_x_out, marker_bottom),
+      QPoint(marker_x_out , offset),
+      QPoint(marker_x_out + MARKER_SIZE, offset),
+      QPoint(marker_x_out + MARKER_SIZE, marker_mid_h)
     };
 
     bool selected = false;
@@ -392,7 +402,8 @@ void TimelineHeader::drawMarkers(QPainter& p, const QVector<MarkerPtr>& markers,
       p.setPen(m->color_);
     }
     p.setBrush(m->color_);
-    p.drawPolygon(points, 5);
+    p.drawPolygon(start, 4);
+    p.drawPolygon(end, 4);
   }
 }
 
