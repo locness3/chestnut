@@ -9,7 +9,7 @@ First install the following packages:
 
 ```sudo apt install build-essential pkg-config qtchooser wget unzip desktop-file-utils git cmake qt5-default \```
 ```libqt5svg5-dev qtmultimedia5-dev libavutil-dev libavformat-dev libavcodec-dev libavfilter-dev libavutil-dev \```
-```libswscale-dev libboost-dev libfmt-dev ffmpeg```
+```libswscale-dev libfmt-dev ffmpeg```
 
 Add the audiowaveform ppa and install:
 

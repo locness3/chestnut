@@ -292,7 +292,7 @@ void FootageStream::initialise(const media_handling::IMediaStream& stream)
       qWarning() << msg;
       throw std::runtime_error(msg);
     }
-    video_frame_rate = boost::rational_cast<double>(frate);
+    video_frame_rate = frate.toDouble();
     const auto dimensions = stream.property<media_handling::Dimensions>(MediaProperty::DIMENSIONS, is_okay);
     if (!is_okay) {
       constexpr auto msg = "Unable to identify video dimension";
