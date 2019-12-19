@@ -296,6 +296,16 @@ MarkersViewer& PanelManager::markersViewer()
   return *markers_viewer_;
 }
 
+
+chestnut::panels::RGBParade& PanelManager::paradeViewer()
+{
+  if (parade_viewer_ == nullptr) {
+    parade_viewer_ = new chestnut::panels::RGBParade(parent_);
+    parade_viewer_->setObjectName("parade_viewer");
+  }
+  return *parade_viewer_;
+}
+
 void PanelManager::tearDown()
 {
   parent_ = nullptr;

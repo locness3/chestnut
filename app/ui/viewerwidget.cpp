@@ -292,6 +292,13 @@ void ViewerWidget::frame_update()
         disconnect(renderer, &RenderThread::frameGrabbed, &PanelManager::colorScope(), &panels::ScopeViewer::frameGrabbed);
       }
 
+      if (PanelManager::paradeViewer().isVisible()) {
+        grab = true;
+        connect(renderer, &RenderThread::frameGrabbed, &PanelManager::paradeViewer(), &chestnut::panels::RGBParade::frameGrabbed);
+      } else {
+        disconnect(renderer, &RenderThread::frameGrabbed, &PanelManager::paradeViewer(), &chestnut::panels::RGBParade::frameGrabbed);
+      }
+
       renderer->start_render(context(), sqn, grab);
     }
 

@@ -13,6 +13,7 @@ TARGET = chestnut
 
 SOURCES += \
     database.cpp \
+    panels/rgbparade.cpp \
     project/objectclip.cpp \
     project/previewgeneratorthread.cpp \
     project/track.cpp \
@@ -28,6 +29,7 @@ SOURCES += \
     panels/viewer.cpp \
     panels/timeline.cpp \
     ui/presetaction.cpp \
+    ui/rgbparadewidget.cpp \
     ui/sourcetable.cpp \
     dialogs/aboutdialog.cpp \
     ui/sourceview.cpp \
@@ -129,6 +131,7 @@ HEADERS += \
     chestnut.h \
     coderconstants.h \
     database.h \
+    panels/rgbparade.h \
     project/objectclip.h \
     project/previewgeneratorthread.h \
     project/track.h \
@@ -145,6 +148,7 @@ HEADERS += \
     panels/viewer.h \
     panels/timeline.h \
     ui/presetaction.h \
+    ui/rgbparadewidget.h \
     ui/sourcetable.h \
     dialogs/aboutdialog.h \
     ui/sourceview.h \

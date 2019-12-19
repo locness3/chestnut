@@ -925,6 +925,11 @@ void MainWindow::setup_menus() {
   window_scope_action->setCheckable(true);
   window_scope_action->setData(reinterpret_cast<quintptr>(&PanelManager::colorScope()));
 
+  auto window_parade_action = window_menu->addAction(tr("RGB Parade"), this, SLOT(toggle_panel_visibility()));
+  window_parade_action->setProperty("id", "panelparadeviewer");
+  window_parade_action->setCheckable(true);
+  window_parade_action->setData(reinterpret_cast<quintptr>(&PanelManager::paradeViewer()));
+
   QAction* window_marker_viewer = window_menu->addAction(tr("Markers"), this, SLOT(toggle_panel_visibility()));
   window_marker_viewer->setProperty("id", "markerviewer");
   window_marker_viewer->setCheckable(true);

@@ -52,7 +52,7 @@ bool SourceView::onDragMoveEvent(QDragMoveEvent& event) const
   bool accepted = false;
 
   if (event.mimeData()->hasUrls()
-      || (event.source() == dynamic_cast<QObject*>(panels::PanelManager::footageViewer().viewer_widget)) ) {
+      || (event.source() == dynamic_cast<QObject*>(PanelManager::footageViewer().viewer_widget)) ) {
     event.acceptProposedAction();
     accepted = true;
   }
@@ -64,7 +64,7 @@ bool SourceView::onDropEvent(QDropEvent& event) const
 {
   bool accepted;
 
-  if (event.source() == dynamic_cast<QObject*>(panels::PanelManager::footageViewer().viewer_widget))  {
+  if (event.source() == dynamic_cast<QObject*>(PanelManager::footageViewer().viewer_widget))  {
     event.acceptProposedAction();
     addSubclipToProject(event);
     accepted = true;
@@ -82,7 +82,7 @@ bool SourceView::onDropEvent(QDropEvent& event) const
 
 void SourceView::addSubclipToProject(const QDropEvent& event) const
 {
-  auto& viewer(panels::PanelManager::footageViewer());
+  auto& viewer(PanelManager::footageViewer());
   const auto orig_media(viewer.getMedia().lock());
   Q_ASSERT(orig_media);
   const auto drop_item(this->viewIndex(event.pos()));

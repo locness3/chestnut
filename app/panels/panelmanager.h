@@ -27,6 +27,7 @@
 #include "panels/project.h"
 #include "panels/viewer.h"
 #include "ui/Forms/markersviewer.h"
+#include "panels/rgbparade.h"
 
 void scroll_to_frame_internal(QScrollBar* bar, const int64_t frame, const double zoom, const int area_width);
 
@@ -51,6 +52,7 @@ namespace panels {
       static Viewer& sequenceViewer();
       static Viewer& footageViewer();
       static MarkersViewer& markersViewer();
+      static chestnut::panels::RGBParade& paradeViewer();
       static void tearDown();
     private:
       // cannot use smart_ptrs with QObject::connect. at least not reliably (double-frees)
@@ -64,6 +66,7 @@ namespace panels {
       static Viewer* footage_viewer_;
       static MarkersViewer* markers_viewer_;
       static QWidget* parent_;
+      inline static chestnut::panels::RGBParade* parade_viewer_ {nullptr};
   };
 }
 
