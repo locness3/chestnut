@@ -63,8 +63,6 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     bool is_main_sequence() const noexcept;
     void set_main_sequence();
     void set_media(const MediaPtr& m);
-    void reset();
-    void compose();
     void set_playpause_icon(bool play);
     void update_playhead_timecode(long p);
     void update_end_timecode();

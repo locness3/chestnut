@@ -36,7 +36,7 @@ ProjectModel::ProjectModel(QObject *parent)
 void ProjectModel::destroy_root()
 {
   PanelManager::sequenceViewer().viewer_widget->delete_function();
-  PanelManager::footageViewer().viewer_widget->delete_function();
+//  PanelManager::footageViewer().viewer_widget->delete_function();
 }
 
 void ProjectModel::clear()

@@ -37,7 +37,6 @@ Timeline* PanelManager::timeline_ = nullptr;
 Project* PanelManager::project_ = nullptr;
 EffectControls* PanelManager::fx_controls_ = nullptr;
 Viewer* PanelManager::sequence_viewer_ = nullptr;
-Viewer* PanelManager::footage_viewer_ = nullptr;
 MarkersViewer* PanelManager::markers_viewer_ = nullptr;
 
 //FIXME:?
@@ -184,7 +183,7 @@ QDockWidget* PanelManager::getFocusedPanel()
       w = &fxControls();
     } else if (sequenceViewer().is_focused()) {
       w = &sequenceViewer();
-    } else if (footageViewer().is_focused()) {
+    } else if (footageViewer().isFocused()) {
       w = &footageViewer();
     } else if (timeLine().focused()) {
       w = &timeLine();
@@ -277,12 +276,12 @@ Viewer& PanelManager::sequenceViewer()
   return *sequence_viewer_;
 }
 
-Viewer& PanelManager::footageViewer()
+chestnut::panels::FootageViewer& PanelManager::footageViewer()
 {
   if (footage_viewer_ == nullptr) {
-    footage_viewer_ = new Viewer(parent_);
-    footage_viewer_->setObjectName("media_viewer");
-    footage_viewer_->set_panel_name(QCoreApplication::translate("Viewer", "Media Viewer"));
+    footage_viewer_ = new chestnut::panels::FootageViewer(parent_);
+    footage_viewer_->setObjectName("footage_viewer");
+    footage_viewer_->setName(QCoreApplication::translate("Viewer", "Media Viewer"));
   }
   return *footage_viewer_;
 }

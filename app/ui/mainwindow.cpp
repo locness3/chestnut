@@ -109,7 +109,7 @@ void MainWindow::setup_layout(bool reset)
   PanelManager::projectViewer().show();
   PanelManager::markersViewer().show();
   PanelManager::fxControls().show();
-  PanelManager::footageViewer().show();
+//  PanelManager::footageViewer().show();
   PanelManager::sequenceViewer().show();
   PanelManager::timeLine().show();
   PanelManager::graphEditor().hide();
@@ -119,9 +119,9 @@ void MainWindow::setup_layout(bool reset)
   addDockWidget(Qt::TopDockWidgetArea, &PanelManager::projectViewer());
   tabifyDockWidget(&PanelManager::projectViewer(), &PanelManager::markersViewer());
   PanelManager::projectViewer().raise();
-  addDockWidget(Qt::TopDockWidgetArea, &PanelManager::footageViewer());
+//  addDockWidget(Qt::TopDockWidgetArea, &PanelManager::footageViewer());
   tabifyDockWidget(&PanelManager::footageViewer(), &PanelManager::fxControls());
-  PanelManager::footageViewer().raise();
+//  PanelManager::footageViewer().raise();
   addDockWidget(Qt::TopDockWidgetArea, &PanelManager::sequenceViewer());
   addDockWidget(Qt::BottomDockWidgetArea, &PanelManager::timeLine());
   PanelManager::graphEditor().setFloating(true);
@@ -130,7 +130,7 @@ void MainWindow::setup_layout(bool reset)
 
   // workaround for strange Qt dock bug (see https://bugreports.qt.io/browse/QTBUG-65592)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-  resizeDocks({&PanelManager::projectViewer()}, {40}, Qt::Horizontal);
+//  resizeDocks({&PanelManager::projectViewer()}, {40}, Qt::Horizontal);
 #endif
 
   // load panels from file
@@ -502,7 +502,7 @@ void MainWindow::zoom_in()
   } else if (focused_panel == &PanelManager::fxControls()) {
     PanelManager::fxControls().set_zoom(true);
   } else if (focused_panel == &PanelManager::footageViewer()) {
-    PanelManager::footageViewer().set_zoom(true);
+    PanelManager::footageViewer().zoomIn();
   } else if (focused_panel == &PanelManager::sequenceViewer()) {
     PanelManager::sequenceViewer().set_zoom(true);
   }
@@ -516,7 +516,7 @@ void MainWindow::zoom_out()
   } else if (focused_panel == &PanelManager::fxControls()) {
     PanelManager::fxControls().set_zoom(false);
   } else if (focused_panel == &PanelManager::footageViewer()) {
-    PanelManager::footageViewer().set_zoom(false);
+    PanelManager::footageViewer().zoomOut();
   } else if (focused_panel == &PanelManager::sequenceViewer()) {
     PanelManager::sequenceViewer().set_zoom(false);
   }
@@ -1129,10 +1129,10 @@ void MainWindow::closeEvent(QCloseEvent *e) {
 
     set_sequence(nullptr);
 
-    PanelManager::footageViewer().viewer_widget->close_window();
+//    PanelManager::footageViewer().viewer_widget->close_window();
     PanelManager::sequenceViewer().viewer_widget->close_window();
 
-    PanelManager::footageViewer().set_main_sequence();
+//    PanelManager::footageViewer().set_main_sequence();
 
     const QString data_dir(chestnut::paths::dataPath());
     const QString config_dir(chestnut::paths::configPath());
@@ -1246,7 +1246,6 @@ void MainWindow::sequenceLoaded(const SequencePtr& new_sequence)
 
 void MainWindow::reset_layout()
 {
-
   setup_layout(true);
 }
 
@@ -1254,7 +1253,7 @@ void MainWindow::go_to_in()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
-    PanelManager::footageViewer().go_to_in();
+    PanelManager::footageViewer().seekToInPoint();
   } else {
     PanelManager::sequenceViewer().go_to_in();
   }
@@ -1264,7 +1263,7 @@ void MainWindow::go_to_out()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
-    PanelManager::footageViewer().go_to_out();
+    PanelManager::footageViewer().seekToOutPoint();
   } else {
     PanelManager::sequenceViewer().go_to_out();
   }
@@ -1274,7 +1273,7 @@ void MainWindow::go_to_start()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
-    PanelManager::footageViewer().go_to_start();
+    PanelManager::footageViewer().seekToStart();
   } else {
     PanelManager::sequenceViewer().go_to_start();
   }
@@ -1284,16 +1283,16 @@ void MainWindow::go_to_start()
 void MainWindow::prevFrameFast()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
-  Viewer& vwr = focused_panel == &PanelManager::footageViewer() ? PanelManager::footageViewer()
-                                                                : PanelManager::sequenceViewer();
-  vwr.previousFrameFast();
+//  Viewer& vwr = focused_panel == &PanelManager::footageViewer() ? PanelManager::footageViewer()
+//                                                                : PanelManager::sequenceViewer();
+//  vwr.previousFrameFast();
 }
 
 void MainWindow::prev_frame()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
-    PanelManager::footageViewer().previous_frame();
+    PanelManager::footageViewer().previousFrame();
   } else {
     PanelManager::sequenceViewer().previous_frame();
   }
@@ -1303,7 +1302,7 @@ void MainWindow::next_frame()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
-    PanelManager::footageViewer().next_frame();
+    PanelManager::footageViewer().nextFrame();
   } else {
     PanelManager::sequenceViewer().next_frame();
   }
@@ -1312,16 +1311,16 @@ void MainWindow::next_frame()
 void MainWindow::nextFrameFast()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
-  Viewer& vwr = (focused_panel == &PanelManager::footageViewer()) ? PanelManager::footageViewer()
-                                                                  : PanelManager::sequenceViewer();
-  vwr.nextFrameFast();
+//  Viewer& vwr = (focused_panel == &PanelManager::footageViewer()) ? PanelManager::footageViewer()
+//                                                                  : PanelManager::sequenceViewer();
+//  vwr.nextFrameFast();
 }
 
 void MainWindow::go_to_end()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
-    PanelManager::footageViewer().go_to_end();
+    PanelManager::footageViewer().seekToEnd();
   } else {
     PanelManager::sequenceViewer().go_to_end();
   }
@@ -1331,7 +1330,7 @@ void MainWindow::playpause()
 {
   QDockWidget* focused_panel = PanelManager::getFocusedPanel();
   if (focused_panel == &PanelManager::footageViewer()) {
-    PanelManager::footageViewer().toggle_play();
+    PanelManager::footageViewer().togglePlay();
   } else {
     PanelManager::sequenceViewer().toggle_play();
   }
@@ -1539,8 +1538,8 @@ void MainWindow::set_in_point()
 {
   if (PanelManager::timeLine().focused() || PanelManager::sequenceViewer().is_focused()) {
     PanelManager::sequenceViewer().set_in_point();
-  } else if (PanelManager::footageViewer().is_focused()) {
-    PanelManager::footageViewer().set_in_point();
+  } else if (PanelManager::footageViewer().isFocused()) {
+    PanelManager::footageViewer().setInPoint();
   }
 }
 
@@ -1548,8 +1547,8 @@ void MainWindow::set_out_point()
 {
   if (PanelManager::timeLine().focused() || PanelManager::sequenceViewer().is_focused()) {
     PanelManager::sequenceViewer().set_out_point();
-  } else if (PanelManager::footageViewer().is_focused()) {
-    PanelManager::footageViewer().set_out_point();
+  } else if (PanelManager::footageViewer().isFocused()) {
+    PanelManager::footageViewer().setOutPoint();
   }
 }
 
@@ -1557,8 +1556,8 @@ void MainWindow::clear_in()
 {
   if (PanelManager::timeLine().focused() || PanelManager::sequenceViewer().is_focused()) {
     PanelManager::sequenceViewer().clear_in();
-  } else if (PanelManager::footageViewer().is_focused()) {
-    PanelManager::footageViewer().clear_in();
+  } else if (PanelManager::footageViewer().isFocused()) {
+    PanelManager::footageViewer().clearInPoint();
   }
 }
 
@@ -1566,8 +1565,8 @@ void MainWindow::clear_out()
 {
   if (PanelManager::timeLine().focused() || PanelManager::sequenceViewer().is_focused()) {
     PanelManager::sequenceViewer().clear_out();
-  } else if (PanelManager::footageViewer().is_focused()) {
-    PanelManager::footageViewer().clear_out();
+  } else if (PanelManager::footageViewer().isFocused()) {
+    PanelManager::footageViewer().clearOutPoint();
   }
 }
 
@@ -1575,8 +1574,8 @@ void MainWindow::clear_inout()
 {
   if (PanelManager::timeLine().focused() || PanelManager::sequenceViewer().is_focused()) {
     PanelManager::sequenceViewer().clear_inout_point();
-  } else if (PanelManager::footageViewer().is_focused()) {
-    PanelManager::footageViewer().clear_inout_point();
+  } else if (PanelManager::footageViewer().isFocused()) {
+    PanelManager::footageViewer().clearPoints();
   }
 }
 
@@ -1608,8 +1607,8 @@ void MainWindow::enable_inout()
 {
   if (PanelManager::timeLine().focused() || PanelManager::sequenceViewer().is_focused()) {
     PanelManager::sequenceViewer().toggle_enable_inout();
-  } else if (PanelManager::footageViewer().is_focused()) {
-    PanelManager::footageViewer().toggle_enable_inout();
+  } else if (PanelManager::footageViewer().isFocused()) {
+    PanelManager::footageViewer().togglePointsEnabled();
   }
 }
 

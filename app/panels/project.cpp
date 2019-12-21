@@ -660,22 +660,22 @@ void Project::delete_selected_media()
           ca->append(new ChangeSequenceAction(nullptr));
         }
 
-        if (s == PanelManager::footageViewer().getSequence()) {
-          PanelManager::footageViewer().set_media(nullptr);
+        if (PanelManager::footageViewer().hasMedia()) {
+          PanelManager::footageViewer().clear();
         }
       } else if (item->type() == MediaType::FOOTAGE) {
-        if (PanelManager::footageViewer().getSequence()) {
-          for (const auto& clp : PanelManager::footageViewer().getSequence()->clips()) {
-            if (!clp) {
-              continue;
-            }
-            if (clp->timeline_info.media == item) {
-              // Media viewer is displaying the clip for deletion, so clear it
-              PanelManager::footageViewer().set_media(nullptr); //TODO: create a clear()
-              break;
-            }
-          }//for
-        }
+//        if (PanelManager::footageViewer().getSequence()) {
+//          for (const auto& clp : PanelManager::footageViewer().getSequence()->clips()) {
+//            if (!clp) {
+//              continue;
+//            }
+//            if (clp->timeline_info.media == item) {
+//              // Media viewer is displaying the clip for deletion, so clear it
+//              PanelManager::footageViewer().clear();
+//              break;
+//            }
+//          }//for
+//        }
       }
     } //for
     e_undo_stack.push(ca);
@@ -948,7 +948,7 @@ void Project::new_project()
   // clear existing project
   set_sequence(nullptr);
   Media::resetNextId();
-  PanelManager::footageViewer().set_media(nullptr);
+  PanelManager::footageViewer().clear();
   clear();
   MainWindow::instance().setWindowModified(false);
 }

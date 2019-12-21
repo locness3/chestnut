@@ -43,8 +43,11 @@ QIODevice* audio_io_device;
 bool audio_device_set = false;
 bool audio_scrub = false;
 QMutex audio_write_lock;
-QAudioInput* audio_input = nullptr;
-QFile output_recording;
+namespace
+{
+  QAudioInput* audio_input = nullptr;
+  QFile output_recording;
+}
 bool audio_rendering = false;
 bool recording = false;
 
@@ -76,7 +79,7 @@ void init_audio() {
     for (int i=0;i<devs.size();i++) {
         dout << "    " << devs.at(i).deviceName();
     }
-    if (info.isNull() && devs.size() > 0) {
+    if (info.isNull() && !devs.empty()) {
         qWarning() << "Default audio returned nullptr, attempting to use first device found...";
         info = devs.at(0);
     }
@@ -162,13 +165,11 @@ void AudioSenderThread::run() {
         cond.wait(&lock);
         if (close) {
             break;
-        } else if (PanelManager::sequenceViewer().playing || PanelManager::footageViewer().playing || audio_scrub) {
-            int written_bytes = 0;
-
-            int adjusted_read_index = audio_ibuffer_read % AUDIO_IBUFFER_SIZE;
-            int max_write = AUDIO_IBUFFER_SIZE - adjusted_read_index;
-            int actual_write = send_audio_to_output(adjusted_read_index, max_write);
-            written_bytes += actual_write;
+        } else if (PanelManager::sequenceViewer().playing || PanelManager::footageViewer().isPlaying() || audio_scrub) {
+            const int adjusted_read_index = audio_ibuffer_read % AUDIO_IBUFFER_SIZE;
+            const int max_write = AUDIO_IBUFFER_SIZE - adjusted_read_index;
+            const int actual_write = send_audio_to_output(adjusted_read_index, max_write);
+            int written_bytes = actual_write;
             if (actual_write == max_write) {
                 // got all the bytes, write again
                 written_bytes += send_audio_to_output(0, AUDIO_IBUFFER_SIZE);

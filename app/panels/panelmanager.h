@@ -27,6 +27,7 @@
 #include "panels/project.h"
 #include "panels/viewer.h"
 #include "ui/Forms/markersviewer.h"
+#include "panels/footageviewer.h"
 
 void scroll_to_frame_internal(QScrollBar* bar, const int64_t frame, const double zoom, const int area_width);
 
@@ -49,7 +50,7 @@ namespace panels {
       static EffectControls& fxControls();
       static Project& projectViewer();
       static Viewer& sequenceViewer();
-      static Viewer& footageViewer();
+      static chestnut::panels::FootageViewer& footageViewer();
       static MarkersViewer& markersViewer();
       static void tearDown();
     private:
@@ -61,7 +62,7 @@ namespace panels {
       static EffectControls* fx_controls_;
       static Project* project_;
       static Viewer* sequence_viewer_;
-      static Viewer* footage_viewer_;
+      inline static chestnut::panels::FootageViewer* footage_viewer_ {nullptr};
       static MarkersViewer* markers_viewer_;
       static QWidget* parent_;
   };

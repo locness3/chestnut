@@ -35,7 +35,6 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-using project::ScanMethod;
 using project::FootageStreamPtr;
 
 int32_t Media::nextID = 0;

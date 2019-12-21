@@ -28,7 +28,6 @@
 
 #include "debug.h"
 
-using project::ScanMethod;
 using project::Track;
 
 constexpr int       RECURSION_LIMIT            = 100;

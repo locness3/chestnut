@@ -39,11 +39,11 @@ SourceView::SourceView(Project& project_parent) : project_parent_(project_parent
 bool SourceView::onDragEnterEvent(QDragEnterEvent& event) const
 {
   bool accepted = false;
-  if (event.mimeData()->hasUrls()
-      || (event.source() == dynamic_cast<QObject*>(PanelManager::footageViewer().viewer_widget)) ) {
-    event.acceptProposedAction();
-    accepted = true;
-  }
+//  if (event.mimeData()->hasUrls()
+//      || (event.source() == dynamic_cast<QObject*>(PanelManager::footageViewer().viewer_widget)) ) {
+//    event.acceptProposedAction();
+//    accepted = true;
+//  }
   return accepted;
 }
 
@@ -51,11 +51,11 @@ bool SourceView::onDragMoveEvent(QDragMoveEvent& event) const
 {
   bool accepted = false;
 
-  if (event.mimeData()->hasUrls()
-      || (event.source() == dynamic_cast<QObject*>(panels::PanelManager::footageViewer().viewer_widget)) ) {
-    event.acceptProposedAction();
-    accepted = true;
-  }
+//  if (event.mimeData()->hasUrls()
+//      || (event.source() == dynamic_cast<QObject*>(panels::PanelManager::footageViewer().viewer_widget)) ) {
+//    event.acceptProposedAction();
+//    accepted = true;
+//  }
 
   return accepted;
 }
@@ -64,59 +64,59 @@ bool SourceView::onDropEvent(QDropEvent& event) const
 {
   bool accepted;
 
-  if (event.source() == dynamic_cast<QObject*>(panels::PanelManager::footageViewer().viewer_widget))  {
-    event.acceptProposedAction();
-    addSubclipToProject(event);
-    accepted = true;
-  } else if (event.mimeData()->hasUrls()) {
-    event.acceptProposedAction();
-    addMediaToProject(event);
-    accepted = true;
-  } else {
-    moveMedia(event);
-    accepted = false;
-  }
+//  if (event.source() == dynamic_cast<QObject*>(panels::PanelManager::footageViewer().viewer_widget))  {
+//    event.acceptProposedAction();
+//    addSubclipToProject(event);
+//    accepted = true;
+//  } else if (event.mimeData()->hasUrls()) {
+//    event.acceptProposedAction();
+//    addMediaToProject(event);
+//    accepted = true;
+//  } else {
+//    moveMedia(event);
+//    accepted = false;
+//  }
   return accepted;
 }
 
 
 void SourceView::addSubclipToProject(const QDropEvent& event) const
 {
-  auto& viewer(panels::PanelManager::footageViewer());
-  const auto orig_media(viewer.getMedia().lock());
-  Q_ASSERT(orig_media);
-  const auto drop_item(this->viewIndex(event.pos()));
-  const auto parent_mda(std::invoke([&]{
-    const auto mda(project_parent_.item_to_media(drop_item));
-    if (drop_item.isValid() && (mda->type() != MediaType::FOLDER) ) {
-      return orig_media->parentItem();
-    }
-    return mda;
-  }));
+//  auto& viewer(PanelManager::footageViewer());
+//  const auto orig_media(viewer.getMedia().lock());
+//  Q_ASSERT(orig_media);
+//  const auto drop_item(this->viewIndex(event.pos()));
+//  const auto parent_mda(std::invoke([&]{
+//    const auto mda(project_parent_.item_to_media(drop_item));
+//    if (drop_item.isValid() && (mda->type() != MediaType::FOLDER) ) {
+//      return orig_media->parentItem();
+//    }
+//    return mda;
+//  }));
 
-  auto mda(std::make_shared<Media>(*orig_media));
-  QString sub_name;
-  if (event.keyboardModifiers() & Qt::ShiftModifier) {
-    auto dial = SubClipCreateDialog(orig_media->name());
-    dial.exec();
-    sub_name = dial.subClipName();
-    if (sub_name.length() == 0) {
-      qInfo() << "Cancelled creating sub-clip";
-      return;
-    }
-  } else {
-    const QDateTime now(QDateTime::currentDateTime());
-    const QString fmt("%1-subclip-%2");
-    sub_name = fmt.arg(mda->name()).arg(now.toString(Qt::ISODate));
-  }
+//  auto mda(std::make_shared<Media>(*orig_media));
+//  QString sub_name;
+//  if (event.keyboardModifiers() & Qt::ShiftModifier) {
+//    auto dial = SubClipCreateDialog(orig_media->name());
+//    dial.exec();
+//    sub_name = dial.subClipName();
+//    if (sub_name.length() == 0) {
+//      qInfo() << "Cancelled creating sub-clip";
+//      return;
+//    }
+//  } else {
+//    const QDateTime now(QDateTime::currentDateTime());
+//    const QString fmt("%1-subclip-%2");
+//    sub_name = fmt.arg(mda->name()).arg(now.toString(Qt::ISODate));
+//  }
 
-  mda->setName(sub_name);
-  if (auto ftg = mda->object<Footage>()) {
-    // FIXME: don't like this one bit. It's linked to how Footage/Sequence/Folder/Media relationships are poorly designed
-    ftg->setParent(mda);
-  }
+//  mda->setName(sub_name);
+//  if (auto ftg = mda->object<Footage>()) {
+//    // FIXME: don't like this one bit. It's linked to how Footage/Sequence/Folder/Media relationships are poorly designed
+//    ftg->setParent(mda);
+//  }
 
-  Project::model().appendChild(parent_mda, mda);
+//  Project::model().appendChild(parent_mda, mda);
 }
 
 

@@ -199,7 +199,7 @@ void SourcesCommon::mouseDoubleClickEvent(QMouseEvent *, const QModelIndexList& 
     if (item != nullptr) {
       switch (item->type()) {
         case MediaType::FOOTAGE:
-          PanelManager::footageViewer().set_media(item);
+          PanelManager::footageViewer().setMedia(item);
           PanelManager::footageViewer().show();
           PanelManager::footageViewer().raise();
           PanelManager::footageViewer().setFocus(); // this action actually stops rename

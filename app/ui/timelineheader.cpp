@@ -212,7 +212,11 @@ void TimelineHeader::mousePressEvent(QMouseEvent* event)
   }
 }
 
-void TimelineHeader::mouseMoveEvent(QMouseEvent* event) {
+void TimelineHeader::mouseMoveEvent(QMouseEvent* event)
+{
+  if (viewer_ == nullptr) {
+    return;
+  }
   auto sqn = viewer_->getSequence();
   if (sqn == nullptr) {
     return;
@@ -357,6 +361,9 @@ void TimelineHeader::delete_markers()
 
 void TimelineHeader::paintEvent(QPaintEvent*)
 {
+  if (viewer_ == nullptr) {
+    return;
+  }
   auto sqn = viewer_->getSequence();
   if ( (sqn == nullptr) || (zoom <= 0.0) ) {
     return;

@@ -1,6 +1,6 @@
 /*
  * Chestnut. Chestnut is a free non-linear video editor for Linux.
- * Copyright (C) 2019
+ * Copyright (C) 2019 Jonathan Noble
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,6 +96,33 @@ bool FootageStream::generatePreview()
   return success;
 }
 
+
+QPixmap FootageStream::frame()
+{
+  if (!frame_retrieved_) {
+    stream_info_->setOutputFormat(media_handling::PixelFormat::RGBA);
+    frame_retrieved_ = true;
+  }
+  const int64_t pos = seek_position_.has_value() ? seek_position_.value() : -1;
+  seek_position_.reset();
+  if (const auto m_f = stream_info_->frame(pos)) {
+    const auto f_d = m_f->data();
+    const auto img  = QImage(*f_d.data_, video_width, video_height, f_d.line_size_, QImage::Format_RGBA8888);
+    QPixmap pm;
+    pm.convertFromImage(img);
+    return pm;
+  }
+  // most likely read end of stream
+  return {};
+}
+
+
+void FootageStream::seek(const int64_t position)
+{
+  seek_position_ = position;
+}
+
+
 void FootageStream::makeSquareThumb()
 {
   qDebug() << "Making square thumbnail";
@@ -110,7 +137,6 @@ void FootageStream::makeSquareThumb()
   p.drawImage(sqx, sqy, video_preview);
   video_preview_square.addPixmap(pixmap);
 }
-
 
 void FootageStream::setStreamInfo(MediaStreamPtr stream_info)
 {

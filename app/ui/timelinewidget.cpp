@@ -368,15 +368,15 @@ void TimelineWidget::dragEnterEvent(QDragEnterEvent *event)
     import_init = true;
   }
   // Dragging footage from the media-viewer window
-  else if (event->source() == PanelManager::footageViewer().viewer_widget) {
-    if (PanelManager::footageViewer().getSequence() != global::sequence) { // don't allow nesting the same sequence
-      if (auto mda = PanelManager::footageViewer().getMedia().lock()) {
-        qDebug() << "Dragging from footage viewer to timeline, " << mda->name();
-        media_list.append(mda);
-        import_init = true;
-      }
-    }
-  }
+//  else if (event->source() == PanelManager::footageViewer().viewer_widget) {
+//    if (PanelManager::footageViewer().getSequence() != global::sequence) { // don't allow nesting the same sequence
+//      if (auto mda = PanelManager::footageViewer().getMedia().lock()) {
+//        qDebug() << "Dragging from footage viewer to timeline, " << mda->name();
+//        media_list.append(mda);
+//        import_init = true;
+//      }
+//    }
+//  }
 
   // TODO: identify how this is triggered
   if (global::config.enable_drag_files_to_timeline && event->mimeData()->hasUrls()) {

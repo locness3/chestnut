@@ -13,6 +13,8 @@ TARGET = chestnut
 
 SOURCES += \
     database.cpp \
+    panels/footageviewer.cpp \
+    panels/viewerbase.cpp \
     project/objectclip.cpp \
     project/previewgeneratorthread.cpp \
     project/track.cpp \
@@ -129,6 +131,8 @@ HEADERS += \
     chestnut.h \
     coderconstants.h \
     database.h \
+    panels/footageviewer.h \
+    panels/viewerbase.h \
     project/objectclip.h \
     project/previewgeneratorthread.h \
     project/track.h \

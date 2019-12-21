@@ -412,7 +412,7 @@ void Viewer::play()
   if (PanelManager::sequenceViewer().playing) {
     PanelManager::sequenceViewer().pause();
   }
-  if (PanelManager::footageViewer().playing) {
+  if (PanelManager::footageViewer().isPlaying()) {
     PanelManager::footageViewer().pause();
   }
 
@@ -921,10 +921,6 @@ void Viewer::set_media(const MediaPtr& m)
   setSequence(false, sequence_);
 }
 
-void Viewer::reset()
-{
-  //TODO:
-}
 
 void Viewer::update_playhead()
 {

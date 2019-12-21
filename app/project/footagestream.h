@@ -1,6 +1,6 @@
 /*
  * Chestnut. Chestnut is a free non-linear video editor for Linux.
- * Copyright (C) 2019
+ * Copyright (C) 2019 Jonathan Noble
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,20 +23,13 @@
 #include <QImage>
 #include <QIcon>
 #include <mediahandling/imediastream.h>
+#include <QPixmap>
 
 #include "project/ixmlstreamer.h"
 
 class Footage;
 
 namespace project {
-
-  enum class ScanMethod {
-    PROGRESSIVE = 0,
-    TOP_FIRST = 1,
-    BOTTOM_FIRST = 2,
-    UNKNOWN
-  };
-
 
   class FootageStream : public project::IXMLStreamer
   {
@@ -71,6 +64,10 @@ namespace project {
        */
       bool generatePreview();
 
+      QPixmap frame();
+
+      void seek(const int64_t position);
+
       void setStreamInfo(media_handling::MediaStreamPtr stream_info);
       std::optional<media_handling::FieldOrder> fieldOrder() const;
 
@@ -93,6 +90,8 @@ namespace project {
       media_handling::MediaStreamPtr stream_info_{nullptr};
       QString data_path;
       bool audio_ {false};
+      bool frame_retrieved_{false};
+      std::optional<int64_t> seek_position_;
 
       void initialise(const media_handling::IMediaStream& stream);
       /**
@@ -133,7 +132,6 @@ namespace project {
        * @note Thumbnail is used in tree-view
        */
       void makeSquareThumb();
-
   };
 
   using FootageStreamPtr = std::shared_ptr<FootageStream>;
