@@ -254,15 +254,16 @@ bool FootageStream::loadWaveformFile(const QString& data_path)
     qCritical() << "audiowaveform version '" << waveform_info_.version_ << "' is not supported";
     return false;
   }
+
+  waveform_info_.flags_ = readUint();
+  waveform_info_.rate_ = readUint();
+  waveform_info_.samples_per_pixel_= readUint();
+  waveform_info_.length_ = readUint();
   if (waveform_info_.version_ == 1) {
     waveform_info_.channels_ = 1;
   } else {
     waveform_info_.channels_ = readUint();
   }
-  waveform_info_.flags_ = readUint();
-  waveform_info_.rate_ = readUint();
-  waveform_info_.samples_per_pixel_= readUint();
-  waveform_info_.length_ = readUint();
 
   // TODO: identify what to do about 16bit sampling
   const size_t datasize = [&] {
