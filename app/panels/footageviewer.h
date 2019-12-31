@@ -23,11 +23,10 @@
 
 #include "viewerbase.h"
 #include "project/footagestream.h"
-
+#include "system/audioworker.h"
 
 namespace chestnut::panels
 {
-
   class FootageViewer : public ViewerBase
   {
       Q_OBJECT
@@ -75,11 +74,18 @@ namespace chestnut::panels
       FootagePtr footage_ {nullptr};
       QTimer play_timer_;
       ::project::FootageStreamPtr video_track_ {nullptr};
-      std::vector<::project::FootageStreamPtr> audio_tracks_;
+      ::project::FootageStreamPtr audio_track_ {nullptr};
+      QThread* audio_thread_ {nullptr};
+      system::AudioWorker* audio_worker_ {nullptr};
+      struct {
+          int64_t stamp_ {-1};
+          media_handling::Rational scale_;
+          int32_t interval_ {0};
+      } time_;
       bool playing_ {false};
       bool end_of_stream_{false};
 
-      void setupTimer(const double frame_rate);
+      void setupTimer(const int32_t interval);
       void setPlayPauseIcon(const bool playing);
   };
 }

@@ -18,6 +18,7 @@ SOURCES += \
     project/objectclip.cpp \
     project/previewgeneratorthread.cpp \
     project/track.cpp \
+    system/audioworker.cpp \
     ui/Forms/effects.cpp \
     ui/Forms/subclipcreatedialog.cpp \
     ui/Forms/timelinetrackarea.cpp \
@@ -131,11 +132,13 @@ HEADERS += \
     chestnut.h \
     coderconstants.h \
     database.h \
+    defaults.h \
     panels/footageviewer.h \
     panels/viewerbase.h \
     project/objectclip.h \
     project/previewgeneratorthread.h \
     project/track.h \
+    system/audioworker.h \
     ui/Forms/effects.h \
     ui/Forms/subclipcreatedialog.h \
     ui/Forms/timelinetrackarea.h \

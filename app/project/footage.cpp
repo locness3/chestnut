@@ -31,6 +31,7 @@ extern "C" {
 
 using project::FootageStreamPtr;
 using media_handling::MediaProperty;
+namespace mh = media_handling;
 
 
 Footage::Footage(const Footage& cpy)

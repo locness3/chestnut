@@ -24,6 +24,7 @@
 #include <QIcon>
 #include <mediahandling/imediastream.h>
 #include <QPixmap>
+#include <mutex>
 
 #include "project/ixmlstreamer.h"
 
@@ -41,6 +42,7 @@ namespace project {
       int audio_channels {-1};
       int audio_layout {-1};
       int audio_frequency {-1};
+      media_handling::Rational timescale_ {0, 1};
       QImage video_preview;
       QIcon video_preview_square;
       QVector<char> audio_preview;
@@ -64,7 +66,9 @@ namespace project {
        */
       bool generatePreview();
 
-      QPixmap frame();
+      std::tuple<QPixmap, int64_t> frame();
+
+      QByteArray audioFrame(const int64_t out=-1);
 
       void seek(const int64_t position);
 
@@ -89,9 +93,9 @@ namespace project {
       std::weak_ptr<Footage> parent_;
       media_handling::MediaStreamPtr stream_info_{nullptr};
       QString data_path;
-      bool audio_ {false};
-      bool frame_retrieved_{false};
       std::optional<int64_t> seek_position_;
+      std::once_flag frame_retrieved_;
+      bool audio_ {false};
 
       void initialise(const media_handling::IMediaStream& stream);
       /**

@@ -1987,13 +1987,13 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests)
 
     // have audio data so write to audio_data_buffer
     long buffer_timeline_out = get_buffer_offset_from_frame(sequence->frameRate(), timeline_out);
-    audio_write_lock.lock();
 
+    QMutexLocker locker(&audio_write_lock);
     while (audio_playback.frame_sample_index < nb_bytes
            && audio_playback.buffer_write < audio_ibuffer_read+(AUDIO_IBUFFER_SIZE>>1)
            && audio_playback.buffer_write < buffer_timeline_out) {
-      int upper_byte_index = (audio_playback.buffer_write + 1) % AUDIO_IBUFFER_SIZE;
-      int lower_byte_index = (audio_playback.buffer_write) % AUDIO_IBUFFER_SIZE;
+      const int upper_byte_index = (audio_playback.buffer_write + 1) % AUDIO_IBUFFER_SIZE;
+      const int lower_byte_index = (audio_playback.buffer_write) % AUDIO_IBUFFER_SIZE;
       const auto old_sample = static_cast<qint16>( ((audio_ibuffer[upper_byte_index] & 0xFF) << 8)
                                                    | (audio_ibuffer[lower_byte_index] & 0xFF));
       const auto new_sample = static_cast<qint16>(((av_frame->data[0][audio_playback.frame_sample_index + 1] & 0xFF) << 8)
@@ -2006,7 +2006,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests)
       audio_playback.buffer_write += 2;
       audio_playback.frame_sample_index += 2;
     }//while
-    audio_write_lock.unlock();
+    locker.unlock();
 
     if (scrubbing && (audio_thread != nullptr) ) {
       audio_thread->notifyReceiver();
@@ -2028,7 +2028,7 @@ void Clip::cache_audio_worker(const bool scrubbing, QVector<ClipPtr> &nests)
   } //while
 
   // frame processed, trigger timeline movement
-  QMetaObject::invokeMethod(&PanelManager::footageViewer(), "play_wake", Qt::QueuedConnection);
+//  QMetaObject::invokeMethod(&PanelManager::footageViewer(), "play_wake", Qt::QueuedConnection); // FIXME:
   QMetaObject::invokeMethod(&PanelManager::sequenceViewer(), "play_wake", Qt::QueuedConnection);
 }
 

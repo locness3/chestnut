@@ -18,12 +18,26 @@
 
 #include "footageviewer.h"
 
+#include <QThread>
+
+#include "defaults.h"
+
 using chestnut::panels::FootageViewer;
+using chestnut::system::AudioWorker;
 namespace mh = media_handling;
 
 FootageViewer::FootageViewer(QWidget* parent)
-  : ViewerBase(parent)
+  : ViewerBase(parent),
+    audio_thread_(new QThread)
 {
+  audio_thread_->setPriority(QThread::HighPriority);
+  audio_worker_ = new AudioWorker;
+  audio_worker_->moveToThread(audio_thread_);
+  connect(audio_thread_, &QThread::started, audio_worker_, &AudioWorker::process);
+  connect(audio_worker_, &AudioWorker::finished, audio_thread_, &QThread::quit);
+  connect(audio_worker_, &AudioWorker::finished, audio_worker_, &AudioWorker::deleteLater);
+  connect(audio_thread_, &QThread::finished, audio_worker_, &AudioWorker::deleteLater);
+  audio_thread_->start();
 }
 
 void FootageViewer::clear()
@@ -46,11 +60,21 @@ void FootageViewer::setMedia(MediaWPtr mda)
       return;
     }
     auto tracks = footage_->videoTracks();
-    if (tracks.empty() || (tracks.front() == nullptr) ) {
+    if (!tracks.empty() && (tracks.front() != nullptr) ) {
+      video_track_ = tracks.front();
+      time_.scale_ = video_track_->timescale_;
+      time_.interval_ = qRound(1000.0 / video_track_->video_frame_rate);
+    }
+    tracks = footage_->audioTracks();
+    if (!tracks.empty() && (tracks.front() != nullptr)) {
+      audio_track_ = tracks.front();
+      Q_ASSERT(audio_worker_);
+      audio_worker_->setup(audio_track_->audio_channels);
+    }
+    if ( (audio_track_ == nullptr) || (video_track_ == nullptr) ) {
       return;
     }
-    video_track_ = tracks.front();
-    setupTimer(video_track_->video_frame_rate);
+    setupTimer(time_.interval_);
     current_timecode_->set_frame_rate(video_track_->video_frame_rate);
     seekToInPoint();
     nextFrame();
@@ -137,14 +161,20 @@ bool FootageViewer::isFocused() const
 
 void FootageViewer::nextFrame()
 {
+  time_.stamp_ += qRound((static_cast<double>(time_.interval_/1000.0) / time_.scale_.numerator()) * time_.scale_.denominator());
   if (video_track_) {
-    const auto pm = video_track_->frame();
+    const auto [pm, ts] = video_track_->frame();
     if (pm.isNull()) {
       end_of_stream_ = true;
       pause();
+      return;
     }
-    frame_view_->setPixmap(pm.scaledToHeight(frame_view_->height()));
-  } else if (!audio_tracks_.empty()) {
+    current_timecode_->set_value(time_.stamp_, false);
+    frame_view_->setPixmap(pm.scaledToHeight(frame_view_->height(), Qt::SmoothTransformation));
+    if (audio_track_) {
+      audio_worker_->queueData(audio_track_->audioFrame(time_.stamp_));
+    }
+  } else if (audio_track_) {
     // TODO: draw waveform
   } else {
     qWarning() << "No audio or video footage";
@@ -157,25 +187,37 @@ void FootageViewer::previousFrame()
   //TODO:
 }
 
-
 void FootageViewer::seekToStart()
 {
-  //TODO:
+  time_.stamp_ = 0;
+  video_track_->seek(0);
+  nextFrame();
 }
 
 void FootageViewer::seekToEnd()
 {
   //TODO:
 }
+
 void FootageViewer::seekToInPoint()
 {
-  const auto in = footage_->using_inout ? footage_->in : 0;
-  video_track_->seek(in);
+  if (footage_->using_inout) {
+    video_track_->seek(footage_->in);
+    time_.stamp_ = footage_->in;
+    nextFrame();
+  } else {
+    seekToStart();
+  }
 }
 
 void FootageViewer::seekToOutPoint()
 {
-  //TODO:
+  if (footage_->using_inout) {
+    video_track_->seek(footage_->out);
+    nextFrame();
+  } else {
+    seekToEnd();
+  }
 }
 
 void FootageViewer::updatePanelTitle()
@@ -192,15 +234,14 @@ void FootageViewer::updatePanelTitle()
 
 void FootageViewer::onTimeout()
 {
-  qDebug() << play_timer_.interval();
   nextFrame();
 }
 
-void FootageViewer::setupTimer(const double frame_rate)
+void FootageViewer::setupTimer(const int32_t interval)
 {
-  Q_ASSERT(!qFuzzyCompare(frame_rate, 0.0));
+  qDebug() << "Interval" << interval;
   play_timer_.stop();
-  play_timer_.setInterval(qRound(1000.0 / frame_rate));
+  play_timer_.setInterval(interval);
   play_timer_.setTimerType(Qt::TimerType::CoarseTimer);
   play_timer_.setSingleShot(false);
   connect(&play_timer_, &QTimer::timeout, this, &FootageViewer::onTimeout);
@@ -210,4 +251,3 @@ void FootageViewer::setPlayPauseIcon(const bool playing)
 {
   play_btn_->setIcon(playing ? play_icon_ : QIcon(":/icons/pause.png"));
 }
-

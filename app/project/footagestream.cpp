@@ -31,6 +31,7 @@
 #include "io/path.h"
 #include "debug.h"
 #include "footage.h"
+#include "defaults.h"
 
 
 using project::FootageStream;
@@ -54,7 +55,6 @@ constexpr auto CMD_FORMAT = "ffmpeg -i \"{0}\" -map 0:{1} -f wav - | audiowavefo
 //TODO:
 constexpr auto CMD_FORMAT = "";
 #endif
-
 
 FootageStream::FootageStream(std::weak_ptr<Footage> parent)
   : parent_(std::move(parent)),
@@ -97,12 +97,11 @@ bool FootageStream::generatePreview()
 }
 
 
-QPixmap FootageStream::frame()
+std::tuple<QPixmap, int64_t> FootageStream::frame()
 {
-  if (!frame_retrieved_) {
-    stream_info_->setOutputFormat(media_handling::PixelFormat::RGBA);
-    frame_retrieved_ = true;
-  }
+  std::call_once(frame_retrieved_, [&] {
+    stream_info_->setOutputFormat(chestnut::defaults::video::INTERNAL_FORMAT);
+  });
   const int64_t pos = seek_position_.has_value() ? seek_position_.value() : -1;
   seek_position_.reset();
   if (const auto m_f = stream_info_->frame(pos)) {
@@ -110,10 +109,33 @@ QPixmap FootageStream::frame()
     const auto img  = QImage(*f_d.data_, video_width, video_height, f_d.line_size_, QImage::Format_RGBA8888);
     QPixmap pm;
     pm.convertFromImage(img);
-    return pm;
+    return {pm, f_d.timestamp_};
   }
   // most likely read end of stream
   return {};
+}
+
+
+QByteArray FootageStream::audioFrame(const int64_t out)
+{
+  std::call_once(frame_retrieved_, [&] {
+    stream_info_->setOutputFormat(chestnut::defaults::audio::INTERNAL_FORMAT,
+                                  chestnut::defaults::audio::INTERNAL_FREQUENCY);
+  });
+  const int64_t pos = seek_position_.has_value() ? seek_position_.value() : -1;
+  seek_position_.reset();
+  QByteArray samples;
+  int64_t ts = -1;
+  while (ts <= out) {
+    if (const auto m_f = stream_info_->frame(pos)) {
+      auto data = m_f->data();
+      ts = data.timestamp_;
+      samples.append(reinterpret_cast<char*>(*data.data_), data.data_size_);
+    } else {
+      break;
+    }
+  }
+  return samples;
 }
 
 
@@ -313,6 +335,11 @@ void FootageStream::initialise(const media_handling::IMediaStream& stream)
 {
   file_index = stream.sourceIndex();
   type_ = stream.type();
+
+  bool okay = false;
+  const auto timescale = stream.property<media_handling::Rational>(MediaProperty::TIMESCALE, okay);
+  Q_ASSERT(okay);
+  timescale_ = timescale;
 
   bool is_okay = false;
   if (type_ == StreamType::VIDEO) {

@@ -48,6 +48,7 @@ class Footage : public std::enable_shared_from_this<Footage>, public project::Pr
     int folder_{-1};
 
     double speed_{1.0};
+    media_handling::Rational timescale_ {0, 1};
 
     long in{0};
     long out{0};

@@ -98,6 +98,7 @@ void ViewerBase::setupWidgets()
   current_timecode_container_layout->setMargin(0);
   current_timecode_ = new LabelSlider(current_timecode_container);
   current_timecode_->setToolTip(tr("Playhead position"));
+  current_timecode_->set_display_type(SliderType::FRAMENUMBER);
   current_timecode_container_layout->addWidget(current_timecode_);
   lower_control_layout->addWidget(current_timecode_container);
 
