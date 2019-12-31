@@ -76,6 +76,7 @@ void ViewerBase::setupWidgets()
 
   frame_view_ = new QLabel(contents);
   frame_view_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  frame_view_->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
   layout->addWidget(frame_view_);
 
   headers_ = new TimelineHeader(contents);
