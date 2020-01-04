@@ -35,6 +35,7 @@
 #include "panels/unittest/viewertest.h"
 #include "panels/unittest/timelinetest.h"
 #include "unittest/databasetest.h"
+#include "project/UnitTest/timecodetest.h"
 
 namespace
 {
@@ -72,5 +73,6 @@ int main(int argc, char** argv)
   status |= runTest<ViewerTest>();
   status |= runTest<TimelineTest>();
   status |= runTest<DatabaseTest>();
+  status |= runTest<TimeCodeTest>();
   return status;
 }
