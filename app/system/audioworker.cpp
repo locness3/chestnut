@@ -31,6 +31,14 @@ AudioWorker::~AudioWorker()
 
 }
 
+
+void AudioWorker::clear()
+{
+  QMutexLocker lock(&queue_mutex_);
+  queue_.clear();
+  wait_cond_.wakeAll();
+}
+
 void AudioWorker::queueData(QByteArray data)
 {
   QMutexLocker lock(&queue_mutex_);

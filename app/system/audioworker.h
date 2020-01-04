@@ -37,6 +37,7 @@ namespace chestnut::system
     public:
       explicit AudioWorker(QObject *parent = nullptr);
       ~AudioWorker() override;
+      void clear();
       void queueData(QByteArray data);
       void setup(const int channels);
     signals:

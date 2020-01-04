@@ -71,7 +71,7 @@ void FootageViewer::setMedia(MediaWPtr mda)
       Q_ASSERT(audio_worker_);
       audio_worker_->setup(audio_track_->audio_channels);
     }
-    if ( (audio_track_ == nullptr) || (video_track_ == nullptr) ) {
+    if ( (audio_track_ == nullptr) && (video_track_ == nullptr) ) {
       return;
     }
     setupTimer(time_.interval_);
@@ -102,6 +102,8 @@ void FootageViewer::play()
 
 void FootageViewer::pause()
 {
+  Q_ASSERT(audio_worker_);
+  audio_worker_->clear();
   setPlayPauseIcon(true);
   playing_ = false;
   play_timer_.stop();
@@ -239,7 +241,6 @@ void FootageViewer::onTimeout()
 
 void FootageViewer::setupTimer(const int32_t interval)
 {
-  qDebug() << "Interval" << interval;
   play_timer_.stop();
   play_timer_.setInterval(interval);
   play_timer_.setTimerType(Qt::TimerType::CoarseTimer);
