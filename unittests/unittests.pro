@@ -28,6 +28,7 @@ SOURCES += \
     ../app/panels/unittest/viewertest.cpp \
     ../app/project/UnitTest/effectfieldtest.cpp \
     ../app/project/UnitTest/markertest.cpp \
+    ../app/project/UnitTest/timecodetest.cpp \
     ../app/unittest/databasetest.cpp \
     main.cpp \
     ../app/project/UnitTest/sequenceitemtest.cpp \
@@ -57,6 +58,7 @@ HEADERS += \
     ../app/project/UnitTest/cliptest.h \
     ../app/io/UnitTest/configtest.h \
     ../app/project/UnitTest/footagetest.h \
+    ../app/project/UnitTest/timecodetest.h \
     ../app/project/UnitTest/undotest.h \
     ../app/project/UnitTest/projectmodeltest.h \
     ../app/project/UnitTest/mediahandlertest.h \

@@ -17,6 +17,7 @@ SOURCES += \
     panels/viewerbase.cpp \
     project/objectclip.cpp \
     project/previewgeneratorthread.cpp \
+    project/timecode.cpp \
     project/track.cpp \
     system/audioworker.cpp \
     ui/Forms/effects.cpp \
@@ -137,6 +138,7 @@ HEADERS += \
     panels/viewerbase.h \
     project/objectclip.h \
     project/previewgeneratorthread.h \
+    project/timecode.h \
     project/track.h \
     system/audioworker.h \
     ui/Forms/effects.h \
