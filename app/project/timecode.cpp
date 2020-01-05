@@ -23,8 +23,10 @@
 
 using chestnut::project::TimeCode;
 
-constexpr auto NON_DROP_FMT = "{:02d}:{:02d}:{:02d}:{:02d}";
-constexpr auto DROP_FMT = "{:02d}:{:02d}:{:02d};{:02d}";
+constexpr auto DROP_FMT = "{:02d}:{:02d}:{:02d}{}{:02d}";
+constexpr auto SECONDS_IN_MIN = 60;
+constexpr auto SECONDS_IN_HOUR = SECONDS_IN_MIN * 60;
+constexpr auto DROP_FACTOR = 0.06;
 
 namespace
 {
@@ -38,10 +40,18 @@ TimeCode::TimeCode(media_handling::Rational time_scale, media_handling::Rational
     frame_rate_(std::move(frame_rate)),
     time_stamp_(time_stamp)
 {
-  frames_.drop_ = (frame_rate_ == NTSC_30) || (frame_rate_ == NTSC_60);
-  frames_.second_ = lround(frame_rate_.toDouble());
-  frames_.minute_ = lround((frame_rate * 60).toDouble());
-  frames_.hour_ = lround((frame_rate * 3600).toDouble());
+  const auto rate = lround(frame_rate.toDouble());
+  frames_.drop_ = frame_rate_.denominator() != 1;
+  frames_.second_ = rate;
+  frames_.minute_ = rate * SECONDS_IN_MIN;
+  frames_.ten_minute_ = frames_.minute_ * 10;
+  frames_.hour_ = rate * SECONDS_IN_HOUR;
+
+  if (frames_.drop_) {
+    frames_.drop_count_ = lround(frame_rate.toDouble() * DROP_FACTOR);
+    frames_.drop_minute_ = floor((frame_rate * SECONDS_IN_MIN).toDouble());
+    frames_.drop_ten_minute_ = lround((frame_rate * SECONDS_IN_MIN).toDouble() * 10);
+  }
 }
 
 int64_t TimeCode::toMillis() const
@@ -49,17 +59,9 @@ int64_t TimeCode::toMillis() const
   return llround((time_stamp_ * time_scale_).toDouble() * 1000);
 }
 
-std::string TimeCode::toString() const
+std::string TimeCode::toString(const bool drop) const
 {
-  const auto frames = toFrames();
-  const auto f_rem = frames % frames_.second_;
-  const auto s = (frames / frames_.second_) % 60;
-  const auto m = (frames / frames_.minute_) % 60;
-  const auto h = (frames / frames_.hour_) % 60;
-  if (frames_.drop_) {
-    return {};
-  }
-  return fmt::format(NON_DROP_FMT, h, m, s, f_rem);
+  return framesToSMPTE(toFrames(), drop);
 }
 
 int64_t TimeCode::toFrames() const
@@ -71,7 +73,6 @@ void TimeCode::setTimestamp(const int64_t time_stamp) noexcept
 {
   time_stamp_ = time_stamp;
 }
-
 
 media_handling::Rational TimeCode::timeScale() const noexcept
 {
@@ -88,5 +89,29 @@ int64_t TimeCode::timestamp() const noexcept
   return time_stamp_;
 }
 
+std::string TimeCode::framesToSMPTE(int64_t frames, const bool drop) const
+{
+  assert(frames_.second_ != 0);
+  assert(frames_.minute_ != 0);
+  assert(frames_.hour_ != 0);
+  // Influenced by http://www.davidheidelberger.com/blog/?p=29
+  char token = ':';
+  if (drop && frames_.drop_ && ( (frame_rate_ == NTSC_30) || (frame_rate_ == NTSC_60) ) ) {
+    assert(frames_.drop_minute_ != 0);
+    assert(frames_.drop_ten_minute_ != 0);
+    const auto d = frames / frames_.drop_ten_minute_;
+    const auto m = frames % frames_.drop_ten_minute_;
+    if (m > frames_.drop_count_) {
+      frames += (frames_.drop_count_ * 9 * d) + frames_.drop_count_ * ((m - frames_.drop_count_) / frames_.drop_minute_);
+    } else {
+      frames += frames_.drop_count_ * 9 * d;
+    }
+    token = ';';
+  }
+  const auto f_rem = frames % frames_.second_;
+  const auto s = (frames / frames_.second_) % 60;
+  const auto m = (frames / frames_.minute_) % 60;
+  const auto h = (frames / frames_.hour_) % 60;
 
-
+  return fmt::format(DROP_FMT, h, m , s, token, f_rem);
+}

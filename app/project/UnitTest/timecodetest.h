@@ -21,6 +21,9 @@
 
 #include <QObject>
 
+namespace chestnut::project
+{
+
 class TimeCodeTest : public QObject
 {
     Q_OBJECT
@@ -31,6 +34,11 @@ class TimeCodeTest : public QObject
     void testCaseInit();
     void testCaseInitSpecifiedTimestamp();
     void testCaseInitPAL25();
+    void testCaseInitNTSC24();
+    void testCaseInitNTSC30();
+    void testCaseNTSC30Frames();
+    void testCaseInitNTSC60();
 };
+}
 
 #endif // TIMECODETEST_H

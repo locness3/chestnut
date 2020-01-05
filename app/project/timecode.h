@@ -27,25 +27,72 @@ namespace chestnut::project
   class TimeCode
   {
     public:
+      /**
+       * @brief Constructor
+       * @param time_scale
+       * @param frame_rate
+       * @param time_stamp
+       */
       TimeCode(media_handling::Rational time_scale, media_handling::Rational frame_rate, const int64_t time_stamp=0);
+      /**
+       * @brief Convert time to millis
+       * @return
+       */
       int64_t toMillis() const;
-      std::string toString() const;
+      /**
+       * @brief Convert to SMPTE timecode format
+       * @param drop  Use drop-frame timecode if possible
+       * @return  SMPTE timecode
+       */
+      std::string toString(const bool drop=true) const;
+      /**
+       * @brief Convert time to number of frames
+       * @return
+       */
       int64_t toFrames() const;
+      /**
+       * @brief             Set the time in units of time-scale
+       * @param time_stamp  Value to set
+       */
       void setTimestamp(const int64_t time_stamp) noexcept;
+      /**
+       * @brief Retrieve this time's scale
+       * @return
+       */
       media_handling::Rational timeScale() const noexcept;
+      /**
+       * @brief   Retrieve this time's frame rate
+       * @return
+       */
       media_handling::Rational frameRate() const noexcept;
+      /**
+       * @brief Retrieve this time's time-stamp
+       * @return
+       */
       int64_t timestamp() const noexcept;
-
     private:
+      friend class TimeCodeTest;
       media_handling::Rational time_scale_;
       media_handling::Rational frame_rate_;
       int64_t time_stamp_ {0};
       struct {
-        bool drop_;
-        int32_t second_;
-        int32_t minute_;
-        int32_t hour_;
+          bool drop_ {false};
+          int32_t second_ {0};
+          int32_t minute_ {0};
+          int32_t drop_minute_ {0};
+          int32_t ten_minute_ {0};
+          int32_t drop_ten_minute_ {0};
+          int32_t hour_ {0};
+          int32_t drop_count_ {0};
       } frames_;
+      /**
+       * @brief         Convert frames to smpte timecode
+       * @param frames
+       * @param drop    true==use drop-frame format
+       * @return        hh:mm:ss:;ff
+       */
+      std::string framesToSMPTE(int64_t frames, const bool drop=true) const;
+
   };
 }
 
