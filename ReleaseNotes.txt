@@ -1,4 +1,32 @@
 -------------
+Version 0.2.0
+-------------
+
+05 January 2020
+
+New:
+    - Presets saving and loading #50 
+    - Add the ability to disable/enable all effects from the Sequence viewer #85
+    
+Improvements:
+    - When modifying a timeline, a hidden sequence viewer should be shown #77
+    - When double-clicking an item in the project browser, make the viewer respect in/outs #76
+    - Audio adjustments not in decibels #37
+    - Capture common libav usage into a class/lib #19 
+    
+Fixes:
+    - Large imported files not playable/viewable until waveform-preview generated #26
+    - On reverse drag-seek ui-lock #18
+    - "Blink" in sequence viewer during rendering #32
+    - A created sequence is x2 the fps of the clip used to create it #75
+   
+Known issues:
+    - Track scrolling inconsistent #60
+    - Rotating clip in viewer doesn't work intuitively #89
+    - Memory Leak When using changing Viewer source media #106
+
+
+-------------
 Version 0.1.3
 -------------
 
