@@ -20,6 +20,7 @@
 #include "project/undo.h"
 
 #include <QColorDialog>
+#include <QShowEvent>
 
 ColorButton::ColorButton(QWidget *parent)
   : QPushButton(parent),
