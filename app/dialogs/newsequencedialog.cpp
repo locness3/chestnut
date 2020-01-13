@@ -39,6 +39,9 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
+constexpr auto SAMPLE_RATES = {22050, 24000, 32000, 44100, 48000, 88200, 96000};
+constexpr auto FRAME_RATES = {6.0, 8.0, 10.0, 12.5, 15.0, 23.976, 24.0, 25.0, 29.97, 30.0, 50.0, 59.94, 60.0};
+
 NewSequenceDialog::NewSequenceDialog(QWidget *parent, MediaPtr existing) :
   QDialog(parent),
   existing_item(existing)
@@ -215,19 +218,9 @@ void NewSequenceDialog::setup_ui() {
 
   videoLayout->addWidget(new QLabel(tr("Frame Rate:")), 2, 0, 1, 1);
   frame_rate_combobox = new QComboBox(videoGroupBox);
-  frame_rate_combobox->addItem("6 FPS", 8.0);
-  frame_rate_combobox->addItem("8 FPS", 8.0);
-  frame_rate_combobox->addItem("10 FPS", 10.0);
-  frame_rate_combobox->addItem("12.5 FPS", 12.5);
-  frame_rate_combobox->addItem("15 FPS", 15.0);
-  frame_rate_combobox->addItem("23.976 FPS", 23.976);
-  frame_rate_combobox->addItem("24 FPS", 24.0);
-  frame_rate_combobox->addItem("25 FPS", 25.0);
-  frame_rate_combobox->addItem("29.97 FPS", 29.97);
-  frame_rate_combobox->addItem("30 FPS", 30.0);
-  frame_rate_combobox->addItem("50 FPS", 50.0);
-  frame_rate_combobox->addItem("59.94 FPS", 59.94);
-  frame_rate_combobox->addItem("60 FPS", 60.0);
+  for (const auto& rate : FRAME_RATES) {
+    frame_rate_combobox->addItem(QString("%1 FPS").arg(rate), rate);
+  }
   frame_rate_combobox->setCurrentIndex(6);
   videoLayout->addWidget(frame_rate_combobox, 2, 2, 1, 2);
 
@@ -253,13 +246,9 @@ void NewSequenceDialog::setup_ui() {
   audioLayout->addWidget(new QLabel(tr("Sample Rate: ")), 0, 0, 1, 1);
 
   audio_frequency_combobox = new QComboBox(audioGroupBox);
-  audio_frequency_combobox->addItem("22050 Hz", 22050);
-  audio_frequency_combobox->addItem("24000 Hz", 24000);
-  audio_frequency_combobox->addItem("32000 Hz", 32000);
-  audio_frequency_combobox->addItem("44100 Hz", 44100);
-  audio_frequency_combobox->addItem("48000 Hz", 48000);
-  audio_frequency_combobox->addItem("88200 Hz", 88200);
-  audio_frequency_combobox->addItem("96000 Hz", 96000);
+  for (const auto& rate : SAMPLE_RATES) {
+    audio_frequency_combobox->addItem(QString("%1 Hz").arg(rate), rate);
+  }
   audio_frequency_combobox->setCurrentIndex(4);
 
   audioLayout->addWidget(audio_frequency_combobox, 0, 1, 1, 1);
