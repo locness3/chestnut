@@ -42,7 +42,8 @@ namespace  {
   static const QStringList DNXHD_90_FRATES = {"59.94", "60"};
 }
 
-static const QStringList ALL_FRATES = {"10", "12", "15", "23.976", "24", "25", "29.97", "30", "48", "50", "59.94", "60"};
+// 6fps is Youtube's minimum frame-rate
+static const QStringList ALL_FRATES = {"6", "8", "10", "12", "12.5", "15", "23.976", "24", "25", "29.97", "30", "48", "50", "59.94", "60"};
 constexpr auto DEPTH_8 = "8";
 constexpr auto DEPTH_10 = "10";
 constexpr auto DEPTH_12 = "12";

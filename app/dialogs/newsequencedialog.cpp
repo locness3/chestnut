@@ -215,6 +215,8 @@ void NewSequenceDialog::setup_ui() {
 
   videoLayout->addWidget(new QLabel(tr("Frame Rate:")), 2, 0, 1, 1);
   frame_rate_combobox = new QComboBox(videoGroupBox);
+  frame_rate_combobox->addItem("6 FPS", 8.0);
+  frame_rate_combobox->addItem("8 FPS", 8.0);
   frame_rate_combobox->addItem("10 FPS", 10.0);
   frame_rate_combobox->addItem("12.5 FPS", 12.5);
   frame_rate_combobox->addItem("15 FPS", 15.0);
