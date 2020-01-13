@@ -110,8 +110,8 @@ ClipPtr Transition::secondaryClip() noexcept
       return Effect::parent_clip->sequence->clip(secondary_load_id);
     }
   } catch (...) {
-    return nullptr;
   }
+  return {};
 }
 
 void Transition::set_length_from_slider()
