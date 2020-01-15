@@ -1,4 +1,26 @@
 -------------
+Version 0.2.1
+-------------
+
+15 January 2020
+
+New:
+    None
+    
+Improvements:
+    - types: added opus to audio filter
+    - sequence: low frame-rate sequence options useful for timelapses
+    
+Fixes:
+    - database: certain key functions were not being used in release build
+   
+Known issues:
+    - Track scrolling inconsistent #60
+    - Rotating clip in viewer doesn't work intuitively #89
+    - Memory Leak When using changing Viewer source media #106
+    - Setting in/out points of via media viewer not possible until a sequence is present #107
+    
+-------------
 Version 0.2.0
 -------------
 
