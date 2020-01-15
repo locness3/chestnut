@@ -30,7 +30,8 @@ Database::Database(QString file_path)
 {
   db_ = QSqlDatabase::addDatabase("QSQLITE");
   db_.setDatabaseName(std::move(file_path));
-  Q_ASSERT(db_.open());
+  const auto is_open = db_.open();
+  Q_ASSERT(is_open);
   qInfo() << "Opened database, path =" << db_.databaseName();
   setupEffectsTable();
 }
@@ -38,8 +39,10 @@ Database::Database(QString file_path)
 std::shared_ptr<Database> Database::instance(const QString& file_path)
 {
   if (instance_) {
+    qDebug() << "DB instance exists";
     return instance_;
   } else if (file_path.length() > 0) {
+    qDebug() << "DB instance does not exist yet";
     instance_ = std::make_shared<Database>(file_path);
     return instance_;
   }

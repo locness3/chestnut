@@ -122,11 +122,14 @@ int main(int argc, char *argv[])
   QApplication a(argc, argv);
   QApplication::setWindowIcon(QIcon(":/icons/chestnut.png"));
 
+  qDebug() << "Datapath =" << chestnut::paths::dataPath();
   if (!QDir(chestnut::paths::dataPath()).exists()) {
+    qDebug() << "Need to create datapath";
     QDir().mkdir(chestnut::paths::dataPath());
   }
   const auto path(QDir(chestnut::paths::dataPath()).filePath(DB_FILENAME));
-  Q_ASSERT(chestnut::Database::instance(path) != nullptr);
+  const auto db = chestnut::Database::instance(path);
+  Q_ASSERT(db != nullptr);
 
   const QString name(APP_NAME);
   MainWindow& w = MainWindow::instance(nullptr, name);
