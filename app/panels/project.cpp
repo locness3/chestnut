@@ -118,55 +118,6 @@ Project::Project(QWidget *parent) :
   sorter_ = new ProjectFilter(this);
   sorter_->setSourceModel(&Project::model());
 
-  // optional toolbar
-  toolbar_widget_ = new QWidget();
-  toolbar_widget_->setVisible(global::config.show_project_toolbar);
-  QHBoxLayout* toolbar = new QHBoxLayout();
-  toolbar->setMargin(0);
-  toolbar->setSpacing(0);
-  toolbar_widget_->setLayout(toolbar);
-
-  auto toolbar_new = new QPushButton("New");
-  toolbar_new->setIcon(QIcon(":/icons/tri-down.png"));
-  toolbar_new->setIconSize(QSize(8, 8));
-  toolbar_new->setToolTip("New");
-  connect(toolbar_new, SIGNAL(clicked(bool)), this, SLOT(make_new_menu()));
-  toolbar->addWidget(toolbar_new);
-
-  auto toolbar_open = new QPushButton("Open");
-  toolbar_open->setToolTip("Open Project");
-  connect(toolbar_open, SIGNAL(clicked(bool)), &MainWindow::instance(), SLOT(open_project()));
-  toolbar->addWidget(toolbar_open);
-
-  auto toolbar_save = new QPushButton("Save");
-  toolbar_save->setToolTip("Save Project");
-  connect(toolbar_save, SIGNAL(clicked(bool)), &MainWindow::instance(), SLOT(save_project()));
-  toolbar->addWidget(toolbar_save);
-
-  auto toolbar_undo = new QPushButton("Undo");
-  toolbar_undo->setToolTip("Undo");
-  connect(toolbar_undo, SIGNAL(clicked(bool)), &MainWindow::instance(), SLOT(undo()));
-  toolbar->addWidget(toolbar_undo);
-
-  auto toolbar_redo = new QPushButton("Redo");
-  toolbar_redo->setToolTip("Redo");
-  connect(toolbar_redo, SIGNAL(clicked(bool)), &MainWindow::instance(), SLOT(redo()));
-  toolbar->addWidget(toolbar_redo);
-
-  toolbar->addStretch();
-
-  auto toolbar_tree_view = new QPushButton("Tree View");
-  toolbar_tree_view->setToolTip("Tree View");
-  connect(toolbar_tree_view, SIGNAL(clicked(bool)), this, SLOT(set_tree_view()));
-  toolbar->addWidget(toolbar_tree_view);
-
-  auto toolbar_icon_view = new QPushButton("Icon View");
-  toolbar_icon_view->setToolTip("Icon View");
-  connect(toolbar_icon_view, SIGNAL(clicked(bool)), this, SLOT(set_icon_view()));
-  toolbar->addWidget(toolbar_icon_view);
-
-  verticalLayout->addWidget(toolbar_widget_);
-
   // tree view
   tree_view_ = new SourceTable(sorter_, *this, dockWidgetContents);
   verticalLayout->addWidget(tree_view_);

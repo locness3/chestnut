@@ -63,7 +63,6 @@ public:
     SourceIconView* icon_view_ {nullptr};
     SourcesCommon* sources_common_ {nullptr};
     ProjectFilter* sorter_ {nullptr};
-    QWidget* toolbar_widget_ {nullptr};
 
 
     explicit Project(QWidget *parent = nullptr);

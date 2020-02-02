@@ -149,11 +149,6 @@ void SourcesCommon::show_context_menu(QWidget* parent, const QModelIndexList& it
     connect(icon_view_action, SIGNAL(triggered(bool)), project_parent, SLOT(set_icon_view()));
   }
 
-  QAction* toolbar_action = menu.addAction(tr("Show Toolbar"));
-  toolbar_action->setCheckable(true);
-  toolbar_action->setChecked(project_parent->toolbar_widget_->isVisible());
-  connect(toolbar_action, SIGNAL(triggered(bool)), project_parent->toolbar_widget_, SLOT(setVisible(bool)));
-
   QAction* show_sequences = menu.addAction(tr("Show Sequences"));
   show_sequences->setCheckable(true);
   show_sequences->setChecked(PanelManager::projectViewer().sorter_->get_show_sequences());
