@@ -213,7 +213,7 @@ class TimelineWidget : public QWidget {
 
     void drawClipText(QRect& text_rect, QRect clip_rect, Clip& clip, QPainter& painter) const;
     
-public slots:
+  public slots:
     void setScroll(int);
 
   private slots:
@@ -223,7 +223,6 @@ public slots:
     void toggle_autoscale();
     void tooltip_timer_timeout();
     void rename_clip();
-    void show_stabilizer_diag();
     void open_sequence_properties();
 };
 

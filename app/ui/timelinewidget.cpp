@@ -47,7 +47,6 @@
 #include "project/undo.h"
 #include "ui/mainwindow.h"
 #include "ui/viewerwidget.h"
-#include "dialogs/stabilizerdialog.h"
 #include "ui/resizablescrollbar.h"
 #include "dialogs/newsequencedialog.h"
 #include "ui/mainwindow.h"
@@ -300,11 +299,6 @@ void TimelineWidget::rename_clip() {
       PanelManager::refreshPanels(true);
     }
   }
-}
-
-void TimelineWidget::show_stabilizer_diag() {
-  StabilizerDialog sd;
-  sd.exec();
 }
 
 void TimelineWidget::open_sequence_properties() {
