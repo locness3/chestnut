@@ -830,8 +830,13 @@ void Project::import_dialog()
                  formats);
   fd.setFileMode(QFileDialog::ExistingFiles);
 
+  if (last_import_filter_.length() > 0) {
+    fd.selectNameFilter(last_import_filter_);
+  }
+
   if (fd.exec()) {
     QStringList files = fd.selectedFiles();
+    last_import_filter_ = fd.selectedNameFilter();
     process_file_list(files, false, nullptr, get_selected_folder());
   }
 }

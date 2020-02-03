@@ -148,6 +148,10 @@ private:
     inline static std::unique_ptr<ProjectModel> model_ {nullptr};
     chestnut::project::PreviewGeneratorThread* preview_gen_ {nullptr};
     QMap<MediaPtr, MediaThrobber*> media_throbbers_;
+    /**
+     * @brief Stores the filter that was used on the last import of media
+     */
+    QString last_import_filter_;
 
     void list_all_sequences_worker(QVector<MediaPtr> &list, MediaPtr parent); //TODO: recursive depth limit
     QString get_file_name_from_path(const QString &path) const;
