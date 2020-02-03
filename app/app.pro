@@ -88,7 +88,6 @@ SOURCES += \
     effects/internal/cubetransition.cpp \
     project/effectgizmo.cpp \
     io/clipboard.cpp \
-    dialogs/stabilizerdialog.cpp \
     io/avtogl.cpp \
     ui/resizablescrollbar.cpp \
     ui/sourceiconview.cpp \
@@ -206,7 +205,6 @@ HEADERS += \
     effects/internal/cubetransition.h \
     project/effectgizmo.h \
     io/clipboard.h \
-    dialogs/stabilizerdialog.h \
     io/avtogl.h \
     ui/resizablescrollbar.h \
     ui/sourceiconview.h \
