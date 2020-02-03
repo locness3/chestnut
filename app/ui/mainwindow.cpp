@@ -303,6 +303,8 @@ void MainWindow::initialise()
 
   init_audio();
   QObject::connect(&PanelManager::timeLine(), &Timeline::newSequenceLoaded, this, &MainWindow::sequenceLoaded);
+  QObject::connect(&PanelManager::footageViewer(), &Viewer::mediaSet, this, &MainWindow::footageViewerSet);
+  QObject::connect(&PanelManager::footageViewer(), &Viewer::mediaCleared, this, &MainWindow::footageViewerCleared);
 }
 
 MainWindow& MainWindow::instance(QWidget* parent, const QString& an)
@@ -340,15 +342,15 @@ void MainWindow::make_new_menu(QMenu& parent_menu) const
   parent_menu.addAction(tr("&Folder"), this, SLOT(new_folder()))->setProperty("id", "newfolder");
 }
 
-void MainWindow::make_inout_menu(QMenu& parent_menu) const
+void MainWindow::make_inout_menu(QMenu& parent_menu)
 {
-  parent_menu.addAction(tr("Set In Point"), this, SLOT(set_in_point()), QKeySequence("I"))->setProperty("id", "setinpoint");
-  parent_menu.addAction(tr("Set Out Point"), this, SLOT(set_out_point()), QKeySequence("O"))->setProperty("id", "setoutpoint");
-  parent_menu.addAction(tr("Enable/Disable In/Out Point"), this, SLOT(enable_inout()))->setProperty("id", "enableinout");
+  inout_actions_.emplace_back(parent_menu.addAction(tr("Set In Point"), this, SLOT(set_in_point()), QKeySequence("I")));
+  inout_actions_.emplace_back(parent_menu.addAction(tr("Set Out Point"), this, SLOT(set_out_point()), QKeySequence("O")));
+  inout_actions_.emplace_back(parent_menu.addAction(tr("Enable/Disable In/Out Point"), this, SLOT(enable_inout())));
   parent_menu.addSeparator();
-  parent_menu.addAction(tr("Reset In Point"), this, SLOT(clear_in()))->setProperty("id", "resetin");
-  parent_menu.addAction(tr("Reset Out Point"), this, SLOT(clear_out()))->setProperty("id", "resetout");
-  parent_menu.addAction(tr("Clear In/Out Point"), this, SLOT(clear_inout()), QKeySequence("G"))->setProperty("id", "clearinout");
+  inout_actions_.emplace_back(parent_menu.addAction(tr("Reset In Point"), this, SLOT(clear_in())));
+  inout_actions_.emplace_back(parent_menu.addAction(tr("Reset Out Point"), this, SLOT(clear_out())));
+  inout_actions_.emplace_back(parent_menu.addAction(tr("Clear In/Out Point"), this, SLOT(clear_inout()), QKeySequence("G")));
 }
 
 void kbd_shortcut_processor(QByteArray& file, QMenu* menu, bool save, bool first) {
@@ -1242,6 +1244,23 @@ void MainWindow::sequenceLoaded(const SequencePtr& new_sequence)
     item->setEnabled(true);
   }
 
+}
+
+void MainWindow::footageViewerSet()
+{
+  for (auto action : inout_actions_) {
+    Q_ASSERT(action != nullptr);
+    action->setEnabled(true);
+  }
+}
+
+
+void MainWindow::footageViewerCleared()
+{
+  for (auto action : inout_actions_) {
+    Q_ASSERT(action != nullptr);
+    action->setEnabled(false);
+  }
 }
 
 void MainWindow::reset_layout()

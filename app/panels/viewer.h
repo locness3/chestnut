@@ -131,6 +131,8 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     void muteEffects(const bool value);
     void startedPlaying();
     void stoppedPlaying();
+    void mediaSet();
+    void mediaCleared();
 
   private slots:
     void update_playhead();
