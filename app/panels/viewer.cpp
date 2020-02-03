@@ -322,6 +322,7 @@ void Viewer::go_to_end()
 void Viewer::close_media()
 {
   set_media(nullptr);
+  emit mediaCleared();
 }
 
 void Viewer::go_to_in()
@@ -919,6 +920,7 @@ void Viewer::set_media(const MediaPtr& m)
     }//switch
   }
   setSequence(false, sequence_);
+  emit mediaSet();
 }
 
 void Viewer::reset()

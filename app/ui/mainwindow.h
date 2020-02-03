@@ -41,7 +41,7 @@ class MainWindow : public QMainWindow {
     void launch_with_project(const QString& s);
 
     void make_new_menu(QMenu& parent_menu) const;
-    void make_inout_menu(QMenu& parent_menu) const;
+    void make_inout_menu(QMenu& parent_menu);
 
     void load_shortcuts(const QString &fn, bool first = false);
     void save_shortcuts(const QString &fn);
@@ -161,7 +161,14 @@ class MainWindow : public QMainWindow {
     void show_action_search();
 
     void sequenceLoaded(const SequencePtr& new_sequence);
-
+    /**
+     * @brief Slot to handle the Footage viewer being populated by media
+     */
+    void footageViewerSet();
+    /**
+     * @brief Slot to handle the Footage viewer being cleared of media
+     */
+    void footageViewerCleared();
   private:
     friend class MainWindowTest;
 
@@ -237,6 +244,7 @@ class MainWindow : public QMainWindow {
     QTimer autorecovery_timer;
     QString config_fn;
     QMenu* edit_menu_{nullptr};
+    std::vector<QAction*> inout_actions_;
 
     inline static MainWindow* instance_ = nullptr;
     void setupEditMenu(QMenuBar* menuBar);
