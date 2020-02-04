@@ -172,17 +172,6 @@ class MainWindow : public QMainWindow {
   private:
     friend class MainWindowTest;
 
-
-    void nudgeClip(const bool forward);
-    void setup_layout(bool reset);
-    bool can_close_project();
-    void setup_menus();
-
-    void set_bool_action_checked(QAction* a);
-    void set_int_action_checked(QAction* a, const int i);
-    void set_button_action_checked(QAction* a);
-
-
     const QString& app_name;
 
     // menu bar menus
@@ -244,10 +233,21 @@ class MainWindow : public QMainWindow {
     QTimer autorecovery_timer;
     QString config_fn;
     QMenu* edit_menu_{nullptr};
-    std::vector<QAction*> inout_actions_;
 
     inline static MainWindow* instance_ = nullptr;
+
+  private:
     void setupEditMenu(QMenuBar* menuBar);
+    void nudgeClip(const bool forward);
+    void setup_layout(bool reset);
+    bool can_close_project();
+    void setup_menus();
+
+    void set_bool_action_checked(QAction* a);
+    void set_int_action_checked(QAction* a, const int i);
+    void set_button_action_checked(QAction* a);
+
+    QAction* findEditActionById(const QString& id) const;
 };
 
 
