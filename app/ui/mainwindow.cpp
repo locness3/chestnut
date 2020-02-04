@@ -92,6 +92,13 @@ constexpr qint64 AUTORECOVERY_INTERVAL_MILLIS = 60000;
 constexpr int NUDGE_VAL = 1;
 constexpr int UNDO_STACK_LIMIT = 10;
 
+constexpr auto SET_IN_POINT_ID = "setinpoint";
+constexpr auto SET_OUT_POINT_ID = "setoutpoint";
+constexpr auto ENABLE_POINTS_ID = "enablepoints";
+constexpr auto RESET_IN_POINT_ID = "resetinpoint";
+constexpr auto RESET_OUT_POINT_ID = "resetoutpoint";
+constexpr auto CLEAR_POINTS_ID = "clearpoints";
+
 
 void MainWindow::nudgeClip(const bool forward)
 {
@@ -344,13 +351,13 @@ void MainWindow::make_new_menu(QMenu& parent_menu) const
 
 void MainWindow::make_inout_menu(QMenu& parent_menu)
 {
-  inout_actions_.emplace_back(parent_menu.addAction(tr("Set In Point"), this, SLOT(set_in_point()), QKeySequence("I")));
-  inout_actions_.emplace_back(parent_menu.addAction(tr("Set Out Point"), this, SLOT(set_out_point()), QKeySequence("O")));
-  inout_actions_.emplace_back(parent_menu.addAction(tr("Enable/Disable In/Out Point"), this, SLOT(enable_inout())));
+  parent_menu.addAction(tr("Set In Point"), this, SLOT(set_in_point()), QKeySequence("I"))->setProperty("id", SET_IN_POINT_ID);
+  parent_menu.addAction(tr("Set Out Point"), this, SLOT(set_out_point()), QKeySequence("O"))->setProperty("id", SET_OUT_POINT_ID);
+  parent_menu.addAction(tr("Enable/Disable In/Out Point"), this, SLOT(enable_inout()))->setProperty("id", ENABLE_POINTS_ID);
   parent_menu.addSeparator();
-  inout_actions_.emplace_back(parent_menu.addAction(tr("Reset In Point"), this, SLOT(clear_in())));
-  inout_actions_.emplace_back(parent_menu.addAction(tr("Reset Out Point"), this, SLOT(clear_out())));
-  inout_actions_.emplace_back(parent_menu.addAction(tr("Clear In/Out Point"), this, SLOT(clear_inout()), QKeySequence("G")));
+  parent_menu.addAction(tr("Reset In Point"), this, SLOT(clear_in()))->setProperty("id", RESET_IN_POINT_ID);
+  parent_menu.addAction(tr("Reset Out Point"), this, SLOT(clear_out()))->setProperty("id", RESET_OUT_POINT_ID);
+  parent_menu.addAction(tr("Clear In/Out Point"), this, SLOT(clear_inout()), QKeySequence("G"))->setProperty("id", CLEAR_POINTS_ID);
 }
 
 void kbd_shortcut_processor(QByteArray& file, QMenu* menu, bool save, bool first) {
@@ -1120,6 +1127,19 @@ void MainWindow::set_button_action_checked(QAction *a) {
   a->setChecked(reinterpret_cast<QPushButton*>(a->data().value<quintptr>())->isChecked());
 }
 
+
+QAction* MainWindow::findEditActionById(const QString& id) const
+{
+  Q_ASSERT(edit_menu_ != nullptr);
+  for (const auto& act : edit_menu_->actions()) {
+    Q_ASSERT(act != nullptr);
+    if (act->property("id") == id) {
+      return act;
+    }
+  }
+  return {};
+}
+
 void MainWindow::updateTitle(const QString& url) {
   project_url = url;
   setWindowTitle(app_name + " - " + ((project_url.isEmpty()) ? tr("<untitled>") : project_url) + "[*]");
@@ -1248,18 +1268,22 @@ void MainWindow::sequenceLoaded(const SequencePtr& new_sequence)
 
 void MainWindow::footageViewerSet()
 {
-  for (auto action : inout_actions_) {
-    Q_ASSERT(action != nullptr);
-    action->setEnabled(true);
+  const auto ids = {SET_IN_POINT_ID, SET_OUT_POINT_ID, ENABLE_POINTS_ID, RESET_IN_POINT_ID, RESET_OUT_POINT_ID, CLEAR_POINTS_ID};
+  for (const auto& id : ids) {
+    if (auto action = findEditActionById(id)) {
+      action->setEnabled(true);
+    }
   }
 }
 
 
 void MainWindow::footageViewerCleared()
 {
-  for (auto action : inout_actions_) {
-    Q_ASSERT(action != nullptr);
-    action->setEnabled(false);
+  const auto ids = {SET_IN_POINT_ID, SET_OUT_POINT_ID, ENABLE_POINTS_ID, RESET_IN_POINT_ID, RESET_OUT_POINT_ID, CLEAR_POINTS_ID};
+  for (const auto& id : ids) {
+    if (auto action = findEditActionById(id)) {
+      action->setEnabled(false);
+    }
   }
 }
 
