@@ -152,7 +152,7 @@ void Footage::parseStreams()
   }
 
   bool is_okay = false;
-  length_ = media_source_->property<int64_t>(MediaProperty::DURATION, is_okay);
+  length_ = media_source_->property<mh::Rational>(MediaProperty::DURATION, is_okay);
   if (!is_okay) {
     constexpr auto msg = "Failed to retrieve footage duration";
     qCritical() << msg;

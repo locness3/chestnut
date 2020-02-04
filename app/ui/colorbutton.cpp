@@ -17,9 +17,10 @@
  */
 #include "colorbutton.h"
 
-#include "project/undo.h"
-
 #include <QColorDialog>
+#include <QShowEvent>
+
+#include "project/undo.h"
 
 ColorButton::ColorButton(QWidget *parent)
   : QPushButton(parent),
