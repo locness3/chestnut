@@ -25,6 +25,7 @@ using chestnut::panels::ViewerBase;
 
 ViewerBase::ViewerBase(QWidget* parent) : QDockWidget(parent)
 {
+  setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   setupWidgets();
 }
 

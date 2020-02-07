@@ -33,7 +33,7 @@ namespace chestnut::panels
   class ViewerBase : public QDockWidget
   {
     public:
-      explicit ViewerBase(QWidget* parent=nullptr);
+      explicit ViewerBase(QWidget* parent);
       virtual ~ViewerBase();
 
       virtual void setName(QString name);

@@ -109,7 +109,7 @@ void MainWindow::setup_layout(bool reset)
   PanelManager::projectViewer().show();
   PanelManager::markersViewer().show();
   PanelManager::fxControls().show();
-//  PanelManager::footageViewer().show();
+  PanelManager::footageViewer().show();
   PanelManager::sequenceViewer().show();
   PanelManager::timeLine().show();
   PanelManager::graphEditor().hide();
@@ -119,19 +119,15 @@ void MainWindow::setup_layout(bool reset)
   addDockWidget(Qt::TopDockWidgetArea, &PanelManager::projectViewer());
   tabifyDockWidget(&PanelManager::projectViewer(), &PanelManager::markersViewer());
   PanelManager::projectViewer().raise();
-//  addDockWidget(Qt::TopDockWidgetArea, &PanelManager::footageViewer());
+  addDockWidget(Qt::TopDockWidgetArea, &PanelManager::footageViewer());
   tabifyDockWidget(&PanelManager::footageViewer(), &PanelManager::fxControls());
-//  PanelManager::footageViewer().raise();
+  PanelManager::footageViewer().raise();
   addDockWidget(Qt::TopDockWidgetArea, &PanelManager::sequenceViewer());
   addDockWidget(Qt::BottomDockWidgetArea, &PanelManager::timeLine());
   PanelManager::graphEditor().setFloating(true);
   PanelManager::histogram().setFloating(true);
   PanelManager::colorScope().setFloating(true);
 
-  // workaround for strange Qt dock bug (see https://bugreports.qt.io/browse/QTBUG-65592)
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-//  resizeDocks({&PanelManager::projectViewer()}, {40}, Qt::Horizontal);
-#endif
 
   // load panels from file
   QFile panel_config(chestnut::paths::configPath() + PANEL_CFG_FILE);
