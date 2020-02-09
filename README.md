@@ -10,3 +10,5 @@ The latest stable release is [0.2.1](https://github.com/jonno85uk/chestnut/relea
 For Arch or Manjaro Linux users, there is a package for the latest release made available via AUR. 
 To install:
 <pre><code>pacaur -S chestnut</code></pre>
+
+For other users see the installation instructions in Install.md
