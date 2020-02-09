@@ -1,5 +1,8 @@
 # Installation
 
+## Windows/Mac
+Neither operating systems are supported. There is no intention to do so.
+
 ## Ubuntu 19.10
 
 Versions earlier than 19.10 are not supported
