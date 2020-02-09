@@ -6,7 +6,7 @@ The sole intent of this project is a personal effort into assuring some level of
 
 The latest stable release is [0.2.1](https://github.com/jonno85uk/chestnut/releases/tag/v0.2.1). The master branch is designated as unstable/testing.
 
-# Installation
+## Installation
 For Arch or Manjaro Linux users, there is a package for the latest release made available via AUR. 
 To install:
 <pre><code>pacaur -S chestnut</code></pre>
