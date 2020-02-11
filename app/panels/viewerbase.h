@@ -21,11 +21,13 @@
 
 #include <QDockWidget>
 #include <QPushButton>
+#include <QScrollArea>
 
 #include "project/media.h"
 #include "ui/timelineheader.h"
 #include "ui/resizablescrollbar.h"
 #include "ui/labelslider.h"
+#include "ui/imagecanvas.h"
 
 namespace chestnut::panels
 {
@@ -83,7 +85,8 @@ namespace chestnut::panels
 
       TimelineHeader* headers_ {nullptr};
       ResizableScrollBar* horizontal_bar_ {nullptr};
-      QLabel* frame_view_ {nullptr};
+      QScrollArea* scroll_area_ {nullptr};
+      ui::ImageCanvas* frame_view_ {nullptr};
       LabelSlider* current_timecode_ {nullptr};
       QLabel* visible_timecode_ {nullptr};
 
@@ -94,8 +97,11 @@ namespace chestnut::panels
       QPushButton* skip_to_end_btn_ {nullptr};
       QPushButton* fx_mute_btn_ {nullptr};
 
+    private:
       void setupWidgets();
       void enableWidgets(const bool enable);
+    private slots:
+      void scrollAreaHideScrollbars(const bool hide);
   };
 }
 Q_DECLARE_INTERFACE(chestnut::panels::ViewerBase, "ViewerBase")

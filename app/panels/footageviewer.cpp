@@ -172,7 +172,7 @@ void FootageViewer::nextFrame()
       return;
     }
     current_timecode_->set_value(time_.stamp_, false);
-    frame_view_->setPixmap(pm.scaledToHeight(frame_view_->height(), Qt::SmoothTransformation));
+    frame_view_->setImage(pm);
     if (audio_track_) {
       audio_worker_->queueData(audio_track_->audioFrame(time_.stamp_));
     }

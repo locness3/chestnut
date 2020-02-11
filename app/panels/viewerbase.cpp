@@ -75,10 +75,16 @@ void ViewerBase::setupWidgets()
   layout->setSpacing(0);
   layout->setMargin(0);
 
-  frame_view_ = new QLabel(contents);
-  frame_view_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-  frame_view_->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  layout->addWidget(frame_view_);
+  scroll_area_ = new QScrollArea(contents);
+  scroll_area_->setWidgetResizable(false);
+  scroll_area_->setFrameShape(QFrame::NoFrame); // Remove 1px border
+  layout->addWidget(scroll_area_);
+
+  frame_view_ = new ui::ImageCanvas(scroll_area_);
+  frame_view_->enableSmoothResize(true);
+  frame_view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  scroll_area_->setWidget(frame_view_);
+  connect(frame_view_, &ui::ImageCanvas::isAutoScaling, this, &ViewerBase::scrollAreaHideScrollbars);
 
   headers_ = new TimelineHeader(contents);
   layout->addWidget(headers_);
@@ -201,4 +207,12 @@ void ViewerBase::enableWidgets(const bool enable)
   fx_mute_btn_ ->setEnabled(enable);
   fx_mute_btn_->setEnabled(enable);
   visible_timecode_->setEnabled(enable);
+}
+
+void ViewerBase::scrollAreaHideScrollbars(const bool hide)
+{
+  // Prevents a weird momentary scrollbar whilst resizing down
+  const auto policy = hide ? Qt::ScrollBarAlwaysOff : Qt::ScrollBarAsNeeded;
+  scroll_area_->setVerticalScrollBarPolicy(policy);
+  scroll_area_->setHorizontalScrollBarPolicy(policy);
 }

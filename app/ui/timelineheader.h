@@ -73,7 +73,7 @@ class TimelineHeader : public QWidget
     long temp_workarea_out {0};
     long sequence_end {0};
 
-    double zoom {1.0};
+    double zoom {-1};
 
     long in_visible {0};
 

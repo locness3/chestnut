@@ -148,6 +148,7 @@ void TimelineHeader::show_text(bool enable)
 
 void TimelineHeader::mousePressEvent(QMouseEvent* event)
 {
+  Q_ASSERT(viewer_ != nullptr);
   auto sqn = viewer_->getSequence();
   if (sqn == nullptr) {
     return;

@@ -25,6 +25,7 @@ SOURCES += \
     ui/Forms/trackareawidget.cpp \
     ui/blankscrollarea.cpp \
     ui/cursor.cpp \
+    ui/imagecanvas.cpp \
     ui/mainwindow.cpp \
     panels/project.cpp \
     panels/effectcontrols.cpp \
@@ -146,6 +147,7 @@ HEADERS += \
     ui/IEffectFieldWidget.h \
     ui/blankscrollarea.h \
     ui/cursor.h \
+    ui/imagecanvas.h \
     ui/mainwindow.h \
     panels/project.h \
     panels/effectcontrols.h \
