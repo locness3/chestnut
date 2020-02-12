@@ -67,6 +67,14 @@ void ViewerBase::togglePlay()
   }
 }
 
+
+void ViewerBase::resizeEvent(QResizeEvent* event)
+{
+  Q_ASSERT(frame_view_);
+  frame_view_->rescale();
+  QDockWidget::resizeEvent(event);
+}
+
 void ViewerBase::setupWidgets()
 {
   auto contents = new QWidget();
@@ -83,6 +91,7 @@ void ViewerBase::setupWidgets()
   frame_view_ = new ui::ImageCanvas(scroll_area_);
   frame_view_->enableSmoothResize(true);
   frame_view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  frame_view_->setZoom(0.1);
   scroll_area_->setWidget(frame_view_);
   connect(frame_view_, &ui::ImageCanvas::isAutoScaling, this, &ViewerBase::scrollAreaHideScrollbars);
 

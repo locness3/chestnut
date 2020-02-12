@@ -32,11 +32,11 @@ namespace chestnut::ui
       void clear();
       void enableSmoothResize(const bool enable) noexcept;
       void setZoom(const double zoom) noexcept;
+      void rescale();
     signals:
       void isAutoScaling(bool) const;
     protected:
       void paintEvent(QPaintEvent* event) override;
-      void resizeEvent(QResizeEvent* event) override;
     private:
       QPixmap img_;
       QPixmap img_cached_;

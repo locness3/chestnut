@@ -35,22 +35,7 @@ ImageCanvas::ImageCanvas(QWidget* parent) : QWidget(parent)
 void ImageCanvas::setImage(QPixmap img)
 {
   img_ = std::move(img);
-  img_cached_ = resizeImage(img_);
-
-  const auto par = this->parentWidget();
-  Q_ASSERT(par != nullptr);
-  if (autoScale() && (this->size() != par->size())) {
-    // ensure this widget fills the scrollarea otherwise the image will be located at the top of the available area, not center
-    this->resize(par->size());
-  } else if (!autoScale()) {
-    // smallest the size of widget can be is the scroll area otherwise image ends up in top-left
-    const auto sz = (par->width() > img_cached_.width()) || (par->height() > img_cached_.height()) ? par->size()
-                                                                                                   : img_cached_.size();
-    if (this->size() != sz) {
-      this->resize(sz);
-    }
-  }
-  this->update();
+  rescale();
 }
 
 
@@ -74,6 +59,25 @@ void ImageCanvas::setZoom(const double zoom) noexcept
   }
 }
 
+void ImageCanvas::rescale()
+{
+  img_cached_ = resizeImage(img_);
+  const auto par = this->parentWidget();
+  Q_ASSERT(par != nullptr);
+  if (autoScale() && (this->size() != par->size())) {
+    // ensure this widget fills the scrollarea otherwise the image will be located at the top of the available area, not center
+    this->resize(par->size());
+  } else if (!autoScale()) {
+    // smallest the size of widget can be is the scroll area otherwise image ends up in top-left
+    const auto sz = (par->width() > img_cached_.width()) || (par->height() > img_cached_.height()) ? par->size()
+                                                                                                   : img_cached_.size();
+    if (this->size() != sz) {
+      this->resize(sz);
+    }
+  }
+  this->update();
+}
+
 void ImageCanvas::paintEvent(QPaintEvent* /*event*/)
 {
   QPainter painter(this);
@@ -87,19 +91,6 @@ void ImageCanvas::paintEvent(QPaintEvent* /*event*/)
   const int x = (this->rect().width() - sz.width()) >> 1;
   const int y = (this->rect().height() - sz.height()) >> 1;
   painter.drawPixmap(QPoint(x, y), img_cached_, img_cached_.rect());
-}
-
-
-void ImageCanvas::resizeEvent(QResizeEvent* event)
-{
-  Q_ASSERT(event);
-  if ( (img_.height() == 0) || (img_.width() == 0) || (!autoScale())) {
-    // Nothing to do
-    return;
-  }
-  img_cached_ = resizeImage(img_);
-  this->update();
-  QWidget::resizeEvent(event);
 }
 
 

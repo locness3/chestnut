@@ -75,6 +75,7 @@ namespace chestnut::panels
 
     protected:
       virtual void updatePanelTitle() = 0;
+      void resizeEvent(QResizeEvent* event) override;
 
     private:
       friend class FootageViewer;
