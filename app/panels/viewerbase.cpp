@@ -54,8 +54,16 @@ bool ViewerBase::hasMedia() const noexcept
 
 void ViewerBase::clear()
 {
+  Q_ASSERT(frame_view_);
+  frame_view_->clear();
   media_.reset();
   enableWidgets(false);
+}
+
+void ViewerBase::setZoom(const double value)
+{
+  Q_ASSERT(frame_view_);
+  frame_view_->setZoom(value);
 }
 
 void ViewerBase::togglePlay()
@@ -83,7 +91,7 @@ void ViewerBase::setupWidgets()
   layout->setSpacing(0);
   layout->setMargin(0);
 
-  scroll_area_ = new QScrollArea(contents);
+  scroll_area_ = new ui::MenuScrollArea(contents);
   scroll_area_->setWidgetResizable(false);
   scroll_area_->setFrameShape(QFrame::NoFrame); // Remove 1px border
   layout->addWidget(scroll_area_);
@@ -91,9 +99,9 @@ void ViewerBase::setupWidgets()
   frame_view_ = new ui::ImageCanvas(scroll_area_);
   frame_view_->enableSmoothResize(true);
   frame_view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  frame_view_->setZoom(0.1);
   scroll_area_->setWidget(frame_view_);
   connect(frame_view_, &ui::ImageCanvas::isAutoScaling, this, &ViewerBase::scrollAreaHideScrollbars);
+  connect(scroll_area_, &ui::MenuScrollArea::setZoom, frame_view_, &ui::ImageCanvas::setZoom);
 
   headers_ = new TimelineHeader(contents);
   layout->addWidget(headers_);

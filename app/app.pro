@@ -31,6 +31,7 @@ SOURCES += \
     panels/effectcontrols.cpp \
     panels/viewer.cpp \
     panels/timeline.cpp \
+    ui/menuscrollarea.cpp \
     ui/presetaction.cpp \
     ui/sourcetable.cpp \
     dialogs/aboutdialog.cpp \
@@ -153,6 +154,7 @@ HEADERS += \
     panels/effectcontrols.h \
     panels/viewer.h \
     panels/timeline.h \
+    ui/menuscrollarea.h \
     ui/presetaction.h \
     ui/sourcetable.h \
     dialogs/aboutdialog.h \

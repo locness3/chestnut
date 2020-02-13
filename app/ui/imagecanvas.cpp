@@ -57,6 +57,7 @@ void ImageCanvas::setZoom(const double zoom) noexcept
   } else {
     zoom_ = AUTOSCALE_VALUE;
   }
+  rescale();
 }
 
 void ImageCanvas::rescale()
