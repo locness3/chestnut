@@ -44,6 +44,8 @@ void ViewerBase::setMedia(MediaWPtr mda)
 {
   media_ = std::move(mda);
   this->updatePanelTitle();
+  Q_ASSERT(scroll_area_);
+  scroll_area_->enableMenu(true);
   enableWidgets(true);
 }
 
@@ -74,6 +76,8 @@ void ViewerBase::clear()
   frame_view_->clear();
   media_.reset();
   this->updatePanelTitle();
+  Q_ASSERT(scroll_area_);
+  scroll_area_->enableMenu(false);
   current_timecode_->setValue(0);
   enableWidgets(false);
 }

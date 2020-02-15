@@ -99,7 +99,7 @@ namespace chestnut::panels
       QPushButton* fast_forward_btn_ {nullptr};
       QPushButton* skip_to_end_btn_ {nullptr};
       QPushButton* fx_mute_btn_ {nullptr};
-
+    private:
     private:
       void setupWidgets();
       void enableWidgets(const bool enable);

@@ -32,13 +32,15 @@ namespace chestnut::ui
       Q_OBJECT
     public:
       explicit MenuScrollArea(QWidget* parent = nullptr);
+      void enableMenu(const bool enable);
 
     protected:
-      void mousePressEvent(QMouseEvent* event) override;
 
     signals:
       void setZoom(const double value);
       void clear();
+    private:
+      double zoom_level_ ;
     private:
       void showContextMenu(const QPoint& point);
     private slots:
