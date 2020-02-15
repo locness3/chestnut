@@ -38,10 +38,12 @@ namespace chestnut::ui
 
     signals:
       void setZoom(const double value);
+      void clear();
     private:
       void showContextMenu(const QPoint& point);
     private slots:
       void setMenuZoom(QAction* action);
+      void clearArea();
   };
 }
 

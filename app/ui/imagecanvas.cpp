@@ -43,6 +43,7 @@ void ImageCanvas::clear()
 {
   img_ = QPixmap();
   img_cached_ = QPixmap();
+  this->update();
 }
 
 void ImageCanvas::enableSmoothResize(const bool enable) noexcept
@@ -62,6 +63,9 @@ void ImageCanvas::setZoom(const double zoom) noexcept
 
 void ImageCanvas::rescale()
 {
+  if (img_.isNull()) {
+    return;
+  }
   img_cached_ = resizeImage(img_);
   const auto par = this->parentWidget();
   Q_ASSERT(par != nullptr);
@@ -83,11 +87,11 @@ void ImageCanvas::paintEvent(QPaintEvent* /*event*/)
 {
   QPainter painter(this);
   painter.fillRect(img_cached_.rect(), Qt::transparent);
-  const QSize sz = img_cached_.size();
-  if ( (sz.height() == 0) || (sz.width() == 0) ) {
+  if (img_cached_.isNull()) {
     // Nothing to do
     return;
   }
+  const QSize sz = img_cached_.size();
   // Positioning of image in widget
   const int x = (this->rect().width() - sz.width()) >> 1;
   const int y = (this->rect().height() - sz.height()) >> 1;

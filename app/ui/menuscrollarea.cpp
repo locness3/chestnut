@@ -26,7 +26,6 @@ using chestnut::ui::MenuScrollArea;
 
 MenuScrollArea::MenuScrollArea(QWidget* parent) : QScrollArea(parent)
 {
-
   setContextMenuPolicy(Qt::CustomContextMenu);
   connect(this, &QWidget::customContextMenuRequested, this, &MenuScrollArea::showContextMenu);
 }
@@ -36,7 +35,6 @@ void MenuScrollArea::mousePressEvent(QMouseEvent* event)
   if (event->buttons() & ~Qt::MouseButton::RightButton) {
     return;
   }
-  qDebug() << "Righty!";
   emit customContextMenuRequested(event->pos());
 }
 
@@ -57,7 +55,7 @@ void MenuScrollArea::showContextMenu(const QPoint& /*point*/)
 
   connect(&zoom_menu, &QMenu::triggered, this, &MenuScrollArea::setMenuZoom);
   menu.addMenu(&zoom_menu);
-  menu.addAction(tr("Close Media"));//, viewer, SLOT(close_media()));
+  menu.addAction(tr("Close Media"), this, &MenuScrollArea::clearArea);
   menu.exec(QCursor::pos());
 }
 
@@ -69,4 +67,10 @@ void MenuScrollArea::setMenuZoom(QAction* action)
   const auto zoom = action->data().toDouble(&ok);
   Q_ASSERT(ok);
   emit setZoom(zoom);
+}
+
+
+void MenuScrollArea::clearArea()
+{
+  emit clear();
 }

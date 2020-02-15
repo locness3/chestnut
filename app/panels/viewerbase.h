@@ -28,6 +28,7 @@
 #include "ui/resizablescrollbar.h"
 #include "ui/labelslider.h"
 #include "ui/imagecanvas.h"
+#include "ui/menuscrollarea.h"
 
 namespace chestnut::panels
 {
@@ -36,12 +37,11 @@ namespace chestnut::panels
   {
     public:
       explicit ViewerBase(QWidget* parent);
-      virtual ~ViewerBase();
+      ~ViewerBase() override;
 
       virtual void setName(QString name);
       virtual void setMedia(MediaWPtr mda);
       virtual bool hasMedia() const noexcept;
-      virtual void clear();
 
       virtual void seek(const int64_t position) = 0;
       virtual void play() = 0;
@@ -50,6 +50,7 @@ namespace chestnut::panels
 
       virtual void zoomIn() = 0;
       virtual void zoomOut() = 0;
+      virtual void setZoom(const double value);
 
       virtual void togglePointsEnabled() = 0;
       virtual void setInPoint() = 0;
@@ -69,6 +70,7 @@ namespace chestnut::panels
       virtual void seekToInPoint() = 0;
       virtual void seekToOutPoint() = 0;
       virtual void fxMute(const bool value) = 0;
+      virtual void clear();
     signals:
       virtual void started() = 0;
       virtual void stopped() = 0;
@@ -86,7 +88,7 @@ namespace chestnut::panels
 
       TimelineHeader* headers_ {nullptr};
       ResizableScrollBar* horizontal_bar_ {nullptr};
-      QScrollArea* scroll_area_ {nullptr};
+      ui::MenuScrollArea* scroll_area_ {nullptr};
       ui::ImageCanvas* frame_view_ {nullptr};
       LabelSlider* current_timecode_ {nullptr};
       QLabel* visible_timecode_ {nullptr};

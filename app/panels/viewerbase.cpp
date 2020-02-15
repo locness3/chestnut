@@ -52,13 +52,6 @@ bool ViewerBase::hasMedia() const noexcept
   return !media_.expired();
 }
 
-void ViewerBase::clear()
-{
-  Q_ASSERT(frame_view_);
-  frame_view_->clear();
-  media_.reset();
-  enableWidgets(false);
-}
 
 void ViewerBase::setZoom(const double value)
 {
@@ -73,6 +66,16 @@ void ViewerBase::togglePlay()
   } else {
     this->play();
   }
+}
+
+void ViewerBase::clear()
+{
+  Q_ASSERT(frame_view_);
+  frame_view_->clear();
+  media_.reset();
+  this->updatePanelTitle();
+  current_timecode_->setValue(0);
+  enableWidgets(false);
 }
 
 
@@ -102,6 +105,7 @@ void ViewerBase::setupWidgets()
   scroll_area_->setWidget(frame_view_);
   connect(frame_view_, &ui::ImageCanvas::isAutoScaling, this, &ViewerBase::scrollAreaHideScrollbars);
   connect(scroll_area_, &ui::MenuScrollArea::setZoom, frame_view_, &ui::ImageCanvas::setZoom);
+  connect(scroll_area_, &ui::MenuScrollArea::clear, this, &ViewerBase::clear);
 
   headers_ = new TimelineHeader(contents);
   layout->addWidget(headers_);

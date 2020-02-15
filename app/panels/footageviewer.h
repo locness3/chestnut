@@ -33,7 +33,6 @@ namespace chestnut::panels
       Q_INTERFACES(chestnut::panels::ViewerBase)
     public:
       explicit FootageViewer(QWidget* parent = nullptr);
-      void clear() override;
 
       void setMedia(MediaWPtr mda) override;
       void seek(const int64_t position) override;
@@ -64,6 +63,7 @@ namespace chestnut::panels
       void seekToEnd() override;
       void seekToInPoint() override;
       void seekToOutPoint() override;
+      void clear() override;
 
       void fxMute(const bool) override {}
     protected:

@@ -42,9 +42,9 @@ FootageViewer::FootageViewer(QWidget* parent)
 
 void FootageViewer::clear()
 {
-  frame_view_->clear();
   disconnect(&play_timer_, &QTimer::timeout, this, &FootageViewer::onTimeout);
   pause();
+  ViewerBase::clear();
 }
 
 void FootageViewer::setMedia(MediaWPtr mda)
