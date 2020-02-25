@@ -66,7 +66,7 @@ namespace project {
        */
       bool generatePreview();
 
-      std::tuple<QPixmap, int64_t> frame();
+      std::tuple<QPixmap, media_handling::Rational> frame();
 
       QByteArray audioFrame(const int64_t out=-1);
 

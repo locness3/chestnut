@@ -163,7 +163,6 @@ bool FootageViewer::isFocused() const
 
 void FootageViewer::nextFrame()
 {
-  time_.stamp_ += qRound((static_cast<double>(time_.interval_/1000.0) / time_.scale_.numerator()) * time_.scale_.denominator());
   if (video_track_) {
     const auto [pm, ts] = video_track_->frame();
     if (pm.isNull()) {
@@ -171,7 +170,8 @@ void FootageViewer::nextFrame()
       pause();
       return;
     }
-    current_timecode_->set_value(time_.stamp_, false);
+    const auto frames = video_track_->video_frame_rate * ts;
+    current_timecode_->set_value(frames, false);
     frame_view_->setImage(pm);
     if (audio_track_) {
       audio_worker_->queueData(audio_track_->audioFrame(time_.stamp_));

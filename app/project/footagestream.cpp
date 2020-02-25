@@ -39,6 +39,7 @@ using media_handling::FieldOrder;
 using media_handling::MediaStreamPtr;
 using media_handling::MediaProperty;
 using media_handling::StreamType;
+using media_handling::Rational;
 
 
 constexpr auto IMAGE_FRAMERATE = 0;
@@ -97,7 +98,7 @@ bool FootageStream::generatePreview()
 }
 
 
-std::tuple<QPixmap, int64_t> FootageStream::frame()
+std::tuple<QPixmap, Rational> FootageStream::frame()
 {
   std::call_once(frame_retrieved_, [&] {
     stream_info_->setOutputFormat(chestnut::defaults::video::INTERNAL_FORMAT);
@@ -109,7 +110,7 @@ std::tuple<QPixmap, int64_t> FootageStream::frame()
     const auto img  = QImage(*f_d.data_, video_width, video_height, f_d.line_size_, QImage::Format_RGBA8888);
     QPixmap pm;
     pm.convertFromImage(img);
-    return {pm, f_d.timestamp_};
+    return {pm,  m_f->timestamp() * timescale_};
   }
   // most likely read end of stream
   return {};
