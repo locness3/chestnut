@@ -28,7 +28,7 @@ class RenderThread : public QThread {
 
     void paint();
     void setAsExporting(const bool value);
-    void start_render(QOpenGLContext* share, SequenceWPtr s, const bool grab=false, GLvoid *pixel_buffer=nullptr);
+    void start_render(QOpenGLContext* share, chestnut::project::SequenceWPtr s, const bool grab=false, GLvoid *pixel_buffer=nullptr);
     bool did_texture_fail();
     void cancel();
   protected:
@@ -50,7 +50,7 @@ class RenderThread : public QThread {
     QOffscreenSurface surface;
     QOpenGLContext* share_ctx {nullptr};
     QOpenGLContext* ctx {nullptr};
-    SequenceWPtr seq;
+    chestnut::project::SequenceWPtr seq;
     int divider {0};
     int tex_width {-1};
     int tex_height {-1};

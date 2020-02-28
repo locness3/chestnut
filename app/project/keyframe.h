@@ -34,7 +34,7 @@ class EffectField;
 constexpr int DEFAULT_HANDLE_LENGTH = 40;
 
 
-class EffectKeyframe : public project::IXMLStreamer {
+class EffectKeyframe : public chestnut::project::IXMLStreamer {
   public:
     EffectKeyframe() = default;
     explicit EffectKeyframe(const EffectField* const parent);

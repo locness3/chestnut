@@ -58,13 +58,18 @@ class ResizableScrollBar;
 class AudioMonitor;
 
 class Clip;
-class Footage;
 class FootageStream;
+
+namespace chestnut::project
+{
+  class Footage;
+}
 
 int getScreenPointFromFrame(double zoom, int64_t frame);
 long getFrameFromScreenPoint(double zoom, int x);
 bool selection_contains_transition(const Selection& s, ClipPtr c, int type);
-void ripple_clips(ComboAction *ca, SequencePtr  s, long point, long length, const QVector<int>& ignore = QVector<int>());
+void ripple_clips(ComboAction *ca, chestnut::project::SequencePtr  s, long point, long length,
+                  const QVector<int>& ignore = QVector<int>());
 
 struct Ghost {
     ClipWPtr clip_;
@@ -79,7 +84,7 @@ struct Ghost {
     long old_clip_in = 0;
 
     // importing variables
-    MediaPtr media = nullptr;
+    chestnut::project::MediaPtr media = nullptr;
     int media_stream = 0;
 
     // other variables
@@ -106,7 +111,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     Timeline& operator=(const Timeline&) = delete;
     Timeline& operator=(const Timeline&&) = delete;
 
-    bool setSequence(const SequencePtr& seq);
+    bool setSequence(const chestnut::project::SequencePtr& seq);
     bool focused();
     void set_zoom(bool in);
     void copy(bool del);
@@ -131,8 +136,9 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
      */
     void nudgeClips(const int pos);
 
-    void createGhostsFromMedia(SequencePtr& seq, const long entry_point, QVector<MediaPtr> &media_list);
-    void addClipsFromGhosts(ComboAction *ca, const SequencePtr& seq);
+    void createGhostsFromMedia(chestnut::project::SequencePtr& seq, const long entry_point,
+                               QVector<chestnut::project::MediaPtr> &media_list);
+    void addClipsFromGhosts(ComboAction *ca, const chestnut::project::SequencePtr& seq);
 
     int getTimelineScreenPointFromFrame(int64_t frame);
     long getTimelineFrameFromScreenPoint(int x);
@@ -266,7 +272,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void trackLocked(const bool locked, const int track_number);
 
   signals:
-    void newSequenceLoaded(const SequencePtr& new_sequence);
+    void newSequenceLoaded(const chestnut::project::SequencePtr& new_sequence);
 
   private:
     friend class TimelineTest;
@@ -288,7 +294,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     QPushButton* zoomOutButton{};
     QPushButton* recordButton{};
     QPushButton* addButton{};
-    SequencePtr sequence_{};
+    chestnut::project::SequencePtr sequence_{};
 
     TimelineTrackArea* header_track_area_{nullptr};
     TimelineTrackArea* video_track_area_{nullptr};
@@ -301,7 +307,7 @@ class Timeline : public QDockWidget, public ui::MarkerDockWidget
     void setup_ui();
     std::vector<ClipPtr> selectedClips();
     std::vector<Selection> selections();
-    void pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const SequencePtr& seq);
+    void pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const chestnut::project::SequencePtr& seq);
     ClipPtr split_clip(ComboAction& ca, const ClipPtr& pre_clip, const long frame) const;
     void clipLinkage(const bool link);
     void updateTrackAreas();

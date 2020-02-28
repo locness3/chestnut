@@ -29,7 +29,7 @@
 #include "footage.h"
 
 
-Q_DECLARE_METATYPE(FootageWPtr)
+Q_DECLARE_METATYPE(chestnut::project::FootageWPtr)
 
 namespace chestnut::project
 {

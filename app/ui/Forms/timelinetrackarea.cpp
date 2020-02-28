@@ -40,7 +40,7 @@ bool TimelineTrackArea::initialise(const TimelineTrackType area_type)
 }
 
 
-bool TimelineTrackArea::addTrack(const project::Track& trk)
+bool TimelineTrackArea::addTrack(const chestnut::project::Track& trk)
 {
   auto idx = trk.index_;
   if ( (type_ == TimelineTrackType::VISUAL) && (idx >= 0) ) {
@@ -67,7 +67,7 @@ bool TimelineTrackArea::addTrack(const project::Track& trk)
 }
 
 
-void TimelineTrackArea::setTracks(const QVector<project::Track>& tracks)
+void TimelineTrackArea::setTracks(const QVector<chestnut::project::Track>& tracks)
 {
   for (auto t : tracks) {
     addTrack(t);

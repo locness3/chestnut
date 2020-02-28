@@ -42,7 +42,7 @@ public:
     void mouseDoubleClickEvent(QMouseEvent* e, const QModelIndexList& items);
     void dropEvent(QWidget *parent, QDropEvent* e, const QModelIndex& drop_item, const QModelIndexList &items);
 
-    void item_click(const MediaPtr& m, const QModelIndex &index);
+    void item_click(const chestnut::project::MediaPtr& m, const QModelIndex &index);
     void setCurrentView(QAbstractItemView* currentView);
   protected:
 
@@ -50,10 +50,10 @@ private slots:
     void create_seq_from_selected();
     void reveal_in_browser();
     void rename_interval();
-    void item_renamed(const MediaPtr& item);
+    void item_renamed(const chestnut::project::MediaPtr& item);
 private:
     QAbstractItemView* view {nullptr};
-    MediaPtr editing_item {nullptr};
+    chestnut::project::MediaPtr editing_item {nullptr};
     QModelIndex editing_index;
     QModelIndexList selected_items;
     Project* project_parent {nullptr};

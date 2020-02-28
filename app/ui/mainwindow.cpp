@@ -1212,7 +1212,7 @@ void MainWindow::show_action_search() {
 }
 
 
-void MainWindow::sequenceLoaded(const SequencePtr& new_sequence)
+void MainWindow::sequenceLoaded(const chestnut::project::SequencePtr& new_sequence)
 {
   Q_ASSERT(drop_frame_action != nullptr);
   Q_ASSERT(nondrop_frame_action != nullptr);
@@ -1458,7 +1458,7 @@ void MainWindow::add_default_transition()
 
 void MainWindow::new_folder()
 {
-  MediaPtr m = PanelManager::projectViewer().newFolder(tr("New Folder"));
+  chestnut::project::MediaPtr m = PanelManager::projectViewer().newFolder(tr("New Folder"));
   e_undo_stack.push(new AddMediaCommand(m, PanelManager::projectViewer().get_selected_folder()));
 
   QModelIndex index = Project::model().add(m);
@@ -1729,7 +1729,7 @@ void MainWindow::nest()
   // nest them
   if (!selected_clips.isEmpty()) {
     auto ca = new ComboAction();
-    auto s = std::make_shared<Sequence>();
+    auto s = std::make_shared<chestnut::project::Sequence>();
 
     // create "nest" sequence
     s->setName(PanelManager::projectViewer().get_next_sequence_name(tr("Nested Sequence")));
@@ -1752,10 +1752,10 @@ void MainWindow::nest()
     }
 
     // add sequence to project
-    MediaPtr m = PanelManager::projectViewer().newSequence(ca, s, false, nullptr);
+    chestnut::project::MediaPtr m = PanelManager::projectViewer().newSequence(ca, s, false, nullptr);
 
     // add nested sequence to active sequence
-    QVector<MediaPtr> media_list;
+    QVector<chestnut::project::MediaPtr> media_list;
     media_list.append(m);
     PanelManager::timeLine().createGhostsFromMedia(global::sequence, earliest_point, media_list);
     PanelManager::timeLine().addClipsFromGhosts(ca, global::sequence);

@@ -32,7 +32,7 @@ namespace project {
   /**
    * @brief The TimelineInfo class of whose members may be used in multiple threads.
    */
-  class TimelineInfo : public project::IXMLStreamer
+  class TimelineInfo : public chestnut::project::IXMLStreamer
   {
     public:
       bool enabled = true;
@@ -43,7 +43,7 @@ namespace project {
       QString name_ = "";
       QColor color = {0,0,0};
       //TODO: make weak
-      MediaPtr media = nullptr; //TODO: assess Media members in lieu of c++20 atomic_shared_ptr
+      chestnut::project::MediaPtr media = nullptr; //TODO: assess Media members in lieu of c++20 atomic_shared_ptr
       std::atomic_int32_t media_stream{-1};
       std::atomic<double> speed{1.0};
       double cached_fr = 0.0;

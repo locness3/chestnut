@@ -29,7 +29,7 @@ class ObjectClip : public Clip
      * @param base
      */
     explicit ObjectClip(const Clip& base);
-    explicit ObjectClip(SequencePtr seq);
+    explicit ObjectClip(chestnut::project::SequencePtr seq);
 
     bool mediaOpen() const override;
     void frame(const long playhead, bool& texture_failed) override;

@@ -160,7 +160,7 @@ class MainWindow : public QMainWindow {
 
     void show_action_search();
 
-    void sequenceLoaded(const SequencePtr& new_sequence);
+    void sequenceLoaded(const chestnut::project::SequencePtr& new_sequence);
 
   private:
     friend class MainWindowTest;

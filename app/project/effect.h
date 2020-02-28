@@ -136,7 +136,7 @@ qint16 mix_audio_sample(const qint16 a, const qint16 b);
 
 
 class Effect : public QObject,  public std::enable_shared_from_this<Effect>,
-                public project::SequenceItem, public project::IXMLStreamer
+                public project::SequenceItem, public chestnut::project::IXMLStreamer
 {
     Q_OBJECT
   public:

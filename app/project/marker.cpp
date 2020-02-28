@@ -17,6 +17,7 @@
  */
 
 #include "marker.h"
+#include "debug.h"
 
 constexpr const char* const START_ELEM = "marker";
 constexpr const char* const ELEM_FRAME = "frame";
@@ -25,8 +26,8 @@ constexpr const char* const ELEM_COMMENT = "comment";
 constexpr const char* const ELEM_DURATION = "duration";
 constexpr const char* const ELEM_COLOR = "color";
 
-#include "debug.h"
 
+using chestnut::project::Marker;
 
 bool Marker::operator<(const Marker& rhs) const
 {

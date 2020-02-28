@@ -50,6 +50,10 @@ extern "C" {
 }
 
 using panels::PanelManager;
+using chestnut::project::Sequence;
+using chestnut::project::SequencePtr;
+using chestnut::project::Footage;
+using chestnut::project::MediaPtr;
 
 constexpr double NTSC_24 = 23.976;
 constexpr double NTSC_30 = 29.97;
@@ -470,7 +474,7 @@ void Viewer::pause()
       // add it to the sequence
       auto clp = std::make_shared<Clip>(sequence_);
       auto mda = PanelManager::projectViewer().getImportedMedia(0);
-      auto ftg = mda->object<Footage>();
+      auto ftg = mda->object<chestnut::project::Footage>();
 
       clp->timeline_info.media = mda; // latest media
       clp->timeline_info.media_stream = 0;
@@ -534,7 +538,7 @@ void Viewer::resizeEvent(QResizeEvent *)
 }
 
 
-MediaWPtr Viewer::getMedia()
+chestnut::project::MediaWPtr Viewer::getMedia()
 {
   return media_;
 }

@@ -32,7 +32,7 @@ class ComboAction;
 class KeyframeNavigator;
 class ClickableLabel;
 
-class EffectRow : public QObject, public project::IXMLStreamer {
+class EffectRow : public QObject, public chestnut::project::IXMLStreamer {
   Q_OBJECT
 public:
   EffectRow(Effect* parent_eff,

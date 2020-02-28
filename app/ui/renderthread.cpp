@@ -113,7 +113,7 @@ void RenderThread::paint()
   glEnable(GL_DEPTH);
 
   QVector<ClipPtr> nests;
-  if (const SequencePtr& sequenceNow = seq.lock()) {
+  if (const chestnut::project::SequencePtr& sequenceNow = seq.lock()) {
     compose_sequence(nullptr, ctx, sequenceNow, nests, true, false, gizmos, texture_failed, false,
                      (exporting_ || panels::PanelManager::sequenceViewer().usingEffects()));
 
@@ -150,7 +150,7 @@ void RenderThread::setAsExporting(const bool value)
   exporting_ = value;
 }
 
-void RenderThread::start_render(QOpenGLContext *share, SequenceWPtr s, const bool grab, GLvoid* pixel_buffer)
+void RenderThread::start_render(QOpenGLContext *share, chestnut::project::SequenceWPtr s, const bool grab, GLvoid* pixel_buffer)
 {
   seq = std::move(s);
 

@@ -39,7 +39,7 @@ namespace{
   const int DIALOG_HEIGHT = 400;
 }
 
-ReplaceClipMediaDialog::ReplaceClipMediaDialog(QWidget *parent, MediaPtr old_media) :
+ReplaceClipMediaDialog::ReplaceClipMediaDialog(QWidget *parent, chestnut::project::MediaPtr old_media) :
   QDialog(parent),
   media_(old_media)
 {
@@ -107,7 +107,7 @@ void ReplaceClipMediaDialog::replace()
             QMessageBox::Ok
             );
     } else {
-      if (new_item->type() == MediaType::SEQUENCE && global::sequence == new_item->object<Sequence>()) {
+      if (new_item->type() == MediaType::SEQUENCE && global::sequence == new_item->object<chestnut::project::Sequence>()) {
         QMessageBox::critical(
               this,
               tr("Active sequence selected"),

@@ -43,7 +43,7 @@ class ExportDialog : public QDialog
 {
     Q_OBJECT
   public:
-    ExportDialog(SequencePtr seq, QWidget *parent = nullptr);
+    ExportDialog(chestnut::project::SequencePtr seq, QWidget *parent = nullptr);
     virtual ~ExportDialog();
 
     ExportDialog(const ExportDialog& ) = delete;
@@ -66,7 +66,7 @@ class ExportDialog : public QDialog
     void level_changed(int index);
 
   private:
-    SequencePtr sequence_ {nullptr};
+    chestnut::project::SequencePtr sequence_ {nullptr};
     QString output_dir_;
 
     FormatCodecs format_codecs_;

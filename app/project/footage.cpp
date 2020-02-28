@@ -29,8 +29,10 @@ extern "C" {
 #include "panels/project.h"
 
 
-using project::FootageStreamPtr;
+using chestnut::project::FootageStreamPtr;
 using media_handling::MediaProperty;
+using chestnut::project::Media;
+using chestnut::project::Footage;
 namespace mh = media_handling;
 
 
@@ -152,7 +154,8 @@ void Footage::parseStreams()
   }
 
   bool is_okay = false;
-  length_ = media_source_->property<mh::Rational>(MediaProperty::DURATION, is_okay);
+  auto l = media_source_->property<mh::Rational>(MediaProperty::DURATION, is_okay);
+  length_ = l.numerator() * l.denominator();
   if (!is_okay) {
     constexpr auto msg = "Failed to retrieve footage duration";
     qCritical() << msg;
@@ -169,7 +172,7 @@ bool Footage::addVideoTrack(project::FootageStreamPtr track)
   return true;
 }
 
-QVector<project::FootageStreamPtr> Footage::videoTracks() const
+QVector<FootageStreamPtr> Footage::videoTracks() const
 {
   return video_tracks;
 }
@@ -183,7 +186,7 @@ bool Footage::addAudioTrack(project::FootageStreamPtr track)
   return true;
 }
 
-QVector<project::FootageStreamPtr> Footage::audioTracks() const
+QVector<FootageStreamPtr> Footage::audioTracks() const
 {
   return audio_tracks;
 }
@@ -337,6 +340,13 @@ bool Footage::save(QXmlStreamWriter& stream) const
   }
   stream.writeEndElement();
   return true;
+}
+
+
+int64_t Footage::endFrame() const noexcept
+{
+  // TODO:
+  return -1;
 }
 
 constexpr long lengthToFrames(const int64_t length, const double frame_rate, const double speed)

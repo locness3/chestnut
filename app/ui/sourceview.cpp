@@ -181,7 +181,7 @@ void SourceView::moveMedia(const QDropEvent& event) const
 
   // if we dragged to the root OR dragged to a folder
   auto items = this->selectedItems();
-  QVector<MediaPtr> move_items;
+  QVector<chestnut::project::MediaPtr> move_items;
   for (const auto& item : items) {
     const QModelIndex& itemParent = item.parent();
     auto seq = project_parent_.item_to_media(item);

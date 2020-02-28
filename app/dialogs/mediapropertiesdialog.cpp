@@ -33,7 +33,7 @@
 #include "project/undo.h"
 
 
-MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
+MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, chestnut::project::MediaPtr mda) :
   QDialog(parent),
   item(mda)
 {
@@ -45,7 +45,7 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
 
   int row = 0;
 
-  auto ftg = item->object<Footage>();
+  auto ftg = item->object<chestnut::project::Footage>();
 
   grid->addWidget(new QLabel(tr("Tracks:")), row, 0, 1, 2);
   row++;
@@ -133,7 +133,7 @@ MediaPropertiesDialog::MediaPropertiesDialog(QWidget *parent, MediaPtr mda) :
 
 void MediaPropertiesDialog::accept()
 {
-  auto ftg = item->object<Footage>();
+  auto ftg = item->object<chestnut::project::Footage>();
 
   ComboAction* ca = new ComboAction();
 

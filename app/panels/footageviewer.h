@@ -34,7 +34,7 @@ namespace chestnut::panels
     public:
       explicit FootageViewer(QWidget* parent = nullptr);
 
-      void setMedia(MediaWPtr mda) override;
+      void setMedia(project::MediaWPtr mda) override;
       void seek(const int64_t position) override;
       void play() override;
       void pause() override;
@@ -71,10 +71,10 @@ namespace chestnut::panels
     private slots:
       void onTimeout();
     private:
-      FootagePtr footage_ {nullptr};
+      project::FootagePtr footage_ {nullptr};
       QTimer play_timer_;
-      ::project::FootageStreamPtr video_track_ {nullptr};
-      ::project::FootageStreamPtr audio_track_ {nullptr};
+      project::FootageStreamPtr video_track_ {nullptr};
+      project::FootageStreamPtr audio_track_ {nullptr};
       QThread* audio_thread_ {nullptr};
       system::AudioWorker* audio_worker_ {nullptr};
       struct {

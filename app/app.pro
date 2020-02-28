@@ -45,6 +45,7 @@ SOURCES += \
     playback/audio.cpp \
     io/config.cpp \
     dialogs/newsequencedialog.cpp \
+    ui/viewertimeline.cpp \
     ui/viewerwidget.cpp \
     ui/viewercontainer.cpp \
     dialogs/exportdialog.cpp \
@@ -168,6 +169,7 @@ HEADERS += \
     playback/audio.h \
     io/config.h \
     dialogs/newsequencedialog.h \
+    ui/viewertimeline.h \
     ui/viewerwidget.h \
     ui/viewercontainer.h \
     dialogs/exportdialog.h \

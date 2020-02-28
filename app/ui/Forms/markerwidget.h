@@ -49,7 +49,7 @@ class MarkerWidget : public QWidget
     Q_OBJECT
 
   public:
-    MarkerWidget(MarkerPtr mark, QWidget *parent = nullptr);
+    MarkerWidget(chestnut::project::MarkerPtr mark, QWidget *parent = nullptr);
     ~MarkerWidget();
 
   private slots:
@@ -58,7 +58,7 @@ class MarkerWidget : public QWidget
 
   private:
     Ui::MarkerWidget *ui;
-    MarkerPtr marker_;
+    chestnut::project::MarkerPtr marker_;
     MarkerIcon* marker_icon_;
 };
 

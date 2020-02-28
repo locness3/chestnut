@@ -57,7 +57,7 @@ class SetSelectionsCommand;
 struct Ghost;
 
 bool same_sign(int a, int b);
-void draw_waveform(ClipPtr& clip, const project::FootageStreamPtr& ms, const long media_length, QPainter& p,
+void draw_waveform(ClipPtr& clip, const chestnut::project::FootageStreamPtr& ms, const long media_length, QPainter& p,
                    const QRect& clip_rect, const int waveform_start, const int waveform_limit, const double zoom);
 
 class TimelineWidget : public QWidget {
@@ -104,12 +104,12 @@ class TimelineWidget : public QWidget {
     QVector<ClipPtr> pre_clips;
     QVector<ClipPtr> post_clips;
 
-    SequencePtr self_created_sequence;
+    chestnut::project::SequencePtr self_created_sequence;
 
     // used for "right click ripple"
     int64_t rc_ripple_min {};
     int64_t rc_ripple_max {};
-    MediaPtr rc_reveal_media {nullptr};
+    chestnut::project::MediaPtr rc_reveal_media {nullptr};
 
     QTimer tooltip_timer;
     ClipWPtr tooltip_clip_;
@@ -159,7 +159,7 @@ class TimelineWidget : public QWidget {
      */
     void makeRoomForClipLinked(ComboAction& ca, const ClipPtr& c, const Ghost& g, const bool front);
 
-    void rippleMove(ComboAction& ca, SequencePtr seq, Timeline& time_line);
+    void rippleMove(ComboAction& ca, chestnut::project::SequencePtr seq, Timeline& time_line);
     
     void duplicateClips(ComboAction& ca);
 
@@ -175,9 +175,9 @@ class TimelineWidget : public QWidget {
      * @param time_line
      * @param seq
      */
-    void mousingOverEvent(const QPoint& pos, Timeline& time_line, const SequencePtr& seq);
+    void mousingOverEvent(const QPoint& pos, Timeline& time_line, const chestnut::project::SequencePtr& seq);
 
-    void setupMovement(Timeline& time_line, const SequencePtr& sqn);
+    void setupMovement(Timeline& time_line, const chestnut::project::SequencePtr& sqn);
 
     /**
      * @brief             Obtain a tracks lower and upper limits, vertically, in this area
@@ -201,15 +201,16 @@ class TimelineWidget : public QWidget {
      */
     void paintTrack(QPainter& painter, const int track, const bool video);
     
-    bool createObjectEvent(ComboAction& ca, const bool ctrl, const bool shift, const SequencePtr& seq, Timeline& time_line);
+    bool createObjectEvent(ComboAction& ca, const bool ctrl, const bool shift, const chestnut::project::SequencePtr& seq,
+                           Timeline& time_line);
     
     void drawRecordingClip(Timeline& time_line, Viewer& sequence_viewer, QPainter& painter) const;
 
-    void drawClips(SequencePtr seq, Timeline& time_line, QPainter& painter);
+    void drawClips(chestnut::project::SequencePtr seq, Timeline& time_line, QPainter& painter);
 
     void drawTrackLines(int& audio_track_limit, int& video_track_limit, QPainter& painter);
 
-    void drawEditCursor(SequencePtr seq, Timeline& time_line, QPainter& painter) const;
+    void drawEditCursor(chestnut::project::SequencePtr seq, Timeline& time_line, QPainter& painter) const;
 
     void drawClipText(QRect& text_rect, QRect clip_rect, Clip& clip, QPainter& painter) const;
     

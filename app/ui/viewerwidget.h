@@ -53,7 +53,7 @@ public:
     ViewerContainer* container {nullptr};
     bool waveform {false};
     ClipPtr waveform_clip {nullptr};
-    project::FootageStreamWPtr waveform_ms;
+    chestnut::project::FootageStreamWPtr waveform_ms;
     double waveform_zoom {DEFAULT_WAVEFORM_ZOOM};
     int waveform_scroll {0};
 

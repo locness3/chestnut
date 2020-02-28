@@ -37,6 +37,11 @@
 constexpr int RENAME_INTERVAL = 1000;
 
 using panels::PanelManager;
+using chestnut::project::Media;
+using chestnut::project::MediaPtr;
+using chestnut::project::Sequence;
+using chestnut::project::SequencePtr;
+using chestnut::project::Footage;
 
 SourcesCommon::SourcesCommon(Project* parent) :
   QObject(parent),

@@ -22,13 +22,18 @@
 #include <QString>
 #include <memory>
 #include <QVector>
+#include <optional>
 
 #include "project/marker.h"
 
-class Sequence;
-class Footage;
+namespace chestnut::project
+{
+  class Sequence;
+  class Footage;
+}
 
-namespace project {
+namespace chestnut::project
+{
 
 class ProjectItem : public IXMLStreamer {
 public:
@@ -41,11 +46,29 @@ public:
   virtual bool load(QXmlStreamReader& stream) override;
   virtual bool save(QXmlStreamWriter& stream) const override;
 
+  virtual void setInPoint(const long pos);
+  virtual long inPoint() const noexcept;
+  virtual void setOutPoint(const long pos);
+  virtual long outPoint() const noexcept;
+  virtual void setWorkareaEnabled(const bool enabled);
+  virtual bool workareaEnabled() const noexcept;
+  virtual void setWorkareaActive(const bool active);
+  virtual bool workareaActive() const noexcept;
+
+  virtual int64_t endFrame() const noexcept = 0;
+
   QVector<MarkerPtr> markers_{};
 private:
-  friend class ::Sequence;
-  friend class ::Footage;
+  friend class Sequence;
+  friend class Footage;
   QString name_{};
+
+  struct {
+    long in_point_ {-1};
+    long out_point_ {-1};
+    bool enabled_ {false};
+    bool active_ {false};
+  } workarea_;
 };
 
 typedef std::shared_ptr<ProjectItem> ProjectItemPtr;

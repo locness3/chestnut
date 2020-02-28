@@ -33,7 +33,10 @@
 #include "project/media.h"
 #include "project/previewgeneratorthread.h"
 
-class Footage;
+namespace chestnut::project
+{
+  class Footage;
+}
 
 class Clip;
 class Timeline;
@@ -84,19 +87,21 @@ public:
      * @param parentItem    the parent for the created item
      * @return              A media item for the model
      */
-    MediaPtr newSequence(ComboAction *ca, SequencePtr seq, const bool open, MediaPtr parentItem) const;
+    chestnut::project::MediaPtr newSequence(ComboAction *ca, chestnut::project::SequencePtr seq, const bool open,
+                                            chestnut::project::MediaPtr parentItem) const;
     QString get_next_sequence_name(QString start="");
-    void process_file_list(QStringList& files, bool recursive = false, MediaPtr replace = nullptr, MediaPtr parent = nullptr);
-    void replace_media(MediaPtr item, QString filename);
-    MediaPtr get_selected_folder();
-    bool reveal_media(MediaPtr media, QModelIndex parent = QModelIndex());
+    void process_file_list(QStringList& files, bool recursive = false, chestnut::project::MediaPtr replace = nullptr,
+                           chestnut::project::MediaPtr parent = nullptr);
+    void replace_media(chestnut::project::MediaPtr item, QString filename);
+    chestnut::project::MediaPtr get_selected_folder();
+    bool reveal_media(chestnut::project::MediaPtr media, QModelIndex parent = QModelIndex());
     void add_recent_project(QString url);
     /**
      * @brief           Get a Media item that was in the last import
      * @param index     Location in store
      * @return          ptr or null
      */
-    MediaPtr getImportedMedia(const int index);
+    chestnut::project::MediaPtr getImportedMedia(const int index);
     /**
      * @brief Get the size of the last Import media list
      * @return  integer
@@ -110,15 +115,16 @@ public:
     void load_project(const bool autorecovery);
     void save_project(const bool autorecovery);
 
-    MediaPtr newFolder(const QString& name="");
-    MediaPtr item_to_media(const QModelIndex& index);
+    chestnut::project::MediaPtr newFolder(const QString& name="");
+    chestnut::project::MediaPtr item_to_media(const QModelIndex& index);
 
     void save_recent_projects();
 
-    QVector<MediaPtr> list_all_project_sequences();
+    QVector<chestnut::project::MediaPtr> list_all_project_sequences();
     QModelIndexList get_current_selected();
 
-    void get_all_media_from_table(QVector<MediaPtr> &items, QVector<MediaPtr> &list, const MediaType type = MediaType::NONE);
+    void get_all_media_from_table(QVector<chestnut::project::MediaPtr> &items, QVector<chestnut::project::MediaPtr> &list,
+                                  const MediaType type = MediaType::NONE);
 
     /**
      * Redraw/setup viewer using the models items
@@ -145,20 +151,20 @@ private:
     QDir proj_dir;
     QWidget* icon_view_container;
     QPushButton* directory_up;
-    QVector<MediaPtr> last_imported_media;
+    QVector<chestnut::project::MediaPtr> last_imported_media;
     inline static std::unique_ptr<ProjectModel> model_ {nullptr};
     chestnut::project::PreviewGeneratorThread* preview_gen_ {nullptr};
-    QMap<MediaPtr, MediaThrobber*> media_throbbers_;
+    QMap<chestnut::project::MediaPtr, MediaThrobber*> media_throbbers_;
 
-    void list_all_sequences_worker(QVector<MediaPtr> &list, MediaPtr parent); //TODO: recursive depth limit
+    void list_all_sequences_worker(QVector<chestnut::project::MediaPtr> &list, chestnut::project::MediaPtr parent); //TODO: recursive depth limit
     QString get_file_name_from_path(const QString &path) const;
     QString get_file_ext_from_path(const QString &path) const;
 
-    void getPreview(MediaPtr mda);
+    void getPreview(chestnut::project::MediaPtr mda);
 
-    void setModelItemIcon(FootagePtr ftg, QIcon icon) const;
+    void setModelItemIcon(chestnut::project::FootagePtr ftg, QIcon icon) const;
 
-    void stopThrobber(FootagePtr ftg);
+    void stopThrobber(chestnut::project::FootagePtr ftg);
 
 private slots:
     void update_view_type();
@@ -169,14 +175,14 @@ private slots:
     void set_up_dir_enabled();
     void go_up_dir();
     void make_new_menu();
-    void setItemIcon(FootageWPtr item);
-    void setItemMissing(FootageWPtr item);
+    void setItemIcon(chestnut::project::FootageWPtr item);
+    void setItemMissing(chestnut::project::FootageWPtr item);
 };
 
 class MediaThrobber : public QObject {
     Q_OBJECT
 public:
-    MediaThrobber(MediaPtr item, QObject* parent=nullptr);
+    MediaThrobber(chestnut::project::MediaPtr item, QObject* parent=nullptr);
 public slots:
     void start();
     void stop();
@@ -185,7 +191,7 @@ private slots:
 private:
     QPixmap pixmap;
     int animation;
-    MediaPtr item;
+    chestnut::project::MediaPtr item;
     QTimer* animator;
 };
 

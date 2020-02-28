@@ -29,6 +29,9 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
+using chestnut::project::Sequence;
+using chestnut::project::SequencePtr;
+
 #define GL_DEFAULT_BLEND glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE)
 
 GLuint draw_clip(QOpenGLContext& ctx, QOpenGLFramebufferObject* fbo, const GLuint texture, const bool clear)
@@ -157,8 +160,8 @@ GLTextureCoords defaultCoords(const long video_width, const long video_height)
 
 
 void renderClip(ClipPtr& clp, const int64_t playhead, const GLint current_fbo, Viewer* viewer, QOpenGLContext* ctx,
-                SequencePtr seq, QVector<ClipPtr> &nests, const bool video, const bool render_audio, EffectPtr &gizmos,
-                bool &texture_failed, const bool rendering, const bool use_effects)
+                chestnut::project::SequencePtr seq, QVector<ClipPtr> &nests, const bool video, const bool render_audio,
+                EffectPtr &gizmos, bool &texture_failed, const bool rendering, const bool use_effects)
 {
   if (!clp->mediaOpen()) {
     qWarning() << "Tried to display clip '" << clp->name() << "' but it's closed";
@@ -461,7 +464,7 @@ GLuint compose_sequence(Viewer* viewer,
     auto clip_is_active = false;
 
     if ( (clp->timeline_info.media != nullptr) && (clp->timeline_info.media->type() == MediaType::FOOTAGE) ) {
-      auto ftg = clp->timeline_info.media->object<Footage>();
+      auto ftg = clp->timeline_info.media->object<chestnut::project::Footage>();
       if (!ftg->has_preview_) {
         // TODO: should the render really be prevented just because the audio waveform preview hasn't been generated?
         qDebug() << "Waiting on preview (audio/video) to be generated for Footage, fileName =" << ftg->location();

@@ -56,7 +56,7 @@ void MarkerIcon::mouseDoubleClickEvent(QMouseEvent *event)
   qInfo() << "Mouse dbl-click";
 }
 
-MarkerWidget::MarkerWidget(MarkerPtr mark, QWidget *parent) :
+MarkerWidget::MarkerWidget(chestnut::project::MarkerPtr mark, QWidget *parent) :
   QWidget(parent),
   ui(new Ui::MarkerWidget),
   marker_(mark)

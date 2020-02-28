@@ -25,21 +25,24 @@
 
 #include "project/ixmlstreamer.h"
 
+namespace chestnut::project
+{
 
-class Marker : public project::IXMLStreamer {
-  public:
-    Marker() = default;
+  class Marker : public IXMLStreamer {
+    public:
+      Marker() = default;
 
-    bool operator<(const Marker& rhs) const;
-    virtual bool load(QXmlStreamReader& stream) override;
-    virtual bool save(QXmlStreamWriter& stream) const override;
+      bool operator<(const Marker& rhs) const;
+      virtual bool load(QXmlStreamReader& stream) override;
+      virtual bool save(QXmlStreamWriter& stream) const override;
 
-    long frame{}; // TODO: timecode?
-    QString name{};
-    long duration_{};
-    QString comment_{};
-    QColor color_{Qt::white};
-};
+      long frame{}; // TODO: timecode?
+      QString name{};
+      long duration_{};
+      QString comment_{};
+      QColor color_{Qt::white};
+  };
 
-using MarkerPtr = std::shared_ptr<Marker>;
+  using MarkerPtr = std::shared_ptr<Marker>;
+}
 #endif // MARKER_H

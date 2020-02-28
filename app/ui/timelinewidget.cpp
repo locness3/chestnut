@@ -60,7 +60,11 @@
 using chestnut::ui::Cursor;
 using chestnut::ui::CursorType;
 using panels::PanelManager;
-using project::FootageStreamPtr;
+using chestnut::project::FootageStreamPtr;
+using chestnut::project::MediaPtr;
+using chestnut::project::Sequence;
+using chestnut::project::SequencePtr;
+using chestnut::project::Footage;
 
 constexpr int MAX_TEXT_WIDTH = 20;
 constexpr int TRANSITION_BETWEEN_RANGE = 40;

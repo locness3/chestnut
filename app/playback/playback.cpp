@@ -59,7 +59,7 @@ long refactor_frame_number(const long framenumber, const double source_frame_rat
 
 
 
-void set_sequence(const SequencePtr& s)
+void set_sequence(const chestnut::project::SequencePtr& s)
 {
     PanelManager::fxControls().clear_effects(true);
     global::sequence = s;

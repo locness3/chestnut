@@ -26,6 +26,10 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QDialogButtonBox>
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
+
 
 #include "panels/panelmanager.h"
 #include "project/sequence.h"
@@ -35,9 +39,10 @@
 #include "project/media.h"
 
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
+using chestnut::project::MediaPtr;
+using chestnut::project::Sequence;
+using chestnut::project::SequencePtr;
+
 
 NewSequenceDialog::NewSequenceDialog(QWidget *parent, MediaPtr existing) :
   QDialog(parent),

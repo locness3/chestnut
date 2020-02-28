@@ -38,7 +38,7 @@ MarkersViewer::~MarkersViewer()
 }
 
 
-bool MarkersViewer::setMedia(const MediaPtr& mda)
+bool MarkersViewer::setMedia(const chestnut::project::MediaPtr& mda)
 {
   if (mda == nullptr) {
     return false;
@@ -56,7 +56,7 @@ bool MarkersViewer::setMedia(const MediaPtr& mda)
 }
 
 // std::sort on vector of shared_ptr doesn't compare instances
-bool markerLessThan(const MarkerPtr& lhs, const MarkerPtr& rhs)
+bool markerLessThan(const chestnut::project::MarkerPtr& lhs, const chestnut::project::MarkerPtr& rhs)
 {
   Q_ASSERT(lhs != nullptr && rhs != nullptr);
   return *lhs < *rhs;
@@ -75,7 +75,7 @@ void MarkersViewer::refresh(const QString& filter)
     delete item;
   }
 
-  auto pj = mda->object<project::ProjectItem>();
+  auto pj = mda->object<chestnut::project::ProjectItem>();
   if (pj == nullptr) {
     // nothing to do
     return;

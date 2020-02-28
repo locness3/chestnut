@@ -45,7 +45,7 @@ enum class EffectFieldType {
 
 QString fieldTypeValueToString(const EffectFieldType type, const QVariant& value);
 
-class EffectField : public QObject, public project::IXMLStreamer  {
+class EffectField : public QObject, public chestnut::project::IXMLStreamer  {
   Q_OBJECT
 public:
   explicit EffectField(EffectRow* parent);

@@ -33,6 +33,7 @@
 #include "project/clip.h"
 #include "project/media.h"
 #include "ui/mainwindow.h"
+#include "project/footage.h"
 
 class LabelSlider;
 class SourceTable;
@@ -41,7 +42,6 @@ class EffectField;
 class Transition;
 class EffectGizmo;
 
-class Footage;
 class EffectMeta;
 
 
@@ -94,7 +94,7 @@ private:
 
 class RippleAction : public QUndoCommand {
 public:
-  RippleAction(SequencePtr is, const long ipoint, const long ilength, QVector<int>  iignore);
+  RippleAction(chestnut::project::SequencePtr is, const long ipoint, const long ilength, QVector<int>  iignore);
 
   RippleAction(const RippleAction& ) = delete;
   RippleAction& operator=(const RippleAction&) = delete;
@@ -102,7 +102,7 @@ public:
   virtual void undo() override;
   virtual void redo() override;
 private:
-  SequencePtr sqn_;
+  chestnut::project::SequencePtr sqn_;
   long point_;
   long length_;
   QVector<int> ignore_;
@@ -115,7 +115,7 @@ public:
   virtual void undo() override;
   virtual void redo() override;
 private:
-  SequencePtr sequence_;
+  chestnut::project::SequencePtr sequence_;
   ClipPtr clip_;
 
   bool old_project_changed;
@@ -123,12 +123,12 @@ private:
 
 class ChangeSequenceAction : public QUndoCommand {
 public:
-  explicit ChangeSequenceAction(SequencePtr  s);
+  explicit ChangeSequenceAction(chestnut::project::SequencePtr  s);
   virtual void undo() override;
   virtual void redo() override;
 private:
-  SequencePtr old_sequence;
-  SequencePtr new_sequence;
+  chestnut::project::SequencePtr old_sequence;
+  chestnut::project::SequencePtr new_sequence;
 };
 
 class AddEffectCommand : public QUndoCommand {
@@ -215,11 +215,11 @@ private:
 
 class SetTimelineInOutCommand : public QUndoCommand {
 public:
-  SetTimelineInOutCommand(SequencePtr  s, const bool enabled, const long in, const long out);
+  SetTimelineInOutCommand(chestnut::project::SequencePtr  s, const bool enabled, const long in, const long out);
   virtual void undo() override;
   virtual void redo() override;
 private:
-  SequencePtr seq;
+  chestnut::project::SequencePtr seq;
 
   bool old_workarea_enabled{};
 
@@ -234,40 +234,65 @@ private:
   bool old_project_changed;
 };
 
+class SetTimelinePositionsCommand : public QUndoCommand
+{
+  public:
+    SetTimelinePositionsCommand(std::weak_ptr<chestnut::project::ProjectItem> item, const long in, const long out,
+                                const bool enabled);
+    void undo() override;
+    void redo() override;
+  private:
+
+    struct Values {
+        long in_ {-1};
+        long out_ {-1};
+        bool active_ {false};
+        bool enabled_ {false};
+    };
+
+    struct {
+        Values new_;
+        Values old_;
+    } data_;
+
+    std::weak_ptr<chestnut::project::ProjectItem> item_;
+    bool project_changed_;
+};
+
 class NewSequenceCommand : public QUndoCommand {
 public:
-  NewSequenceCommand(MediaPtr s, MediaPtr iparent, const bool modified);
+  NewSequenceCommand(chestnut::project::MediaPtr s, chestnut::project::MediaPtr iparent, const bool modified);
   virtual ~NewSequenceCommand();
   virtual void undo() override;
   virtual void redo() override;
 private:
   friend class UndoTest;
-  MediaPtr seq_;
-  MediaPtr parent_;
+  chestnut::project::MediaPtr seq_;
+  chestnut::project::MediaPtr parent_;
   bool done_;
   bool old_project_changed_;
 };
 
 class AddMediaCommand : public QUndoCommand {
 public:
-  AddMediaCommand(MediaPtr iitem, MediaPtr iparent);
+  AddMediaCommand(chestnut::project::MediaPtr iitem, chestnut::project::MediaPtr iparent);
   virtual void undo() override;
   virtual void redo() override;
 private:
-  MediaPtr item;
-  MediaPtr parent;
+  chestnut::project::MediaPtr item;
+  chestnut::project::MediaPtr parent;
   bool done;
   bool old_project_changed;
 };
 
 class DeleteMediaCommand : public QUndoCommand {
 public:
-  explicit DeleteMediaCommand(const MediaPtr& i);
+  explicit DeleteMediaCommand(const chestnut::project::MediaPtr& i);
   virtual void undo() override;
   virtual void redo() override;
 private:
-  MediaPtr item;
-  MediaPtr parent;
+  chestnut::project::MediaPtr item;
+  chestnut::project::MediaPtr parent;
   bool old_project_changed;
   bool done{};
 };
@@ -275,11 +300,11 @@ private:
 
 class AddClipsCommand : public QUndoCommand {
   public:
-    AddClipsCommand(SequencePtr seq, const QVector<ClipPtr>& clips);
+    AddClipsCommand(chestnut::project::SequencePtr seq, const QVector<ClipPtr>& clips);
     virtual void undo() override;
     virtual void redo() override;
   private:
-    SequencePtr sequence_;
+    chestnut::project::SequencePtr sequence_;
     QVector<ClipPtr> clips_;
     bool old_project_changed_;
 };
@@ -315,11 +340,11 @@ private:
 
 class ReplaceMediaCommand : public QUndoCommand {
 public:
-  ReplaceMediaCommand(MediaPtr, QString);
+  ReplaceMediaCommand(chestnut::project::MediaPtr, QString);
   virtual void undo() override;
   virtual void redo() override;
 private:
-  MediaPtr item;
+  chestnut::project::MediaPtr item;
   QString old_filename;
   QString new_filename;
   bool old_project_changed;
@@ -328,13 +353,13 @@ private:
 
 class ReplaceClipMediaCommand : public QUndoCommand {
 public:
-  ReplaceClipMediaCommand(MediaPtr , MediaPtr , const bool);
+  ReplaceClipMediaCommand(chestnut::project::MediaPtr , chestnut::project::MediaPtr , const bool);
   virtual void undo() override;
   virtual void redo() override;
   QVector<ClipPtr> clips;
 private:
-  MediaPtr old_media;
-  MediaPtr new_media;
+  chestnut::project::MediaPtr old_media;
+  chestnut::project::MediaPtr new_media;
   bool preserve_clip_ins;
   bool old_project_changed;
   QVector<int> old_clip_ins;
@@ -357,23 +382,23 @@ private:
 class MediaMove : public QUndoCommand {
 public:
   MediaMove();
-  QVector<MediaPtr> items;
-  MediaPtr to;
+  QVector<chestnut::project::MediaPtr> items;
+  chestnut::project::MediaPtr to;
   virtual void undo() override;
   virtual void redo() override;
 private:
-  QVector<MediaPtr> froms;
+  QVector<chestnut::project::MediaPtr> froms;
   bool old_project_changed;
 };
 
 class MediaRename : public QUndoCommand {
 public:
-  MediaRename(const MediaPtr& iitem, QString  ito);
+  MediaRename(const chestnut::project::MediaPtr& iitem, QString  ito);
   virtual void undo() override;
   virtual void redo() override;
 private:
   bool old_project_changed;
-  MediaPtr item;
+  chestnut::project::MediaPtr item;
   QString from;
   QString to;
 };
@@ -434,11 +459,11 @@ private:
 
 class AddMarkerAction : public QUndoCommand {
 public:
-  AddMarkerAction(project::ProjectItemPtr  item, const long t, QString n);
+  AddMarkerAction(chestnut::project::ProjectItemPtr  item, const long t, QString n);
   virtual void undo() override;
   virtual void redo() override;
 private:
-  project::ProjectItemPtr item_;
+  chestnut::project::ProjectItemPtr item_;
   long time;
   QString name;
   QString old_name;
@@ -448,12 +473,12 @@ private:
 
 class MoveMarkerAction : public QUndoCommand {
 public:
-  MoveMarkerAction(MarkerPtr m, const long o, const long n);
+  MoveMarkerAction(chestnut::project::MarkerPtr m, const long o, const long n);
 
   virtual void undo() override;
   virtual void redo() override;
 private:
-  MarkerPtr marker;
+  chestnut::project::MarkerPtr marker;
   long old_time;
   long new_time;
   bool old_project_changed;
@@ -461,13 +486,13 @@ private:
 
 class DeleteMarkerAction : public QUndoCommand {
 public:
-  explicit DeleteMarkerAction(SequencePtr s);
+  explicit DeleteMarkerAction(chestnut::project::SequencePtr s);
   virtual void undo() override;
   virtual void redo() override;
   QVector<int> markers;
 private:
-  SequencePtr seq;
-  QVector<MarkerPtr> copies;
+  chestnut::project::SequencePtr seq;
+  QVector<chestnut::project::MarkerPtr> copies;
   bool sorted;
   bool old_project_changed;
 };
@@ -499,13 +524,13 @@ private:
 
 class SetSelectionsCommand : public QUndoCommand {
 public:
-  explicit SetSelectionsCommand(SequencePtr s);
+  explicit SetSelectionsCommand(chestnut::project::SequencePtr s);
   virtual void undo() override;
   virtual void redo() override;
   QVector<Selection> old_data;
   QVector<Selection> new_data;
 private:
-  SequencePtr seq;
+  chestnut::project::SequencePtr seq;
   bool done;
   bool old_project_changed;
 };
@@ -525,7 +550,7 @@ private:
 class EditSequenceCommand : public QUndoCommand {
 
 public:
-  EditSequenceCommand(MediaPtr i, const SequencePtr& s);
+  EditSequenceCommand(chestnut::project::MediaPtr i, const chestnut::project::SequencePtr& s);
   virtual void undo() override;
   virtual void redo() override;
   void update();
@@ -537,8 +562,8 @@ public:
   int audio_frequency{};
   int audio_layout{};
 private:
-  MediaPtr item;
-  SequencePtr seq;
+  chestnut::project::MediaPtr item;
+  chestnut::project::SequencePtr seq;
   bool old_project_changed;
 
   QString old_name;
@@ -597,11 +622,11 @@ public:
 
 class UpdateFootageTooltip : public QUndoCommand {
 public:
-  explicit UpdateFootageTooltip(MediaPtr i);
+  explicit UpdateFootageTooltip(chestnut::project::MediaPtr i);
   virtual void undo() override;
   virtual void redo() override;
 private:
-  MediaPtr item;
+  chestnut::project::MediaPtr item;
 };
 
 class MoveEffectCommand : public QUndoCommand {
@@ -700,11 +725,11 @@ private:
 
 class RefreshClips : public QUndoCommand {
 public:
-  explicit RefreshClips(MediaPtr m);
+  explicit RefreshClips(chestnut::project::MediaPtr m);
   virtual void undo() override;
   virtual void redo() override;
 private:
-  MediaPtr media;
+  chestnut::project::MediaPtr media;
 };
 
 class NudgeClipCommand: public QUndoCommand {

@@ -23,7 +23,7 @@
 #include "project/media.h"
 #include "project/ixmlstreamer.h"
 
-class ProjectModel : public QAbstractItemModel, public project::IXMLStreamer
+class ProjectModel : public QAbstractItemModel, public chestnut::project::IXMLStreamer
 {
     Q_OBJECT
 public:
@@ -37,7 +37,7 @@ public:
 
     void destroy_root();
     void clear();
-    MediaPtr root();
+    chestnut::project::MediaPtr root();
 
     QVariant data(const QModelIndex &index, int role) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
@@ -48,55 +48,55 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
-    MediaPtr getItem(const QModelIndex &index) const;
+    chestnut::project::MediaPtr getItem(const QModelIndex &index) const;
 
-    bool appendChild(MediaPtr parent, const MediaPtr& child);
-    void moveChild(const MediaPtr& child, MediaPtr to);
-    void removeChild(MediaPtr parent, const MediaPtr& child);
-    MediaPtr child(const int index, MediaPtr parent = nullptr);
-    int childCount(MediaPtr parent = nullptr);
-    void set_icon(const MediaPtr& m, const QIcon &ico);
-    void setIcon(FootagePtr ftg, QIcon icon);
-    QModelIndex add(const MediaPtr& mda);
-    MediaPtr get(const QModelIndex& idx);
-    const MediaPtr get(const QModelIndex& idx) const;
-    MediaPtr getFolder(const int id);
+    bool appendChild(chestnut::project::MediaPtr parent, const chestnut::project::MediaPtr& child);
+    void moveChild(const chestnut::project::MediaPtr& child, chestnut::project::MediaPtr to);
+    void removeChild(chestnut::project::MediaPtr parent, const chestnut::project::MediaPtr& child);
+    chestnut::project::MediaPtr child(const int index, chestnut::project::MediaPtr parent = nullptr);
+    int childCount(chestnut::project::MediaPtr parent = nullptr);
+    void set_icon(const chestnut::project::MediaPtr& m, const QIcon &ico);
+    void setIcon(chestnut::project::FootagePtr ftg, QIcon icon);
+    QModelIndex add(const chestnut::project::MediaPtr& mda);
+    chestnut::project::MediaPtr get(const QModelIndex& idx);
+    const chestnut::project::MediaPtr get(const QModelIndex& idx) const;
+    chestnut::project::MediaPtr getFolder(const int id);
 
     /**
      * Get all items held in model
      * @return map of Media items
      */
-    const QMap<int, MediaPtr>& items() const;
+    const QMap<int, chestnut::project::MediaPtr>& items() const;
 
     /**
      *  Search the model for a Media instance by Id
      * @param id Media's id
      * @return media ptr or null
      */
-    MediaPtr findItemById(const int id);
+    chestnut::project::MediaPtr findItemById(const int id);
 
     virtual bool load(QXmlStreamReader& stream) override;
     virtual bool save(QXmlStreamWriter& stream) const override;
 private:
     friend class ProjectModelTest;
-    QMap<int, MediaPtr> project_items;
+    QMap<int, chestnut::project::MediaPtr> project_items;
 
     /**
      * @brief         Add object into managed map of objects
      * @param item    Object to manage
      * @return        true==item exists in map
      */
-    bool insert(const MediaPtr& item);
+    bool insert(const chestnut::project::MediaPtr& item);
 
     /**
      * @brief         Remove an object from the managed map of objects
      * @param item    Object to remove
      * @return        true==item was removed
      */
-    bool remove(const MediaPtr& item);
+    bool remove(const chestnut::project::MediaPtr& item);
 
-    QModelIndex create_index(const int row, const int col, const MediaPtr& mda) const;
-    QModelIndex create_index(const int row, const MediaPtr& mda) const;
+    QModelIndex create_index(const int row, const int col, const chestnut::project::MediaPtr& mda) const;
+    QModelIndex create_index(const int row, const chestnut::project::MediaPtr& mda) const;
 
     bool saveFolders(QXmlStreamWriter& stream) const;
     bool saveMedia(QXmlStreamWriter& stream) const;

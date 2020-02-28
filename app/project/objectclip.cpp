@@ -29,7 +29,7 @@ ObjectClip::ObjectClip(const Clip& base) :
   setName(base.name());
 }
 
-ObjectClip::ObjectClip(SequencePtr seq) : Clip(std::move(seq))
+ObjectClip::ObjectClip(chestnut::project::SequencePtr seq) : Clip(std::move(seq))
 {
 
 }

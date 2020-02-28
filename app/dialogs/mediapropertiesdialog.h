@@ -22,7 +22,6 @@
 
 #include "project/media.h"
 
-class Footage;
 class QComboBox;
 class QLineEdit;
 class QListWidget;
@@ -31,7 +30,7 @@ class QDoubleSpinBox;
 class MediaPropertiesDialog : public QDialog {
     Q_OBJECT
   public:
-    MediaPropertiesDialog(QWidget *parent, MediaPtr mda);
+    MediaPropertiesDialog(QWidget *parent, chestnut::project::MediaPtr mda);
 
     MediaPropertiesDialog(const MediaPropertiesDialog& ) = delete;
     MediaPropertiesDialog& operator=(const MediaPropertiesDialog&) = delete;
@@ -39,7 +38,7 @@ class MediaPropertiesDialog : public QDialog {
   private:
     QComboBox* interlacing_box;
     QLineEdit* name_box;
-    MediaPtr item;
+    chestnut::project::MediaPtr item;
     QListWidget* track_list;
     QDoubleSpinBox* conform_fr;
   private slots:

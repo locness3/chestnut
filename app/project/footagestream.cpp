@@ -34,7 +34,7 @@
 #include "defaults.h"
 
 
-using project::FootageStream;
+using chestnut::project::FootageStream;
 using media_handling::FieldOrder;
 using media_handling::MediaStreamPtr;
 using media_handling::MediaProperty;

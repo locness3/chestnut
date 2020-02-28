@@ -40,7 +40,7 @@ void ViewerBase::setName(QString name)
   this->updatePanelTitle();
 }
 
-void ViewerBase::setMedia(MediaWPtr mda)
+void ViewerBase::setMedia(project::MediaWPtr mda)
 {
   media_ = std::move(mda);
   this->updatePanelTitle();
@@ -111,7 +111,7 @@ void ViewerBase::setupWidgets()
   connect(scroll_area_, &ui::MenuScrollArea::setZoom, frame_view_, &ui::ImageCanvas::setZoom);
   connect(scroll_area_, &ui::MenuScrollArea::clear, this, &ViewerBase::clear);
 
-  headers_ = new TimelineHeader(contents);
+  headers_ = new ui::ViewerTimeline(contents);
   layout->addWidget(headers_);
 
   horizontal_bar_ = new ResizableScrollBar(contents);

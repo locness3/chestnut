@@ -30,22 +30,28 @@
 //FIXME: this is used EVERYWHERE. This has to be water-tight and heavily tested.
 
 class Clip;
-class Media;
 class Transition;
 
 using ClipPtr = std::shared_ptr<Clip>;
 using TransitionPtr = std::shared_ptr<Transition>;
 using TransitionWPtr = std::weak_ptr<Transition>;
 
-using SequencePtr = std::shared_ptr<Sequence>;
-using SequenceUPtr = std::unique_ptr<Sequence>;
-using SequenceWPtr = std::weak_ptr<Sequence>;
+namespace chestnut::project
+{
+  class Sequence;
+  class Media;
+  using SequencePtr = std::shared_ptr<Sequence>;
+  using SequenceUPtr = std::unique_ptr<Sequence>;
+  using SequenceWPtr = std::weak_ptr<Sequence>;
+}
 
 
-Q_DECLARE_METATYPE(SequencePtr)
+Q_DECLARE_METATYPE(chestnut::project::SequencePtr)
 
+namespace chestnut::project
+{
 
-class Sequence : public std::enable_shared_from_this<Sequence>, public project::ProjectItem {
+class Sequence : public std::enable_shared_from_this<Sequence>, public ProjectItem {
 public:
 
     QVector<Selection> selections_;
@@ -77,7 +83,7 @@ public:
      * @brief   Obtain the frame at where the last clip ends in the timeline
      * @return  frame number
      */
-    int64_t endFrame() const noexcept;
+    int64_t endFrame() const noexcept override;
 
     void hardDeleteTransition(const ClipPtr& c, const int32_t type);
 
@@ -211,10 +217,11 @@ private:
 
     QVector<project::Track> tracks(const bool video);
 };
+}
 
 namespace global {
     // static variable for the currently active sequence
-    extern SequencePtr sequence;
+    extern chestnut::project::SequencePtr sequence;
 }
 
 #endif // SEQUENCE_H

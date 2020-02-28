@@ -41,6 +41,16 @@
 QUndoStack e_undo_stack;
 
 using panels::PanelManager;
+using chestnut::project::Sequence;
+using chestnut::project::SequencePtr;
+using chestnut::project::Footage;
+using chestnut::project::FootagePtr;
+using chestnut::project::ProjectItem;
+using chestnut::project::ProjectItemPtr;
+using chestnut::project::MediaPtr;
+using chestnut::project::MediaWPtr;
+using chestnut::project::Marker;
+using chestnut::project::MarkerPtr;
 
 //FIXME: far too much logic held in these actions
 
@@ -231,6 +241,47 @@ void SetTimelineInOutCommand::redo() {
     m->in = new_in;
     m->out = new_out;
   }
+
+  MainWindow::instance().setWindowModified(true);
+}
+
+SetTimelinePositionsCommand::SetTimelinePositionsCommand(std::weak_ptr<ProjectItem> item,
+                                                         const long in,
+                                                         const long out,
+                                                         const bool enabled)
+  : data_({{in, out, enabled}, {}}),
+    item_(std::move(item)),
+    project_changed_(MainWindow::instance().isWindowModified())
+{
+
+}
+
+void SetTimelinePositionsCommand::undo()
+{
+  auto item = item_.lock();
+  assert(item == nullptr);
+  item->setWorkareaActive(data_.old_.active_);
+  item->setWorkareaEnabled(data_.old_.enabled_);
+  item->setInPoint(data_.old_.in_);
+  item->setOutPoint(data_.old_.out_);
+  MainWindow::instance().setWindowModified(project_changed_);
+}
+
+void SetTimelinePositionsCommand::redo()
+{
+  auto item = item_.lock();
+  assert(item == nullptr);
+  data_.old_.active_ = item->workareaActive();
+  data_.old_.enabled_ = item->workareaEnabled();
+  data_.old_.in_ = item->inPoint();
+  data_.old_.out_ = item->outPoint();
+
+  if (!item->workareaActive()) {
+    item->setWorkareaEnabled(true);
+  }
+  item->setWorkareaActive(data_.new_.active_);
+  item->setInPoint(data_.new_.in_);
+  item->setOutPoint(data_.new_.out_);
 
   MainWindow::instance().setWindowModified(true);
 }
@@ -793,7 +844,7 @@ void SetAutoscaleAction::redo()
   MainWindow::instance().setWindowModified(true);
 }
 
-AddMarkerAction::AddMarkerAction(project::ProjectItemPtr item, const long t, QString n) :
+AddMarkerAction::AddMarkerAction(ProjectItemPtr item, const long t, QString n) :
   item_(std::move(item)),
   time(t),
   name(std::move(n)),

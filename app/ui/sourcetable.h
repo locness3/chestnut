@@ -24,9 +24,6 @@
 
 #include "ui/sourceview.h"
 
-class Project;
-class Media;
-
 class SourceTable : public QTreeView, public chestnut::ui::SourceView {
     Q_OBJECT
   public:

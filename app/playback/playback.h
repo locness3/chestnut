@@ -26,6 +26,6 @@
 extern bool e_rendering;
 
 long refactor_frame_number(const long framenumber, const double source_frame_rate, const double target_frame_rate);
-void set_sequence(const SequencePtr& s);
+void set_sequence(const chestnut::project::SequencePtr& s);
 
 #endif // PLAYBACK_H

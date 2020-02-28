@@ -93,7 +93,7 @@ static const FormatCodecs WAV_CODECS {{}, {AV_CODEC_ID_PCM_S16LE}};
 
 using panels::PanelManager;
 
-ExportDialog::ExportDialog(SequencePtr seq, QWidget *parent)
+ExportDialog::ExportDialog(chestnut::project::SequencePtr seq, QWidget *parent)
   : QDialog(parent),
     sequence_(std::move(seq)),
     output_dir_()

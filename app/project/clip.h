@@ -70,14 +70,14 @@ enum class ClipType {
 
 class Clip : public project::SequenceItem,
     public std::enable_shared_from_this<Clip>,
-    public project::IXMLStreamer,
+    public chestnut::project::IXMLStreamer,
     protected QThread
 {
 public:
-  explicit Clip(SequencePtr s);
+  explicit Clip(chestnut::project::SequencePtr s);
   virtual ~Clip() override;
-  ClipPtr copy(SequencePtr s);
-  ClipPtr copyPreserveLinks(SequencePtr s);
+  ClipPtr copy(chestnut::project::SequencePtr s);
+  ClipPtr copyPreserveLinks(chestnut::project::SequencePtr s);
 
   Clip() = delete;
   Clip(const Clip&) = delete;
@@ -248,7 +248,7 @@ public:
    * @brief Obtain the Media parent
    * @return MediaPtr or null
    */
-  MediaPtr parentMedia();
+  chestnut::project::MediaPtr parentMedia();
 
   void addLinkedClip(const Clip& clp);
   void setLinkedClips(const QVector<int32_t>& links);
@@ -291,7 +291,7 @@ public:
   bool locked() const;
 
   //FIXME: all the class members
-  SequencePtr sequence;
+  chestnut::project::SequencePtr sequence;
 
   // timeline variables (should be copied in copy())
   project::TimelineInfo timeline_info;

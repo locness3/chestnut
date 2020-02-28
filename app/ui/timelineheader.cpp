@@ -40,6 +40,7 @@ constexpr int MARKER_SIZE = 4;
 constexpr int MARKER_OUTLINE_WIDTH = 3;
 
 using panels::PanelManager;
+using chestnut::project::MarkerPtr;
 
 bool center_scroll_to_playhead(QScrollBar* bar, double zoom, long playhead) {
   // returns true is the scroll was changed, false if not

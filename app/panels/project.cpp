@@ -94,6 +94,14 @@ constexpr bool XML_SAVE_FORMATTING = true; // creates bigger files
 
 using panels::PanelManager;
 using chestnut::project::PreviewGeneratorThread;
+using chestnut::project::Media;
+using chestnut::project::MediaPtr;
+using chestnut::project::FootageWPtr;
+using chestnut::project::Sequence;
+using chestnut::project::SequencePtr;
+using chestnut::project::Footage;
+using chestnut::project::FootagePtr;
+
 
 Project::Project(QWidget *parent) :
   QDockWidget(parent)

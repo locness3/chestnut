@@ -43,8 +43,12 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
-using project::FootageStreamPtr;
+using chestnut::project::FootageStreamPtr;
 using panels::PanelManager;
+using chestnut::project::SequencePtr;
+using chestnut::project::Footage;
+using chestnut::project::Sequence;
+using chestnut::project::MediaPtr;
 
 constexpr bool WAIT_ON_CLOSE = true;
 constexpr AVSampleFormat SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;

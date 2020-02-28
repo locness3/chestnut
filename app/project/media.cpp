@@ -35,9 +35,11 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 }
 
-using project::FootageStreamPtr;
+using chestnut::project::Media;
+using chestnut::project::FootageStreamPtr;
 
-int32_t Media::nextID = 0;
+
+int32_t chestnut::project::Media::nextID = 0;
 
 namespace
 {
@@ -403,7 +405,7 @@ bool Media::setData(const int32_t column, const QVariant &value)
   return false;
 }
 
-MediaPtr Media::child(const int32_t row) 
+chestnut::project::MediaPtr Media::child(const int32_t row)
 {
   return children_.value(row);
 }
@@ -508,7 +510,7 @@ int32_t Media::row()
   return 0;
 }
 
-MediaPtr Media::parentItem() 
+chestnut::project::MediaPtr Media::parentItem()
 {
   return parent_.lock();
 }

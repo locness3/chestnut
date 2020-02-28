@@ -33,7 +33,7 @@ class NewSequenceDialog : public QDialog
     Q_OBJECT
 
   public:
-    NewSequenceDialog(QWidget *parent = nullptr, MediaPtr existing = nullptr);
+    NewSequenceDialog(QWidget *parent = nullptr, chestnut::project::MediaPtr existing = nullptr);
     virtual ~NewSequenceDialog();
 
     NewSequenceDialog(const NewSequenceDialog& ) = delete;
@@ -46,8 +46,8 @@ class NewSequenceDialog : public QDialog
     void preset_changed(int index);
 
   private:
-    SequencePtr existing_sequence;
-    MediaPtr existing_item;
+    chestnut::project::SequencePtr existing_sequence;
+    chestnut::project::MediaPtr existing_item;
 
     void setup_ui();
 

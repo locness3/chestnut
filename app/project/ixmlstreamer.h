@@ -29,7 +29,8 @@ namespace chestnut {
   }
 }
 
-namespace project {
+namespace chestnut::project
+{
   class IXMLStreamer {
     public:
       IXMLStreamer() {}

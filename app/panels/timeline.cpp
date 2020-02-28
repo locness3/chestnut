@@ -67,6 +67,7 @@ namespace
 }
 
 using panels::PanelManager;
+using chestnut::project::Footage;
 
 
 Timeline::Timeline(QWidget *parent) :
@@ -97,7 +98,7 @@ Timeline::Timeline(QWidget *parent) :
   last_frame(0),
   scroll(0)
 {
-  qRegisterMetaType<SequencePtr>();
+  qRegisterMetaType<chestnut::project::SequencePtr>();
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -131,7 +132,7 @@ Timeline::Timeline(QWidget *parent) :
 }
 
 
-bool Timeline::setSequence(const SequencePtr& seq)
+bool Timeline::setSequence(const chestnut::project::SequencePtr& seq)
 {
   if (seq != sequence_) {
     sequence_ = seq;
@@ -221,7 +222,7 @@ void Timeline::nudgeClips(const int pos)
   PanelManager::sequenceViewer().update_viewer();
 }
 
-void ripple_clips(ComboAction* ca, SequencePtr s, long point, long length, const QVector<int>& ignore)
+void ripple_clips(ComboAction* ca, chestnut::project::SequencePtr s, long point, long length, const QVector<int>& ignore)
 {
   ca->append(new RippleAction(s, point, length, ignore));
 }
@@ -242,7 +243,8 @@ void Timeline::toggle_show_all()
   }
 }
 
-void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, QVector<MediaPtr>& media_list)
+void Timeline::createGhostsFromMedia(chestnut::project::SequencePtr &seq, const long entry_point,
+                                     QVector<chestnut::project::MediaPtr>& media_list)
 {
   video_ghosts = false;
   audio_ghosts = false;
@@ -254,8 +256,8 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
       continue;
     }
     bool can_import = true;
-    FootagePtr ftg;
-    SequencePtr lcl_seq;
+    chestnut::project::FootagePtr ftg;
+    chestnut::project::SequencePtr lcl_seq;
     auto sequence_length = 0L;
     auto default_clip_in = 0L;
     auto default_clip_out = 0L;
@@ -264,7 +266,7 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
     {
       case MediaType::FOOTAGE:
       {
-        ftg = mda->object<Footage>();
+        ftg = mda->object<chestnut::project::Footage>();
         if (ftg == nullptr) {
           break;
         }
@@ -281,7 +283,7 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
       }
         break;
       case MediaType::SEQUENCE:
-        lcl_seq = mda->object<Sequence>();
+        lcl_seq = mda->object<chestnut::project::Sequence>();
         sequence_length = lcl_seq->endFrame();
         if (lcl_seq != nullptr) {
           sequence_length = refactor_frame_number(sequence_length, lcl_seq->frameRate(), seq->frameRate());
@@ -375,7 +377,7 @@ void Timeline::createGhostsFromMedia(SequencePtr &seq, const long entry_point, Q
   }
 }
 
-void Timeline::addClipsFromGhosts(ComboAction* ca, const SequencePtr& seq)
+void Timeline::addClipsFromGhosts(ComboAction* ca, const chestnut::project::SequencePtr& seq)
 {
   Q_ASSERT(seq != nullptr);
   // add clips
@@ -412,7 +414,7 @@ void Timeline::addClipsFromGhosts(ComboAction* ca, const SequencePtr& seq)
       // sequence (red?ish?)
       clp->timeline_info.color = SEQUENCE_COLOR;
 
-      SequencePtr media = clp->timeline_info.media->object<Sequence>();
+      chestnut::project::SequencePtr media = clp->timeline_info.media->object<chestnut::project::Sequence>();
       clp->timeline_info.name_ = media->name();
     }
     clp->recalculateMaxLength();
@@ -966,7 +968,8 @@ void Timeline::copy(bool del)
   }
 }
 
-void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert, const SequencePtr& seq)
+void Timeline::pasteClip(const QVector<project::SequenceItemPtr>& items, const bool insert,
+                         const chestnut::project::SequencePtr& seq)
 {
   auto ca = new ComboAction();
 

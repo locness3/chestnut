@@ -19,7 +19,7 @@
 #include "project/track.h"
 #include "debug.h"
 
-using project::Track;
+using chestnut::project::Track;
 
 Track::Track(const int index) : index_(index)
 {

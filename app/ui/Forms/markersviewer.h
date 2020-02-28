@@ -40,7 +40,7 @@ public:
    * @param mda
    * @return true==media set,  false==null ptr or invalid type
    */
-  bool setMedia(const MediaPtr& mda);
+  bool setMedia(const chestnut::project::MediaPtr& mda);
   /**
    * Rebuild the viewer
    * @param filter a simple 'contains' search function in marker name or comment
@@ -54,7 +54,7 @@ public:
 
 private:
   Ui::MarkersViewer *ui{};
-  MediaWPtr media_{};
+  chestnut::project::MediaWPtr media_{};
 };
 
 #endif // MARKERSVIEWER_H

@@ -103,7 +103,7 @@ void SpeedDialog::run() {
     if (clp->timeline_info.isVideo()) {
       bool process_video = true;
       if (clp->timeline_info.media != nullptr && clp->timeline_info.media->type() == MediaType::FOOTAGE) {
-        FootagePtr ftg = clp->timeline_info.media->object<Footage>();
+        chestnut::project::FootagePtr ftg = clp->timeline_info.media->object<chestnut::project::Footage>();
         if (auto stream = ftg->video_stream_from_file_index(clp->timeline_info.media_stream)) {
           process_video = !stream->infinite_length;
         }

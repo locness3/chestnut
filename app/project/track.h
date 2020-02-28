@@ -21,7 +21,8 @@
 
 #include "project/ixmlstreamer.h"
 
-namespace project {
+namespace chestnut::project
+{
   class Track : public IXMLStreamer
   {
     public:

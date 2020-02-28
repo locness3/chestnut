@@ -29,7 +29,7 @@ class QCheckBox;
 class ReplaceClipMediaDialog : public QDialog {
     Q_OBJECT
   public:
-    ReplaceClipMediaDialog(QWidget* parent, MediaPtr old_media);
+    ReplaceClipMediaDialog(QWidget* parent, chestnut::project::MediaPtr old_media);
 
     ReplaceClipMediaDialog(const ReplaceClipMediaDialog& ) = delete;
     ReplaceClipMediaDialog& operator=(const ReplaceClipMediaDialog&) = delete;
@@ -37,7 +37,7 @@ class ReplaceClipMediaDialog : public QDialog {
   private slots:
     void replace();
   private:
-    MediaPtr media_;
+    chestnut::project::MediaPtr media_;
     QTreeView* tree = nullptr;
     QCheckBox* use_same_media_in_points = nullptr;
 };

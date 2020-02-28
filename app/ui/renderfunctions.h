@@ -13,7 +13,7 @@ class Viewer;
 
 GLuint compose_sequence(Viewer* viewer,
                         QOpenGLContext* ctx,
-                        SequencePtr seq,
+                        chestnut::project::SequencePtr seq,
                         QVector<ClipPtr> &nests,
                         const bool video,
                         const bool render_audio,
@@ -22,7 +22,7 @@ GLuint compose_sequence(Viewer* viewer,
                         const bool rendering,
                         const bool use_effects=true);
 
-void compose_audio(Viewer* viewer, SequencePtr seq, bool render_audio);
+void compose_audio(Viewer* viewer, chestnut::project::SequencePtr seq, bool render_audio);
 
 void viewport_render();
 

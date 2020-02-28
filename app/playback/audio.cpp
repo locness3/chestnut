@@ -23,9 +23,11 @@
 #include <QtMath>
 #include <QFile>
 #include <QDir>
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
 
 #include "project/sequence.h"
-
 #include "io/config.h"
 #include "panels/panelmanager.h"
 #include "ui/audiomonitor.h"
@@ -33,10 +35,9 @@
 #include "debug.h"
 
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-}
+using chestnut::project::SequencePtr;
 using panels::PanelManager;
+
 
 QAudioOutput* audio_output;
 QIODevice* audio_io_device;

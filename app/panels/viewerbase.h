@@ -29,6 +29,7 @@
 #include "ui/labelslider.h"
 #include "ui/imagecanvas.h"
 #include "ui/menuscrollarea.h"
+#include "ui/viewertimeline.h"
 
 namespace chestnut::panels
 {
@@ -40,7 +41,7 @@ namespace chestnut::panels
       ~ViewerBase() override;
 
       virtual void setName(QString name);
-      virtual void setMedia(MediaWPtr mda);
+      virtual void setMedia(project::MediaWPtr mda);
       virtual bool hasMedia() const noexcept;
 
       virtual void seek(const int64_t position) = 0;
@@ -81,12 +82,12 @@ namespace chestnut::panels
 
     private:
       friend class FootageViewer;
-      MediaWPtr media_;
+      project::MediaWPtr media_;
       QString name_;
 
       QIcon play_icon_;
 
-      TimelineHeader* headers_ {nullptr};
+      ui::ViewerTimeline* headers_ {nullptr};
       ResizableScrollBar* horizontal_bar_ {nullptr};
       ui::MenuScrollArea* scroll_area_ {nullptr};
       ui::ImageCanvas* frame_view_ {nullptr};

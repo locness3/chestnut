@@ -26,6 +26,8 @@ constexpr int DEFAULT_COLUMN = 0;
 constexpr int FILE_VERSION = 1;
 
 using panels::PanelManager;
+using chestnut::project::Media;
+using chestnut::project::MediaPtr;
 
 ProjectModel::ProjectModel(QObject *parent)
   : QAbstractItemModel(parent)
@@ -257,7 +259,7 @@ void ProjectModel::set_icon(const MediaPtr& m, const QIcon &ico)
 
 }
 
-void ProjectModel::setIcon(FootagePtr ftg, QIcon icon)
+void ProjectModel::setIcon(chestnut::project::FootagePtr ftg, QIcon icon)
 {
   Q_ASSERT(ftg);
   if (auto mda = ftg->parent().lock()) {

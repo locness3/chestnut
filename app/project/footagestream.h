@@ -28,11 +28,15 @@
 
 #include "project/ixmlstreamer.h"
 
-class Footage;
+namespace chestnut::project
+{
+  class Footage;
+}
 
-namespace project {
+namespace chestnut::project
+{
 
-  class FootageStream : public project::IXMLStreamer
+  class FootageStream : public IXMLStreamer
   {
     public:
       int file_index {-1};

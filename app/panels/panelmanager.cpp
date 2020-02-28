@@ -28,6 +28,7 @@
 
 using panels::PanelManager;
 using panels::HistogramViewer;
+using chestnut::project::SequencePtr;
 
 QWidget* PanelManager::parent_ = nullptr;
 HistogramViewer* PanelManager::histogram_viewer_ = nullptr;

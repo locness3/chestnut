@@ -62,7 +62,7 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     bool is_focused() const;
     bool is_main_sequence() const noexcept;
     void set_main_sequence();
-    void set_media(const MediaPtr& m);
+    void set_media(const chestnut::project::MediaPtr& m);
     void set_playpause_icon(bool play);
     void update_playhead_timecode(long p);
     void update_end_timecode();
@@ -94,8 +94,8 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
     void reset_all_audio();
     void update_parents(bool reload_fx = false);
 
-    MediaWPtr getMedia();
-    SequencePtr getSequence();
+    chestnut::project::MediaWPtr getMedia();
+    chestnut::project::SequencePtr getSequence();
     /**
      * Create a new marker of an object in the widget
      */
@@ -140,8 +140,8 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
   private:
     friend class ViewerTest;
 
-    SequencePtr sequence_ {nullptr};
-    MediaWPtr media_;
+    chestnut::project::SequencePtr sequence_ {nullptr};
+    chestnut::project::MediaWPtr media_;
 
     bool main_sequence {false};
     bool created_sequence {false};
@@ -173,7 +173,7 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
 
     void update_window_title();
     void clean_created_seq();
-    void setSequence(const bool main, SequencePtr sequence_);
+    void setSequence(const bool main, chestnut::project::SequencePtr sequence_);
     void set_zoom_value(double d);
     void set_sb_max();
 
@@ -182,7 +182,7 @@ class Viewer : public QDockWidget, public ui::MarkerDockWidget
 
     void setup_ui();
 
-    SequencePtr createFootageSequence(const MediaPtr& mda) const;
+    chestnut::project::SequencePtr createFootageSequence(const chestnut::project::MediaPtr& mda) const;
 };
 
 #endif // VIEWER_H

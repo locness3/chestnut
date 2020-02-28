@@ -28,7 +28,6 @@
 
 #include "debug.h"
 
-using project::Track;
 
 constexpr int       RECURSION_LIMIT            = 100;
 constexpr int       MAXIMUM_WIDTH              = 4096;
@@ -41,9 +40,11 @@ constexpr int       DEFAULT_AUDIO_FREQUENCY    = 48000;
 constexpr int       DEFAULT_LAYOUT             = AV_CH_LAYOUT_STEREO;
 
 
+using chestnut::project::Track;
+using chestnut::project::Sequence;
 
 // static variable for the currently active sequence
-SequencePtr global::sequence;
+chestnut::project::SequencePtr global::sequence;
 
 
 Sequence::Sequence(std::shared_ptr<Media> parent) : parent_mda(std::move(parent))
@@ -664,12 +665,12 @@ int64_t Sequence::activeLength() const noexcept
 }
 
 
-QVector<project::Track> Sequence::audioTracks()
+QVector<Track> Sequence::audioTracks()
 {
   return tracks(false);
 }
 
-QVector<project::Track> Sequence::videoTracks()
+QVector<Track> Sequence::videoTracks()
 {
   return tracks(true);
 }
@@ -695,7 +696,7 @@ bool Sequence::loadWorkArea(QXmlStreamReader& stream)
 }
 
 
-QVector<project::Track> Sequence::tracks(const bool video)
+QVector<Track> Sequence::tracks(const bool video)
 {
   QVector<project::Track> trks;
 

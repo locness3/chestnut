@@ -18,7 +18,7 @@
 
 #include "projectitem.h"
 
-using project::ProjectItem;
+using chestnut::project::ProjectItem;
 
 ProjectItem::ProjectItem(const QString& itemName)
   : name_(itemName)
@@ -44,3 +44,45 @@ bool ProjectItem::save(QXmlStreamWriter& stream) const
 {
   return false;
 }
+
+
+void ProjectItem::setInPoint(const long pos)
+{
+  workarea_.in_point_ = pos;
+}
+
+long ProjectItem::inPoint() const noexcept
+{
+  return workarea_.in_point_;
+}
+
+void ProjectItem::setOutPoint(const long pos)
+{
+  workarea_.out_point_ = pos;
+}
+
+long ProjectItem::outPoint() const noexcept
+{
+  return workarea_.out_point_;
+}
+
+void ProjectItem::setWorkareaEnabled(const bool enabled)
+{
+  workarea_.enabled_ = enabled;
+}
+
+bool ProjectItem::workareaEnabled() const noexcept
+{
+  return workarea_.enabled_;
+}
+
+void ProjectItem::setWorkareaActive(const bool active)
+{
+  workarea_.active_ = active;
+}
+
+bool ProjectItem::workareaActive() const noexcept
+{
+  return workarea_.active_;
+}
+

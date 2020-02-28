@@ -24,6 +24,7 @@
 
 using chestnut::panels::FootageViewer;
 using chestnut::system::AudioWorker;
+
 namespace mh = media_handling;
 
 FootageViewer::FootageViewer(QWidget* parent)
@@ -47,7 +48,7 @@ void FootageViewer::clear()
   ViewerBase::clear();
 }
 
-void FootageViewer::setMedia(MediaWPtr mda)
+void FootageViewer::setMedia(chestnut::project::MediaWPtr mda)
 {
   clear();
   ViewerBase::setMedia(std::move(mda));
@@ -55,7 +56,7 @@ void FootageViewer::setMedia(MediaWPtr mda)
     if (mda_item->type() != MediaType::FOOTAGE) {
       return;
     }
-    footage_ = mda_item->object<Footage>();
+    footage_ = mda_item->object<chestnut::project::Footage>();
     if (footage_ == nullptr) {
       return;
     }
