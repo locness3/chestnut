@@ -23,6 +23,7 @@
 #include <memory>
 #include <QVector>
 #include <optional>
+#include <mediahandling/mediahandling.h>
 
 #include "project/marker.h"
 
@@ -35,42 +36,45 @@ namespace chestnut::project
 namespace chestnut::project
 {
 
-class ProjectItem : public IXMLStreamer {
-public:
-  ProjectItem() = default;
-  explicit ProjectItem(const QString& itemName);
+  class ProjectItem : public IXMLStreamer {
+    public:
+      ProjectItem() = default;
+      explicit ProjectItem(const QString& itemName);
 
-  void setName(const QString& val);
-  const QString& name() const;
+      void setName(const QString& val);
+      const QString& name() const;
 
-  virtual bool load(QXmlStreamReader& stream) override;
-  virtual bool save(QXmlStreamWriter& stream) const override;
+      virtual bool load(QXmlStreamReader& stream) override;
+      virtual bool save(QXmlStreamWriter& stream) const override;
 
-  virtual void setInPoint(const long pos);
-  virtual long inPoint() const noexcept;
-  virtual void setOutPoint(const long pos);
-  virtual long outPoint() const noexcept;
-  virtual void setWorkareaEnabled(const bool enabled);
-  virtual bool workareaEnabled() const noexcept;
-  virtual void setWorkareaActive(const bool active);
-  virtual bool workareaActive() const noexcept;
+      virtual void setInPoint(const int64_t pos);
+      virtual int64_t inPoint() const noexcept;
+      virtual void setOutPoint(const int64_t pos);
+      virtual int64_t outPoint() const noexcept;
+      virtual void setWorkareaEnabled(const bool enabled);
+      virtual bool workareaEnabled() const noexcept;
+      virtual void setWorkareaActive(const bool active);
+      virtual bool workareaActive() const noexcept;
 
-  virtual int64_t endFrame() const noexcept = 0;
+      virtual int64_t endFrame() const noexcept = 0;
+      virtual media_handling::Rational frameRate() const noexcept = 0;
+      virtual int64_t playhead() const noexcept = 0;
 
-  QVector<MarkerPtr> markers_{};
-private:
-  friend class Sequence;
-  friend class Footage;
-  QString name_{};
+      QVector<MarkerPtr> markers_{};
+    private:
+      friend class Sequence;
+      friend class Footage;
+      QString name_{};
 
-  struct {
-    long in_point_ {-1};
-    long out_point_ {-1};
-    bool enabled_ {false};
-    bool active_ {false};
-  } workarea_;
-};
+      struct {
+          int64_t in_point_ {-1};
+          int64_t out_point_ {-1};
+          bool enabled_ {false};
+          bool active_ {false};
+      } workarea_;
+  };
 
-typedef std::shared_ptr<ProjectItem> ProjectItemPtr;
+  using ProjectItemPtr = std::shared_ptr<ProjectItem>;
+  using ProjectItemWPtr = std::weak_ptr<ProjectItem>;
 }
 #endif // PROJECTITEM_H

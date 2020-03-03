@@ -56,7 +56,7 @@ NewSequenceDialog::NewSequenceDialog(QWidget *parent, MediaPtr existing) :
 
     width_numeric->setValue(existing_sequence->width());
     height_numeric->setValue(existing_sequence->height());
-    int comp_rate = qRound(existing_sequence->frameRate()*100);
+    int comp_rate = qRound(existing_sequence->frameRate().toDouble() * 100);
     for (int i=0;i<frame_rate_combobox->count();i++) {
       if (qRound(frame_rate_combobox->itemData(i).toDouble()*100) == comp_rate) {
         frame_rate_combobox->setCurrentIndex(i);

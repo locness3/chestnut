@@ -177,7 +177,7 @@ long EffectField::timecodeToFrame(double timecode)
   Q_ASSERT(parent_row != nullptr);
   Q_ASSERT(parent_row->parent_effect != nullptr);
   Q_ASSERT(parent_row->parent_effect->parent_clip != nullptr);
-  return qRound(timecode * parent_row->parent_effect->parent_clip->sequence->frameRate());
+  return qRound(timecode * parent_row->parent_effect->parent_clip->sequence->frameRate().toDouble());
 }
 
 void EffectField::set_current_data(const QVariant& data) {

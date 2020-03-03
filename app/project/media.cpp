@@ -287,7 +287,7 @@ void Media::updateTooltip(const QString& error)
                     sqn->name(),
                     QString::number(sqn->width()),
                     QString::number(sqn->height()),
-                    QString::number(sqn->frameRate()),
+                    sqn->frameRate().toString().c_str(),
                     QString::number(sqn->audioFrequency()),
                     get_channel_layout_name(av_get_channel_layout_nb_channels(sqn->audioLayout()), sqn->audioLayout())
                     );

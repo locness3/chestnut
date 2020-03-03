@@ -46,22 +46,22 @@ bool ProjectItem::save(QXmlStreamWriter& stream) const
 }
 
 
-void ProjectItem::setInPoint(const long pos)
+void ProjectItem::setInPoint(const int64_t pos)
 {
   workarea_.in_point_ = pos;
 }
 
-long ProjectItem::inPoint() const noexcept
+int64_t ProjectItem::inPoint() const noexcept
 {
   return workarea_.in_point_;
 }
 
-void ProjectItem::setOutPoint(const long pos)
+void ProjectItem::setOutPoint(const int64_t pos)
 {
   workarea_.out_point_ = pos;
 }
 
-long ProjectItem::outPoint() const noexcept
+int64_t ProjectItem::outPoint() const noexcept
 {
   return workarea_.out_point_;
 }

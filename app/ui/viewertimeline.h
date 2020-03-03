@@ -23,30 +23,30 @@
 #include <QScrollBar>
 
 #include "project/projectitem.h"
+#include "ui/timelinebase.h"
 
 namespace chestnut::ui
 {
-  class ViewerTimeline : public QWidget
+  class ViewerTimeline : public QWidget, public TimelineBase
   {
       Q_OBJECT
     public:
       explicit ViewerTimeline(QWidget* parent = nullptr);
 
       void setViewedItem(std::weak_ptr<project::ProjectItem> item);
-
-      void setInPoint(const long pos);
-      void setOutPoint(const long pos);
+      void setInPoint(const int64_t pos);
+      void setOutPoint(const int64_t pos);
       void showText(const bool enable);
       double zoom() const noexcept;
       void deleteMarkers();
-      void setScrollbarMax(QScrollBar* bar, const long end_frame, const int offset);
+      void setScrollbarMax(QScrollBar& bar, const long end_frame, const int offset);
 
     public slots:
-      void updateZoom(const double value);
+      void setZoom(const double value);
       void setScroll(const int value);
       void setVisibleIn(const long pos);
       void showContextMenu(const QPoint &pos);
-      void resizedScrollListener(const double d);
+      void resizedScrollListener(const double value);
 
     protected:
       void paintEvent(QPaintEvent* event) override;
@@ -78,7 +78,7 @@ namespace chestnut::ui
       void updateParents();
       void setPlayhead(const int mouse_x);
       long getHeaderFrameFromScreenPoint(const int x);
-      int getHeaderScreenPointFromFrame(const long frame);
+      int getHeaderScreenPointFromFrame(const int64_t frame);
   };
 }
 

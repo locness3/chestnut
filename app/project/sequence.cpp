@@ -240,9 +240,15 @@ int32_t Sequence::height() const
   return height_;
 }
 
-double Sequence::frameRate() const noexcept
+media_handling::Rational Sequence::frameRate() const noexcept
 {
-  return frame_rate_;
+  media_handling::Rational f(frame_rate_);
+  return f;
+}
+
+int64_t Sequence::playhead() const noexcept
+{
+  return playhead_;
 }
 
 bool Sequence::setFrameRate(const double frameRate)

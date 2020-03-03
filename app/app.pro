@@ -36,6 +36,7 @@ SOURCES += \
     ui/sourcetable.cpp \
     dialogs/aboutdialog.cpp \
     ui/sourceview.cpp \
+    ui/timelinebase.cpp \
     ui/timelinewidget.cpp \
     project/media.cpp \
     project/footage.cpp \
@@ -160,6 +161,7 @@ HEADERS += \
     ui/sourcetable.h \
     dialogs/aboutdialog.h \
     ui/sourceview.h \
+    ui/timelinebase.h \
     ui/timelinewidget.h \
     project/media.h \
     project/footage.h \

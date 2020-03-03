@@ -935,7 +935,7 @@ void Viewer::timer_update()
 {
   previous_playhead = sequence_->playhead_;
 
-  sequence_->playhead_ = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * sequence_->frameRate()));
+  sequence_->playhead_ = qRound(playhead_start + ((QDateTime::currentMSecsSinceEpoch()-start_msecs) * 0.001 * sequence_->frameRate().toDouble()));
   if (global::config.seek_also_selects) {
     PanelManager::timeLine().select_from_playhead();
   }

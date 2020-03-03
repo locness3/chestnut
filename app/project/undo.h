@@ -237,15 +237,15 @@ private:
 class SetTimelinePositionsCommand : public QUndoCommand
 {
   public:
-    SetTimelinePositionsCommand(std::weak_ptr<chestnut::project::ProjectItem> item, const long in, const long out,
+    SetTimelinePositionsCommand(std::weak_ptr<chestnut::project::ProjectItem> item, const int64_t in, const int64_t out,
                                 const bool enabled);
     void undo() override;
     void redo() override;
   private:
 
     struct Values {
-        long in_ {-1};
-        long out_ {-1};
+        int64_t in_ {-1};
+        int64_t out_ {-1};
         bool active_ {false};
         bool enabled_ {false};
     };
@@ -495,6 +495,21 @@ private:
   QVector<chestnut::project::MarkerPtr> copies;
   bool sorted;
   bool old_project_changed;
+};
+
+class DeleteItemMarkerAction : public QUndoCommand
+{
+  public:
+    explicit DeleteItemMarkerAction(chestnut::project::ProjectItemWPtr item);
+    void addMarker(const int marker);
+    void undo() override;
+    void redo() override;
+  private:
+    chestnut::project::ProjectItemWPtr item_;
+    QVector<int> markers_;
+    QVector<chestnut::project::MarkerPtr> copies_;
+    bool sorted_ {false};
+    bool project_changed_ {false};
 };
 
 class SetSpeedAction : public QUndoCommand {

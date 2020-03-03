@@ -147,7 +147,7 @@ bool Clip::isActive(const long playhead)
 {
   if (timeline_info.enabled) {
     if (sequence != nullptr) {
-      if ( timelineInWithTransition() < (playhead + (ceil(sequence->frameRate()*2)) ) )  {                      //TODO:what are we checking?
+      if ( timelineInWithTransition() < (playhead + (ceil(sequence->frameRate().toDouble() * 2)) ) )  {                      //TODO:what are we checking?
         if (timelineOutWithTransition() > playhead) {                                                            //TODO:what are we checking?
           if ( (playhead - timelineInWithTransition() + clipInWithTransition()) < maximumLength() ){ //TODO:what are we checking?
             return true;
@@ -1392,7 +1392,7 @@ void Clip::recalculateMaxLength()
 {
   // TODO: calculated_length on failures
   if (sequence != nullptr) {
-    const double fr = sequence->frameRate() / timeline_info.speed;
+    const double fr = sequence->frameRate().toDouble() / timeline_info.speed;
     media_handling_.calculated_length_ = LONG_MAX;
 
     if (timeline_info.media != nullptr) {
@@ -1718,7 +1718,7 @@ double Clip::playhead_to_seconds(const long playhead) const noexcept
   if (timeline_info.reverse) {
     clip_frame = maximumLength() - clip_frame - 1;
   }
-  double secs = (static_cast<double>(clip_frame) / sequence->frameRate()) * timeline_info.speed;
+  double secs = (static_cast<double>(clip_frame) / sequence->frameRate().toDouble()) * timeline_info.speed;
   if (timeline_info.media->type() == MediaType::FOOTAGE) {
     secs *= timeline_info.media->object<Footage>()->speed_;
   }

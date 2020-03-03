@@ -937,6 +937,48 @@ void DeleteMarkerAction::redo()
   MainWindow::instance().setWindowModified(true);
 }
 
+DeleteItemMarkerAction::DeleteItemMarkerAction(chestnut::project::ProjectItemWPtr item)
+  : item_(std::move(item)),
+    project_changed_(MainWindow::instance().isWindowModified())
+{
+
+}
+
+void DeleteItemMarkerAction::addMarker(const int marker)
+{
+  markers_.append(marker);
+}
+
+void DeleteItemMarkerAction::undo()
+{
+  auto item = item_.lock();
+  assert(item);
+  for (auto i = markers_.size() - 1; i >= 0; --i) {
+    item->markers_.insert(markers_.at(i), copies_.at(i));
+  }
+  MainWindow::instance().setWindowModified(project_changed_);
+}
+
+void DeleteItemMarkerAction::redo()
+{
+  auto item = item_.lock();
+  assert(item);
+  for (auto i = 0; i < markers_.size(); ++i) {
+    // correct future removals
+    if (!sorted_) {
+      copies_.append(item->markers_.at(markers_.at(i)));
+      for (auto j = i + 1; j < markers_.size(); ++j) {
+        if (markers_.at(j) > markers_.at(i)) {
+          markers_[j]--;
+        }
+      }
+    }
+    item->markers_.removeAt(markers_.at(i));
+  }
+  sorted_ = true;
+  MainWindow::instance().setWindowModified(true);
+}
+
 SetSpeedAction::SetSpeedAction(const ClipPtr&   c, double speed) :
   clip(c),
   old_speed(c->timeline_info.speed),

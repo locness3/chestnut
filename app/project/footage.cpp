@@ -349,6 +349,19 @@ int64_t Footage::endFrame() const noexcept
   return -1;
 }
 
+
+media_handling::Rational Footage::frameRate() const noexcept
+{
+  // TODO:
+  return {};
+}
+
+int64_t Footage::playhead() const noexcept
+{
+  // TODO:
+  return -1;
+}
+
 constexpr long lengthToFrames(const int64_t length, const double frame_rate, const double speed)
 {
   Q_ASSERT(AV_TIME_BASE != 0);

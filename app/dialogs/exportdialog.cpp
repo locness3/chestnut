@@ -133,7 +133,7 @@ ExportDialog::ExportDialog(chestnut::project::SequencePtr seq, QWidget *parent)
   samplingRateSpinbox->setValue(sequence_->audioFrequency());
   const int ix = framerate_box_->findText(QString::number(sequence_->frameRate(), 'g', 4));
   framerate_box_->setCurrentIndex(ix);
-  gop_length_box_->setValue(qRound(sequence_->frameRate() * 10));
+  gop_length_box_->setValue(qRound(sequence_->frameRate().toDouble() * 10));
   b_frame_box_->setValue(DEFAULT_B_FRAMES);
 }
 

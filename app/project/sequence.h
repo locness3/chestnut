@@ -91,7 +91,8 @@ public:
     int32_t width() const;
     bool setHeight(const int32_t val);
     int32_t height() const;
-    double frameRate() const noexcept;
+    media_handling::Rational frameRate() const noexcept override;
+    int64_t playhead() const noexcept override;
     bool setFrameRate(const double frameRate);
     int32_t audioFrequency() const;
     bool setAudioFrequency(const int32_t frequency);
