@@ -20,7 +20,10 @@
 
 #include <QLayout>
 
+#include "panels/panelmanager.h"
+
 using chestnut::panels::ViewerBase;
+using panels::PanelManager;
 
 
 ViewerBase::ViewerBase(QWidget* parent) : QDockWidget(parent)
@@ -42,11 +45,13 @@ void ViewerBase::setName(QString name)
 
 void ViewerBase::setMedia(project::MediaWPtr mda)
 {
-  media_ = std::move(mda);
+  media_ = mda;
   this->updatePanelTitle();
   Q_ASSERT(scroll_area_);
   scroll_area_->enableMenu(true);
   enableWidgets(true);
+  viewed_item_ = mda.lock()->object();
+  headers_->setViewedItem(viewed_item_);
 }
 
 bool ViewerBase::hasMedia() const noexcept
@@ -112,6 +117,7 @@ void ViewerBase::setupWidgets()
   connect(scroll_area_, &ui::MenuScrollArea::clear, this, &ViewerBase::clear);
 
   headers_ = new ui::ViewerTimeline(contents);
+  connect(headers_, &ui::ViewerTimeline::updateParents, this, &ViewerBase::updateParents);
   layout->addWidget(headers_);
 
   horizontal_bar_ = new ResizableScrollBar(contents);
@@ -234,6 +240,64 @@ void ViewerBase::enableWidgets(const bool enable)
   visible_timecode_->setEnabled(enable);
 }
 
+
+void ViewerBase::updateHeaderZoom()
+{
+  auto item = viewed_item_.lock();
+  if (item == nullptr) {
+    return;
+  }
+  const auto end_frame = item->endFrame();
+  if (cached_end_frame_ != end_frame) {
+    minimum_zoom_ = (end_frame > 0) ? (static_cast<double>(headers_->width()) / end_frame) : 1;
+    headers_->setZoom(qMax(headers_->zoom(), minimum_zoom_));
+    setScrollbarMaximum();
+//    viewer_widget->waveform_zoom = headers_->zoom();
+  } else {
+    headers_->update();
+  }
+}
+
+
+void ViewerBase::updatePlayheadTimecode(const int64_t p)
+{
+
+}
+
+void ViewerBase::updateEndTimecode()
+{
+
+}
+
+
+void ViewerBase::setScrollbarMaximum()
+{
+  if (auto item = viewed_item_.lock()) {
+    headers_->setScrollbarMax(*horizontal_bar_, item->endFrame(), headers_->width());
+  }
+}
+
+void ViewerBase::redraw()
+{
+  updateHeaderZoom();
+  // FIXME: render
+//  viewer_widget->frame_update();
+  if (auto item = viewed_item_.lock()) {
+    updatePlayheadTimecode(item->playhead());
+  }
+  updateEndTimecode();
+}
+
+
+void ViewerBase::updateWidgets(const bool reload_fx)
+{
+  if (sequence_viewer_) {
+    PanelManager::refreshPanels(reload_fx);
+  } else {
+    redraw();
+  }
+}
+
 void ViewerBase::scrollAreaHideScrollbars(const bool hide)
 {
   // Prevents a weird momentary scrollbar whilst resizing down
@@ -241,3 +305,10 @@ void ViewerBase::scrollAreaHideScrollbars(const bool hide)
   scroll_area_->setVerticalScrollBarPolicy(policy);
   scroll_area_->setHorizontalScrollBarPolicy(policy);
 }
+
+
+void ViewerBase::updateParents()
+{
+  updateWidgets(false);
+}
+

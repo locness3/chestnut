@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+#include "project/projectitem.h"
+
 namespace chestnut::ui
 {
   class TimelineBase
@@ -28,7 +30,33 @@ namespace chestnut::ui
     public:
       TimelineBase();
     protected:
-      int getScreenPointFromFrame(const double zoom, const int64_t frame) const noexcept;
+      int64_t getScreenPointFromFrame(const double zoom, const int64_t frame) const noexcept;
+      bool snapToPoint(const int64_t point, int64_t& l) noexcept;
+      bool snapToTimeline(int64_t& l, const bool use_playhead, const bool use_markers, const bool use_workarea);
+      int64_t getFrameFromScreenPoint(const double zoom, const int x) const noexcept;
+
+     private:
+      friend class ViewerTimeline;
+      project::ProjectItemWPtr viewed_item_;
+      double zoom_;
+      struct {
+       /**
+        * @brief Position of snap
+        */
+        int64_t point_ {-1};
+        /**
+         * @brief Is the current position snapped to place
+         */
+        bool enabled_ {false};
+        /**
+         * @brief Is the time line configured to snap
+         */
+        bool active_ {false};
+      } snap_;
+
+    private:
+      int64_t snapRange() const noexcept;
+
   };
 }
 

@@ -82,7 +82,9 @@ namespace chestnut::panels
 
     private:
       friend class FootageViewer;
+      // TODO: replace media with projectitem
       project::MediaWPtr media_;
+      project::ProjectItemWPtr viewed_item_;
       QString name_;
 
       QIcon play_icon_;
@@ -100,12 +102,24 @@ namespace chestnut::panels
       QPushButton* fast_forward_btn_ {nullptr};
       QPushButton* skip_to_end_btn_ {nullptr};
       QPushButton* fx_mute_btn_ {nullptr};
-    private:
+      /**
+       * @brief Identifies if this viewer is displaying a sequence (true) or file (false)
+       */
+      bool sequence_viewer_ {false};
+      int64_t cached_end_frame_ {0};
+      double minimum_zoom_ {1.0};
     private:
       void setupWidgets();
       void enableWidgets(const bool enable);
+      void updateHeaderZoom();
+      void updatePlayheadTimecode(const int64_t p);
+      void updateEndTimecode();
+      void setScrollbarMaximum();
+      void redraw();
+      void updateWidgets(const bool reload_fx);
     private slots:
       void scrollAreaHideScrollbars(const bool hide);
+      void updateParents();
   };
 }
 Q_DECLARE_INTERFACE(chestnut::panels::ViewerBase, "ViewerBase")

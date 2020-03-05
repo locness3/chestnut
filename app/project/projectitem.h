@@ -35,7 +35,7 @@ namespace chestnut::project
 
 namespace chestnut::project
 {
-
+  // TODO: come up with a better name than ProjectItem
   class ProjectItem : public IXMLStreamer {
     public:
       ProjectItem() = default;

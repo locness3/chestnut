@@ -63,10 +63,11 @@ namespace chestnut::project
       auto object() noexcept {
         return std::dynamic_pointer_cast<T>(object_);
       }
+      ProjectItemPtr object() noexcept;
       /**
-     * @brief Obtain this instance unique-id
-     * @return id
-     */
+       * @brief Obtain this instance unique-id
+       * @return id
+       */
       int32_t id() const noexcept;
       void setId(const int32_t id);
       void clearObject();

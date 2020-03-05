@@ -39,7 +39,7 @@ namespace chestnut::ui
       void showText(const bool enable);
       double zoom() const noexcept;
       void deleteMarkers();
-      void setScrollbarMax(QScrollBar& bar, const long end_frame, const int offset);
+      void setScrollbarMax(QScrollBar& bar, const int64_t end_frame, const int offset);
 
     public slots:
       void setZoom(const double value);
@@ -47,6 +47,9 @@ namespace chestnut::ui
       void setVisibleIn(const long pos);
       void showContextMenu(const QPoint &pos);
       void resizedScrollListener(const double value);
+
+    signals:
+      void updateParents();
 
     protected:
       void paintEvent(QPaintEvent* event) override;
@@ -56,13 +59,12 @@ namespace chestnut::ui
       void focusOutEvent(QFocusEvent* event) override;
 
     private:
-      std::weak_ptr<project::ProjectItem> viewed_item_;
       bool dragging_ {false};
       bool resizing_workarea_ {false};
       bool resizing_workarea_in_ {false};
-      long temp_workarea_in_ {0};
-      long temp_workarea_out_ {0};
-      long sequence_end_ {0};
+      int64_t temp_workarea_in_ {0};
+      int64_t temp_workarea_out_ {0};
+      int64_t item_end_ {0};
       double zoom_ {-1};
       long in_visible_ {0};
       QFontMetrics fm_;
@@ -73,11 +75,9 @@ namespace chestnut::ui
       int scroll_ {0};
       int height_actual_ {0};
       bool text_enabled_ {false};
-
     private:
-      void updateParents();
       void setPlayhead(const int mouse_x);
-      long getHeaderFrameFromScreenPoint(const int x);
+      int64_t getHeaderFrameFromScreenPoint(const int x);
       int getHeaderScreenPointFromFrame(const int64_t frame);
   };
 }

@@ -19,8 +19,10 @@
 #include "viewertimeline.h"
 #include <QMenu>
 #include <QPainter>
+#include <QMouseEvent>
 
 #include "project/undo.h"
+#include "panels/panelmanager.h"
 
 
 constexpr int SUBLINE_MIN_PADDING = 50; //TODO: play with this
@@ -28,10 +30,12 @@ constexpr int LINE_MIN_PADDING = 50;
 constexpr int MARKER_SIZE = 4;
 constexpr int MARKER_OUTLINE_WIDTH = 3;
 constexpr int PLAYHEAD_SIZE = 6;
+constexpr int CLICK_RANGE = 5;
 
 
 using chestnut::ui::ViewerTimeline;
 using chestnut::project::MarkerPtr;
+using panels::PanelManager;
 
 ViewerTimeline::ViewerTimeline(QWidget* parent)
   : QWidget(parent),
@@ -64,7 +68,7 @@ void ViewerTimeline::setInPoint(const int64_t pos)
     new_out = item->endFrame();
   }
   e_undo_stack.push(new SetTimelinePositionsCommand(viewed_item_, true, new_in, new_out));
-  updateParents();
+  emit updateParents();
 }
 
 void ViewerTimeline::setOutPoint(const int64_t pos)
@@ -80,7 +84,7 @@ void ViewerTimeline::setOutPoint(const int64_t pos)
   }
 
   e_undo_stack.push(new SetTimelinePositionsCommand(viewed_item_, true, new_in, new_out));
-  updateParents();
+  emit updateParents();
 }
 
 void ViewerTimeline::showText(const bool enable)
@@ -108,12 +112,13 @@ void ViewerTimeline::deleteMarkers()
     dma->addMarker(marker);
   }
   e_undo_stack.push(dma);
-  updateParents();
+  emit updateParents();
 }
 
-void ViewerTimeline::setScrollbarMax(QScrollBar& bar, const long end_frame, const int offset)
+void ViewerTimeline::setScrollbarMax(QScrollBar& bar, const int64_t end_frame, const int offset)
 {
-  bar.setMaximum(qMax(0, getScreenPointFromFrame(zoom_, end_frame) - offset));
+  const auto value = static_cast<int>(getScreenPointFromFrame(zoom_, end_frame) - offset);
+  bar.setMaximum(qMax(0, value));
 }
 
 void ViewerTimeline::setZoom(const double value)
@@ -188,6 +193,7 @@ void ViewerTimeline::paintEvent(QPaintEvent* event)
     // draw text
     bool draw_text = false;
     if (text_enabled_ && (lineX-textWidth > lastTextBoundary) ) {
+      // FIXME:
 //      timecode = frame_to_timecode(frame + in_visible_, global::config.timecode_view, sqn->frameRate());
 //      fullTextWidth = fm.horizontalAdvance(timecode);
       textWidth = fullTextWidth >> 1;
@@ -286,35 +292,193 @@ void ViewerTimeline::paintEvent(QPaintEvent* event)
 
 void ViewerTimeline::mousePressEvent(QMouseEvent* event)
 {
-  // TODO:
+  auto item = viewed_item_.lock();
+  if (item == nullptr) {
+    return;
+  }
+
+  if (event->buttons() & Qt::LeftButton) {
+    if (resizing_workarea_) {
+      item_end_ = item->endFrame();
+    } else {
+      MarkerPtr mark;
+      const auto shift = (event->modifiers() & Qt::ShiftModifier);
+      auto clicked_on_marker = false;
+      for (auto i = 0; i < item->markers_.size(); i++) {
+        mark = item->markers_.at(i);
+        if (mark == nullptr) {
+          continue;
+        }
+        const auto marker_pos = getHeaderScreenPointFromFrame(mark->frame);
+        if ( (event->pos().x() > (marker_pos - MARKER_SIZE)) && (event->pos().x() < (marker_pos + MARKER_SIZE) )) {
+          auto found = false;
+          for (auto j = 0; j < selected_markers_.size(); j++) {
+            if (selected_markers_.at(j) != i) {
+              continue;
+            }
+            if (shift) {
+              selected_markers_.removeAt(j);
+            }
+            found = true;
+            break;
+          }
+
+          if (!found) {
+            if (!shift) {
+              selected_markers_.clear();
+            }
+            selected_markers_.append(i);
+          }
+          clicked_on_marker = true;
+          update();
+          break;
+        }
+      }//for
+
+      if (clicked_on_marker) {
+        selected_marker_original_times_.resize(selected_markers_.size());
+        for (auto i = 0; i < selected_markers_.size(); ++i) {
+          mark = item->markers_.at(selected_markers_.at(i));
+          if (mark) {
+            selected_marker_original_times_[i] = mark->frame;
+          }
+        }
+        drag_start_ = event->pos().x();
+        dragging_markers_ = true;
+      } else {
+        if (!selected_markers_.empty()) {
+          selected_markers_.clear();
+          update();
+        }
+        setPlayhead(event->pos().x());
+      }
+    }
+    dragging_ = true;
+  }
 }
 
 void ViewerTimeline::mouseMoveEvent(QMouseEvent* event)
 {
-  // TODO:
+
+  auto item = viewed_item_.lock();
+  if (item == nullptr) {
+    return;
+  }
+  if (dragging_) {
+    if (resizing_workarea_) {
+      auto frame = getHeaderFrameFromScreenPoint(event->pos().x());
+      if (snap_.enabled_) {
+        snapToTimeline(frame, true, true, false);
+      }
+
+      if (resizing_workarea_in_) {
+        temp_workarea_in_ = qMax(qMin(temp_workarea_out_ - 1, frame), static_cast<int64_t>(0));
+      } else {
+        temp_workarea_out_ = qMin(qMax(temp_workarea_in_ + 1, frame), item_end_);
+      }
+
+      emit updateParents();
+    } else if (dragging_markers_) {
+      auto frame_movement = getHeaderFrameFromScreenPoint(event->pos().x()) - getHeaderFrameFromScreenPoint(drag_start_);
+
+      // snap markers
+      for (auto i = 0; i < selected_markers_.size(); i++) {
+        auto fmv = selected_marker_original_times_.at(i) + frame_movement;
+        if (snap_.enabled_ && snapToTimeline(fmv, true, false, true)) {
+          frame_movement = fmv - selected_marker_original_times_.at(i);
+          break;
+        }
+      }
+
+      // validate markers (ensure none go below 0)
+      long validator;
+      for (auto i = 0; i < selected_markers_.size(); i++) {
+        validator = selected_marker_original_times_.at(i) + frame_movement;
+        if (validator < 0) {
+          frame_movement -= validator;
+        }
+      }
+
+      // move markers
+      for (auto i = 0; i < selected_markers_.size(); ++i) {
+        if (MarkerPtr mark = item->markers_.at(selected_markers_.at(i))) {
+          mark->frame = selected_marker_original_times_.at(i) + frame_movement;
+        }
+      }
+
+      emit updateParents();
+    } else {
+      setPlayhead(event->pos().x());
+    }
+  } else {
+    resizing_workarea_ = false;
+    unsetCursor();
+    if (item->workareaActive()) {
+      const auto min_frame = getHeaderFrameFromScreenPoint(event->pos().x() - CLICK_RANGE) - 1;
+      const auto max_frame = getHeaderFrameFromScreenPoint(event->pos().x() + CLICK_RANGE) + 1;
+      if ( (item->inPoint() > min_frame) && (item->inPoint() < max_frame) ) {
+        resizing_workarea_ = true;
+        resizing_workarea_in_ = true;
+      } else if ( (item->outPoint() > min_frame) && (item->outPoint() < max_frame) ) {
+        resizing_workarea_ = true;
+        resizing_workarea_in_ = false;
+      }
+      if (resizing_workarea_) {
+        temp_workarea_in_ = item->inPoint();
+        temp_workarea_out_ = item->outPoint();
+        setCursor(Qt::SizeHorCursor);
+      }
+    }
+  }
 }
 
 void ViewerTimeline::mouseReleaseEvent(QMouseEvent* event)
 {
-  // TODO:
+  auto item = viewed_item_.lock();
+  if (item == nullptr) {
+    return;
+  }
+  dragging_ = false;
+  if (resizing_workarea_) {
+    e_undo_stack.push(new SetTimelinePositionsCommand(item, true, temp_workarea_in_, temp_workarea_out_));
+  } else if (dragging_markers_ && !selected_markers_.empty()) {
+    auto moved = false;
+    auto ca = new ComboAction();
+    for (auto i = 0; i < selected_markers_.size(); ++i) {
+      if (auto m = item->markers_.at(selected_markers_.at(i))) {
+        if (selected_marker_original_times_.at(i) != m->frame) {
+          ca->append(new MoveMarkerAction(m, selected_marker_original_times_.at(i), m->frame));
+          moved = true;
+        }
+      }
+    }
+    if (moved) {
+      e_undo_stack.push(ca);
+    } else {
+      delete ca;
+    }
+  }
+
+  resizing_workarea_ = false;
+  dragging_ = false;
+  dragging_markers_ = false;
+  snap_.enabled_ = false;
+  emit updateParents();
 }
 
 void ViewerTimeline::focusOutEvent(QFocusEvent* event)
 {
-  // TODO:
+  selected_markers_.clear();
+  update();
 }
 
-void ViewerTimeline::updateParents()
-{
-  // TODO:
-}
 
 void ViewerTimeline::setPlayhead(const int mouse_x)
 {
   // TODO:
 }
 
-long ViewerTimeline::getHeaderFrameFromScreenPoint(const int x)
+int64_t ViewerTimeline::getHeaderFrameFromScreenPoint(const int x)
 {
   // TODO:
 }

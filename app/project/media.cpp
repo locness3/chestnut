@@ -112,6 +112,11 @@ Media::Media(const Media& cpy) :
   }
 }
 
+chestnut::project::ProjectItemPtr Media::object() noexcept
+{
+  return object_;
+}
+
 /**
  * @brief Obtain this instance unique-id
  * @return id
