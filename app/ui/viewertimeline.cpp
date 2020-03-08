@@ -23,6 +23,7 @@
 
 #include "project/undo.h"
 #include "panels/panelmanager.h"
+#include "io/config.h"
 
 
 constexpr int SUBLINE_MIN_PADDING = 50; //TODO: play with this
@@ -54,6 +55,7 @@ ViewerTimeline::ViewerTimeline(QWidget* parent)
 void ViewerTimeline::setViewedItem(std::weak_ptr<project::ProjectItem> item)
 {
   viewed_item_ = std::move(item);
+  emit updateParents();
 }
 
 void ViewerTimeline::setInPoint(const int64_t pos)
@@ -117,7 +119,7 @@ void ViewerTimeline::deleteMarkers()
 
 void ViewerTimeline::setScrollbarMax(QScrollBar& bar, const int64_t end_frame, const int offset)
 {
-  const auto value = static_cast<int>(getScreenPointFromFrame(zoom_, end_frame) - offset);
+  const auto value = static_cast<int>(screenPointFromFrame(zoom_, end_frame) - offset);
   bar.setMaximum(qMax(0, value));
 }
 
@@ -178,11 +180,11 @@ void ViewerTimeline::paintEvent(QPaintEvent* event)
 
   sublineCount = qMin(sublineCount, qRound(interval));
 
-  int text_x;
-  int fullTextWidth;
-  QString timecode;
-
   while (true) {
+    int full_text_width;
+    QString timecode;
+    int text_x;
+
     const auto frame = qRound(interval*i);
     const auto lineX = qRound(frame * zoom_) - scroll_;
 
@@ -191,12 +193,11 @@ void ViewerTimeline::paintEvent(QPaintEvent* event)
     }
 
     // draw text
-    bool draw_text = false;
+    auto draw_text = false;
     if (text_enabled_ && (lineX-textWidth > lastTextBoundary) ) {
-      // FIXME:
-//      timecode = frame_to_timecode(frame + in_visible_, global::config.timecode_view, sqn->frameRate());
-//      fullTextWidth = fm.horizontalAdvance(timecode);
-      textWidth = fullTextWidth >> 1;
+      timecode = timeCodeFromFrame(frame + in_visible_, global::config.timecode_view, item->frameRate());
+      int full_text_width = fm_.horizontalAdvance(timecode);
+      textWidth = full_text_width >> 1;
       text_x = lineX - textWidth;
       lastTextBoundary = lineX + textWidth;
       if (lastTextBoundary >= 0) {
@@ -207,7 +208,7 @@ void ViewerTimeline::paintEvent(QPaintEvent* event)
     if (lineX > (lastLineX + LINE_MIN_PADDING) ) {
       if (draw_text) {
         p.setPen(Qt::white);
-        p.drawText(QRect(text_x, 0, fullTextWidth, yoff), timecode);
+        p.drawText(QRect(text_x, 0, full_text_width, yoff), timecode);
       }
 
       // draw line markers
@@ -215,7 +216,7 @@ void ViewerTimeline::paintEvent(QPaintEvent* event)
       p.drawLine(lineX, yoff, lineX, height());
 
       // draw sub-line markers
-      for (int j = 1; j < sublineCount; j++) {
+      for (auto j = 1; j < sublineCount; ++j) {
         const auto sublineX = lineX + (qRound(j * interval / sublineCount) * zoom_);
         p.drawLine(sublineX, yoff, sublineX, yoff+(height()/4));
       }
@@ -230,8 +231,8 @@ void ViewerTimeline::paintEvent(QPaintEvent* event)
   // draw in/out selection
   int in_x;
   if (item->workareaActive()) {
-    in_x = getHeaderScreenPointFromFrame((resizing_workarea_ ? temp_workarea_in_ : item->inPoint()));
-    const int out_x = getHeaderScreenPointFromFrame((resizing_workarea_ ? temp_workarea_out_ : item->outPoint()));
+    in_x = headerScreenPointFromFrame((resizing_workarea_ ? temp_workarea_in_ : item->inPoint()));
+    const int out_x = headerScreenPointFromFrame((resizing_workarea_ ? temp_workarea_out_ : item->outPoint()));
     p.fillRect(QRect(in_x, 0, out_x-in_x, height()), item->workareaEnabled() ? QColor(0, 192, 255, 128)
                                                                              : QColor(255, 255, 255, 64));
     p.setPen(Qt::white);
@@ -245,7 +246,7 @@ void ViewerTimeline::paintEvent(QPaintEvent* event)
     if (m == nullptr) {
       continue;
     }
-    const int marker_x = getHeaderScreenPointFromFrame(m->frame);
+    const int marker_x = headerScreenPointFromFrame(m->frame);
     const QPoint points[5] = {
       QPoint(marker_x, height() - 1),
       QPoint(marker_x + MARKER_SIZE, height() - MARKER_SIZE - 1),
@@ -280,7 +281,7 @@ void ViewerTimeline::paintEvent(QPaintEvent* event)
   // draw playhead triangle
   p.setRenderHint(QPainter::Antialiasing);
 
-  in_x = getHeaderScreenPointFromFrame(item->playhead());
+  in_x = headerScreenPointFromFrame(item->playhead());
   const QPoint start(in_x, height() + 2);
   QPainterPath path;
   path.moveTo(start + QPoint(1, 0));
@@ -309,7 +310,7 @@ void ViewerTimeline::mousePressEvent(QMouseEvent* event)
         if (mark == nullptr) {
           continue;
         }
-        const auto marker_pos = getHeaderScreenPointFromFrame(mark->frame);
+        const auto marker_pos = headerScreenPointFromFrame(mark->frame);
         if ( (event->pos().x() > (marker_pos - MARKER_SIZE)) && (event->pos().x() < (marker_pos + MARKER_SIZE) )) {
           auto found = false;
           for (auto j = 0; j < selected_markers_.size(); j++) {
@@ -366,7 +367,7 @@ void ViewerTimeline::mouseMoveEvent(QMouseEvent* event)
   }
   if (dragging_) {
     if (resizing_workarea_) {
-      auto frame = getHeaderFrameFromScreenPoint(event->pos().x());
+      auto frame = headerFrameFromScreenPoint(event->pos().x());
       if (snap_.enabled_) {
         snapToTimeline(frame, true, true, false);
       }
@@ -379,7 +380,7 @@ void ViewerTimeline::mouseMoveEvent(QMouseEvent* event)
 
       emit updateParents();
     } else if (dragging_markers_) {
-      auto frame_movement = getHeaderFrameFromScreenPoint(event->pos().x()) - getHeaderFrameFromScreenPoint(drag_start_);
+      auto frame_movement = headerFrameFromScreenPoint(event->pos().x()) - headerFrameFromScreenPoint(drag_start_);
 
       // snap markers
       for (auto i = 0; i < selected_markers_.size(); i++) {
@@ -414,8 +415,8 @@ void ViewerTimeline::mouseMoveEvent(QMouseEvent* event)
     resizing_workarea_ = false;
     unsetCursor();
     if (item->workareaActive()) {
-      const auto min_frame = getHeaderFrameFromScreenPoint(event->pos().x() - CLICK_RANGE) - 1;
-      const auto max_frame = getHeaderFrameFromScreenPoint(event->pos().x() + CLICK_RANGE) + 1;
+      const auto min_frame = headerFrameFromScreenPoint(event->pos().x() - CLICK_RANGE) - 1;
+      const auto max_frame = headerFrameFromScreenPoint(event->pos().x() + CLICK_RANGE) + 1;
       if ( (item->inPoint() > min_frame) && (item->inPoint() < max_frame) ) {
         resizing_workarea_ = true;
         resizing_workarea_in_ = true;
@@ -475,15 +476,21 @@ void ViewerTimeline::focusOutEvent(QFocusEvent* event)
 
 void ViewerTimeline::setPlayhead(const int mouse_x)
 {
-  // TODO:
+  auto frame = headerFrameFromScreenPoint(mouse_x);
+  if (snap_.enabled_) {
+    snapToTimeline(frame, false, true, true);
+  }
+  if (auto item = viewed_item_.lock(); item->playhead() != frame) {
+    emit seek(frame);
+  }
 }
 
-int64_t ViewerTimeline::getHeaderFrameFromScreenPoint(const int x)
+int64_t ViewerTimeline::headerFrameFromScreenPoint(const int32_t x) const noexcept
 {
-  // TODO:
+  return frameFromScreenPoint(zoom_, x + scroll_) + in_visible_;
 }
 
-int ViewerTimeline::getHeaderScreenPointFromFrame(const int64_t frame)
+int32_t ViewerTimeline::headerScreenPointFromFrame(const int64_t frame) const noexcept
 {
-  // TODO:
+  return screenPointFromFrame(zoom_, frame - in_visible_) - scroll_;
 }

@@ -50,6 +50,7 @@ namespace chestnut::ui
 
     signals:
       void updateParents();
+      void seek(const int64_t frame);
 
     protected:
       void paintEvent(QPaintEvent* event) override;
@@ -77,8 +78,8 @@ namespace chestnut::ui
       bool text_enabled_ {false};
     private:
       void setPlayhead(const int mouse_x);
-      int64_t getHeaderFrameFromScreenPoint(const int x);
-      int getHeaderScreenPointFromFrame(const int64_t frame);
+      int64_t headerFrameFromScreenPoint(const int32_t x) const noexcept;
+      int32_t headerScreenPointFromFrame(const int64_t frame) const noexcept;
   };
 }
 

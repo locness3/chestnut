@@ -128,7 +128,7 @@ namespace chestnut::project
       bool save(QXmlStreamWriter& stream) const override;
       /* ProjectItem overrides */
       int64_t endFrame() const noexcept override;
-      virtual media_handling::Rational frameRate() const noexcept;
+      media_handling::Rational frameRate() const noexcept override;
       int64_t playhead() const noexcept override;
     private:
       friend class FootageTest;

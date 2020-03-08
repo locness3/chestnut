@@ -352,8 +352,10 @@ int64_t Footage::endFrame() const noexcept
 
 media_handling::Rational Footage::frameRate() const noexcept
 {
-  // TODO:
-  return {};
+  bool okay;
+  const auto frate = media_source_->property<mh::Rational>(MediaProperty::FRAME_RATE, okay);
+  Q_ASSERT(okay);
+  return frate;
 }
 
 int64_t Footage::playhead() const noexcept

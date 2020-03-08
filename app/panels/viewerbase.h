@@ -120,6 +120,7 @@ namespace chestnut::panels
     private slots:
       void scrollAreaHideScrollbars(const bool hide);
       void updateParents();
+      void seekToFrame();
   };
 }
 Q_DECLARE_INTERFACE(chestnut::panels::ViewerBase, "ViewerBase")

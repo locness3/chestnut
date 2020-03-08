@@ -118,6 +118,7 @@ void ViewerBase::setupWidgets()
 
   headers_ = new ui::ViewerTimeline(contents);
   connect(headers_, &ui::ViewerTimeline::updateParents, this, &ViewerBase::updateParents);
+  connect(headers_, &ui::ViewerTimeline::seek, this, &ViewerBase::seekToFrame);
   layout->addWidget(headers_);
 
   horizontal_bar_ = new ResizableScrollBar(contents);
@@ -261,7 +262,7 @@ void ViewerBase::updateHeaderZoom()
 
 void ViewerBase::updatePlayheadTimecode(const int64_t p)
 {
-
+  //TODO:
 }
 
 void ViewerBase::updateEndTimecode()
@@ -312,3 +313,8 @@ void ViewerBase::updateParents()
   updateWidgets(false);
 }
 
+
+void ViewerBase::seekToFrame()
+{
+  //TODO:
+}

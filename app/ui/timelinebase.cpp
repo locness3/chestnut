@@ -21,9 +21,11 @@
 #include <QtMath>
 
 #include "panels/panelmanager.h"
+#include "io/config.h"
 
 using chestnut::ui::TimelineBase;
 using panels::PanelManager;
+
 
 TimelineBase::TimelineBase()
 {
@@ -31,9 +33,9 @@ TimelineBase::TimelineBase()
 }
 
 
-int64_t TimelineBase::getScreenPointFromFrame(const double zoom, const int64_t frame) const noexcept
+int32_t TimelineBase::screenPointFromFrame(const double zoom, const int64_t frame) const noexcept
 {
-  return static_cast<int>(qFloor(static_cast<double>(frame) * zoom));
+  return static_cast<int32_t>(qFloor(frame * zoom));
 }
 
 
@@ -106,7 +108,7 @@ bool TimelineBase::snapToTimeline(int64_t& l, const bool use_playhead, const boo
     return false;
 }
 
-int64_t TimelineBase::getFrameFromScreenPoint(const double zoom, const int x) const noexcept
+int64_t TimelineBase::frameFromScreenPoint(const double zoom, const int32_t x) const noexcept
 {
   if (const auto f = qCeil(static_cast<double>(x) / zoom); f < 0) {
     return 0;
@@ -116,7 +118,76 @@ int64_t TimelineBase::getFrameFromScreenPoint(const double zoom, const int x) co
 }
 
 
+QString TimelineBase::timeCodeFromFrame(int64_t frame, const int view, const double frame_rate)
+{
+  // TODO: replace with media_handling::TimeCode
+  if (qFuzzyCompare(frame_rate, 0)) {
+    return "NaN";
+  }
+  if (view == TIMECODE_FRAMES) {
+    return QString::number(frame);
+  }
+
+  // return timecode
+  int hours = 0;
+  int mins = 0;
+  int secs = 0;
+  int frames = 0;
+  auto token = ':';
+
+  if (( (view == TIMECODE_DROP) || (view == TIMECODE_MILLISECONDS) ) && frame_rate_is_droppable(frame_rate)) {
+    //CONVERT A FRAME NUMBER TO DROP FRAME TIMECODE
+    //Code by David Heidelberger, adapted from Andrew Duncan, further adapted for Olive by Olive Team
+    //Given an int called framenumber and a double called framerate
+    //Framerate should be 29.97, 59.94, or 23.976, otherwise the calculations will be off.
+
+    const int dropFrames = qRound(frame_rate * 0.066666); //Number of frames to drop on the minute marks is the nearest integer to 6% of the framerate
+    const int framesPerHour = qRound(frame_rate * 60 * 60); //Number of frqRound64ames in an hour
+    const int framesPer24Hours = framesPerHour * 24; //Number of frames in a day - timecode rolls over after 24 hours
+    const int framesPer10Minutes = qRound(frame_rate * 60 * 10); //Number of frames per ten minutes
+    const int framesPerMinute = (qRound(frame_rate) * 60) -  dropFrames; //Number of frames per minute is the round of the framerate * 60 minus the number of dropped frames
+
+    //If framenumber is greater than 24 hrs, next operation will rollover clock
+    frame = frame % framesPer24Hours; //% is the modulus operator, which returns a remainder. a % b = the remainder of a/b
+
+    const auto d = frame / framesPer10Minutes; // \ means integer division, which is a/b without a remainder. Some languages you could use floor(a/b)
+    const auto m = frame % framesPer10Minutes;
+
+    //In the original post, the next line read m>1, which only worked for 29.97. Jean-Baptiste Mardelle correctly pointed out that m should be compared to dropFrames.
+    if (m > dropFrames) {
+      frame = frame + (dropFrames*9*d) + dropFrames * ((m - dropFrames) / framesPerMinute);
+    } else {
+      frame = frame + dropFrames*9*d;
+    }
+
+    const int frRound = qRound(frame_rate);
+    frames = frame % frRound;
+    secs = (frame / frRound) % 60;
+    mins = ((frame / frRound) / 60) % 60;
+    hours = (((frame / frRound) / 60) / 60);
+
+    token = ';';
+  } else {
+    // non-drop timecode
+
+    const int int_fps = qRound(frame_rate);
+    hours = frame / (3600 * int_fps);
+    mins = frame / (60 * int_fps) % 60;
+    secs = frame / int_fps % 60;
+    frames = frame % int_fps;
+  }
+  if (view == TIMECODE_MILLISECONDS) {
+    return QString::number((hours * 3600000) + (mins * 60000) + (secs * 1000) + qCeil(frames * 1000 / frame_rate));
+  }
+  return QString(QString::number(hours).rightJustified(2, '0') +
+                 ":" + QString::number(mins).rightJustified(2, '0') +
+                 ":" + QString::number(secs).rightJustified(2, '0') +
+                 token + QString::number(frames).rightJustified(2, '0')
+                 );
+}
+
+
 int64_t TimelineBase::snapRange() const noexcept
 {
-  return getFrameFromScreenPoint(zoom_, 10);
+  return frameFromScreenPoint(zoom_, 10);
 }

@@ -30,10 +30,11 @@ namespace chestnut::ui
     public:
       TimelineBase();
     protected:
-      int64_t getScreenPointFromFrame(const double zoom, const int64_t frame) const noexcept;
+      int32_t screenPointFromFrame(const double zoom, const int64_t frame) const noexcept;
       bool snapToPoint(const int64_t point, int64_t& l) noexcept;
       bool snapToTimeline(int64_t& l, const bool use_playhead, const bool use_markers, const bool use_workarea);
-      int64_t getFrameFromScreenPoint(const double zoom, const int x) const noexcept;
+      int64_t frameFromScreenPoint(const double zoom, const int32_t x) const noexcept;
+      QString timeCodeFromFrame(int64_t frame, const int view, const double frame_rate);
 
      private:
       friend class ViewerTimeline;
