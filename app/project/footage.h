@@ -43,8 +43,6 @@ namespace chestnut::project
   class Footage : public std::enable_shared_from_this<Footage>, public ProjectItem
   {
     public:
-      int64_t length_{0};
-
       QDir proj_dir_{};
       int save_id{-1};
       int folder_{-1};
@@ -63,6 +61,8 @@ namespace chestnut::project
       explicit Footage(const std::shared_ptr<Media>& parent);
       Footage(QString url, const std::shared_ptr<Media>& parent, const bool import_as_sequence=false);
       Footage(const Footage& cpy);
+
+
 
       /**
        * @brief   Obtain the parent Media object of Footage
@@ -132,14 +132,20 @@ namespace chestnut::project
       int64_t playhead() const noexcept override;
     private:
       friend class FootageTest;
-      QString url_;
       std::weak_ptr<Media> parent_mda_;
       media_handling::MediaSourcePtr media_source_ {nullptr};
       QVector<project::FootageStreamPtr> video_tracks;
       QVector<project::FootageStreamPtr> audio_tracks;
+      QString url_;
+      /**
+       * @brief The footage duration in seconds
+       */
+      double duration_{0};
       bool import_as_sequence_ {false};
 
       project::FootageStreamPtr get_stream_from_file_index(const bool video, const int index);
+
+      int64_t durationToFrames(const double duration, const double frame_rate, const double speed) const noexcept;
   };
 
   using FootagePtr = std::shared_ptr<Footage>;

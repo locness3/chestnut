@@ -4,6 +4,8 @@
 #include <QtTest>
 #include <QObject>
 
+namespace chestnut::project
+{
 class FootageTest : public QObject
 {
     Q_OBJECT
@@ -28,7 +30,12 @@ class FootageTest : public QObject
      * @brief Save a footage object and load another one with the result
      */
     void testCaseSaveAndLoad();
+    /**
+     * @brief Check correct frames for duration
+     */
+    void testCaseLengthInFrames();
 
 };
+}
 
 #endif // FOOTAGETEST_H

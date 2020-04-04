@@ -1,6 +1,10 @@
 #include "sequencetest.h"
 #include "project/clip.h"
 
+using chestnut::project::Media;
+using chestnut::project::Sequence;
+using chestnut::project::SequenceTest;
+
 SequenceTest::SequenceTest()
 {
 
@@ -35,7 +39,7 @@ void SequenceTest::testCaseCopy()
   QVERIFY(sqnOrigin.audioFrequency() == sqnCopy->audioFrequency());
   QVERIFY(sqnOrigin.audioLayout() == sqnCopy->audioLayout());
   QVERIFY(sqnOrigin.endFrame() == sqnCopy->endFrame());
-  QVERIFY(qFuzzyCompare(sqnOrigin.frameRate(), sqnCopy->frameRate()));
+  QVERIFY(qFuzzyCompare(static_cast<double>(sqnOrigin.frameRate()), static_cast<double>(sqnCopy->frameRate())));
   QVERIFY(sqnOrigin.height() == sqnCopy->height());
   QVERIFY(sqnOrigin.name() != sqnCopy->name());
   QVERIFY(sqnOrigin.width() == sqnCopy->width());

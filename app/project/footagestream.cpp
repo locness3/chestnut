@@ -129,9 +129,12 @@ QByteArray FootageStream::audioFrame(const int64_t out)
   int64_t ts = -1;
   while (ts <= out) {
     if (const auto m_f = stream_info_->frame(pos)) {
-      auto data = m_f->data();
-      ts = data.timestamp_;
-      samples.append(reinterpret_cast<char*>(*data.data_), data.data_size_);
+      if (auto data = m_f->data(); data.data_ != nullptr) {
+        ts = data.timestamp_;
+        samples.append(reinterpret_cast<char*>(*data.data_), data.data_size_);
+      } else {
+        qDebug() << "Received null audio data";
+      }
     } else {
       break;
     }

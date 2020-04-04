@@ -5,6 +5,9 @@
 
 #include "project/sequence.h"
 
+namespace chestnut::project
+{
+
 class SequenceTest : public QObject
 {
     Q_OBJECT
@@ -79,5 +82,6 @@ private slots:
     void testCaseActiveLengthPopulatedSequenceInOutSet();
 
 };
+}
 
 #endif // SEQUENCETEST_H

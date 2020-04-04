@@ -3,6 +3,8 @@
 
 #include "project/marker.h"
 
+using chestnut::project::Marker;
+
 MarkerTest::MarkerTest(QObject *parent) : QObject(parent)
 {
 

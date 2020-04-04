@@ -57,10 +57,10 @@ int main(int argc, char** argv)
    // need 1 non-templated QTest::qExec for "Test Results" panel to work
   auto status = QTest::qExec(&testItem, argCount, argVals);
   status |= runTest<SequenceItemTest>();
-  status |= runTest<SequenceTest>();
-  status |= runTest<MediaTest>();
+  status |= runTest<chestnut::project::SequenceTest>();
+  status |= runTest<chestnut::project::MediaTest>();
   status |= runTest<ClipTest>();
-  status |= runTest<FootageTest>();
+  status |= runTest<chestnut::project::FootageTest>();
   status |= runTest<UndoTest>();
   status |= runTest<ProjectModelTest>();
   status |= runTest<MediaHandlerTest>();

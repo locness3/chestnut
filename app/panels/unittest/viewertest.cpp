@@ -4,6 +4,10 @@
 
 #include "panels/viewer.h"
 
+using chestnut::project::Media;
+using chestnut::project::Footage;
+using chestnut::project::FootageStream;
+
 ViewerTest::ViewerTest(QObject *parent) : QObject(parent)
 {
 
@@ -18,7 +22,7 @@ void ViewerTest::testCaseCreateFootageSequenceAudioVideoClip()
   auto ftg = std::make_shared<Footage>(nullptr);
   mda->setFootage(ftg);
 
-  auto strm = std::make_shared<project::FootageStream>(ftg);
+  auto strm = std::make_shared<FootageStream>(ftg);
   ftg->addAudioTrack(strm);
   ftg->addVideoTrack(strm);
 

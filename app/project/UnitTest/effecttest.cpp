@@ -4,6 +4,9 @@
 
 Q_DECLARE_METATYPE(Capability)
 
+
+using chestnut::project::Sequence;
+
 EffectTest::EffectTest(QObject *parent)
   : QObject(parent)
 {

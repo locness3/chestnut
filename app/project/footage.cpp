@@ -27,6 +27,7 @@ extern "C" {
 
 #include "project/clip.h"
 #include "panels/project.h"
+#include "debug.h"
 
 
 using chestnut::project::FootageStreamPtr;
@@ -38,7 +39,7 @@ namespace mh = media_handling;
 
 Footage::Footage(const Footage& cpy)
   : ProjectItem(cpy),
-    length_(cpy.length_),
+    duration_(cpy.duration_),
     proj_dir_(cpy.proj_dir_),
     save_id(0),
     folder_(cpy.folder_),
@@ -154,8 +155,7 @@ void Footage::parseStreams()
   }
 
   bool is_okay = false;
-  auto l = media_source_->property<mh::Rational>(MediaProperty::DURATION, is_okay);
-  length_ = l.numerator() * l.denominator();
+  duration_ = media_source_->property<mh::Rational>(MediaProperty::DURATION, is_okay);
   if (!is_okay) {
     constexpr auto msg = "Failed to retrieve footage duration";
     qCritical() << msg;
@@ -240,7 +240,7 @@ bool Footage::load(QXmlStreamReader& stream)
         qWarning() << "Source file failed to load:" << ex.what();
       }
     } else if (elem_name == "duration") {
-      length_ = stream.readElementText().toLong();
+      duration_ = stream.readElementText().toLong();
     } else if (elem_name == "marker") {
       auto mrkr = std::make_shared<Marker>();
       mrkr->load(stream);
@@ -315,7 +315,7 @@ bool Footage::save(QXmlStreamWriter& stream) const
 
   stream.writeTextElement("name", name_);
   stream.writeTextElement("url", QDir(url_).absolutePath());
-  stream.writeTextElement("duration", QString::number(length_));
+  stream.writeTextElement("duration", QString::number(duration_));
   stream.writeTextElement("speed", QString::number(speed_));
 
   for (const auto& ms : video_tracks) {
@@ -364,16 +364,6 @@ int64_t Footage::playhead() const noexcept
   return -1;
 }
 
-constexpr long lengthToFrames(const int64_t length, const double frame_rate, const double speed)
-{
-  Q_ASSERT(AV_TIME_BASE != 0);
-  if (length >= 0) {
-    return static_cast<long>(std::floor( (static_cast<double>(length) / AV_TIME_BASE)
-                                         * (frame_rate / speed) ));
-  }
-  return 0;
-}
-
 bool Footage::generatePreviews()
 {
   qInfo() << "Generating previews for all streams, path:" << url_;
@@ -398,8 +388,8 @@ long Footage::totalLengthInFrames(const double frame_rate) const noexcept
 {
   Q_ASSERT(!qFuzzyIsNull(speed_));
 
-  if (length_ >= 0) {
-    return lengthToFrames(length_, frame_rate, speed_);
+  if (duration_ >= 0) {
+    return durationToFrames(duration_, frame_rate, speed_);
   }
   return 0;
 }
@@ -455,3 +445,21 @@ FootageStreamPtr Footage::get_stream_from_file_index(const bool video, const int
 
   return stream;
 }
+
+
+int64_t Footage::durationToFrames(const double duration, const double frame_rate, const double speed) const noexcept
+{
+  try {
+    if (qFuzzyIsNull(duration) || qFuzzyCompare(duration, 0) || qFuzzyIsNull(frame_rate) || qFuzzyIsNull(speed) ||
+        qFuzzyCompare(speed, 0)) {
+      return 0;
+    }
+    return static_cast<int64_t>(std::ceil((duration * frame_rate) / speed));
+  }  catch (const std::exception& ex) {
+    qDebug() << "Caught an exception, message=" << ex.what();
+  } catch (...) {
+    qDebug() << "Caught an unknown exception";
+  }
+  return 0;
+}
+

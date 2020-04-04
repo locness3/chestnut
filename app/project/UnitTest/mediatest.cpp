@@ -2,6 +2,12 @@
 
 #include "project/media.h"
 
+using chestnut::project::Media;
+using chestnut::project::Footage;
+using chestnut::project::Sequence;
+
+using chestnut::project::MediaTest;
+
 MediaTest::MediaTest()
 {
 

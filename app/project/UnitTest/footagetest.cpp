@@ -2,6 +2,11 @@
 #include "project/footage.h"
 #include "project/media.h"
 
+using chestnut::project::Media;
+using chestnut::project::Footage;
+using chestnut::project::FootageStream;
+using chestnut::project::FootageTest;
+
 FootageTest::FootageTest(QObject *parent) : QObject(parent)
 {
 
@@ -15,7 +20,7 @@ void FootageTest::testCaseIsImage()
   // by default, not an image
   QVERIFY(ftg->isImage() == false);
   // the sole stream is a video-type and is infinitely long
-  auto stream = std::make_shared<project::FootageStream>(ftg);
+  auto stream = std::make_shared<FootageStream>(ftg);
   stream->infinite_length = true;
   ftg->video_tracks.append(stream);
   QVERIFY(ftg->isImage() == true);
@@ -63,7 +68,7 @@ void FootageTest::testCaseSave()
   QVERIFY(output.endsWith("</footage>") == true);
 }
 
-void  FootageTest::testCaseSaveAndLoad()
+void FootageTest::testCaseSaveAndLoad()
 {
   constexpr auto speed = 123.456;
   constexpr auto url = "/foo/bar/spam.eggs";
@@ -79,7 +84,7 @@ void  FootageTest::testCaseSaveAndLoad()
   Footage ftg(parent_mda);
   ftg.speed_ = speed;
   ftg.url_ = url;
-  ftg.length_ = length;
+  ftg.duration_ = length;
   ftg.folder_ = folder;
   ftg.in = in_point;
   ftg.out = out_point;
@@ -93,9 +98,24 @@ void  FootageTest::testCaseSaveAndLoad()
   QVERIFY(ftg.load(input) == true);
   QCOMPARE(ftg.speed_, speed);
   QCOMPARE(ftg.url_, url);
-  QCOMPARE(ftg.length_, length);
+  QCOMPARE(ftg.duration_, length);
   QCOMPARE(ftg.folder_, folder);
   QCOMPARE(ftg.in, in_point);
   QCOMPARE(ftg.out, out_point);
   QCOMPARE(ftg.using_inout, using_inout);
+}
+
+void FootageTest::testCaseLengthInFrames()
+{
+  auto root_mda = std::make_shared<Media>();
+  auto parent_mda = std::make_shared<Media>(root_mda);
+  Footage ftg(parent_mda);
+  QCOMPARE(ftg.durationToFrames(10, 10, 1), 100);
+  QCOMPARE(ftg.durationToFrames(10, 10, 2), 50);
+  QCOMPARE(ftg.durationToFrames(10, 10, 0.5), 200);
+  QCOMPARE(ftg.durationToFrames(0, 10, 0.5), 0);
+  QCOMPARE(ftg.durationToFrames(10, 0, 1), 0);
+  QCOMPARE(ftg.durationToFrames(10, 1, 0), 0);
+  double duration;
+  QCOMPARE(ftg.durationToFrames(duration, 1, 1), 0);
 }

@@ -4,6 +4,9 @@
 #include <QtTest>
 #include <QObject>
 
+namespace chestnut::project
+{
+
 class MediaTest : public QObject
 {
     Q_OBJECT
@@ -42,5 +45,5 @@ private slots:
      */
     void testCaseSetId();
 };
-
+}
 #endif // MEDIATEST_H

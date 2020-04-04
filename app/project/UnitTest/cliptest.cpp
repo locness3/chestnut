@@ -3,6 +3,32 @@
 #include "project/transition.h"
 #include "project/undo.h"
 
+using chestnut::project::Sequence;
+using chestnut::project::Footage;
+using chestnut::project::Media;
+
+namespace chestnut::project
+{
+class MediaTestable : public Media
+{
+  public:
+    MediaTestable()
+    {
+      object_ = std::make_shared<Footage>(nullptr);
+    }
+    MediaType type() const noexcept override
+    {
+      return MediaType::FOOTAGE;
+    }
+    void setSpeed(double speed)
+    {
+      std::dynamic_pointer_cast<Footage>(object_)->speed_ = speed;
+    }
+};
+}
+using chestnut::project::MediaTestable;
+
+
 
 ClipTest::ClipTest()
 {
@@ -464,22 +490,7 @@ void ClipTest::testCaseVerifyTransitionMovedTrack()
   QVERIFY(ca.size() == 4);
 }
 
-class MediaTestable : public Media
-{
-  public:
-    MediaTestable()
-    {
-      object_ = std::make_shared<Footage>(nullptr);
-    }
-    MediaType type() const noexcept override
-    {
-      return MediaType::FOOTAGE;
-    }
-    void setSpeed(double speed)
-    {
-      std::dynamic_pointer_cast<Footage>(object_)->speed_ = speed;
-    }
-};
+
 
 void ClipTest::testCasePlayheadToTimestampInRange()
 {

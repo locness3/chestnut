@@ -1,6 +1,9 @@
 #include "undotest.h"
 #include "project/undo.h"
 
+
+using chestnut::project::Media;
+
 UndoTest::UndoTest()
 {
 

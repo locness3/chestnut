@@ -3,6 +3,9 @@
 
 #include <QtTest>
 
+using chestnut::project::Media;
+using chestnut::project::Sequence;
+
 ProjectModelTest::ProjectModelTest(QObject *parent) : QObject(parent)
 {
 
