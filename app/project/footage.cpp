@@ -31,11 +31,12 @@ extern "C" {
 
 using project::FootageStreamPtr;
 using media_handling::MediaProperty;
+namespace mh = media_handling;
 
 
 Footage::Footage(const Footage& cpy)
   : ProjectItem(cpy),
-    length_(cpy.length_),
+    duration_(cpy.duration_),
     proj_dir_(cpy.proj_dir_),
     save_id(0),
     folder_(cpy.folder_),
@@ -151,7 +152,7 @@ void Footage::parseStreams()
   }
 
   bool is_okay = false;
-  length_ = media_source_->property<int64_t>(MediaProperty::DURATION, is_okay);
+  duration_ = media_source_->property<media_handling::Rational>(MediaProperty::DURATION, is_okay);
   if (!is_okay) {
     constexpr auto msg = "Failed to retrieve footage duration";
     qCritical() << msg;
@@ -236,7 +237,7 @@ bool Footage::load(QXmlStreamReader& stream)
         qWarning() << "Source file failed to load:" << ex.what();
       }
     } else if (elem_name == "duration") {
-      length_ = stream.readElementText().toLong();
+      duration_ = stream.readElementText().toLong();
     } else if (elem_name == "marker") {
       auto mrkr = std::make_shared<Marker>();
       mrkr->load(stream);
@@ -311,7 +312,7 @@ bool Footage::save(QXmlStreamWriter& stream) const
 
   stream.writeTextElement("name", name_);
   stream.writeTextElement("url", QDir(url_).absolutePath());
-  stream.writeTextElement("duration", QString::number(length_));
+  stream.writeTextElement("duration", QString::number(duration_.toDouble()));
   stream.writeTextElement("speed", QString::number(speed_));
 
   for (const auto& ms : video_tracks) {
@@ -338,12 +339,10 @@ bool Footage::save(QXmlStreamWriter& stream) const
   return true;
 }
 
-constexpr long lengthToFrames(const int64_t length, const double frame_rate, const double speed)
+constexpr uint64_t lengthToFrames(const mh::Rational& length, const double frame_rate, const double speed)
 {
-  Q_ASSERT(AV_TIME_BASE != 0);
-  if (length >= 0) {
-    return static_cast<long>(std::floor( (static_cast<double>(length) / AV_TIME_BASE)
-                                         * (frame_rate / speed) ));
+  if (length.toDouble() >= 0) {
+    return static_cast<uint64_t>(std::floor( (length * (frame_rate / speed) ).toDouble()));
   }
   return 0;
 }
@@ -372,8 +371,8 @@ long Footage::totalLengthInFrames(const double frame_rate) const noexcept
 {
   Q_ASSERT(!qFuzzyIsNull(speed_));
 
-  if (length_ >= 0) {
-    return lengthToFrames(length_, frame_rate, speed_);
+  if (duration_.toDouble() >= 0) {
+    return lengthToFrames(duration_, frame_rate, speed_);
   }
   return 0;
 }

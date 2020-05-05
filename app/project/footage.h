@@ -41,7 +41,6 @@ using FootageWPtr = std::weak_ptr<Footage>;
 class Footage : public std::enable_shared_from_this<Footage>, public project::ProjectItem
 {
   public:
-    int64_t length_{0};
 
     QDir proj_dir_{};
     int save_id{-1};
@@ -125,6 +124,10 @@ class Footage : public std::enable_shared_from_this<Footage>, public project::Pr
     virtual bool save(QXmlStreamWriter& stream) const override;
   private:
     friend class FootageTest;
+    /**
+     * @brief Duration of the footage in seconds
+     */
+    media_handling::Rational duration_;
     QString url_;
     std::weak_ptr<Media> parent_mda_;
     media_handling::MediaSourcePtr media_source_ {nullptr};
