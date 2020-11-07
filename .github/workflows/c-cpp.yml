@@ -13,5 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: install apt deps
+      run: sudo apt install build-essential pkg-config qtchooser wget unzip desktop-file-utils git cmake qt5-default libqt5svg5-dev qtmultimedia5-dev libavutil-dev libavformat-dev libavcodec-dev libavfilter-dev libavutil-dev libswscale-dev libfmt-dev ffmpeg
     - name: make
       run: qmake
